@@ -2,7 +2,7 @@
 from Angene.Main import painter
 import time
 
-from windows.Angene import main
+from Angene.Main import engine as main
 
 # --- Game Scene for Main Window ---
 class GameScene:
