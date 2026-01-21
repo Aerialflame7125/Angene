@@ -7,7 +7,7 @@ import time
 import traceback
 from Angene.Main.definitions import *
 
-# hook into user32.dll with definitions
+# hook into dlls with definitions
 user32 = ctypes.WinDLL('user32', use_last_error=True)
 gdi32 = ctypes.WinDLL('gdi32', use_last_error=True)
 kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
@@ -343,7 +343,7 @@ def create_new_window(title="New Window", width=500, height=400, style=0):
     hwnd = CreateWindowExW(
         style,
         "AngeneClass",
-        title,
+        f"Angene | {title}",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
