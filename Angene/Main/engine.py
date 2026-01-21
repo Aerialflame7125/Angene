@@ -7,7 +7,7 @@ import time
 import traceback
 from Angene.Main.definitions import *
 
-# hook into dlls with definitions
+# hook into user32.dll with definitions
 user32 = ctypes.WinDLL('user32', use_last_error=True)
 gdi32 = ctypes.WinDLL('gdi32', use_last_error=True)
 kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
@@ -343,7 +343,7 @@ def create_new_window(title="New Window", width=500, height=400, style=0):
     hwnd = CreateWindowExW(
         style,
         "AngeneClass",
-        f"Angene | {title}",
+        title,
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
@@ -405,10 +405,10 @@ def run(target_fps=60):
                     painter.Renderer.cleanup()
                     print(f"Final GDI objects: {get_gdi_object_count()}")
                     return
-                
-                if w.scene:
-                    if hasattr(w.scene, "OnWindowMessage"):
-                        w.scene.OnMessage(msg.hwnd, msg.message, msg.wParam, msg.lParam)
+                for w in window_map.values():
+                    if w.scene:
+                        if hasattr(w.scene, "OnWindowMessage"):
+                            w.scene.OnMessage(msg.hwnd, msg.message, msg.wParam, msg.lParam)
                 TranslateMessage(ctypes.byref(msg))
                 DispatchMessage(ctypes.byref(msg))
 
