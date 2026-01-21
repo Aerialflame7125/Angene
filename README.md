@@ -67,3 +67,11 @@ For example, you could use pygame for audio handling or other libraries for phys
 - The main thread, which handles window management, rendering, and scene updates.
 - The secondary thread, which is used for script management and background tasks.
 This means that any blocking operations in your scene's code can freeze the engine, so be cautious with long-running tasks.
+
+
+alsooooooo uhh some of the engine is indeed vibe-coded. Please try to rip on me for it not as much.
+- OpenXR implementation (slightly works btw) is vibe-coded, OpenXR spec + documentation fucking sucks
+- D3D11 implementation is vibe-coded, I honestly didn't know what D3D11 was before this project, was a product of OpenXR implementation. (OPEN-FUCKING-XR DOSENT LIKE MY OPENGL FEATURES)
+- D3D11_vr, self explanatory is vibe-coded.
+
+Everything else is either human created or revised by AI for efficiency. I am a single developer as a freshman, don't blame me for that.
