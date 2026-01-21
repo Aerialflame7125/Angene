@@ -69,7 +69,7 @@ For example, you could use pygame for audio handling or other libraries for phys
 This means that any blocking operations in your scene's code can freeze the engine, so be cautious with long-running tasks.
 
 
-alsooooooo uhh some of the engine is indeed vibe-coded. Please try to rip on me for it not as much.
+alsooooooo uhh some of the engine is indeed vibe-coded. Please try not to rip on me for it as much.
 - OpenXR implementation (slightly works btw) is vibe-coded, OpenXR spec + documentation fucking sucks
 - D3D11 implementation is vibe-coded, I honestly didn't know what D3D11 was before this project, was a product of OpenXR implementation. (OPEN-FUCKING-XR DOSENT LIKE MY OPENGL FEATURES)
 - D3D11_vr, self explanatory is vibe-coded.
