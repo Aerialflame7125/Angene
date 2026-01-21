@@ -1,6 +1,6 @@
 # Angene
 
-Hello! This is an example scene for this game engine, Angene.
+Hallo! I kinda made a game engine in python and called it Angene.
 Firstly, Angene is a python module. Whenever you want to work with it, import the main engine module:
 
 ```python
