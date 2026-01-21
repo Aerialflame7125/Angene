@@ -1,5 +1,4 @@
-# Angene
-
+"""
 Hello! This is an example scene for this game engine, Angene.
 Firstly, Angene is a python module. Whenever you want to work with it, import the main engine module:
 
@@ -67,3 +66,34 @@ For example, you could use pygame for audio handling or other libraries for phys
 - The main thread, which handles window management, rendering, and scene updates.
 - The secondary thread, which is used for script management and background tasks.
 This means that any blocking operations in your scene's code can freeze the engine, so be cautious with long-running tasks.
+
+Welp, here is an example scene that demonstrates these features, happy coding!
+(And thank you for listening to my ted talk)
+"""
+
+from Angene.Main import engine, painter
+import time
+
+class Scene:
+    def Start(self):
+        self.x = -100
+        print("[ExampleScene] Started")
+        exampleCall()
+
+    def Update(self, dt):
+        self.x += 150 * dt
+        if self.x > 500:
+            self.x = -100
+
+    def OnDraw(self, r):
+        r.clear(painter.RGB(50, 50, 100))
+        r.draw_rect(int(self.x), 150, 100, 100, painter.RGB(100, 200, 100))
+        r.draw_text(20, 20, "Example Scene", painter.RGB(255, 255, 255))
+
+def exampleCall():
+    print("[ExampleScene.exampleCall] Woah I'm running asyncronously!")
+
+engine.init()
+window = engine.Window("Angene Example Scene", 600, 400)
+window.set_scene(Scene())
+engine.run()

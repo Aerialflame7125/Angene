@@ -5,6 +5,7 @@ import ctypes
 from Angene.Main import painter
 import time
 import traceback
+from Angene.Main.definitions import *
 
 # hook into user32.dll with definitions
 user32 = ctypes.WinDLL('user32', use_last_error=True)
@@ -15,13 +16,12 @@ kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
 def exception_hook(exctype, value, tb):
     """Custom exception handler to catch crashes"""
     print("=" * 60)
-    print("CRASH DETECTED!")
+    print("Angene Crash Traceback:")
     print("=" * 60)
     print(f"Exception type: {exctype}")
     print(f"Exception value: {value}")
     print("Traceback:")
     traceback.print_tb(tb)
-    print("=" * 60)
 
 sys.excepthook = exception_hook
 
@@ -187,16 +187,9 @@ EndPaint = user32.EndPaint
 EndPaint.argtypes = [ctypes.c_void_p, ctypes.POINTER(PAINTSTRUCT)]
 EndPaint.restype = ctypes.c_bool
 
-WM_QUIT = 0x0012
-WM_CLOSE = 0x0010
-WM_DESTROY = 0x0002
-WM_NCCREATE = 0x0081
-WM_CREATE = 0x0001
-WM_PAINT = 0x000F
-WM_ERASEBKGND = 0x0014
-
 window_map = {}
 
+# Window message loop
 def WndProc(hwnd, msg, wParam, lParam):
     window_instance = window_map.get(hwnd)
     if not window_instance:
@@ -206,6 +199,8 @@ def WndProc(hwnd, msg, wParam, lParam):
     # NOT WM_PAINT - we'll render directly
     if msg == WM_CLOSE:
         if window_instance:
+            if (window_instance.scene and window_instance.scene_started and hasattr(window_instance.scene, 'OnApplicationQuit')):
+                window_instance.scene.OnApplicationQuit()
             window_instance.cleanup()
         user32.DestroyWindow(hwnd)
         return 0
@@ -216,7 +211,7 @@ def WndProc(hwnd, msg, wParam, lParam):
     
     if msg == WM_ERASEBKGND:
         return 1  # Indicate background erased
-    
+
     # Let Windows handle WM_PAINT with default behavior
     # We'll render directly in the main loop instead
     return DefWindowProcW(hwnd, msg, wParam, lParam)
@@ -410,6 +405,10 @@ def run(target_fps=60):
                     painter.Renderer.cleanup()
                     print(f"Final GDI objects: {get_gdi_object_count()}")
                     return
+                
+                if w.scene:
+                    if hasattr(w.scene, "OnWindowMessage"):
+                        w.scene.OnMessage(msg.hwnd, msg.message, msg.wParam, msg.lParam)
                 TranslateMessage(ctypes.byref(msg))
                 DispatchMessage(ctypes.byref(msg))
 

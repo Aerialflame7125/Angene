@@ -25,7 +25,7 @@ For 2D games:
 __version__ = "2.0.0-vr"
 
 # Main engine modules
-from Angene.Main import painter, engine
+from Angene.Main import painter, engine, definitions
 
 # Renderer modules
 from Angene.Renderers import d3d11, d3d11_vr, opengl3d
@@ -46,8 +46,9 @@ except:
 # Public API
 __all__ = [
     # Core engine
-    'painter',
     'engine',
+    'definitions',
+    'painter',
     
     # Renderers
     'd3d11',
