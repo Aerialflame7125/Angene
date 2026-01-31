@@ -5,7 +5,7 @@ VisualStudioVersion = 17.14.36908.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene", "Angene.csproj", "{C5FF0847-D5A7-4C97-E22E-EA41431995BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AngeneCompiler", "..\Compiler\AngeneCompiler\AngeneCompiler.csproj", "{02FDDD8C-2868-420E-893A-95099178506E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AngeneCompiler", "..\angpkg packer\AngeneCompiler\AngeneCompiler.csproj", "{02FDDD8C-2868-420E-893A-95099178506E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
