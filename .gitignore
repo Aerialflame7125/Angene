@@ -182,3 +182,5 @@ cython_debug/
 
 .vs
 obj
+*.pdb
+*.deps.json
