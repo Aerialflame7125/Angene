@@ -90,7 +90,7 @@ namespace Angene.Main
                 Array.Copy(manifestBytes, 0, cipher, 0, cipher.Length);
                 Array.Copy(manifestBytes, cipher.Length, tag, 0, 16);
 
-                using var aes = new AesGcm(key);
+                using var aes = new Angene.Crypto.AesGcm(key);
                 aes.Decrypt(manifestNonce, cipher, tag, plaintext, null);
 
                 manifestBytes = plaintext;
@@ -148,7 +148,7 @@ namespace Angene.Main
                 var tag = Convert.FromBase64String(entry.Tag);
                 var cipher = buffer;
                 var dest = new byte[cipher.Length];
-                using var aes = new AesGcm(_key);
+                using var aes = new Angene.Crypto.AesGcm(_key);
                 aes.Decrypt(nonce, cipher, tag, dest, null);
                 plaintext = dest;
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Angene.Main;
+using Angene.Platform;
 
 namespace Game
 {
@@ -25,6 +26,7 @@ namespace Game
                 Console.WriteLine("========================================");
                 Console.WriteLine("  Angene Test Game");
                 Console.WriteLine("  Starting from native host...");
+                Console.WriteLine($"  Platform: {PlatformDetection.CurrentPlatform}");
                 Console.WriteLine("========================================\n");
 
                 // Parse args if needed (args is a single string, not an array)
@@ -65,13 +67,14 @@ namespace Game
         }
 
         /// <summary>
-        /// Your actual game logic - kept exactly as you had it!
+        /// Your actual game logic - now platform-agnostic!
         /// </summary>
         private static void RunGame()
         {
             double dto = 0.0d;
             double dtl = 0.0d;
 
+            Console.WriteLine($"Detected platform: {PlatformDetection.CurrentPlatform}");
             Console.WriteLine("Creating game window...");
             var window = new Window("Angene - Test Game", 800, 600, use3D: false);
 
@@ -82,7 +85,27 @@ namespace Game
             Console.WriteLine("Starting game...\n");
             scene.Start();
 
-            // Main game loop
+            // Main game loop - platform-specific message handling
+#if WINDOWS
+            Console.WriteLine("Using Windows message loop");
+            RunWindowsMessageLoop(window, scene, ref dto, ref dtl);
+#else
+            Console.WriteLine("Using X11 message loop");
+            RunX11MessageLoop(window, scene, ref dto, ref dtl);
+#endif
+
+            // Cleanup
+            Console.WriteLine("\nCleaning up...");
+            window.Cleanup();
+            Console.WriteLine("Cleanup complete.");
+        }
+
+#if WINDOWS
+        /// <summary>
+        /// Windows-specific message loop using Win32 APIs
+        /// </summary>
+        private static void RunWindowsMessageLoop(Window window, IScene scene, ref double dto, ref double dtl)
+        {
             bool running = true;
             while (running)
             {
@@ -117,11 +140,40 @@ namespace Game
                 // Simple framerate cap ~60fps
                 Thread.Sleep(16);
             }
-
-            // Cleanup
-            Console.WriteLine("\nCleaning up...");
-            window.Cleanup();
-            Console.WriteLine("Cleanup complete.");
         }
+#else
+        /// <summary>
+        /// X11-specific message loop using the Window's ProcessMessages method
+        /// </summary>
+        private static void RunX11MessageLoop(Window window, IScene scene, ref double dto, ref double dtl)
+        {
+            bool running = true;
+            while (running)
+            {
+                // Process X11 events using the window's instance method
+                if (!window.ProcessMessages())
+                {
+                    running = false;
+                    break;
+                }
+
+                // Update / Draw
+                try
+                {
+                    scene.Update(dto);
+                    scene.LateUpdate(dtl);
+                    scene.OnDraw();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Frame error: {ex.Message}");
+                    // Continue running even if a frame fails
+                }
+
+                // Simple framerate cap ~60fps
+                Thread.Sleep(16);
+            }
+        }
+#endif
     }
 }

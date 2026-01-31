@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Angene.Renderers.D3D11Types
+namespace Angene.Graphics.D3D11Types
 {
     internal static class D3D11Resources
     {

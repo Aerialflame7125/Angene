@@ -1,25 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <!-- Multi-target: net48 (Windows), net6.0 (Mono/Linux), net8.0 (Modern .NET) -->
+    <TargetFrameworks>net48;net6.0;net8.0</TargetFrameworks>
+    
+    <!-- Define WINDOWS only when targeting net48 -->
+    <DefineConstants Condition="'$(TargetFramework)' == 'net48'">WINDOWS</DefineConstants>
+    
     <LangVersion>latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Reference Include="Angene">
-        <HintPath>Angene.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
-    
-    <!-- Add missing dependencies explicitly -->
     <PackageReference Include="System.Buffers" Version="4.5.1" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Text.Json" Version="4.7.0" />
@@ -27,4 +24,33 @@
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Core Engine Files -->
+    <Compile Include="Main\Engine.cs" />
+    <Compile Include="Main\Kernel32.cs" />
+    <Compile Include="Main\PkgHandler.cs" />
+    
+    <!-- Graphics Files -->
+    <Compile Include="Graphics\GraphicsBackend.cs" />
+    
+    <!-- Platform Files -->
+    <Compile Include="Platform\Platform.cs" />
+    
+    <!-- Renderer Files -->
+    <Compile Include="Renderers\**\*.cs" />
+    
+    <!-- Globals Files -->
+    <Compile Include="Globals\**\*.cs" />
+    
+    <!-- Crypto Files (if they exist) -->
+    <Compile Include="Crypto\**\*.cs" Condition="Exists('Crypto')" />
+    
+    <!-- Windows-only files (only for net48) -->
+    <Compile Include="Main\Win32.cs" Condition="'$(TargetFramework)' == 'net48'" />
+    <Compile Include="Main\Gdi32.cs" Condition="'$(TargetFramework)' == 'net48'" />
+    <Compile Include="Main\Win32Messages.cs" Condition="'$(TargetFramework)' == 'net48'" />
+    
+    <!-- Linux-only files (exclude from net48) -->
+    <Compile Include="Platform\X11Native.cs" Condition="'$(TargetFramework)' != 'net48'" />
+  </ItemGroup>
 </Project>

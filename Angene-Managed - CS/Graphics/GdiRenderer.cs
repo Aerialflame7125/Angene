@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using static Angene.Main.Win32;
 using static Angene.Main.Gdi32;
 
-namespace Angene.Renderers
+namespace Angene.Graphics
 {
     public sealed class GdiRenderer : IRenderer, IDisposable
     {

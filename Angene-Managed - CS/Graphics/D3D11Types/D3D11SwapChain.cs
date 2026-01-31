@@ -1,6 +1,6 @@
 using System;
 
-namespace Angene.Renderers.D3D11Types
+namespace Angene.Graphics.D3D11Types
 {
     internal sealed class D3D11SwapChain
     {

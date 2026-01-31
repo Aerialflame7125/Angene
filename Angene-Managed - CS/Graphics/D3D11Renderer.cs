@@ -1,8 +1,8 @@
 using System;
 using Angene.Globals;
-using Angene.Renderers.D3D11Types;
+using Angene.Graphics.D3D11Types;
 
-namespace Angene.Renderers
+namespace Angene.Graphics
 {
     public sealed class D3D11Renderer : IRenderer
     {

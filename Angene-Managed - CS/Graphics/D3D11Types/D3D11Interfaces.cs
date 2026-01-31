@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Angene.Renderers.D3D11Types
+namespace Angene.Graphics.D3D11Types
 {
     // Core COM interfaces (kept minimal to what's used)
     [ComImport, Guid("db6f6ddb-ac77-4e88-8253-819df9bbf140"),

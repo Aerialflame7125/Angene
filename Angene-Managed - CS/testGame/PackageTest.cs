@@ -5,17 +5,18 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Collections.Generic;
 using Angene.Main;
-using Angene.Renderers;
 using Angene.Globals;
+using Angene.Platform;
+
+#if WINDOWS
+using Angene.Graphics;
+#endif
 
 namespace Game
 {
     /// <summary>
-    /// Demo scene that shows how to use the Package loader (PkgHandler/Package).
-    /// - Place a package file named "game.angpkg" next to the executable (or change the path below).
-    /// - The packer CLI (AngeneCompiler) can create the package:
-    ///     dotnet run --project ..\Compiler\AngeneCompiler -- pack ./assets game.angpkg --compress
-    /// - This scene will try to open "text/hello.txt" inside the package; if not present it will show the first entry.
+    /// Cross-platform demo scene that shows how to use the Package loader (PkgHandler/Package).
+    /// Works on both Windows and Linux (X11).
     /// </summary>
     public sealed class PackageTest : IScene
     {
@@ -34,6 +35,8 @@ namespace Game
 
         public void Start()
         {
+            Console.WriteLine($"[PackageTest] Running on {PlatformDetection.CurrentPlatform}");
+            
             // Try open package (no key). If your package is encrypted pass a key byte[] to Package.Open.
             try
             {
@@ -74,7 +77,6 @@ namespace Game
             }
         }
 
-        // dt is seconds since last update
         public void Update(double dt)
         {
             // Example: could animate UI or tick timers using dt
@@ -88,18 +90,35 @@ namespace Game
         public void OnMessage(IntPtr msgPtr)
         {
             if (msgPtr == IntPtr.Zero) return;
-            var msg = Marshal.PtrToStructure<Win32.MSG>(msgPtr);
 
-            // Example: print close message to console
+#if WINDOWS
+            var msg = Marshal.PtrToStructure<Win32.MSG>(msgPtr);
             if (msg.message == Win32.WM_CLOSE)
             {
-                Console.WriteLine("[PackageDemoScene] Received WM_CLOSE");
+                Console.WriteLine("[PackageTest] Received WM_CLOSE");
             }
+#else
+            var msg = Marshal.PtrToStructure<Window.PlatformMessage>(msgPtr);
+            if (msg.message == 33) // ClientMessage
+            {
+                Console.WriteLine("[PackageTest] Received close message");
+            }
+#endif
         }
 
         public void OnDraw()
         {
-            // Acquire window DC and draw text from the loaded asset
+#if WINDOWS
+            DrawWindows();
+#else
+            DrawLinux();
+#endif
+        }
+
+#if WINDOWS
+        private void DrawWindows()
+        {
+            // Windows GDI rendering
             IntPtr hdc = Win32.GetDC(_window.Hwnd);
             if (hdc == IntPtr.Zero) return;
 
@@ -117,12 +136,13 @@ namespace Game
                 // Package summary
                 renderer.DrawText(12, 32, $"Package: {_packagePath}", 0x00FFFFFF);
                 renderer.DrawText(12, 48, $"Entries: {_entryNames.Count}", 0x00FFFFFF);
+                renderer.DrawText(12, 64, $"Platform: {PlatformDetection.CurrentPlatform}", 0x00FFFFFF);
 
                 // Loaded text content (wrap simple)
                 if (!string.IsNullOrEmpty(_loadedText))
                 {
-                    var y = 80;
-                    var lines = WrapLines(_loadedText, 80); // soft wrap
+                    var y = 96;
+                    var lines = WrapLines(_loadedText, 80);
                     foreach (var line in lines)
                     {
                         renderer.DrawText(12, y, line, 0x00FFFFFF);
@@ -132,7 +152,7 @@ namespace Game
                 }
                 else
                 {
-                    renderer.DrawText(12, 80, "No text loaded from package.", 0x00FF8080);
+                    renderer.DrawText(12, 96, "No text loaded from package.", 0x00FF8080);
                 }
 
                 renderer.EndFrame();
@@ -142,6 +162,45 @@ namespace Game
                 Win32.ReleaseDC(_window.Hwnd, hdc);
             }
         }
+#else
+        private void DrawLinux()
+        {
+            // Linux X11 rendering using the graphics context
+            var graphics = _window.Graphics;
+            if (graphics == null) return;
+
+            // Background
+            graphics.Clear(0x00131A1F); // Dark blue-gray (COLORREF: 0x00BBGGRR)
+
+            // Title
+            graphics.DrawText("Angene Package Demo", 12, 20, 0x00FFFF00);
+
+            // Package summary
+            graphics.DrawText($"Package: {_packagePath}", 12, 44, 0x00FFFFFF);
+            graphics.DrawText($"Entries: {_entryNames.Count}", 12, 60, 0x00FFFFFF);
+            graphics.DrawText($"Platform: {PlatformDetection.CurrentPlatform}", 12, 76, 0x00FFFFFF);
+
+            // Loaded text content
+            if (!string.IsNullOrEmpty(_loadedText))
+            {
+                var y = 108;
+                var lines = WrapLines(_loadedText, 80);
+                foreach (var line in lines)
+                {
+                    graphics.DrawText(line, 12, y, 0x00FFFFFF);
+                    y += 18;
+                    if (y > _window.Height - 20) break;
+                }
+            }
+            else
+            {
+                graphics.DrawText("No text loaded from package.", 12, 108, 0x00FF8080);
+            }
+
+            // Present to screen
+            graphics.Present(_window.Hwnd);
+        }
+#endif
 
         public void Render() { }
 

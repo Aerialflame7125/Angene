@@ -1,26 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<OutputType>Library</OutputType>
-		<TargetFramework>net48</TargetFramework>
-		<LangVersion>latest</LangVersion>
-		<AssemblyName>testGame</AssemblyName>
-		<RootNamespace>testGame</RootNamespace>
-		<PlatformTarget>AnyCPU</PlatformTarget>
-		<Prefer32Bit>false</Prefer32Bit>
-	</PropertyGroup>
-	<ItemGroup>
-	  <!-- Add missing dependencies that Angene requires -->
-	  <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
-	  <PackageReference Include="System.Buffers" Version="4.5.1" />
-	  <PackageReference Include="System.Memory" Version="4.5.5" />
-	  <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-	  <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
-	  <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-	  <PackageReference Include="System.Text.Json" Version="8.0.5" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Reference Include="Angene">
-	    <HintPath>..\..\..\..\..\Angene-Host - CPP\Angene.dll</HintPath>
-	  </Reference>
-	</ItemGroup>
+  <PropertyGroup>
+    <!-- Multi-target: net48 (Windows), net6.0 (Mono/Linux), net8.0 (Modern .NET) -->
+    <TargetFrameworks>net48;net6.0;net8.0</TargetFrameworks>
+    
+    <!-- Define WINDOWS only when targeting net48 -->
+    <DefineConstants Condition="'$(TargetFramework)' == 'net48'">WINDOWS</DefineConstants>
+    
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Game</AssemblyName>
+	<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference to the Angene library -->
+    <!-- Adjust HintPath based on your directory structure -->
+    <Reference Include="Angene">
+      <HintPath>Angene.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Your game source files -->
+    <Compile Include="Program.cs" />
+    <Compile Include="PackageTest.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- NuGet packages if needed -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
 </Project>
