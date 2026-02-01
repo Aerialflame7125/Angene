@@ -5,7 +5,7 @@ VisualStudioVersion = 17.14.36908.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene", "Angene.csproj", "{C5FF0847-D5A7-4C97-E22E-EA41431995BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AngeneCompiler", "..\angpkg packer\AngeneCompiler\AngeneCompiler.csproj", "{02FDDD8C-2868-420E-893A-95099178506E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game", "testGame\Game.csproj", "{699408BB-F53F-C1C7-6798-22AB1542911D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{C5FF0847-D5A7-4C97-E22E-EA41431995BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5FF0847-D5A7-4C97-E22E-EA41431995BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5FF0847-D5A7-4C97-E22E-EA41431995BC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{02FDDD8C-2868-420E-893A-95099178506E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{02FDDD8C-2868-420E-893A-95099178506E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{02FDDD8C-2868-420E-893A-95099178506E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{02FDDD8C-2868-420E-893A-95099178506E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{699408BB-F53F-C1C7-6798-22AB1542911D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{699408BB-F53F-C1C7-6798-22AB1542911D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{699408BB-F53F-C1C7-6798-22AB1542911D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{699408BB-F53F-C1C7-6798-22AB1542911D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,36 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <!-- Multi-target: net48 (Windows), net6.0 (Mono/Linux), net8.0 (Modern .NET) -->
-    <TargetFrameworks>net48;net6.0;net8.0</TargetFrameworks>
-    
-    <!-- Define WINDOWS only when targeting net48 -->
-    <DefineConstants Condition="'$(TargetFramework)' == 'net48'">WINDOWS</DefineConstants>
-    
-    <LangVersion>latest</LangVersion>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <Prefer32Bit>false</Prefer32Bit>
-    <Nullable>enable</Nullable>
-    <OutputType>Library</OutputType>
-    <AssemblyName>Game</AssemblyName>
-	<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-  </PropertyGroup>
 
-  <ItemGroup>
-    <!-- Reference to the Angene library -->
-    <!-- Adjust HintPath based on your directory structure -->
-    <Reference Include="Angene">
-      <HintPath>Angene.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<OutputType>Library</OutputType>
+		<AssemblyName>Game</AssemblyName>
+		<RootNamespace>Game</RootNamespace>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
 
-  <ItemGroup>
-    <!-- Your game source files -->
-    <Compile Include="Program.cs" />
-    <Compile Include="PackageTest.cs" />
-  </ItemGroup>
+		<!-- Generate runtime config file -->
+		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
 
-  <ItemGroup>
-    <!-- NuGet packages if needed -->
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-  </ItemGroup>
+		<!-- Copy dependencies to output -->
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	</PropertyGroup>
+
+	<!-- Platform-specific defines -->
+	<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+		<DefineConstants>WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+		<DefineConstants>LINUX</DefineConstants>
+	</PropertyGroup>
+
+	<!-- NuGet package dependencies -->
+	<ItemGroup>
+		<PackageReference Include="System.Security.Permissions" Version="8.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Angene.csproj" />
+	</ItemGroup>
+
 </Project>

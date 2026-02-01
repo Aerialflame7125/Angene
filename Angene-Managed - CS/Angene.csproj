@@ -1,16 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- Multi-target: net48 (Windows), net6.0 (Mono/Linux), net8.0 (Modern .NET) -->
-    <TargetFrameworks>net48;net6.0;net8.0</TargetFrameworks>
-    
-    <!-- Define WINDOWS only when targeting net48 -->
-    <DefineConstants Condition="'$(TargetFramework)' == 'net48'">WINDOWS</DefineConstants>
-    
+    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <Nullable>enable</Nullable>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+  	<DefineConstants>WINDOWS</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+  	<DefineConstants>LINUX</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +22,7 @@
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
     <PackageReference Include="System.Buffers" Version="4.5.1" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+    <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
     <PackageReference Include="System.Text.Json" Version="4.7.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
@@ -31,7 +35,7 @@
     <Compile Include="Main\PkgHandler.cs" />
     
     <!-- Graphics Files -->
-    <Compile Include="Graphics\GraphicsBackend.cs" />
+    <Compile Include="Graphics\**\*.cs" />
     
     <!-- Platform Files -->
     <Compile Include="Platform\Platform.cs" />
@@ -42,15 +46,18 @@
     <!-- Globals Files -->
     <Compile Include="Globals\**\*.cs" />
     
-    <!-- Crypto Files (if they exist) -->
-    <Compile Include="Crypto\**\*.cs" Condition="Exists('Crypto')" />
+    <!-- Crypto Files -->
+    <Compile Include="Crypto\**\*.cs" />
     
-    <!-- Windows-only files (only for net48) -->
-    <Compile Include="Main\Win32.cs" Condition="'$(TargetFramework)' == 'net48'" />
-    <Compile Include="Main\Gdi32.cs" Condition="'$(TargetFramework)' == 'net48'" />
-    <Compile Include="Main\Win32Messages.cs" Condition="'$(TargetFramework)' == 'net48'" />
+    <!-- Windows-only files -->
+    <Compile Include="Main\Win32.cs" />
+    <Compile Include="Main\Gdi32.cs" />
+    <Compile Include="Main\Win32Messages.cs" />
     
-    <!-- Linux-only files (exclude from net48) -->
-    <Compile Include="Platform\X11Native.cs" Condition="'$(TargetFramework)' != 'net48'" />
+    <!-- Linux-only files -->
+    <Compile Include="Platform\X11Native.cs" />
+	  
+	<!-- External Implementations -->
+	<Compile Include="External\**\*.cs" />
   </ItemGroup>
 </Project>

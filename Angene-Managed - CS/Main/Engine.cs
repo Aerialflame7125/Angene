@@ -3,18 +3,72 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Angene.Globals;
 using Angene.Graphics;
+using Angene.External;
 
 namespace Angene.Main
 {
+    public class AngeneException : Exception
+    {
+        // 1. Default constructor
+        public AngeneException()
+        {
+        }
+
+        // 2. Constructor with a message
+        public AngeneException(string message)
+            : base(message)
+        {
+        }
+
+        // 3. Constructor with a message and an inner exception
+        public AngeneException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
+    }
+
+    public class Engine
+    {
+        private static HandleExternal? _externalHandler;
+
+        public static void Initialize()
+        {
+            if (_externalHandler == null)
+            {
+                _externalHandler = new HandleExternal();
+                _externalHandler.Initialize();
+            }
+        }
+
+        public static HandleExternal GetInstance()
+        {
+            if (_externalHandler == null)
+            {
+                throw new InvalidOperationException("Engine not initialized. Call Engine.Initialize() first.");
+            }
+
+            return _externalHandler;
+        }
+
+        public static void Shutdown()
+        {
+            if (_externalHandler != null)
+            {
+                _externalHandler.Dispose();
+                _externalHandler = null; // Clean up the reference
+            }
+        }
+    }
+
     public interface IScene
     {
-        void Start();
-        void Update(double dt);
-        void LateUpdate(double dt);
-        void OnMessage(IntPtr msgPtr);
-        void OnDraw();
-        void Render();
-        void Cleanup();
+        public void Start() { }
+        public void Update(double dt) { }
+        public void LateUpdate(double dt) { }
+        public void OnMessage(IntPtr msgPtr) { }
+        public void OnDraw() { }
+        public void Render() { }
+        public void Cleanup() { }
 
         IRenderer3D? Renderer3D { get; }
     }
@@ -22,12 +76,15 @@ namespace Angene.Main
     public class Window
     {
         public IntPtr Hwnd { get; private set; }
-        public IScene? Scene { get; private set; }
+
+        public List<bool> ScenesStarted { get; private set; } = new List<bool>();
+        public List<IScene> Scenes { get; private set; } = new List<IScene>();
+        public IScene? PrimScene { get; private set; }
 
         public int Width { get; }
         public int Height { get; }
 
-        private IGraphicsContext graphicsContext;
+        private IGraphicsContext? graphicsContext;
         private bool sceneStarted;
         private bool is3D;
 
@@ -50,7 +107,6 @@ namespace Angene.Main
             Width = width;
             Height = height;
             is3D = use3D;
-            sceneStarted = false;
 
 #if WINDOWS
             Hwnd = CreateWindowWindows(title, width, height);
@@ -73,8 +129,32 @@ namespace Angene.Main
 
         public void SetScene(IScene scene)
         {
-            Scene = scene;
-            sceneStarted = false;
+            Scenes.Clear();
+            ScenesStarted.Clear();
+            Scenes.Add(scene);
+            ScenesStarted.Add(false);
+            PrimScene = scene;
+        }
+
+        public void AddScene(IScene scene)
+        {
+            if (Scenes.Count != ScenesStarted.Count)
+            {
+                throw new AngeneException("The number of 'Scenes' and 'ScenesStarted' are not equivalent. Please do not edit these variables manually and instead use AddScene() or SetScene()");
+            }
+            Scenes.Add(scene);
+            ScenesStarted.Add(false);
+        }
+
+        public void RemScene(IScene scene)
+        {
+            int index = Scenes.IndexOf(scene);
+            if (index == -1)
+            {
+                throw new AngeneException("The scene to be removed was not found in the current scene list.");
+            }
+            Scenes.RemoveAt(index);
+            ScenesStarted.RemoveAt(index);
         }
 
         public void Cleanup()
@@ -84,8 +164,11 @@ namespace Angene.Main
                 graphicsContext.Cleanup();
             }
 
-            Scene?.Renderer3D?.Cleanup();
-            Scene?.Cleanup();
+            foreach (IScene Scene in Scenes)
+            {
+                Scene?.Renderer3D?.Cleanup();
+                Scene?.Cleanup();
+            }
         }
 
 #if WINDOWS
@@ -148,7 +231,7 @@ namespace Angene.Main
         private static IntPtr DefaultWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
         {
             // Forward message to scene if found
-            if (WindowMap.TryGetValue(hWnd, out var win) && win.Scene != null)
+            if (WindowMap.TryGetValue(hWnd, out var win) && win.PrimScene != null)
             {
                 var managedMsg = new Win32.MSG
                 {
@@ -167,7 +250,7 @@ namespace Angene.Main
                     Marshal.StructureToPtr(managedMsg, msgPtr, false);
                     try
                     {
-                        win.Scene.OnMessage(msgPtr);
+                        win.PrimScene.OnMessage(msgPtr);
                     }
                     catch
                     {
@@ -213,7 +296,7 @@ namespace Angene.Main
         }
 #else
         // ==================== LINUX/MACOS X11 IMPLEMENTATION ====================
-        
+
         private void CreateWindowX11(string title, int width, int height)
         {
             // X11 is a static class, no need to instantiate
@@ -225,10 +308,10 @@ namespace Angene.Main
 
             int screen = Platform.Linux.X11.XDefaultScreen(display);
             IntPtr rootWindow = Platform.Linux.X11.XRootWindow(display, screen);
-            
+
             var attributes = new Platform.Linux.X11.XSetWindowAttributes();
             attributes.background_pixel = Platform.Linux.X11.XWhitePixel(display, screen);
-            attributes.event_mask = 
+            attributes.event_mask =
                 Platform.Linux.X11.KeyPressMask |
                 Platform.Linux.X11.KeyReleaseMask |
                 Platform.Linux.X11.ButtonPressMask |
@@ -265,7 +348,7 @@ namespace Angene.Main
             // Show window
             Platform.Linux.X11.XMapWindow(display, Hwnd);
             Platform.Linux.X11.XFlush(display);
-            
+
             shouldClose = false;
         }
 
@@ -277,7 +360,7 @@ namespace Angene.Main
             while (Platform.Linux.X11.XPending(display) > 0)
             {
                 Platform.Linux.X11.XNextEvent(display, out var xevent);
-                
+
                 // Create a message structure similar to Win32
                 var msg = new PlatformMessage
                 {
@@ -326,7 +409,7 @@ namespace Angene.Main
                 }
 
                 // Forward to scene
-                if (Scene != null)
+                if (PrimScene != null)
                 {
                     IntPtr msgPtr = Marshal.AllocHGlobal(Marshal.SizeOf<PlatformMessage>());
                     try
@@ -334,7 +417,7 @@ namespace Angene.Main
                         Marshal.StructureToPtr(msg, msgPtr, false);
                         try
                         {
-                            Scene.OnMessage(msgPtr);
+                            PrimScene.OnMessage(msgPtr);
                         }
                         catch
                         {
@@ -375,6 +458,6 @@ namespace Angene.Main
         }
 
         // Public graphics API (platform-agnostic)
-        public IGraphicsContext Graphics => graphicsContext;
+        public IGraphicsContext? Graphics => graphicsContext;
     }
 }
