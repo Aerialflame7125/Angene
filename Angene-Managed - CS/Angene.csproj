@@ -1,63 +1,64 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <Prefer32Bit>false</Prefer32Bit>
-    <Nullable>enable</Nullable>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<Prefer32Bit>false</Prefer32Bit>
+		<Nullable>enable</Nullable>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-  	<DefineConstants>WINDOWS</DefineConstants>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-  	<DefineConstants>LINUX</DefineConstants>
-  </PropertyGroup>
+	<!-- FIXED: Append to DefineConstants instead of replacing -->
+	<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
-    <PackageReference Include="System.Buffers" Version="4.5.1" />
-    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-    <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
-    <PackageReference Include="System.Text.Json" Version="4.7.0" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-  </ItemGroup>
+	<PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+		<DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <!-- Core Engine Files -->
-    <Compile Include="Main\Engine.cs" />
-    <Compile Include="Main\Kernel32.cs" />
-    <Compile Include="Main\PkgHandler.cs" />
-    
-    <!-- Graphics Files -->
-    <Compile Include="Graphics\**\*.cs" />
-    
-    <!-- Platform Files -->
-    <Compile Include="Platform\Platform.cs" />
-    
-    <!-- Renderer Files -->
-    <Compile Include="Renderers\**\*.cs" />
-    
-    <!-- Globals Files -->
-    <Compile Include="Globals\**\*.cs" />
-    
-    <!-- Crypto Files -->
-    <Compile Include="Crypto\**\*.cs" />
-    
-    <!-- Windows-only files -->
-    <Compile Include="Main\Win32.cs" />
-    <Compile Include="Main\Gdi32.cs" />
-    <Compile Include="Main\Win32Messages.cs" />
-    
-    <!-- Linux-only files -->
-    <Compile Include="Platform\X11Native.cs" />
-	  
-	<!-- External Implementations -->
-	<Compile Include="External\**\*.cs" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="System.Memory" Version="4.5.5" />
+		<PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
+		<PackageReference Include="System.Buffers" Version="4.5.1" />
+		<PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+		<PackageReference Include="System.Security.Permissions" Version="8.0.0" />
+		<PackageReference Include="System.Text.Json" Version="4.7.0" />
+		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Core Engine Files -->
+		<Compile Include="Main\Engine.cs" />
+		<Compile Include="Main\Kernel32.cs" />
+		<Compile Include="Main\PkgHandler.cs" />
+
+		<!-- Graphics Files -->
+		<Compile Include="Graphics\**\*.cs" />
+
+		<!-- Platform Files -->
+		<Compile Include="Platform\Platform.cs" />
+
+		<!-- Renderer Files -->
+		<Compile Include="Renderers\**\*.cs" />
+
+		<!-- Globals Files -->
+		<Compile Include="Globals\**\*.cs" />
+
+		<!-- Crypto Files -->
+		<Compile Include="Crypto\**\*.cs" />
+
+		<!-- Windows-only files -->
+		<Compile Include="Main\Win32.cs" />
+		<Compile Include="Main\Gdi32.cs" />
+		<Compile Include="Main\Win32Messages.cs" />
+
+		<!-- Linux-only files -->
+		<Compile Include="Platform\X11Native.cs" />
+
+		<!-- External Implementations -->
+		<Compile Include="External\**\*.cs" />
+	</ItemGroup>
 </Project>

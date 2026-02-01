@@ -27,10 +27,17 @@ namespace Game
         private string _packagePath = "game.angpkg";
         private string? _loadedText;
         private List<string> _entryNames = new();
+        private Angene.External.HandleExternal _external;
 
         public PackageTest(Window window)
         {
             _window = window;
+            
+            // Initialize Engine if not already initialized
+            Engine.Initialize();
+            
+            // Get the external handler instance
+            _external = Engine.GetInstance();
         }
 
         public void Start()
@@ -49,6 +56,19 @@ namespace Game
                     // Prefer a known path inside the package
                     var target = _entryNames.FirstOrDefault(p => p.EndsWith("text/hello.txt", StringComparison.OrdinalIgnoreCase))
                                  ?? _entryNames.FirstOrDefault();
+
+                    _external.SetDiscordRichPresence(
+                        Angene.External.DiscordGameSDK.ActivityType.Playing,
+                        "Testing Angene Package",
+                        $"Platform: {PlatformDetection.CurrentPlatform}",
+                        0, 0,
+                        "large_image", "Angene Engine", "small_image", "Package Demo",
+                        "", "",
+                        "", 0, 0, "", "",
+                        1 | 2 | 4,
+                        useDirectRPC: false, useTimestamps: false, useParty: false, useSecrets: false, usePlatforms: true,
+                        verbose: true
+                    );
 
                     if (target != null)
                     {
