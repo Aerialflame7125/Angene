@@ -27,12 +27,14 @@
 		<PackageReference Include="System.Text.Json" Version="4.7.0" />
 		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+		<PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<!-- Core Engine Files -->
 		<Compile Include="Main\Engine.cs" />
 		<Compile Include="Main\Kernel32.cs" />
+		<Compile Include="Main\Logger.cs" />
 		<Compile Include="Main\PkgHandler.cs" />
 
 		<!-- Graphics Files -->
@@ -57,6 +59,7 @@
 
 		<!-- Linux-only files -->
 		<Compile Include="Platform\X11Native.cs" />
+		<Compile Include="Settings\Settings.cs" />
 
 		<!-- External Implementations -->
 		<Compile Include="External\**\*.cs" />

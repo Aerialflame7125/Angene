@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using Angene.Main;
 using Angene.Globals;
 using Angene.Platform;
+using Angene.External;
+using DiscordRPC;
 
 #if WINDOWS
 using Angene.Graphics;
@@ -27,23 +29,11 @@ namespace Game
         private string _packagePath = "game.angpkg";
         private string? _loadedText;
         private List<string> _entryNames = new();
-        private Angene.External.HandleExternal _external;
-
-        public PackageTest(Window window)
-        {
-            _window = window;
-            
-            // Initialize Engine if not already initialized
-            Engine.Initialize();
-            
-            // Get the external handler instance
-            _external = Engine.GetInstance();
-        }
 
         public void Start()
         {
             Console.WriteLine($"[PackageTest] Running on {PlatformDetection.CurrentPlatform}");
-            
+            DiscordRichPresence rpc = new("1467308284322254862");
             // Try open package (no key). If your package is encrypted pass a key byte[] to Package.Open.
             try
             {
@@ -57,18 +47,12 @@ namespace Game
                     var target = _entryNames.FirstOrDefault(p => p.EndsWith("text/hello.txt", StringComparison.OrdinalIgnoreCase))
                                  ?? _entryNames.FirstOrDefault();
 
-                    _external.SetDiscordRichPresence(
-                        Angene.External.DiscordGameSDK.ActivityType.Playing,
-                        "Testing Angene Package",
-                        $"Platform: {PlatformDetection.CurrentPlatform}",
-                        0, 0,
-                        "large_image", "Angene Engine", "small_image", "Package Demo",
-                        "", "",
-                        "", 0, 0, "", "",
-                        1 | 2 | 4,
-                        useDirectRPC: false, useTimestamps: false, useParty: false, useSecrets: false, usePlatforms: true,
-                        verbose: true
-                    );
+                    DiscordRPC.Button button = new()
+                    {
+                        Label = "join me twin",
+                        Url = "https://amretar.com"
+                    };
+
 
                     if (target != null)
                     {
@@ -78,6 +62,20 @@ namespace Game
                             using var s = _package.OpenStream(entry);
                             using var sr = new StreamReader(s, Encoding.UTF8);
                             _loadedText = sr.ReadToEnd();
+
+                            DiscordRichPresence.DiscordPresenceState state = new()
+                            {
+                                State = "im jeorking it",
+                                Details = $"Read {_loadedText} from package 'game.angpkg'",
+                                LargeImageKey = "https://amretar.com/amretar.jpg",
+                                LargeImageText = "beer",
+                                SmallImageKey = "g_v4nfeauaegumg",
+                                SmallImageText = "brain now bnuuy",
+                                Buttons = new DiscordRPC.Button[] { button }
+                            };
+
+                            rpc.SetPresence(state);
+
                         }
                     }
                     else

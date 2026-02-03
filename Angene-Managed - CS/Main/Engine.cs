@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Angene.Globals;
 using Angene.Graphics;
 using Angene.External;
+using System.Security.Permissions;
 
 namespace Angene.Main
 {
@@ -27,39 +28,6 @@ namespace Angene.Main
         }
     }
 
-    public class Engine
-    {
-        private static HandleExternal? _externalHandler;
-
-        public static void Initialize()
-        {
-            if (_externalHandler == null)
-            {
-                _externalHandler = new HandleExternal();
-                _externalHandler.Initialize();
-            }
-        }
-
-        public static HandleExternal GetInstance()
-        {
-            if (_externalHandler == null)
-            {
-                throw new InvalidOperationException("Engine not initialized. Call Engine.Initialize() first.");
-            }
-
-            return _externalHandler;
-        }
-
-        public static void Shutdown()
-        {
-            if (_externalHandler != null)
-            {
-                _externalHandler.Dispose();
-                _externalHandler = null; // Clean up the reference
-            }
-        }
-    }
-
     public interface IScene
     {
         public void Start() { }
@@ -69,7 +37,6 @@ namespace Angene.Main
         public void OnDraw() { }
         public void Render() { }
         public void Cleanup() { }
-
         IRenderer3D? Renderer3D { get; }
     }
 
@@ -173,7 +140,7 @@ namespace Angene.Main
 
 #if WINDOWS
         // ==================== WINDOWS IMPLEMENTATION ====================
-        
+
         private static IntPtr CreateWindowWindows(string title, int width, int height)
         {
             // Register class once
