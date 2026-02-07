@@ -1,42 +1,34 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using Angene.Main;
 using Angene.Platform;
+using Angene.Settings;
 
 namespace Game
 {
+    public class Instances
+    {
+        public static Instances Instance { get; } = new Instances();
+        public Engine engine;
+        public Settings settings;
+        public Instances() { }
+        public void MakeInstances()
+        {
+            engine = Engine.Instance;
+            engine.Init();
+            settings = engine.SettingHandlerInstanced;
+        }
+    }
+
+
     /// <summary>
     /// Entry point for CLR hosting.
     /// </summary>
     public static class Program
     {
-        private static StreamWriter? _logWriter;
-
-        private static void Log(string message)
-        {
-            var logMessage = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
-            Console.WriteLine(logMessage);
-
-            try
-            {
-                if (_logWriter == null)
-                {
-                    var exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                    var exeDir = Path.GetDirectoryName(exePath) ?? Environment.CurrentDirectory;
-                    var logPath = Path.Combine(exeDir, "game_managed.log");
-                    _logWriter = new StreamWriter(logPath, false) { AutoFlush = true };
-                    _logWriter.WriteLine($"=== Game Log Started at {DateTime.Now} ===\n");
-                }
-                _logWriter.WriteLine(logMessage);
-            }
-            catch
-            {
-                // If logging fails, continue anyway
-            }
-        }
-
         /// <summary>
         /// CLR host entry point - called by the C++ native host.
         /// </summary>
@@ -45,11 +37,11 @@ namespace Game
         {
             try
             {
-                Log("========================================");
-                Log("  Angene Test Game (Managed)");
-                Log("  Starting from native host...");
-                Log($"  Platform: {PlatformDetection.CurrentPlatform}");
-                Log("========================================\n");
+                Logger.Log("========================================", LoggingTarget.MainConstructor);
+                Logger.Log("  Angene Test Game (Managed)", LoggingTarget.MainConstructor);
+                Logger.Log("  Starting from native host...", LoggingTarget.MainConstructor);
+                Logger.Log($"  Platform: {PlatformDetection.CurrentPlatform}", LoggingTarget.MainConstructor);
+                Logger.Log("========================================\n", LoggingTarget.MainConstructor);
 
                 // Parse command-line arguments if provided
                 string[] argArray = Array.Empty<string>();
@@ -65,43 +57,28 @@ namespace Game
                         }
                     }
 
-                    Log($"Arguments received ({argc}):");
+                    Logger.Log($"Arguments received ({argc}):", LoggingTarget.MainConstructor);
                     for (int i = 0; i < argArray.Length; i++)
                     {
-                        Log($"  [{i}] {argArray[i]}");
+                        Logger.Log($"  [{i}] {argArray[i]}", LoggingTarget.MainConstructor);
                     }
-                    Log("");
+                    Logger.Log("", LoggingTarget.MainConstructor);
                 }
 
-                Log("Calling RunGame()...");
+                Logger.Log("Calling RunGame()...", LoggingTarget.MainConstructor);
 
-                // Call your game logic
+                // Call your game Logger.Logic
                 RunGame();
 
-                Log("\n========================================");
-                Log("  Game completed successfully");
-                Log("========================================");
+                Logger.Log("\n========================================", LoggingTarget.MainConstructor);
+                Logger.Log("  Game completed successfully", LoggingTarget.MainConstructor);
+                Logger.Log("========================================", LoggingTarget.MainConstructor);
 
-                _logWriter?.Close();
                 return 0; // Success
             }
             catch (Exception ex)
             {
-                Log("\n========================================");
-                Log("  FATAL ERROR IN MAIN");
-                Log("========================================");
-                Log($"Exception Type: {ex.GetType().FullName}");
-                Log($"Message: {ex.Message}");
-                Log($"\nStack Trace:\n{ex.StackTrace}");
-
-                if (ex.InnerException != null)
-                {
-                    Log($"\nInner Exception: {ex.InnerException.GetType().FullName}");
-                    Log($"Inner Message: {ex.InnerException.Message}");
-                    Log($"Inner Stack:\n{ex.InnerException.StackTrace}");
-                }
-
-                _logWriter?.Close();
+                Logger.Log($"\nFATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, logLevel:LogLevel.Critical, exception: ex);
                 return 1; // Error
             }
         }
@@ -110,84 +87,82 @@ namespace Game
         {
             try
             {
-                Log("RunGame() started");
+                Logger.Log("RunGame() started", LoggingTarget.Engine);
+
+                var instances = new Instances();
+                instances.MakeInstances();
 
                 double dto = 0.0d;
                 double dtl = 0.0d;
 
-                Log($"Detected platform: {PlatformDetection.CurrentPlatform}");
-                Log("Creating game window...");
+                Logger.Log($"Detected platform: {PlatformDetection.CurrentPlatform}", LoggingTarget.Engine);
+                Logger.Log("Creating game window...", LoggingTarget.Engine);
 
                 Window? window = null;
                 try
                 {
                     window = new Window("Angene - Test Game", 800, 600, use3D: false);
-                    Log("Window created successfully");
+                    Logger.Log("Window created successfully", LoggingTarget.Engine);
                 }
                 catch (Exception ex)
                 {
-                    Log($"ERROR creating window: {ex.GetType().Name}: {ex.Message}");
-                    Log($"Stack: {ex.StackTrace}");
+                    Logger.Log($"ERROR creating window: {ex.GetType().Name}: {ex.Message}", LoggingTarget.Engine, logLevel: LogLevel.Critical, exception: ex);
                     throw;
                 }
 
-                Log("Initializing scene...");
+                Logger.Log("Initializing scene...", LoggingTarget.Engine);
                 PackageTest? scene = null;
                 try
                 {
                     scene = new PackageTest(window);
-                    Log("Scene created successfully");
+                    Logger.Log("Scene created successfully", LoggingTarget.Engine);
                 }
                 catch (Exception ex)
                 {
-                    Log($"ERROR creating scene: {ex.GetType().Name}: {ex.Message}");
+                    Logger.Log($"ERROR creating scene: {ex.GetType().Name}: {ex.Message}", LoggingTarget.Engine, logLevel: LogLevel.Critical, exception: ex);
                     throw;
                 }
 
                 try
                 {
                     window.SetScene(scene);
-                    Log("Scene set on window");
+                    Logger.Log("Scene set on window", LoggingTarget.Engine);
                 }
                 catch (Exception ex)
                 {
-                    Log($"ERROR setting scene: {ex.GetType().Name}: {ex.Message}");
+                    Logger.Log($"ERROR setting scene: {ex.GetType().Name}: {ex.Message}", LoggingTarget.Engine, LogLevel.Critical, exception: ex);
                     throw;
                 }
 
-                Log("Starting scene...");
                 try
                 {
-                    scene.Start();
-                    Log("Scene started successfully");
+                    bool getStarted = window.ScenesStarted[0];
+                    Logger.Log($"Scene started status: {getStarted}", LoggingTarget.Engine);
+                    if (!getStarted) { window.SetSceneStarted(0, true); }
                 }
                 catch (Exception ex)
                 {
-                    Log($"ERROR starting scene: {ex.GetType().Name}: {ex.Message}");
-                    Log($"Stack: {ex.StackTrace}");
+                    Logger.Log($"ERROR starting scene: {ex.GetType().Name}: {ex.Message}", LoggingTarget.Engine, LogLevel.Critical, exception: ex);
                     throw;
                 }
 
                 // Main game loop - platform-specific message handling
 #if WINDOWS
-                Log("Using Windows message loop");
-                RunWindowsMessageLoop(window, scene, ref dto, ref dtl);
+                Logger.Log("Using Windows message loop", LoggingTarget.Engine, LogLevel.Important);
+                RunWindowsMessageLoop(window, ref dto, ref dtl);
 #else
-                Log("Using X11 message loop");
-                RunX11MessageLoop(window, scene, ref dto, ref dtl);
+                Logger.Log("Using X11 message loop");
+                RunX11MessageLoop(window, ref dto, ref dtl);
 #endif
 
                 // Cleanup
-                Log("\nCleaning up...");
+                Logger.Log("\nCleaning up...", LoggingTarget.Engine);
                 window.Cleanup();
-                Log("Cleanup complete.");
+                Logger.Log("Cleanup complete.", LoggingTarget.Engine);
             }
             catch (Exception ex)
             {
-                Log($"\nEXCEPTION in RunGame:");
-                Log($"  Type: {ex.GetType().FullName}");
-                Log($"  Message: {ex.Message}");
-                Log($"  Stack:\n{ex.StackTrace}");
+                Logger.Log($"\nEXCEPTION in RunGame:", LoggingTarget.Engine, LogLevel.Critical, exception: ex);
                 throw; // Re-throw to be caught by Main
             }
         }
@@ -196,21 +171,16 @@ namespace Game
         /// <summary>
         /// Windows-specific message loop using Win32 APIs
         /// </summary>
-        private static void RunWindowsMessageLoop(Window window, IScene scene, ref double dto, ref double dtl)
+        private static void RunWindowsMessageLoop(Window window, ref double dto, ref double dtl)
         {
             bool running = true;
-            int frameCount = 0;
-            
-            Log("Entering message loop...");
-            
+
             while (running)
             {
-                Win32.MSG msg;
-                while (Win32.PeekMessageW(out msg, IntPtr.Zero, 0, 0, Win32.PM_REMOVE))
+                while (Win32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Win32.PM_REMOVE))
                 {
                     if (msg.message == Win32.WM_QUIT)
                     {
-                        Log("Received WM_QUIT");
                         running = false;
                         break;
                     }
@@ -221,76 +191,63 @@ namespace Game
 
                 if (!running) break;
 
-                // Update / Draw
                 try
                 {
-                    scene.Update(dto);
-                    scene.LateUpdate(dtl);
-                    scene.OnDraw();
-                    
-                    frameCount++;
-                    if (frameCount == 1 || frameCount % 60 == 0)
+                    // Update in order
+                    foreach (var scene in window.Scenes)
                     {
-                        Log($"Frame {frameCount} rendered");
+                        scene.Update(dto);
+                    }
+
+                    foreach (var scene in window.Scenes)
+                    {
+                        scene.LateUpdate(dtl);
+                    }
+
+                    // Draw in order (PrimScene first)
+                    foreach (var scene in window.Scenes)
+                    {
+                        scene.OnDraw();
                     }
                 }
                 catch (Exception ex)
                 {
-                    Log($"Frame error: {ex.Message}");
-                    // Continue running even if a frame fails
+                    Logger.Log($"Frame error: {ex.Message}", LoggingTarget.Engine, LogLevel.Important, exception: ex);
                 }
 
-                // Simple framerate cap ~60fps
                 Thread.Sleep(16);
             }
-            
-            Log($"Message loop exited after {frameCount} frames");
         }
+
 #else
         /// <summary>
         /// X11-specific message loop using the Window's ProcessMessages method
         /// </summary>
-        private static void RunX11MessageLoop(Window window, IScene scene, ref double dto, ref double dtl)
+        private static void RunX11MessageLoop(Window window, ref double dto, ref double dtl)
         {
             bool running = true;
             int frameCount = 0;
 
-            Log("Entering X11 message loop...");
+            Logger.Log("Entering X11 message loop...");
 
             while (running)
             {
-                // Process X11 events using the window's instance method
                 if (!window.ProcessMessages())
-                {
-                    Log("ProcessMessages returned false, exiting loop");
-                    running = false;
                     break;
-                }
 
-                // Update / Draw
-                try
-                {
-                    scene.Update(dto);
-                    scene.LateUpdate(dtl);
-                    scene.OnDraw();
+                foreach (var s in window.Scenes)
+                    s.Update(dto);
 
-                    frameCount++;
-                    if (frameCount == 1 || frameCount % 60 == 0)
-                    {
-                        Log($"Frame {frameCount} rendered");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log($"Frame error: {ex.Message}");
-                    // Continue running even if a frame fails
-                }
+                foreach (var s in window.Scenes)
+                    s.LateUpdate(dtl);
 
-                // Simple framerate cap ~60fps
+                foreach (var s in window.Scenes)
+                    s.OnDraw();
+
                 Thread.Sleep(16);
             }
 
-            Log($"X11 message loop exited after {frameCount} frames");
+            Logger.Log($"X11 message loop exited after {frameCount} frames");
         }
 #endif
     }

@@ -9,6 +9,9 @@ namespace Angene.Main
         public static extern IntPtr GetModuleHandle(string lpModuleName);
         [DllImport("kernel32.dll")]
         public static extern IntPtr GetCurrentProcess();
+        [DllImport("kernel32.dll")]
+        public static extern void SetLastError(uint dwErrCode);
+
     }
 }
 

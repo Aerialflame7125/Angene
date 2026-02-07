@@ -26,6 +26,47 @@ namespace Angene.Main
             IntPtr lParam
         );
 
+        // icon related constants
+        public const uint IMAGE_ICON = 1;
+        public const uint LR_DEFAULTSIZE = 0x00000040;
+        public const uint LR_LOADFROMFILE = 0x00000010;
+        public const uint WM_SETICON = 0x0080;
+        public const int ICON_SMALL = 0;
+        public const int ICON_BIG = 1;
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern IntPtr LoadImage(
+            IntPtr hInst,
+            string lpszName,
+            uint uType,
+            int cxDesired,
+            int cyDesired,
+            uint fuLoad
+        );
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(
+            IntPtr hWnd,
+            uint Msg,
+            IntPtr wParam,
+            IntPtr lParam
+        );
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr CreateIconFromResourceEx(
+            IntPtr presbits,
+            uint dwResSize,
+            bool fIcon,
+            uint dwVer,
+            int cxDesired,
+            int cyDesired,
+            uint Flags
+        );
+
+        public const uint LR_DEFAULTCOLOR = 0x00000000;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool DestroyIcon(IntPtr hIcon);
+
         // structs
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public struct WNDCLASSEX

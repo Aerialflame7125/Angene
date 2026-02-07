@@ -1,9 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Angene.Globals;
 using Angene.Graphics;
 using Angene.External;
+using System.Security.Permissions;
+using Org.BouncyCastle.Asn1.Cmp;
 
 namespace Angene.Main
 {
@@ -27,36 +29,52 @@ namespace Angene.Main
         }
     }
 
+    public class Console
+    {
+        public static void WriteLine(string text)
+        {
+            Logger.Log("Call to WriteLine() is incorrect in this engine. Please use Logger.Log.", LoggingTarget.MainGame, LogLevel.Warning);
+            Logger.Log(text, LoggingTarget.MainGame, LogLevel.Info);
+        }
+        public static void ReadLine(string text)
+        {
+            Logger.Log("Call to ReadLine() is incorrect in this engine. Console input is not available, nor supported.", LoggingTarget.MainGame, LogLevel.Warning);
+        }
+        public static void Write(string text)
+        {
+            Logger.Log("Call to Write() is incorrect in this engine. Please use Logger.Log.", LoggingTarget.MainGame, LogLevel.Warning);
+            Logger.Log(text, LoggingTarget.MainGame, LogLevel.Info);
+        }
+    }
+
     public class Engine
     {
-        private static HandleExternal? _externalHandler;
+        private Settings.Settings _settingHandlerInstanced;
 
-        public static void Initialize()
+        public Settings.Settings SettingHandlerInstanced
         {
-            if (_externalHandler == null)
+            get
             {
-                _externalHandler = new HandleExternal();
-                _externalHandler.Initialize();
+                if (_settingHandlerInstanced == null)
+                {
+                    throw new AngeneException(
+                        "Settings handler not initialized. Please call Engine.Init() before accessing settings."
+                    );
+                }
+
+                return _settingHandlerInstanced;
+            }
+            private set
+            {
+                _settingHandlerInstanced = value;
             }
         }
 
-        public static HandleExternal GetInstance()
+        public static Engine Instance { get; } = new Engine();
+        public void Init()
         {
-            if (_externalHandler == null)
-            {
-                throw new InvalidOperationException("Engine not initialized. Call Engine.Initialize() first.");
-            }
-
-            return _externalHandler;
-        }
-
-        public static void Shutdown()
-        {
-            if (_externalHandler != null)
-            {
-                _externalHandler.Dispose();
-                _externalHandler = null; // Clean up the reference
-            }
+            SettingHandlerInstanced = new Settings.Settings();
+            SettingHandlerInstanced.LoadDefaults();
         }
     }
 
@@ -69,7 +87,6 @@ namespace Angene.Main
         public void OnDraw() { }
         public void Render() { }
         public void Cleanup() { }
-
         IRenderer3D? Renderer3D { get; }
     }
 
@@ -77,6 +94,7 @@ namespace Angene.Main
     {
         public IntPtr Hwnd { get; private set; }
 
+        private List<int> calledStart = new List<int>();
         public List<bool> ScenesStarted { get; private set; } = new List<bool>();
         public List<IScene> Scenes { get; private set; } = new List<IScene>();
         public IScene? PrimScene { get; private set; }
@@ -133,7 +151,14 @@ namespace Angene.Main
             ScenesStarted.Clear();
             Scenes.Add(scene);
             ScenesStarted.Add(false);
+            calledStart.Add(0);
             PrimScene = scene;
+        }
+
+        public void SetSceneStarted(int scenePos, bool _start) 
+        { 
+            ScenesStarted[scenePos] = _start; 
+            Logger.Log($"Attempted to start scene as position {scenePos}.", LoggingTarget.Engine, LogLevel.Important); 
         }
 
         public void AddScene(IScene scene)
@@ -144,6 +169,7 @@ namespace Angene.Main
             }
             Scenes.Add(scene);
             ScenesStarted.Add(false);
+            calledStart.Add(0);
         }
 
         public void RemScene(IScene scene)
@@ -155,6 +181,7 @@ namespace Angene.Main
             }
             Scenes.RemoveAt(index);
             ScenesStarted.RemoveAt(index);
+            calledStart.Remove(index);
         }
 
         public void Cleanup()
@@ -173,7 +200,7 @@ namespace Angene.Main
 
 #if WINDOWS
         // ==================== WINDOWS IMPLEMENTATION ====================
-        
+
         private static IntPtr CreateWindowWindows(string title, int width, int height)
         {
             // Register class once
@@ -250,7 +277,10 @@ namespace Angene.Main
                     Marshal.StructureToPtr(managedMsg, msgPtr, false);
                     try
                     {
-                        win.PrimScene.OnMessage(msgPtr);
+                        for (int i = win.Scenes.Count - 1; i >= 0; i--)
+                        {
+                            win.Scenes[i].OnMessage(msgPtr);
+                        }
                     }
                     catch
                     {
@@ -277,6 +307,17 @@ namespace Angene.Main
             {
                 Win32.PostQuitMessage(0);
                 return IntPtr.Zero;
+            }
+
+            for (int i = 0; i < win?.Scenes.Count; i++)
+            {
+                bool startCalled = !(win.calledStart[i] == 1);
+                if (win.ScenesStarted[i] && startCalled)
+                {
+                    win.Scenes[i].Start();
+                    win.ScenesStarted[i] = true;
+                    win.calledStart[i] = 1;
+                }
             }
 
             return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
@@ -417,7 +458,10 @@ namespace Angene.Main
                         Marshal.StructureToPtr(msg, msgPtr, false);
                         try
                         {
-                            PrimScene.OnMessage(msgPtr);
+                            for (int i = Scenes.Count - 1; i >= 0; i--)
+                            {
+                                Scenes[i].OnMessage(msgPtr);
+                            }
                         }
                         catch
                         {
