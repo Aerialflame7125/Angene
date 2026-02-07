@@ -1,12 +1,29 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using Angene.Main;
 using Angene.Platform;
+using Angene.Settings;
 
 namespace Game
 {
+    public class Instances
+    {
+        public static Instances Instance { get; } = new Instances();
+        public Engine engine;
+        public Settings settings;
+        public Instances() { }
+        public void MakeInstances()
+        {
+            engine = Engine.Instance;
+            engine.Init();
+            settings = engine.SettingHandlerInstanced;
+        }
+    }
+
+
     /// <summary>
     /// Entry point for CLR hosting.
     /// </summary>
@@ -72,6 +89,9 @@ namespace Game
             {
                 Logger.Log("RunGame() started", LoggingTarget.Engine);
 
+                var instances = new Instances();
+                instances.MakeInstances();
+
                 double dto = 0.0d;
                 double dtl = 0.0d;
 
@@ -94,7 +114,7 @@ namespace Game
                 PackageTest? scene = null;
                 try
                 {
-                    scene = new PackageTest();
+                    scene = new PackageTest(window);
                     Logger.Log("Scene created successfully", LoggingTarget.Engine);
                 }
                 catch (Exception ex)
@@ -114,25 +134,25 @@ namespace Game
                     throw;
                 }
 
-                Logger.Log("Starting scene...", LoggingTarget.Engine);
                 try
                 {
-                    scene.Start();
-                    Logger.Log("Scene started successfully", LoggingTarget.Engine);
+                    bool getStarted = window.ScenesStarted[0];
+                    Logger.Log($"Scene started status: {getStarted}", LoggingTarget.Engine);
+                    if (!getStarted) { window.SetSceneStarted(0, true); }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log($"ERROR starting scene: {ex.GetType().Name}: {ex.Message}", LoggingTarget.Engine, logLevel: LogLevel.Critical, exception: ex);
+                    Logger.Log($"ERROR starting scene: {ex.GetType().Name}: {ex.Message}", LoggingTarget.Engine, LogLevel.Critical, exception: ex);
                     throw;
                 }
 
                 // Main game loop - platform-specific message handling
 #if WINDOWS
                 Logger.Log("Using Windows message loop", LoggingTarget.Engine, LogLevel.Important);
-                RunWindowsMessageLoop(window, scene, ref dto, ref dtl);
+                RunWindowsMessageLoop(window, ref dto, ref dtl);
 #else
                 Logger.Log("Using X11 message loop");
-                RunX11MessageLoop(window, scene, ref dto, ref dtl);
+                RunX11MessageLoop(window, ref dto, ref dtl);
 #endif
 
                 // Cleanup
@@ -151,21 +171,16 @@ namespace Game
         /// <summary>
         /// Windows-specific message loop using Win32 APIs
         /// </summary>
-        private static void RunWindowsMessageLoop(Window window, IScene scene, ref double dto, ref double dtl)
+        private static void RunWindowsMessageLoop(Window window, ref double dto, ref double dtl)
         {
             bool running = true;
-            int frameCount = 0;
-
-            Logger.Log("Entering message loop...", LoggingTarget.Engine);
 
             while (running)
             {
-                Win32.MSG msg;
-                while (Win32.PeekMessageW(out msg, IntPtr.Zero, 0, 0, Win32.PM_REMOVE))
+                while (Win32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Win32.PM_REMOVE))
                 {
                     if (msg.message == Win32.WM_QUIT)
                     {
-                        Logger.LogInfo("Received WM_QUIT", LoggingTarget.Engine);
                         running = false;
                         break;
                     }
@@ -176,36 +191,39 @@ namespace Game
 
                 if (!running) break;
 
-                // Update / Draw
                 try
                 {
-                    scene.Update(dto);
-                    scene.LateUpdate(dtl);
-                    scene.OnDraw();
-
-                    frameCount++;
-                    if (frameCount == 1 || frameCount % 60 == 0)
+                    // Update in order
+                    foreach (var scene in window.Scenes)
                     {
-                        Logger.LogDebug($"Frame {frameCount} rendered", LoggingTarget.Engine);
+                        scene.Update(dto);
+                    }
+
+                    foreach (var scene in window.Scenes)
+                    {
+                        scene.LateUpdate(dtl);
+                    }
+
+                    // Draw in order (PrimScene first)
+                    foreach (var scene in window.Scenes)
+                    {
+                        scene.OnDraw();
                     }
                 }
                 catch (Exception ex)
                 {
                     Logger.Log($"Frame error: {ex.Message}", LoggingTarget.Engine, LogLevel.Important, exception: ex);
-                    // Continue running even if a frame fails
                 }
 
-                // Simple framerate cap ~60fps
                 Thread.Sleep(16);
             }
-
-            Logger.Log($"Message loop exited after {frameCount} frames", LoggingTarget.Engine);
         }
+
 #else
         /// <summary>
         /// X11-specific message loop using the Window's ProcessMessages method
         /// </summary>
-        private static void RunX11MessageLoop(Window window, IScene scene, ref double dto, ref double dtl)
+        private static void RunX11MessageLoop(Window window, ref double dto, ref double dtl)
         {
             bool running = true;
             int frameCount = 0;
@@ -214,34 +232,18 @@ namespace Game
 
             while (running)
             {
-                // Process X11 events using the window's instance method
                 if (!window.ProcessMessages())
-                {
-                    Logger.Log("ProcessMessages returned false, exiting loop");
-                    running = false;
                     break;
-                }
 
-                // Update / Draw
-                try
-                {
-                    scene.Update(dto);
-                    scene.LateUpdate(dtl);
-                    scene.OnDraw();
+                foreach (var s in window.Scenes)
+                    s.Update(dto);
 
-                    frameCount++;
-                    if (frameCount == 1 || frameCount % 60 == 0)
-                    {
-                        Logger.Log($"Frame {frameCount} rendered");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log($"Frame error: {ex.Message}");
-                    // Continue running even if a frame fails
-                }
+                foreach (var s in window.Scenes)
+                    s.LateUpdate(dtl);
 
-                // Simple framerate cap ~60fps
+                foreach (var s in window.Scenes)
+                    s.OnDraw();
+
                 Thread.Sleep(16);
             }
 

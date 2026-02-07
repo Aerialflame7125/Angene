@@ -63,7 +63,7 @@ namespace Angene.External
 
         private readonly DiscordRpcClient client;
         private CancellationTokenSource? debounceCts;
-        private DiscordPresenceState? pending;
+        private DiscordRPC.RichPresence? pending;
 
         public DiscordRichPresence(string clientId)
         {
@@ -81,7 +81,7 @@ namespace Angene.External
             client.Initialize();
         }
 
-        public void SetPresence(DiscordPresenceState state)
+        public void SetPresence(RichPresence state)
         {
             pending = state;
             schedule();
@@ -110,19 +110,7 @@ namespace Angene.External
                         return;
                     }
 
-                    client.SetPresence(new RichPresence
-                    {
-                        State = clampLength(pending.State),
-                        Details = clampLength(pending.Details),
-                        Assets = new Assets
-                        {
-                            LargeImageKey = pending.LargeImageKey,
-                            LargeImageText = pending.LargeImageText,
-                            SmallImageKey = pending.SmallImageKey,
-                            SmallImageText = pending.SmallImageText
-                        },
-                        Buttons = pending.Buttons
-                    });
+                    client.SetPresence(pending);
                 }
                 catch (TaskCanceledException) { }
             });

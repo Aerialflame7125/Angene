@@ -9,6 +9,8 @@ using Angene.Globals;
 using Angene.Platform;
 using Angene.External;
 using DiscordRPC;
+using Org.BouncyCastle.Security;
+using Angene.Settings;
 
 #if WINDOWS
 using Angene.Graphics;
@@ -26,14 +28,25 @@ namespace Game
         public IRenderer3D? Renderer3D => null;
 
         private Angene.Main.Package? _package;
-        private string _packagePath = "game.angpkg";
+        private string _packagePath = Path.Combine(AppContext.BaseDirectory, "game.angpkg");
         private string? _loadedText;
         private List<string> _entryNames = new();
 
+        private DiscordRichPresence? _rpc;
+
+        private readonly RichPresence presence = new RichPresence
+        {
+            Assets = new Assets { SmallImageKey = "angene_logo", SmallImageText = $"Running on Angene" }
+        };
+        internal PackageTest(Window window)
+        {
+            _window = window ?? throw new ArgumentNullException(nameof(window));
+        }
+
         public void Start()
         {
-            Console.WriteLine($"[PackageTest] Running on {PlatformDetection.CurrentPlatform}");
-            DiscordRichPresence rpc = new("1467308284322254862");
+            Logger.Log($"[PackageTest] Running on {PlatformDetection.CurrentPlatform}", LoggingTarget.MainGame, LogLevel.Info);
+            _rpc = new("1467308284322254862");
             // Try open package (no key). If your package is encrypted pass a key byte[] to Package.Open.
             try
             {
@@ -47,13 +60,6 @@ namespace Game
                     var target = _entryNames.FirstOrDefault(p => p.EndsWith("text/hello.txt", StringComparison.OrdinalIgnoreCase))
                                  ?? _entryNames.FirstOrDefault();
 
-                    DiscordRPC.Button button = new()
-                    {
-                        Label = "join me twin",
-                        Url = "https://amretar.com"
-                    };
-
-
                     if (target != null)
                     {
                         var entry = _package.Entries.FirstOrDefault(x => string.Equals(x.Path, target, StringComparison.OrdinalIgnoreCase));
@@ -63,20 +69,22 @@ namespace Game
                             using var sr = new StreamReader(s, Encoding.UTF8);
                             _loadedText = sr.ReadToEnd();
 
-                            DiscordRichPresence.DiscordPresenceState state = new()
-                            {
-                                State = "im jeorking it",
-                                Details = $"Read {_loadedText} from package 'game.angpkg'",
-                                LargeImageKey = "https://amretar.com/amretar.jpg",
-                                LargeImageText = "beer",
-                                SmallImageKey = "g_v4nfeauaegumg",
-                                SmallImageText = "brain now bnuuy",
-                                Buttons = new DiscordRPC.Button[] { button }
-                            };
+                            presence.State = "im jeorking it";
+                            presence.Details = $"Read {_loadedText} from package 'game.angpkg'";
+                            presence.Assets.LargeImageKey = "g_khlbfbmaec9sq";
+                            presence.Assets.LargeImageText = "beer";
+                            presence.Buttons = new[]
+                                {
+                                    new Button
+                                    {
+                                        Label = "join me twin",
+                                        Url = "https://amretar.com"
+                                    }
+                                };
+                        };
 
-                            rpc.SetPresence(state);
+                        _rpc.SetPresence(presence);
 
-                        }
                     }
                     else
                     {
@@ -113,7 +121,7 @@ namespace Game
             var msg = Marshal.PtrToStructure<Win32.MSG>(msgPtr);
             if (msg.message == Win32.WM_CLOSE)
             {
-                Console.WriteLine("[PackageTest] Received WM_CLOSE");
+                Angene.Main.Console.WriteLine("[PackageTest] Received WM_CLOSE");
             }
 #else
             var msg = Marshal.PtrToStructure<Window.PlatformMessage>(msgPtr);
@@ -224,6 +232,10 @@ namespace Game
 
         public void Cleanup()
         {
+            // Dispose RPC when scene is destroyed
+            _rpc?.Dispose();
+            _rpc = null;
+
             // Dispose package when scene is destroyed
             _package?.Dispose();
             _package = null;

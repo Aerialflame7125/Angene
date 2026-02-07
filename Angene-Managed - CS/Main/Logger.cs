@@ -23,7 +23,11 @@ namespace Angene.Main
         Method,
         Class,
         Definition,
-        Call
+        Call,
+        MainGame,
+        MasterScene,
+        SlaveScene,
+        Package
     }
 
     public class Logger
@@ -59,51 +63,57 @@ namespace Angene.Main
 
                 LogInstance.WriteLine($"Log file created on {DateTime.Now}");
                 LogInstance.WriteLine("Logger initialized!");
+                string version = settings.GetSetting("Main.Version");
+                LogInstance.WriteLine($"Engine Version: {version}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] Logger.(Static Constructor) ({DateTime.Now}): Failed to create log file. Exception: {ex.Message}");
+                System.Console.WriteLine($"[ERROR] Logger.(Static Constructor) ({DateTime.Now}): Failed to create log file. Exception: {ex.Message}");
             }
         }
-        public static void Log(string message, LoggingTarget logFrom, LogLevel logLevel = LogLevel.Info, Exception exception = null)
+        public static void Log(string message, LoggingTarget logFrom, LogLevel logLevel = LogLevel.Info, Exception exception = null, int sceneNumber = -1)
         {
             lock (logLock)
             {
                 if (LogInstance == null)
                 {
-                    Console.WriteLine($"[ERROR] Logger.Log ({DateTime.Now}): LogInstance is null. Message: {message}");
+                    System.Console.WriteLine($"[ERROR] Logger.Log ({DateTime.Now}): LogInstance is null. Message: {message}");
                     return;
                 }
                 Logger.LogInstance.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
-                if (logLevel == LogLevel.Debug && settings.GetSetting("LogDebugToConsole") == 1)
+                if (sceneNumber != -1)
+
+                    Logger.LogInstance.WriteLine($"Log came from Scene Number: {sceneNumber}");
+
+                if (logLevel == LogLevel.Debug && settings.GetSetting("Console.LogDebugToConsole") == "1")
                 {
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
+                    System.Console.ForegroundColor = ConsoleColor.Gray;
+                    System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                 }
                 switch (logLevel)
                 {
                     case LogLevel.Info:
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
+                        System.Console.ForegroundColor = ConsoleColor.Green;
+                        System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                         break;
                     case LogLevel.Warning:
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
+                        System.Console.ForegroundColor = ConsoleColor.Yellow;
+                        System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                         break;
                     case LogLevel.Error:
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
+                        System.Console.ForegroundColor = ConsoleColor.Red;
+                        System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                         break;
                     case LogLevel.Critical:
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine($"[CRITICAL] {logFrom} ({DateTime.Now}): {message} Exception: {exception.Message}\nStack Trace: {exception.StackTrace}");
+                        System.Console.ForegroundColor = ConsoleColor.Magenta;
+                        System.Console.WriteLine($"[CRITICAL] {logFrom} ({DateTime.Now}): {message} Exception: {exception.Message}\nStack Trace: {exception.StackTrace}");
                         break;
                     case LogLevel.Important:
-                        Console.ForegroundColor = ConsoleColor.Cyan;
-                        Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
+                        System.Console.ForegroundColor = ConsoleColor.Cyan;
+                        System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                         break;
                 }
-                Console.ResetColor();
+                System.Console.ResetColor();
 
             }
         }
