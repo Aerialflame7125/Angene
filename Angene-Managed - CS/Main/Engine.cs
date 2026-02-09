@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using Angene.External;
 using Angene.Globals;
 using Angene.Graphics;
-using Angene.External;
-using System.Security.Permissions;
+using Angene.Platform;
 using Org.BouncyCastle.Asn1.Cmp;
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Security.Permissions;
 
 namespace Angene.Main
 {
@@ -120,19 +121,19 @@ namespace Angene.Main
         private bool shouldClose;
 #endif
 
-        public Window(string title, int width, int height, bool use3D = false)
+        public Window(WindowConfig config)
         {
-            Width = width;
-            Height = height;
-            is3D = use3D;
+            Width = config.Width;
+            Height = config.Height;
+            is3D = config.Use3D;
 
 #if WINDOWS
-            Hwnd = CreateWindowWindows(title, width, height);
+            Hwnd = CreateWindowWindows(config);
             WindowMap[Hwnd] = this;
 
-            if (!use3D)
+            if (!config.Use3D)
             {
-                graphicsContext = GraphicsContextFactory.Create(Hwnd, width, height);
+                graphicsContext = GraphicsContextFactory.Create(Hwnd, config.Width, config.Height);
             }
 #else
             CreateWindowX11(title, width, height);
@@ -201,7 +202,7 @@ namespace Angene.Main
 #if WINDOWS
         // ==================== WINDOWS IMPLEMENTATION ====================
 
-        private static IntPtr CreateWindowWindows(string title, int width, int height)
+        private static IntPtr CreateWindowWindows(WindowConfig config)
         {
             // Register class once
             if (!s_classRegistered)
@@ -233,14 +234,14 @@ namespace Angene.Main
 
             IntPtr hInstance = Kernel32.GetModuleHandle(null);
             IntPtr hwnd = Win32.CreateWindowExW(
-                0,
+                (uint)config.StyleEx,
                 "AngeneClass",
-                title,
-                Win32.WS_OVERLAPPEDWINDOW,
-                Win32.CW_USEDEFAULT,
-                Win32.CW_USEDEFAULT,
-                width,
-                height,
+                config.Title,
+                (uint)config.Style,
+                config.X,
+                config.Y,
+                config.Width,
+                config.Height,
                 IntPtr.Zero,
                 IntPtr.Zero,
                 hInstance,
@@ -251,6 +252,7 @@ namespace Angene.Main
                 throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
 
             Win32.ShowWindow(hwnd, Win32.SW_SHOW);
+            Logger.Log($"Window({hwnd}) shown.", LoggingTarget.Engine);
             Win32.UpdateWindow(hwnd);
             return hwnd;
         }

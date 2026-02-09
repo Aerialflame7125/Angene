@@ -34,7 +34,7 @@ namespace Angene.Settings
                 {
                     if (keyParts[1] == "Version")
                     {
-                        return "v0.1c26";
+                        return "v0.1c27";
                     }
                 }
             }

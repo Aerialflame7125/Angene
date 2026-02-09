@@ -32,6 +32,7 @@
 
 	<ItemGroup>
 		<!-- Core Engine Files -->
+		<Compile Include="Examples\OpenGL.cs" />
 		<Compile Include="Main\Engine.cs" />
 		<Compile Include="Main\Kernel32.cs" />
 		<Compile Include="Main\Logger.cs" />
@@ -56,6 +57,7 @@
 		<Compile Include="Main\Win32.cs" />
 		<Compile Include="Main\Gdi32.cs" />
 		<Compile Include="Main\Win32Messages.cs" />
+		<Compile Include="Platform\WindowConfig.cs" />
 
 		<!-- Linux-only files -->
 		<Compile Include="Platform\X11Native.cs" />
