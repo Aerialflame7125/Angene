@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<OutputType>Library</OutputType>
+		<AssemblyName>Game</AssemblyName>
+		<RootNamespace>Game</RootNamespace>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+
+		<!-- Generate runtime config file -->
+		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+
+		<!-- Copy dependencies to output -->
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	</PropertyGroup>
+
+	<!-- Platform-specific defines -->
+	<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+		<DefineConstants>WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+		<DefineConstants>LINUX</DefineConstants>
+	</PropertyGroup>
+
+	<!-- NuGet package dependencies -->
+	<ItemGroup>
+		<PackageReference Include="System.Security.Permissions" Version="8.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Reference Include="Angene">
+	    <HintPath>..\Build\Angene.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Common">
+	    <HintPath>..\Build\Angene.Common.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Essentials">
+	    <HintPath>..\Build\Angene.Essentials.dll</HintPath>
+	  </Reference>
+	  <Reference Include="BouncyCastle.Crypto">
+	    <HintPath>..\Build\BouncyCastle.Crypto.dll</HintPath>
+	  </Reference>
+	  <Reference Include="DiscordRPC">
+	    <HintPath>..\Build\DiscordRPC.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Newtonsoft.Json">
+	    <HintPath>..\Build\Newtonsoft.Json.dll</HintPath>
+	  </Reference>
+	  <Reference Include="System.Security.Permissions">
+	    <HintPath>..\Build\System.Security.Permissions.dll</HintPath>
+	  </Reference>
+	  <Reference Include="System.Windows.Extensions">
+	    <HintPath>..\Build\System.Windows.Extensions.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+
+</Project>

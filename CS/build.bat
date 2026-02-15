@@ -1,0 +1,1 @@
+dotnet publish "C:\Users\Gold Ship\Documents\GitHub\Angene\CS\Angene.sln" -c Release -o "C:\Users\Gold Ship\Documents\GitHub\Angene\Build\"

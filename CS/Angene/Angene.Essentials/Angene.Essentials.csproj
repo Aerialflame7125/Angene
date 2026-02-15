@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Configurations>Debug;Release;Publish</Configurations>
+  </PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="C:\Users\Gold Ship\Documents\GitHub\Angene\CS\Angene\Angene.Common\Angene.Common.csproj" />
+	</ItemGroup>
+
+  <Target Name="MoveBinariesToBuild" AfterTargets="Build">
+    <ItemGroup>
+      <BinariesToMove Include="$(TargetDir)*.dll; $(TargetDir)*.exe" />
+    </ItemGroup>
+    
+    <Copy SourceFiles="@(BinariesToMove)" DestinationFolder="$(SolutionDir)..\Build\" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="MoveBinariesToBuild" AfterTargets="Publish">
+      <ItemGroup>
+        <BinariesToMove Include="$(TargetDir)*.dll; $(TargetDir)*.exe; $(TargetDir)\Libs\*.dll" />
+      </ItemGroup>
+      
+      <Copy SourceFiles="@(BinariesToMove)" DestinationFolder="$(SolutionDir)..\Build\" SkipUnchangedFiles="true" />
+	</Target>
+</Project>
