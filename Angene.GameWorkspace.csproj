@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ScreenPlayScripts</RootNamespace>
+    <AssemblyName>ScreenPlayScripts</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="CS/Angene/Angene.Essentials/Angene.Essentials.csproj" />
+    <ProjectReference Include="CS/Angene/Angene.Common/Angene.Common.csproj" />
+    <ProjectReference Include="CS/Angene/Angene.Main/Angene.csproj" />
+    <ProjectReference Include="CS/Angene/Angene.Editor/Angene.Editor.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="ScreenPlayScripts/**/*.cs" />
+    <None Include="assets/**/*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+</Project>

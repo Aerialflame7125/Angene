@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Essentials", "Angene
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Common", "Angene\Angene.Common\Angene.Common.csproj", "{9551C8F8-0FA4-B927-D67E-BDAF65571D0F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Editor", "Angene\Angene.Editor\Angene.Editor.csproj", "{6A2B42D6-6D6C-47DA-9B75-F9D9B40D2E40}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

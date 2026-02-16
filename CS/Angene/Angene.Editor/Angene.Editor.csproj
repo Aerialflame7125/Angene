@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Angene.Editor</RootNamespace>
+    <AssemblyName>Angene.Editor</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
+    <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
+    <ProjectReference Include="..\Angene.Main\Angene.csproj" />
+  </ItemGroup>
+</Project>
