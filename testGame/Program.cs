@@ -27,17 +27,10 @@ namespace Game
         }
     }
 
-
-    /// <summary>
-    /// Entry point for CLR hosting.
-    /// </summary>
     public static class Program
     {
         private static DateTime lastFrame;
 
-        /// <summary>
-        /// CLR host entry point - called by the C++ native host.
-        /// </summary>
         [UnmanagedCallersOnly]
         public static int Main(IntPtr args, int argc)
         {
@@ -145,13 +138,8 @@ namespace Game
                 }
 
                 // Main game loop - platform-specific message handling
-#if WINDOWS
                 Logger.Log("Using Windows message loop", LoggingTarget.Engine, LogLevel.Important);
                 RunWindowsMessageLoop(window, ref dto, ref dtl);
-#else
-                Logger.Log("Using X11 message loop");
-                RunX11MessageLoop(window, ref dto, ref dtl);
-#endif
 
                 // Cleanup
                 Logger.Log("\nCleaning up...", LoggingTarget.Engine);
@@ -165,10 +153,6 @@ namespace Game
             }
         }
 
-#if WINDOWS
-        /// <summary>
-        /// Windows-specific message loop using Win32 APIs
-        /// </summary>
         private static void RunWindowsMessageLoop(Window window, ref double dto, ref double dtl)
         {
             bool running = true;
@@ -201,37 +185,5 @@ namespace Game
                 Thread.Sleep(16);
             }
         }
-
-#else
-        /// <summary>
-        /// X11-specific message loop using the Window's ProcessMessages method
-        /// </summary>
-        private static void RunX11MessageLoop(Window window, ref double dto, ref double dtl)
-        {
-            bool running = true;
-            int frameCount = 0;
-
-            Logger.Log("Entering X11 message loop...");
-
-            while (running)
-            {
-                if (!window.ProcessMessages())
-                    break;
-
-                foreach (var s in window.Scenes)
-                    s.Update(dto);
-
-                foreach (var s in window.Scenes)
-                    s.LateUpdate(dtl);
-
-                foreach (var s in window.Scenes)
-                    s.OnDraw();
-
-                Thread.Sleep(16);
-            }
-
-            Logger.Log($"X11 message loop exited after {frameCount} frames");
-        }
-#endif
     }
 }

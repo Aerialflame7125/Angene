@@ -36,6 +36,7 @@
 		<Compile Include="Examples\OpenGL.cs" />
 		<Compile Include="Main\Engine.cs" />
 		<Compile Include="Main\Kernel32.cs" />
+		<Compile Include="Main\LogConsoleWindow.cs" />
 		<Compile Include="Main\PkgHandler.cs" />
 
 		<!-- Graphics Files -->

@@ -54,6 +54,7 @@ namespace Angene.Main
     public class Engine
     {
         private Settings _settingHandlerInstanced;
+        private LogConsoleWindow? _logConsole; // log window keepalive
 
         public Settings SettingHandlerInstanced
         {
@@ -75,10 +76,26 @@ namespace Angene.Main
         }
 
         public static Engine Instance { get; } = new Engine();
-        public void Init()
+        public void Init(bool verbose = false)
         {
             SettingHandlerInstanced = new Settings();
             SettingHandlerInstanced.LoadDefaults();
+            Logger.Instance.Init(verbose);
+
+            if (verbose)
+            {
+                _logConsole = new LogConsoleWindow();
+
+                Logger.Instance.OnLog += (message, target, level, time, exception) =>
+                {
+                    if (exception != null)
+                        _logConsole.AppendLine($"[{level}] {target} ({time}) {message}\n{exception}");
+                    else
+                        _logConsole.AppendLine($"[{level}] {target} ({time}) {message}");
+                };
+
+                Logger.Log("Verbose log console initialized.", LoggingTarget.Engine, LogLevel.Important);
+            }
         }
     }
 

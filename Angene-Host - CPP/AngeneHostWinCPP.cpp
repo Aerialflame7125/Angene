@@ -8,50 +8,7 @@
 
 #pragma comment(lib, "shell32.lib")  // For CommandLineToArgvW
 
-// Global flag to control logging behavior
 bool g_consoleAvailable = false;
-FILE* g_logFile = nullptr;
-
-// Logging functions that work with or without console
-void LogMessage(const wchar_t* format, ...)
-{
-    wchar_t buffer[1024];
-    va_list args;
-    va_start(args, format);
-    vswprintf_s(buffer, 1024, format, args);
-    va_end(args);
-
-    if (g_consoleAvailable)
-    {
-        wprintf(L"%s", buffer);
-    }
-
-    if (g_logFile)
-    {
-        fwprintf(g_logFile, L"%s", buffer);
-        fflush(g_logFile);
-    }
-}
-
-void LogError(const wchar_t* format, ...)
-{
-    wchar_t buffer[1024];
-    va_list args;
-    va_start(args, format);
-    vswprintf_s(buffer, 1024, format, args);
-    va_end(args);
-
-    if (g_consoleAvailable)
-    {
-        wprintf(L"ERROR: %s", buffer);
-    }
-
-    if (g_logFile)
-    {
-        fwprintf(g_logFile, L"ERROR: %s", buffer);
-        fflush(g_logFile);
-    }
-}
 
 // Check if we have a console available
 bool CheckConsoleAvailable()
@@ -65,36 +22,6 @@ bool CheckConsoleAvailable()
         return false;
 
     return true;
-}
-
-// Initialize logging
-void InitializeLogging()
-{
-    g_consoleAvailable = CheckConsoleAvailable();
-
-    wchar_t logPath[MAX_PATH];
-    GetModuleFileNameW(NULL, logPath, MAX_PATH);
-
-    std::wstring pathStr(logPath);
-    size_t lastSlash = pathStr.find_last_of(L"\\/");
-    std::wstring dirPath = pathStr.substr(0, lastSlash + 1);
-    std::wstring logFile = dirPath + L"angene_host.log";
-
-    _wfopen_s(&g_logFile, logFile.c_str(), L"w");
-
-    if (g_logFile)
-    {
-        LogMessage(L"Log file created: %s\n", logFile.c_str());
-    }
-}
-
-void CleanupLogging()
-{
-    if (g_logFile)
-    {
-        fclose(g_logFile);
-        g_logFile = nullptr;
-    }
 }
 
 // hostfxr function pointers
@@ -116,23 +43,14 @@ bool LoadHostfxr()
 
     if (rc != 0)
     {
-        LogError(L"Failed to find hostfxr library (error code: %d)\n", rc);
-        LogMessage(L"Please ensure .NET 8+ Runtime is installed\n");
-        LogMessage(L"Download from: https://dotnet.microsoft.com/download/dotnet\n");
         return false;
     }
 
-    LogMessage(L"hostfxr path: %s\n", buffer);
-
-    // Load hostfxr
     HMODULE lib = LoadLibraryW(buffer);
     if (!lib)
     {
-        LogError(L"Failed to load hostfxr library\n");
         return false;
     }
-
-    LogMessage(L"[OK] hostfxr library loaded\n");
 
     // Get function pointers
     init_for_cmd_line_fptr = (hostfxr_initialize_for_dotnet_command_line_fn)GetProcAddress(lib, "hostfxr_initialize_for_dotnet_command_line");
@@ -145,11 +63,8 @@ bool LoadHostfxr()
 
     if (!init_for_cmd_line_fptr || !init_for_config_fptr || !get_delegate_fptr || !close_fptr)
     {
-        LogError(L"Failed to get required hostfxr function pointers\n");
         return false;
     }
-
-    LogMessage(L"[OK] hostfxr function pointers obtained\n");
     return true;
 }
 
@@ -223,10 +138,6 @@ std::wstring DetectDotNetVersion(const std::wstring& hostfxrPath)
 int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
     const std::wstring& typeName, int argc, wchar_t** argv, const std::wstring& dotnetVersion)
 {
-    LogMessage(L"\n========================================\n");
-    LogMessage(L"Using embedded configuration method\n");
-    LogMessage(L"(Temporary config with version rollforward)\n");
-    LogMessage(L"========================================\n\n");
 
     // Create a minimal runtime config with rollforward enabled
     std::wstring dirPath = assemblyPath.substr(0, assemblyPath.find_last_of(L"\\/") + 1);
@@ -259,12 +170,9 @@ int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
     {
         fputs(narrowConfig.c_str(), tempFile);
         fclose(tempFile);
-        LogMessage(L"Created temporary config: %s\n", tempConfigPath.c_str());
-        LogMessage(L"Target .NET version: %s (with Major rollforward)\n", dotnetVersion.c_str());
     }
     else
     {
-        LogError(L"Failed to create temporary config file\n");
         return -1;
     }
 
@@ -281,20 +189,12 @@ int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
 
     // Delete the temporary config immediately after use
     DeleteFileW(tempConfigPath.c_str());
-    LogMessage(L"Deleted temporary config file\n");
 
     if (rc != 0 || cxt == nullptr)
     {
-        LogError(L"Failed to initialize .NET runtime (error code: 0x%08X)\n", rc);
-        LogMessage(L"\nTroubleshooting:\n");
-        LogMessage(L"  - Ensure .NET %s+ Runtime is installed\n", majorVer.c_str());
-        LogMessage(L"  - Check that all assembly dependencies are present\n");
-        LogMessage(L"  - Run 'dotnet --list-runtimes' to see installed versions\n");
         if (cxt) close_fptr(cxt);
         return -1;
     }
-
-    LogMessage(L"[OK] .NET runtime initialized successfully\n\n");
 
     // Get the load assembly function pointer
     load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = nullptr;
@@ -305,12 +205,9 @@ int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
 
     if (rc != 0 || load_assembly_and_get_function_pointer == nullptr)
     {
-        LogError(L"Failed to get load_assembly delegate (error code: 0x%08X)\n", rc);
         close_fptr(cxt);
         return -1;
     }
-
-    LogMessage(L"[OK] Load assembly delegate obtained\n\n");
 
     // Define the function pointer type
     typedef int (CORECLR_DELEGATE_CALLTYPE* custom_entry_point_fn)(const wchar_t** argv, int argc);
@@ -327,24 +224,13 @@ int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
 
     if (rc != 0 || mainFunc == nullptr)
     {
-        LogError(L"Failed to load assembly and get Main function pointer (error code: 0x%08X)\n", rc);
-        LogMessage(L"\nPossible causes:\n");
-        LogMessage(L"  - Assembly: %s\n", assemblyPath.c_str());
-        LogMessage(L"  - Type: %s\n", typeName.c_str());
-        LogMessage(L"  - Method signature must be: [UnmanagedCallersOnly] public static int Main(IntPtr args, int argc)\n");
         close_fptr(cxt);
         return -1;
     }
 
-    LogMessage(L"[OK] Main function pointer obtained\n");
-    LogMessage(L"Executing managed code...\n\n");
-
     // Call the managed function
     const wchar_t** argvPtr = const_cast<const wchar_t**>(argv);
     int result = mainFunc(argvPtr, argc);
-
-    LogMessage(L"\n[OK] Managed code execution completed\n");
-    LogMessage(L"Return code: %d\n", result);
 
     // Cleanup
     close_fptr(cxt);
@@ -354,44 +240,14 @@ int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
 // Main entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    // Initialize logging system
-    InitializeLogging();
-
-    LogMessage(L"========================================\n");
-    LogMessage(L"  Angene Native Host Launcher\n");
-    LogMessage(L"  No Persistent Config Files\n");
-    LogMessage(L"========================================\n\n");
-
-    if (g_consoleAvailable)
-    {
-        LogMessage(L"Running mode: Console attached\n");
-    }
-    else
-    {
-        LogMessage(L"Running mode: Background (no console)\n");
-        LogMessage(L"Output is being logged to angene_host.log\n");
-    }
-    LogMessage(L"\n");
-
     // Parse command-line arguments (Windows style)
     int argc = 0;
     LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-
-    if (argv != nullptr && argc > 1)
-    {
-        LogMessage(L"Command-line arguments received:\n");
-        for (int i = 0; i < argc; i++)
-        {
-            LogMessage(L"  [%d] %s\n", i, argv[i]);
-        }
-        LogMessage(L"\n");
-    }
 
     // Load hostfxr
     if (!LoadHostfxr())
     {
         if (argv) LocalFree(argv);
-        CleanupLogging();
         return -1;
     }
 
@@ -403,53 +259,29 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     size_t lastSlash = pathStr.find_last_of(L"\\/");
     std::wstring dirPath = pathStr.substr(0, lastSlash + 1);
 
-    LogMessage(L"\nExecutable directory: %s\n\n", dirPath.c_str());
-
     // Detect .NET version from hostfxr
     char_t hostfxrPath[MAX_PATH];
     size_t buffer_size = sizeof(hostfxrPath) / sizeof(char_t);
     get_hostfxr_path(hostfxrPath, &buffer_size, nullptr);
     std::wstring detectedVersion = DetectDotNetVersion(hostfxrPath);
-    LogMessage(L"Detected .NET version: %s\n", detectedVersion.c_str());
-    LogMessage(L"(Will use rollforward to accept newer versions)\n\n");
 
     // Scan for possible assemblies
     auto assemblies = FindPossibleAssemblies(dirPath);
 
-    LogMessage(L"Scanning for game assemblies:\n");
     AssemblyInfo* targetAssembly = nullptr;
     for (auto& assembly : assemblies)
     {
-        LogMessage(L"  DLL: %s %s\n", assembly.dllPath.c_str(),
-            assembly.dllExists ? L"[FOUND]" : L"[MISS]");
-
         if (assembly.dllExists)
         {
             if (!targetAssembly)
                 targetAssembly = &assembly;
         }
-        LogMessage(L"\n");
     }
 
     if (!targetAssembly)
     {
-        LogMessage(L"========================================\n");
-        LogError(L"No game assembly found!\n");
-        LogMessage(L"========================================\n");
-        LogMessage(L"Required files:\n");
-        for (const auto& assembly : assemblies)
-        {
-            LogMessage(L"  - %s\n", assembly.dllPath.c_str());
-        }
-        if (argv) LocalFree(argv);
-        CleanupLogging();
         return -1;
     }
-
-    LogMessage(L"Loading managed assembly:\n");
-    LogMessage(L"  DLL:    %s\n", targetAssembly->dllPath.c_str());
-    LogMessage(L"  Class:  %s\n", targetAssembly->className.c_str());
-    LogMessage(L"  Method: Main\n");
 
     // Execute using embedded config method (most compatible)
     int result = LoadAndRunManagedCode_Embedded(
@@ -462,18 +294,5 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // Free command-line argument memory
     if (argv) LocalFree(argv);
 
-    LogMessage(L"\n========================================\n");
-    if (result == 0)
-    {
-        LogMessage(L"Game execution completed successfully\n");
-    }
-    else
-    {
-        LogMessage(L"Game execution completed with errors\n");
-    }
-    LogMessage(L"========================================\n");
-    LogMessage(L"Final return code: %d\n\n", result);
-
-    CleanupLogging();
     return result;
 }

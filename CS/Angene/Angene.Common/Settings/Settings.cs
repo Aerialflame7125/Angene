@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -12,14 +11,24 @@ namespace Angene.Common.Settings
 
         public Action<string, int>[] OnSettingsChanged = Array.Empty<Action<string, int>>();
 
+        // load defaults when instantiated
+        public Settings()
+        {
+            LoadDefaults();
+        }
+
         public void LoadDefaults()
         {
-            consoleSettings.Add("LogDebugToConsole", 0);
+            // assign value
+            consoleSettings["LogDebugToConsole"] = 0;
         }
-        
+
         public string GetSetting(string key)
         {
             string[] keyParts = key.Split('.');
+            if (keyParts.Length < 2)
+                return "-1";
+
             string ns = keyParts[0];
             if (namespaces.Contains(ns))
             {
@@ -27,6 +36,11 @@ namespace Angene.Common.Settings
                 {
                     if (keyParts[1] == "LogDebugToConsole")
                     {
+                        // check if setting exists
+                        if (!consoleSettings.ContainsKey("LogDebugToConsole"))
+                        {
+                            consoleSettings["LogDebugToConsole"] = 0;
+                        }
                         return consoleSettings["LogDebugToConsole"].ToString();
                     }
                 }
@@ -34,7 +48,7 @@ namespace Angene.Common.Settings
                 {
                     if (keyParts[1] == "Version")
                     {
-                        return "v0.1c28";
+                        return "v0.1c30";
                     }
                 }
             }
