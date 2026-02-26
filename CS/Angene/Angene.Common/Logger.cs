@@ -68,7 +68,7 @@ namespace Angene.Common
 
                 LogInstance.WriteLine($"Log file created on {DateTime.Now}");
                 LogInstance.WriteLine("Logger initialized!");
-                string version = settings.GetSetting("Main.Version");
+                string version = (string)settings.GetSetting("Main.Version");
                 LogInstance.WriteLine($"Engine Version: {version}");
             }
             catch (Exception ex)

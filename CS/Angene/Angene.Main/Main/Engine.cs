@@ -1,15 +1,21 @@
-﻿using Angene.External;
+﻿using Angene.Common;
+using Angene.Common.Settings;
+using Angene.Essentials;
+using Angene.External;
 using Angene.Globals;
 using Angene.Graphics;
 using Angene.Platform;
-using Angene.Essentials;
-using Angene.Common;
-using Angene.Common.Settings;
 using Org.BouncyCastle.Asn1.Cmp;
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.WebSockets;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Angene.Main
 {
@@ -53,7 +59,7 @@ namespace Angene.Main
 
     public class Engine
     {
-        private Settings _settingHandlerInstanced;
+        private Settings? _settingHandlerInstanced;
         private LogConsoleWindow? _logConsole; // log window keepalive
 
         public Settings SettingHandlerInstanced
@@ -75,7 +81,19 @@ namespace Angene.Main
             }
         }
 
+        private Engine()
+        {
+            ScriptBinding.Lifecycle.destroyEngineList.Add(destroyInstances);
+        }
+
         public static Engine Instance { get; } = new Engine();
+
+        internal static void destroyInstances()
+        {
+            Instance._settingHandlerInstanced = null;
+            Instance._logConsole = null;
+        }
+
         public void Init(bool verbose = false)
         {
             SettingHandlerInstanced = new Settings();
@@ -101,7 +119,7 @@ namespace Angene.Main
 
     public class Window
     {
-        public IntPtr Hwnd { get; private set; }
+        public object Hwnd { get; private set; }
 
         public List<IScene> Scenes { get; private set; } = new List<IScene>();
         public IScene? PrimaryScene { get; private set; }
@@ -111,12 +129,15 @@ namespace Angene.Main
 
         private IGraphicsContext? graphicsContext;
         private bool is3D;
-        
+        public IScreenPlay? _screenPlay; // for ws method
+
         // Engine mode tracking
         private EngineMode _engineMode = EngineMode.Edit;
 
         // Global map of windows
-        public static readonly Dictionary<IntPtr, Window> WindowMap = new();
+        public static readonly Dictionary<Object, Window> WindowMap = new();
+
+        private string _instanceConnectionString;
 
 #if WINDOWS
         // Windows-specific fields
@@ -135,23 +156,52 @@ namespace Angene.Main
             Height = config.Height;
             is3D = config.Use3D;
 
-#if WINDOWS
-            Hwnd = CreateWindowWindows(config);
-            WindowMap[Hwnd] = this;
-
-            if (!config.Use3D)
+            if (config.cTI)
             {
-                graphicsContext = GraphicsContextFactory.Create(Hwnd, config.Width, config.Height);
+                _instanceConnectionString = config.cTS;
+            }
+            else
+            {
+                _instanceConnectionString = null;
+            }
+
+#if WINDOWS
+            Hwnd = CreateWindowWindows(config, config.cTI, config.cTS, config.cTT);
+            if (Hwnd.GetType() != typeof(String))
+            {
+                WindowMap[(IntPtr)Hwnd] = this;
+            }
+            else
+            {
+                WindowMap[Hwnd] = this;
+            }
+
+            if (!config.Use3D && !config.cTI)
+            {
+                graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height);
+            }
+            else if (config.Use3D && config.cTI)
+            {
+                Logger.LogError("You are opting for 3D on a websocket streamer. I'm going to give you a second to let this sink in, then I'll get back to you.", LoggingTarget.Engine);
+                ScriptBinding.Lifecycle.ShutdownEngine();
+            }
+            else if (!config.Use3D && config.cTI)
+            {
+                graphicsContext = GraphicsContextFactory.CreateWS((string)Hwnd, config.Width, config.Height);
+                var streamer = new Websocket.WebStreamer(this);
+                _screenPlay = streamer;
+                RegisterWebSocketInput();
             }
 #else
             CreateWindowX11(config.Title, config.Width, config.Height);
             WindowMap[Hwnd] = this;
 
-            if (!config.Use3D)
+            if (!config.Use3D && !config.cTI)
             {
-                graphicsContext = GraphicsContextFactory.CreateX11(display, Hwnd, config.Width, config.Height);
+                graphicsContext = GraphicsContextFactory.CreateX11(display, (IntPtr)Hwnd, config.Width, config.Height);
             }
 #endif
+
 
             Logger.Log("Window created successfully", LoggingTarget.Engine, LogLevel.Important);
         }
@@ -197,7 +247,7 @@ namespace Angene.Main
             Scenes.Add(scene);
             scene.Initialize();
 
-            Logger.Log($"Scene '{scene.GetType().Name}' added to window", LoggingTarget.Engine, LogLevel.Info);
+            Logger.Log($"Scene '{scene.GetType().Name}' added to window", LoggingTarget.Engine, LogLevel.Debug);
         }
 
         /// <summary>
@@ -226,7 +276,7 @@ namespace Angene.Main
                 PrimaryScene = Scenes.Count > 0 ? Scenes[0] : null;
             }
 
-            Logger.Log($"Scene '{scene.GetType().Name}' removed from window", LoggingTarget.Engine, LogLevel.Info);
+            Logger.Log($"Scene '{scene.GetType().Name}' removed from window", LoggingTarget.Engine, LogLevel.Debug);
         }
 
         /// <summary>
@@ -250,6 +300,85 @@ namespace Angene.Main
             return _engineMode;
         }
 
+        private void RegisterWebSocketInput()
+        {
+            Websocket.OnInputReceived += (json) =>
+            {
+                try
+                {
+                    // Minimal JSON parse without needing System.Text.Json or Newtonsoft
+                    // Pulls out "type", "keyCode", "button", "x", "y"
+                    string type = ExtractJsonString(json, "type");
+                    int keyCode = ExtractJsonInt(json, "keyCode");
+                    int button = ExtractJsonInt(json, "button");
+                    int x = ExtractJsonInt(json, "x");
+                    int y = ExtractJsonInt(json, "y");
+
+                    uint message = type switch
+                    {
+                        "keydown" => (uint)WM.KEYDOWN,
+                        "keyup" => (uint)WM.KEYUP,
+                        "mousemove" => (uint)WM.MOUSEMOVE,
+                        "mousedown" => button == 2 ? (uint)WM.RBUTTONDOWN : (uint)WM.LBUTTONDOWN,
+                        "mouseup" => button == 2 ? (uint)WM.RBUTTONUP : (uint)WM.LBUTTONUP,
+                        _ => 0
+                    };
+
+                    if (message == 0) return;
+
+                    // Pack x/y into lParam the same way Win32 does: high word = y, low word = x
+                    IntPtr lParam = new IntPtr((y << 16) | (x & 0xFFFF));
+                    IntPtr wParam = new IntPtr(keyCode);
+
+                    var msg = new Win32.MSG
+                    {
+                        hwnd = Hwnd is IntPtr h ? h : IntPtr.Zero,
+                        message = message,
+                        wParam = wParam,
+                        lParam = lParam
+                    };
+
+                    IntPtr msgPtr = Marshal.AllocHGlobal(Marshal.SizeOf<Win32.MSG>());
+                    try
+                    {
+                        Marshal.StructureToPtr(msg, msgPtr, false);
+                        for (int i = Scenes.Count - 1; i >= 0; i--)
+                            Scenes[i].OnMessage(msgPtr);
+                    }
+                    finally
+                    {
+                        Marshal.FreeHGlobal(msgPtr);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Failed to process input packet: {ex.Message}", LoggingTarget.Engine, LogLevel.Error);
+                }
+            };
+        }
+
+        // Minimal JSON field extractors so you don't need a JSON library
+        private static string ExtractJsonString(string json, string key)
+        {
+            string search = $"\"{key}\":\"";
+            int start = json.IndexOf(search);
+            if (start == -1) return "";
+            start += search.Length;
+            int end = json.IndexOf('"', start);
+            return end == -1 ? "" : json.Substring(start, end - start);
+        }
+
+        private static int ExtractJsonInt(string json, string key)
+        {
+            string search = $"\"{key}\":";
+            int start = json.IndexOf(search);
+            if (start == -1) return 0;
+            start += search.Length;
+            int end = start;
+            while (end < json.Length && (char.IsDigit(json[end]) || json[end] == '-')) end++;
+            return int.TryParse(json.Substring(start, end - start), out int val) ? val : 0;
+        }
+
         public void Cleanup()
         {
             Logger.Log("Cleaning up window resources", LoggingTarget.Engine, LogLevel.Important);
@@ -268,59 +397,95 @@ namespace Angene.Main
 
 #if WINDOWS
         // windows apis
-        private static IntPtr CreateWindowWindows(WindowConfig config)
+        private static object CreateWindowWindows(WindowConfig config, bool cTI, string cTS, object type)
         {
-            // Register class once
-            if (!s_classRegistered)
+            if (cTI && cTS != null && type != null)
             {
-                var wc = new Win32.WNDCLASSEX
+                // use strings to shut up the compiler
+                if ((string)type == "ws" || (string)type == "websocket")
                 {
-                    cbSize = (uint)Marshal.SizeOf<Win32.WNDCLASSEX>(),
-                    style = 0,
-                    lpfnWndProc = s_wndProc,
-                    cbClsExtra = 0,
-                    cbWndExtra = 0,
-                    hInstance = Kernel32.GetModuleHandle(null),
-                    hIcon = IntPtr.Zero,
-                    hCursor = IntPtr.Zero,
-                    hbrBackground = IntPtr.Zero,
-                    lpszMenuName = null,
-                    lpszClassName = "AngeneClass",
-                    hIconSm = IntPtr.Zero
-                };
+                    Logger.Log("\r\n __    __   ______   __     ________ \r\n|  \\  |  \\ /      \\ |  \\   |        \\\r\n| $$  | $$|  $$$$$$\\| $$    \\$$$$$$$$\r\n| $$__| $$| $$__| $$| $$      | $$   \r\n| $$    $$| $$    $$| $$      | $$   \r\n| $$$$$$$$| $$$$$$$$| $$      | $$   \r\n| $$  | $$| $$  | $$| $$_____ | $$   \r\n| $$  | $$| $$  | $$| $$     \\| $$   \r\n \\$$   \\$$ \\$$   \\$$ \\$$$$$$$$ \\$$   ", LoggingTarget.Engine, LogLevel.Important);
+                    Logger.LogWarning("You have opted to start a websocket for window streaming. This is highly discouraged but you shall continue. Work with caution fellow developer.", LoggingTarget.Engine);
+                    Logger.LogWarning("If the game developer does NOT allow this, the process will be terminated, commencing check.", LoggingTarget.Engine);
 
-                ushort atom = Win32.RegisterClassExW(ref wc);
-                if (atom == 0)
+                    // check settings
+                    Settings settings = Engine.Instance.SettingHandlerInstanced;
+                    object a = settings.GetSetting("Main.getIsGameAllowedForWebsockets");
+                    if (!(bool)a)
+                    {
+                        Logger.LogCritical("You are NOT licensed to run this game. Entitlement Check FAILED.", LoggingTarget.MainGame, new AngeneException("Entitlement Check Failed. You are not licensed to execute binaries of this program."));
+                        System.Diagnostics.Process.GetCurrentProcess().Kill();
+                    }
+                    string url = "http://localhost";
+                    string port = ":8000";
+                    HttpListener listener = new HttpListener();
+                    listener.Prefixes.Add($"{url}{port}/");
+                    listener.Start();
+                    Logger.LogInfo("The websocket streamer has started on 'localhost:8080', best of luck to you developer. o7", LoggingTarget.Engine);
+#pragma warning disable CS4014 
+                    // I'm going to fucking kill the compiler, complains about blocking because it isnt awaited.
+                    Websocket.StartWebsocket(listener);
+#pragma warning restore CS4014
+                    Random rand = new Random();
+                    return $"WS{port}[{rand.NextInt64(0, 1000000000)}]";
+                }
+            }
+            else
+            {
+                // Register class once
+                if (!s_classRegistered)
                 {
-                    throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+                    var wc = new Win32.WNDCLASSEX
+                    {
+                        cbSize = (uint)Marshal.SizeOf<Win32.WNDCLASSEX>(),
+                        style = 0,
+                        lpfnWndProc = s_wndProc,
+                        cbClsExtra = 0,
+                        cbWndExtra = 0,
+                        hInstance = Kernel32.GetModuleHandle(null),
+                        hIcon = IntPtr.Zero,
+                        hCursor = IntPtr.Zero,
+                        hbrBackground = IntPtr.Zero,
+                        lpszMenuName = null,
+                        lpszClassName = "AngeneClass",
+                        hIconSm = IntPtr.Zero
+                    };
+
+                    ushort atom = Win32.RegisterClassExW(ref wc);
+                    if (atom == 0)
+                    {
+                        throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+                    }
+
+                    s_classRegistered = true;
                 }
 
-                s_classRegistered = true;
+                IntPtr hInstance = Kernel32.GetModuleHandle(null);
+                IntPtr hwnd = Win32.CreateWindowExW(
+                    (uint)config.StyleEx,
+                    "AngeneClass",
+                    config.Title,
+                    (uint)config.Style,
+                    config.X,
+                    config.Y,
+                    config.Width,
+                    config.Height,
+                    IntPtr.Zero,
+                    IntPtr.Zero,
+                    hInstance,
+                    IntPtr.Zero
+                );
+
+                if (hwnd == IntPtr.Zero)
+                    throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+
+                Win32.ShowWindow(hwnd, Win32.SW_SHOW);
+                Logger.Log($"Window({hwnd}) shown", LoggingTarget.Engine);
+                Win32.UpdateWindow(hwnd);
+                return hwnd;
+
             }
-
-            IntPtr hInstance = Kernel32.GetModuleHandle(null);
-            IntPtr hwnd = Win32.CreateWindowExW(
-                (uint)config.StyleEx,
-                "AngeneClass",
-                config.Title,
-                (uint)config.Style,
-                config.X,
-                config.Y,
-                config.Width,
-                config.Height,
-                IntPtr.Zero,
-                IntPtr.Zero,
-                hInstance,
-                IntPtr.Zero
-            );
-
-            if (hwnd == IntPtr.Zero)
-                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-
-            Win32.ShowWindow(hwnd, Win32.SW_SHOW);
-            Logger.Log($"Window({hwnd}) shown", LoggingTarget.Engine);
-            Win32.UpdateWindow(hwnd);
-            return hwnd;
+            return IntPtr.Zero;
         }
 
         private static IntPtr DefaultWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)

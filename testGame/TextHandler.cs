@@ -82,7 +82,7 @@ namespace Game
         public void DrawWindows()
         {
             // Windows GDI rendering
-            IntPtr hdc = Win32.GetDC(_window.Hwnd);
+            IntPtr hdc = Win32.GetDC((IntPtr)_window.Hwnd);
             if (hdc == IntPtr.Zero) return;
 
             try
@@ -122,7 +122,7 @@ namespace Game
             }
             finally
             {
-                Win32.ReleaseDC(_window.Hwnd, hdc);
+                Win32.ReleaseDC((IntPtr)_window.Hwnd, hdc);
             }
         }
 #else

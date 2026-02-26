@@ -88,7 +88,7 @@ namespace Game
         }
 
         public List<Entity> GetEntities() => entities;
-        
+
         public void Cleanup() { }
 
     }

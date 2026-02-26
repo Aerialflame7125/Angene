@@ -24,11 +24,386 @@ The C# library/variant of Angene. Functions and calls are described here:
 
   - Engine.Instance
 - Angene.Win32
-  - Win32.WindowStyle : uint
-  - Win32.WindowStyleEx : uint
-  - (struct) Win32.WindowTransparancy
-  - ### being dead honest this file is really fucking big and has a lot of calls. I'm not doing all of that until the engine is done.
+  - enum WindowStyle : uint
+  {
+      Overlapped = 0x00000000,
+      Popup = 0x80000000,
+      Child = 0x40000000,
+      Minimize = 0x20000000,
+      Visible = 0x10000000,
+      Disabled = 0x08000000,
+      ClipSiblings = 0x04000000,
+      ClipChildren = 0x02000000,
+      Maximize = 0x01000000,
+      Caption = 0x00C00000,
+      Border = 0x00800000,
+      DialogFrame = 0x00400000,
+      VScroll = 0x00200000,
+      HScroll = 0x00100000,
+      SysMenu = 0x00080000,
+      ThickFrame = 0x00040000,
+      Group = 0x00020000,
+      TabStop = 0x00010000,
+      MinimizeBox = 0x00020000,
+      MaximizeBox = 0x00010000,
 
+      OverlappedWindow = Overlapped | Caption | SysMenu | ThickFrame | MinimizeBox | MaximizeBox,
+      PopupWindow = Popup | Border | SysMenu
+  }
+
+  - enum WindowStyleEx : uint
+  {
+      None = 0x00000000,
+      DlgModalFrame = 0x00000001,
+      NoParentNotify = 0x00000004,
+      Topmost = 0x00000008,
+      AcceptFiles = 0x00000010,
+      Transparent = 0x00000020,
+      MdiChild = 0x00000040,
+      ToolWindow = 0x00000080,
+      WindowEdge = 0x00000100,
+      ClientEdge = 0x00000200,
+      ContextHelp = 0x00000400,
+      Right = 0x00001000,
+      Left = 0x00000000,
+      RtlReading = 0x00002000,
+      LtrReading = 0x00000000,
+      LeftScrollBar = 0x00004000,
+      RightScrollBar = 0x00000000,
+      ControlParent = 0x00010000,
+      StaticEdge = 0x00020000,
+      AppWindow = 0x00040000,
+      Layered = 0x00080000,
+      NoInheritLayout = 0x00100000,
+      NoRedirectionBitmap = 0x00200000,
+      LayoutRtl = 0x00400000,
+      Composited = 0x02000000,
+      NoActivate = 0x08000000,
+
+      OverlappedWindow = WindowEdge | ClientEdge,
+      PaletteWindow = WindowEdge | ToolWindow | Topmost
+  }
+
+  - struct WindowTransparency
+  {
+      - bool Enabled;
+      - byte Alpha;
+      - bool ClickThrough;
+
+      - WindowTransparency None => new WindowTransparency { Enabled = false, Alpha = 255, ClickThrough = false };
+      - WindowTransparency Opaque => new WindowTransparency { Enabled = true, Alpha = 255, ClickThrough = false };
+      - WindowTransparency SemiTransparent => new WindowTransparency { Enabled = true, Alpha = 128, ClickThrough = false };
+      - WindowTransparency FullyTransparent => new WindowTransparency { Enabled = true, Alpha = 0, ClickThrough = true };
+  }
+
+  - const uint GR_GDIOBJECTS = 0;
+  - const int PM_REMOVE = 0x0001;
+
+  - const uint WM_CLOSE = 0x0010;
+  - const uint WM_DESTROY = 0x0002;
+  - const uint WM_ERASEBKGND = 0x0014;
+  - const uint WM_QUIT = 0x0012;
+
+  - const uint WS_OVERLAPPEDWINDOW = 0x00CF0000;
+  - const int CW_USEDEFAULT = unchecked((int)0x80000000);
+  - const int SW_SHOW = 5;
+
+  - delegate IntPtr WndProcDelegate(
+      IntPtr hWnd,
+      uint msg,
+      IntPtr wParam,
+      IntPtr lParam
+  );
+
+  - const uint IMAGE_ICON = 1;
+  - const uint LR_DEFAULTSIZE = 0x00000040;
+  - const uint LR_LOADFROMFILE = 0x00000010;
+  - const uint WM_SETICON = 0x0080;
+  - const int ICON_SMALL = 0;
+  - const int ICON_BIG = 1;
+
+  - IntPtr LoadImage(
+      IntPtr hInst,
+      string lpszName,
+      uint uType,
+      int cxDesired,
+      int cyDesired,
+      uint fuLoad
+  );
+
+  - IntPtr SendMessage(
+      IntPtr hWnd,
+      uint Msg,
+      IntPtr wParam,
+      IntPtr lParam
+  );
+
+  - IntPtr CreateIconFromResourceEx(
+      IntPtr presbits,
+      uint dwResSize,
+      bool fIcon,
+      uint dwVer,
+      int cxDesired,
+      int cyDesired,
+      uint Flags
+  );
+
+  - const uint LR_DEFAULTCOLOR = 0x00000000;
+  - bool DestroyIcon(IntPtr hIcon);
+  - struct WNDCLASSEX
+  {
+      - uint cbSize;
+      - uint style;
+      - WndProcDelegate lpfnWndProc;
+      - int cbClsExtra;
+      - int cbWndExtra;
+      - IntPtr hInstance;
+      - IntPtr hIcon;
+      - IntPtr hCursor;
+      - IntPtr hbrBackground;
+      - string lpszMenuName;
+      - string lpszClassName;
+      - IntPtr hIconSm;
+  }
+  - struct MSG
+  {
+      - IntPtr hwnd;
+      - uint message;
+      - IntPtr wParam;
+      - IntPtr lParam;
+      - uint time;
+      - int pt_x;
+      - int pt_y;
+  }
+
+  - uint GetGuiResources(IntPtr hProcess, uint uiFlags);
+  - IntPtr GetDC(IntPtr hWnd);
+  - int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+  - IntPtr CreateWindowExW(
+      uint dwExStyle,
+      string lpClassName,
+      string lpWindowName,
+      uint dwStyle,
+      int X,
+      int Y,
+      int nWidth,
+      int nHeight,
+      IntPtr hWndParent,
+      IntPtr hMenu,
+      IntPtr hInstance,
+      IntPtr lpParam
+  );
+  - bool PeekMessageW(
+      out MSG lpMsg,
+      IntPtr hWnd,
+      uint wMsgFilterMin,
+      uint wMsgFilterMax,
+      int wRemoveMsg
+  );
+  - bool TranslateMessage(ref MSG lpMsg);
+  - IntPtr DispatchMessageW(ref MSG lpMsg);
+  - IntPtr DefWindowProcW(
+      IntPtr hWnd,
+      uint message,
+      IntPtr wParam,
+      IntPtr lParam
+  );
+
+  - IntPtr BeginPaint(IntPtr hWnd, out PAINTSTRUCT lpPaint);
+  - bool EndPaint(IntPtr hWnd, ref PAINTSTRUCT lpPaint);
+  - bool DestroyWindow(IntPtr hWnd);
+  - void PostQuitMessage(int nExitCode);
+  - IntPtr LoadCursorW(IntPtr hInstance, IntPtr lpCursorName);
+  - ushort RegisterClassExW(ref WNDCLASSEX lpwcx);
+  - bool InvalidateRect(IntPtr hWnd, IntPtr lpRect, bool bErase);
+  - bool ShowWindow(IntPtr hWnd, int nCmdShow);
+  - bool UpdateWindow(IntPtr hWnd);
+
+  - struct PAINTSTRUCT
+  {
+      - IntPtr hdc;
+      - bool fErase;
+      - RECT rcPaint;
+      - bool fRestore;
+      - bool fIncUpdate;
+      - byte[] rgbReserved;
+  }
+
+  - struct RECT
+  {
+      - int left;
+      - int top;
+      - int right;
+      - int bottom;
+  }
+
+  - const uint WS_POPUP = 0x80000000;
+  - const uint WS_EX_LAYERED = 0x00080000;
+  - const uint WS_EX_TRANSPARENT = 0x00000020;
+  - const uint WS_EX_TOPMOST = 0x00000008;
+  - const int LWA_COLORKEY = 0x1;
+  - const int LWA_ALPHA = 0x2;
+  - const int GWL_EXSTYLE = -20;
+
+  - bool SetLayeredWindowAttributes(
+      IntPtr hwnd,
+      uint crKey,
+      byte bAlpha,
+      uint dwFlags
+  );
+  - int GetWindowLong(IntPtr hWnd, int nIndex);
+  - int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+- Angene.Win32Messages (WM, EM, not a global namespace.)
+  - enum WM : uint
+  {
+      NULL            = 0x0000,
+      CREATE          = 0x0001,
+      DESTROY         = 0x0002,
+      MOVE            = 0x0003,
+      SIZE            = 0x0005,
+      SETFOCUS        = 0x0007,
+      KILLFOCUS       = 0x0008,
+      PAINT           = 0x000F,
+      CLOSE           = 0x0010,
+      QUIT            = 0x0012,
+      ERASEBKGND      = 0x0014,
+
+      KEYDOWN         = 0x0100,
+      KEYUP           = 0x0101,
+      CHAR            = 0x0102,
+
+      MOUSEMOVE       = 0x0200,
+      LBUTTONDOWN     = 0x0201,
+      LBUTTONUP       = 0x0202,
+      RBUTTONDOWN     = 0x0204,
+      RBUTTONUP       = 0x0205,
+      MOUSEWHEEL      = 0x020A,
+
+      ENTERSIZEMOVE   = 0x0231,
+      EXITSIZEMOVE    = 0x0232,
+  }
+
+  - enum EM : uint
+  {
+      GETSEL          = 0x00B0,
+      SETSEL          = 0x00B1,
+      GETRECT         = 0x00B2,
+      SETRECT         = 0x00B3,
+      REPLACESEL      = 0x00C2,
+      GETLINE         = 0x00C4,
+  }
+
+  - class WS
+  {
+      - const uint OVERLAPPED       = 0x00000000;
+      - const uint POPUP            = 0x80000000;
+      - const uint CHILD            = 0x40000000;
+      - const uint VISIBLE          = 0x10000000;
+      - const uint DISABLED         = 0x08000000;
+      - const uint CLIPSIBLINGS     = 0x04000000;
+      - const uint CLIPCHILDREN     = 0x02000000;
+      - const uint SYSMENU          = 0x00080000;
+      - const uint THICKFRAME       = 0x00040000;
+  }
+
+  - class WS_EX
+  {
+      - const uint TOPMOST           = 0x00000008;
+      - const uint TOOLWINDOW        = 0x00000080;
+      - const uint APPWINDOW         = 0x00040000;
+      - const uint LAYERED           = 0x00080000;
+      - const uint NOACTIVATE        = 0x08000000;
+  }
+
+  - class SWP
+  {
+      - const uint NOSIZE        = 0x0001;
+      - const uint NOMOVE        = 0x0002;
+      - const uint NOZORDER      = 0x0004;
+      - const uint NOACTIVATE    = 0x0010;
+      - const uint SHOWWINDOW    = 0x0040;
+  }
+
+- Angene.Gdi32
+  - SRCCOPY = 0x00CC0020;
+  - CreateCompatibleDC(IntPtr hdc);
+  - CreateCompatibleBitmap(IntPtr hdc, int nWidth, int nHeight);
+  - SelectObject(IntPtr hdc, IntPtr hObject);
+  - DeleteObject(IntPtr hObject);
+  - DeleteDC(IntPtr hdc);
+  - BitBlt(
+      IntPtr hdcDest,
+      int nXDest,
+      int nYDest,
+      int nWidth,
+      int nHeight,
+      IntPtr hdcSrc,
+      int nXSrc,
+      int nYSrc,
+      uint dwRop);
+  - CreateSolidBrush(uint crColor);
+  - GetStockObject(int fnObject);
+  - Rectangle(IntPtr hdc, int left, int top, int right, int bottom);
+  - SetBkMode(IntPtr hdc, int mode);
+  - SetTextColor(IntPtr hdc, uint color);
+  - TextOutW(IntPtr hdc, int nXStart, int nYStart, string lpString, int cchString);
+  - BITMAPINFOHEADER
+  {
+     uint biSize;
+     int biWidth;
+     int biHeight;
+     ushort biPlanes;
+     ushort biBitCount;
+     uint biCompression;
+     uint biSizeImage;
+     int biXPelsPerMeter;
+     int biYPelsPerMeter;
+     uint biClrUsed;
+     uint biClrImportant;
+  }
+  - BITMAPINFO
+  {
+     BITMAPINFOHEADER bmiHeader;
+     uint bmiColors; // Just enough for the header
+  }
+  - GetDIBits(IntPtr hdc, IntPtr hbmp, uint uStartScan, uint cScanLines, [Out] byte[] lpvBits, ref BITMAPINFO lpbi, uint uUsage);
+
+- Angene.Graphics
+  - GraphicsBackend
+    - interface IGraphicsContext
+    {
+        IntPtr Handle { get; }
+        void Clear(uint color);
+        void DrawRectangle(int x, int y, int width, int height, uint color);
+        void DrawText(string text, int x, int y, uint color);
+        void Present(IntPtr windowHandle);
+        void Cleanup();
+        byte[] GetRawPixels();
+    }
+    
+    - class GdiGraphicsContext : IGraphicsContext        
+        - IntPtr Handle => memDc;
+        
+        - GdiGraphicsContext(IntPtr hwnd, int w, int h)
+        - void Clear(uint color)
+        - void DrawRectangle(int x, int y, int w, int h, uint color)
+        - void DrawText(string text, int x, int y, uint color)
+        - void Present(IntPtr hwnd)
+        
+        - byte[] GetRawPixels() { return null; }
+
+    - class WSGraphicsContext : IGraphicsContext
+      - IntPtr Handle => memDc;
+
+      - WSGraphicsContext(string hwnd, int w, int h)
+      - void Clear(uint color)
+      - void DrawRectangle(int x, int y, int w, int h, uint color)
+      - void DrawText(string text, int x, int y, uint color)
+      - byte[] GetRawPixels()
+
+    - class GraphicsContextFactory
+      - IGraphicsContext Create(IntPtr windowHandle, int width, int height)
 - Angene.External
   - External.DiscordRichPresence
     - (partial class) DiscordRichPresence
@@ -37,7 +412,150 @@ The C# library/variant of Angene. Functions and calls are described here:
       - Clear() # Clears RPC
       - schedule() # Schedules Cts token debounce
       - Dispose() # Clears client
-     
+
+- Angene.PkgHandler
+  - Package
+    - IReadOnlyList<ManifestEntry> Entries => _manifest.Files;
+
+    private Package(FileStream fs, Manifest manifest, byte[] key,
+        bool manifestEncrypted, bool manifestCompressed, byte[] manifestNonce, long manifestOffset)
+    {
+        _fs = fs;
+        _manifest = manifest;
+        _key = key;
+        _manifestEncrypted = manifestEncrypted;
+        _manifestCompressed = manifestCompressed;
+        _manifestNonce = manifestNonce;
+        _manifestOffset = manifestOffset;
+    }
+
+    - Package Open(string path, byte[] key = null)
+    {
+        var fs = File.OpenRead(path);
+        var magic = br.ReadBytes(8);
+        var magicStr = Encoding.ASCII.GetString(magic);
+        var version = br.ReadUInt32();
+        var manifestLength = br.ReadInt64();
+        var manifestFlags = br.ReadByte();
+        bool manifestEncrypted = (manifestFlags & 0x01) != 0;
+        bool manifestCompressed = (manifestFlags & 0x02) != 0;
+        byte[] manifestNonce = null;
+        long manifestOffset = fs.Position;
+        var manifestBytes = new byte[manifestLength];
+        int toRead = (int)manifestLength;
+        int totalRead = 0;
+        return new Package(fs, manifest, key, manifestEncrypted, manifestCompressed, manifestNonce, manifestOffset);
+    }
+
+    
+    - void ExtractTo(string relativePath, string outPath)
+    
+    - Stream OpenStream(ManifestEntry entry)
+
+    private class Manifest
+    {
+        - ManifestEntry[] Files { get; set; }
+        - DateTime Created { get; set; }
+    }
+
+    - class ManifestEntry
+    {
+        - string Path { get; set; }
+        - long Offset { get; set; }
+        - long Length { get; set; }
+        - bool Compressed { get; set; }
+        - bool Encrypted { get; set; }
+        - string Nonce { get; set; }
+        - string Tag { get; set; }
+    }
+}
+
+- Angene.Platform
+  - WindowConfig
+    - string Title { get; set; } = "Angene Window";
+    - int Width { get; set; } = 800;
+    - int Height { get; set; } = 600;
+    - int X { get; set; } = Win32.CW_USEDEFAULT;
+    - int Y { get; set; } = Win32.CW_USEDEFAULT;
+    - bool cTI { internal get; set; } = false;
+    - string cTS { internal get; set; } = "";
+    - string cTT { internal get; set; } = "";
+    - Win32.WindowStyle Style { get; set; } = Win32.WindowStyle.OverlappedWindow;
+    - Win32.WindowStyleEx StyleEx { get; set; } = Win32.WindowStyleEx.None;
+    - Win32.WindowTransparency Transparency { get; set; } = Win32.WindowTransparency.None;
+    - bool Use3D { get; set; } = false;
+    - bool ShowOnCreate { get; set; } = true;
+    - bool AlwaysOnTop
+    {
+        get => StyleEx.HasFlag(Win32.WindowStyleEx.Topmost);
+        set
+        {
+            if (value)
+                StyleEx |= Win32.WindowStyleEx.Topmost;
+            else
+                StyleEx &= ~Win32.WindowStyleEx.Topmost;
+        }
+    }
+    - WindowConfig Standard(string title, int width, int height)
+    {
+        return new WindowConfig
+        {
+            Title = title,
+            Width = width,
+            Height = height,
+            Style = Win32.WindowStyle.OverlappedWindow,
+            StyleEx = Win32.WindowStyleEx.None,
+            Transparency = Win32.WindowTransparency.None,
+            Use3D = false
+        };
+    }
+    - WindowConfig TransparentOverlay(string title, int width, int height, bool clickThrough = true)
+    {
+        return new WindowConfig
+        {
+            Title = title,
+            Width = width,
+            Height = height,
+            X = 0,
+            Y = 0,
+            Style = Win32.WindowStyle.Popup,
+            StyleEx = Win32.WindowStyleEx.Layered | Win32.WindowStyleEx.Topmost |
+                    (clickThrough ? Win32.WindowStyleEx.Transparent : Win32.WindowStyleEx.None),
+            Transparency = new Win32.WindowTransparency
+            {
+                Enabled = true,
+                Alpha = 255,  
+                ClickThrough = clickThrough
+            },
+            Use3D = false
+        };
+    }
+    - WindowConfig Borderless(string title, int width, int height)
+    {
+        return new WindowConfig
+        {
+            Title = title,
+            Width = width,
+            Height = height,
+            Style = Win32.WindowStyle.Popup,
+            StyleEx = Win32.WindowStyleEx.None,
+            Transparency = Win32.WindowTransparency.None,
+            Use3D = false
+        };
+    }
+    - WindowConfig Rendering3D(string title, int width, int height)
+    {
+        return new WindowConfig
+        {
+            Title = title,
+            Width = width,
+            Height = height,
+            Style = Win32.WindowStyle.OverlappedWindow,
+            StyleEx = Win32.WindowStyleEx.None,
+            Transparency = Win32.WindowTransparency.None,
+            Use3D = true
+        };
+    }
 ## Angene.Essentials
 - Essentials.Entity : IEquatable<Entity> # The ENTIRE FUCKING ENTITY
   - static int Id # Entity ID
@@ -118,6 +636,7 @@ The C# library/variant of Angene. Functions and calls are described here:
       - HandleEntityDestroyed(Entity) # On entity destroyed
       - SetEntityEnabled(Entity, bool) # To set an entity as enabled
       - RegisterScript(Entity, object) # Registering a script upon the lifecycle
+      - ShutdownEngine() # Shuts down the engine *correctly*.
 
 - Essentials.ScreenPlay # Scripts
   - interface IScreenPlay (Set up a script with ': IScreenPlay')
@@ -170,11 +689,11 @@ The C# library/variant of Angene. Functions and calls are described here:
 
 - Common.Settings
   - List<string> namespaces # Namespaces for settings
-  - Dictionary<string, int> consoleSettings # Console settings (Does literally nothing)
-  - Action<string, int>[] OnSettingsChanged # Action that happens when setting changed.
+  - Dictionary<string, object> consoleSettings # Console settings (Does literally nothing)
+  - Action<string, object>[] OnSettingsChanged # Action that happens when setting changed.
   - Settings() # Literally calls LoadDefaults() when instantiated.
   - LoadDefaults() # Loads setting defaults
-  - string GetSetting(string) # Gets a setting, returns a string
+  - object GetSetting(string) # Gets a setting, returns an object from setting value
   - SetSetting(string, object) # Sets a setting, returns nothing.
 
 - Common.Globals
@@ -480,6 +999,108 @@ internal class RPC : IScreenPlay
 }
 ```
 Again really long exerpt, but essentially initializes RPC. I am aware I put an app id in there. It's the same one in testGame, its not special.
+
+## Websocket Windows
+Not recommended, this forwards all window graphics (gdi) to a websocket to be interpreted by an http connection. There is NO CERTIFICATE.
+Just to initialize is simple as can be:
+```cs
+instances.settings.SetSetting("Main.getIsGameAllowedForWebsockets", true);
+WindowConfig config = new WindowConfig();
+config.cTI = true;       // enable connection type injection
+config.cTS = "ws";       // set type to websocket
+config.cTT = "ws";       // set transport type
+config.Title = "Angene | exampleGame";
+config.Transparency = Win32.WindowTransparency.SemiTransparent;
+config.Width = 1280; config.Height = 720;
+window = new Window(config);
+Logger.Log("Window created successfully", LoggingTarget.Engine);
+```
+Simple right? Well the implementation isn't.
+If you want an example for a http server via html5, [reach out here](https://github.com/Aerialflame7125/Angene/blob/main/testGame/WebsocketServer/index.html)
+
+There are lots of other obscure methods, but if you want the easiest example, just use [the text handler from there](https://github.com/Aerialflame7125/Angene/blob/main/testGame/WebsocketServer/TextHandler.cs) or refer to the graphics context at the top listing.
+
+## Example CSProj
+Not really a helper to provide an example but whatever
+The CPP host file is really picky on namespaces, so here is an example:
+```csproj
+<PropertyGroup>
+	<TargetFramework>net8.0</TargetFramework>
+	<OutputType>Library</OutputType>
+	<AssemblyName>Game</AssemblyName>
+	<RootNamespace>Game</RootNamespace>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Nullable>enable</Nullable>
+	<LangVersion>latest</LangVersion>
+
+	<!-- Generate runtime config file -->
+	<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+
+	<!-- Copy dependencies to output -->
+	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+</PropertyGroup>
+
+<!-- Platform-specific defines -->
+<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+	<DefineConstants>WINDOWS</DefineConstants>
+</PropertyGroup>
+<PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+	<DefineConstants>LINUX</DefineConstants>
+</PropertyGroup>
+```
+This literally is the simplest you need if you want to at least compile.
+Next the entry point:
+
+## Entry point
+The engine's host cpp file has a very specific entry point definition as well:
+```cs
+[UnmanagedCallersOnly]
+public static int Main(IntPtr args, int argc)
+{
+    bool verbose = false;
+    try
+    {
+        // Parse command-line arguments if provided
+        string[] argArray = Array.Empty<string>();
+        if (args != IntPtr.Zero && argc > 0)
+        {
+            argArray = new string[argc];
+            unsafe
+            {
+                IntPtr* pArgs = (IntPtr*)args;
+                for (int i = 0; i < argc; i++)
+                {
+                    argArray[i] = Marshal.PtrToStringUni(pArgs[i]) ?? string.Empty;
+                }
+            }
+            foreach (string arg in argArray)
+            {
+                if (arg.Length > 0 && arg == "--verbose" && !verbose)
+                {
+                    verbose = true;
+                }
+            }
+            Logger.Log($"Arguments received ({argc}):", LoggingTarget.MainConstructor);
+            for (int i = 0; i < argArray.Length; i++)
+            {
+                Logger.Log($"  [{i}] {argArray[i]}", LoggingTarget.MainConstructor);
+            }
+            Logger.Log("", LoggingTarget.MainConstructor);
+        }
+
+        Logger.Log("Calling RunGame...", LoggingTarget.MainConstructor);
+        RunGame(verbose);
+
+        return 0;
+    }
+    except (Exception ex)
+    {
+        Logger.Log($"\nFATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, logLevel: LogLevel.Critical, exception: ex);
+        return 1; // Error
+    }
+}
+```
+Again just an example, but the arguments are as follows. If a log directory is not created after launching the host, something is incorrect with the entry point or the engine hasn't initialized.
 
 # Conclusion
 i'm really fucking tired, see yall next commit.

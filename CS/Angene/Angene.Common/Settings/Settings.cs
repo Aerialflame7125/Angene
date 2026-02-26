@@ -7,9 +7,9 @@ namespace Angene.Common.Settings
     public class Settings
     {
         public List<string> namespaces = new List<string>(["Console", "Main"]);
-        public Dictionary<string, int> consoleSettings = new Dictionary<string, int>();
+        public Dictionary<string, object> consoleSettings = new Dictionary<string, object>();
 
-        public Action<string, int>[] OnSettingsChanged = Array.Empty<Action<string, int>>();
+        public Action<string, object>[] OnSettingsChanged = Array.Empty<Action<string, object>>();
 
         // load defaults when instantiated
         public Settings()
@@ -23,7 +23,7 @@ namespace Angene.Common.Settings
             consoleSettings["LogDebugToConsole"] = 0;
         }
 
-        public string GetSetting(string key)
+        public object GetSetting(string key)
         {
             string[] keyParts = key.Split('.');
             if (keyParts.Length < 2)
@@ -48,8 +48,13 @@ namespace Angene.Common.Settings
                 {
                     if (keyParts[1] == "Version")
                     {
-                        return "v0.1c30";
+                        return "v0.1c35";
                     }
+                    if (keyParts[1] == "getIsGameAllowedForWebsockets")
+                    {
+                        return consoleSettings["getIsGameAllowedForWebsockets"];
+                    }
+
                 }
             }
             return "-1"; // Setting not found
@@ -67,6 +72,13 @@ namespace Angene.Common.Settings
                     if (keyParts[1] == "LogDebugToConsole" && value is int intValue)
                     {
                         consoleSettings["LogDebugToConsole"] = intValue;
+                    }
+                }
+                if (ns == "Main")
+                {
+                    if (keyParts[1] == "getIsGameAllowedForWebsockets" && value is bool boolValue)
+                    {
+                        consoleSettings["getIsGameAllowedForWebsockets"] = boolValue;
                     }
                 }
             }

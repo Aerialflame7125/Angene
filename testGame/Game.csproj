@@ -25,6 +25,12 @@
 		<DefineConstants>LINUX</DefineConstants>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <Compile Remove="WebsocketServer\**" />
+	  <EmbeddedResource Remove="WebsocketServer\**" />
+	  <None Remove="WebsocketServer\**" />
+	</ItemGroup>
+
 	<!-- NuGet package dependencies -->
 	<ItemGroup>
 		<PackageReference Include="System.Security.Permissions" Version="8.0.0" />

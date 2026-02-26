@@ -99,6 +99,7 @@ namespace Angene.Essentials
             // storage for entity script runtime
             private static readonly Dictionary<Entity, EntityRuntimeState> _entityStates = new();
             private static readonly Dictionary<Entity, List<ScriptBinding>> _entityScripts = new();
+            public static List<Action> destroyEngineList = new();
 
             // api
 
@@ -239,7 +240,7 @@ namespace Angene.Essentials
                 Logger.Log(
                     $"Entity '{entity.name}' registered with lifecycle system (Awake called)",
                     LoggingTarget.Engine,
-                    LogLevel.Info
+                    LogLevel.Debug
                 );
             }
 
@@ -285,7 +286,7 @@ namespace Angene.Essentials
                 Logger.Log(
                     $"Entity '{entity.name}' destroyed and removed from lifecycle",
                     LoggingTarget.Engine,
-                    LogLevel.Info
+                    LogLevel.Debug
                 );
             }
 
@@ -324,12 +325,12 @@ namespace Angene.Essentials
                 if (enabled)
                 {
                     ExecuteOnEnable(entity);
-                    Logger.Log($"Entity '{entity.name}' enabled", LoggingTarget.Engine, LogLevel.Info);
+                    Logger.Log($"Entity '{entity.name}' enabled", LoggingTarget.Engine, LogLevel.Debug);
                 }
                 else
                 {
                     ExecuteOnDisable(entity);
-                    Logger.Log($"Entity '{entity.name}' disabled", LoggingTarget.Engine, LogLevel.Info);
+                    Logger.Log($"Entity '{entity.name}' disabled", LoggingTarget.Engine, LogLevel.Debug);
                 }
             }
 
@@ -356,8 +357,35 @@ namespace Angene.Essentials
                 Logger.Log(
                     $"Script '{scriptInstance.GetType().Name}' registered to entity '{entity.name}'",
                     LoggingTarget.Engine,
-                    LogLevel.Info
+                    LogLevel.Debug
                 );
+            }
+
+            /// <summary>
+            /// Safe method to shutdown the engine
+            /// Calls OnDestroy for all objects and shuts down safely.
+            /// </summary>
+            public static void ShutdownEngine()
+            {
+                foreach (var binding in _entityScripts.Keys)
+                {
+                    if (binding.IsEnabled())
+                    {
+                        ExecuteOnDestroy(binding);
+                    }
+                }
+                foreach (var callback in destroyEngineList)
+                {
+                    try
+                    {
+                        callback?.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log($"Exception in destroy callback: {ex.Message}", LoggingTarget.Engine, LogLevel.Error);
+                    }
+                }
+                destroyEngineList.Clear();
             }
 
             // ==================== INTERNAL EXECUTION METHODS ====================

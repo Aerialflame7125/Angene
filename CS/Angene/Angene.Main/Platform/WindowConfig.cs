@@ -23,6 +23,12 @@ namespace Angene.Platform
         /// <summary>Y position (CW_USEDEFAULT for system default)</summary>
         public int Y { get; set; } = Win32.CW_USEDEFAULT;
 
+        public bool cTI { internal get; set; } = false;
+
+        public string cTS { internal get; set; } = "";
+
+        public string cTT { internal get; set; } = "";
+
         /// <summary>Window style flags</summary>
         public Win32.WindowStyle Style { get; set; } = Win32.WindowStyle.OverlappedWindow;
 

@@ -44,7 +44,7 @@ namespace Angene.Main
             var magic = br.ReadBytes(8);
             var magicStr = Encoding.ASCII.GetString(magic);
             if (!magicStr.StartsWith("ANGEPKG"))
-                throw new InvalidDataException("Not an ANGENEPKG file.");
+                throw new InvalidDataException("Not an ANGPKG file.");
 
             var version = br.ReadUInt32();
             var manifestLength = br.ReadInt64();

@@ -83,7 +83,7 @@ namespace Angene.Essentials
             Logger.Log(
                 $"Script '{scriptInstance.GetType().Name}' added to entity '{name}'",
                 LoggingTarget.Engine,
-                LogLevel.Info
+                LogLevel.Debug
             );
         }
 
@@ -98,7 +98,7 @@ namespace Angene.Essentials
                 Logger.Log(
                     $"Script '{scriptInstance.GetType().Name}' removed from entity '{name}'",
                     LoggingTarget.Engine,
-                    LogLevel.Info
+                    LogLevel.Debug
                 );
             }
         }
@@ -173,7 +173,7 @@ namespace Angene.Essentials
                 Logger.Log(
                     $"Entity '{child.name}' added as child of '{name}'",
                     LoggingTarget.Engine,
-                    LogLevel.Info
+                    LogLevel.Debug
                 );
             }
         }
@@ -192,7 +192,7 @@ namespace Angene.Essentials
                 Logger.Log(
                     $"Entity '{child.name}' removed from parent '{name}'",
                     LoggingTarget.Engine,
-                    LogLevel.Info
+                    LogLevel.Debug
                 );
             }
         }
@@ -235,7 +235,7 @@ namespace Angene.Essentials
             Logger.Log(
                 $"Entity '{name}' destroyed",
                 LoggingTarget.Engine,
-                LogLevel.Info
+                LogLevel.Debug
             );
         }
 

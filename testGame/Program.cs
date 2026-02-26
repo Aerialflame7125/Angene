@@ -4,36 +4,36 @@ using Angene.Essentials;
 using Angene.Main;
 using Angene.Platform;
 using System;
-using System.IO;
-using System.Reflection;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Game
 {
     public class Instances
     {
-        public static Instances Instance { get; } = new Instances();
         public Engine engine;
         public Settings settings;
+        public bool verbose;
+
         public Instances() { }
-        public void MakeInstances()
+        public void MakeInstances(bool verbose)
         {
             engine = Engine.Instance;
-            engine.Init();
+            engine.Init(verbose);
             settings = engine.SettingHandlerInstanced;
         }
     }
 
     public static class Program
     {
+        public static Instances? instances;
         private static DateTime lastFrame;
 
         [UnmanagedCallersOnly]
         public static int Main(IntPtr args, int argc)
         {
+            bool verbose = false;
             try
             {
                 Logger.Log("========================================", LoggingTarget.MainConstructor);
@@ -55,7 +55,13 @@ namespace Game
                             argArray[i] = Marshal.PtrToStringUni(pArgs[i]) ?? string.Empty;
                         }
                     }
-
+                    foreach (string arg in argArray)
+                    {
+                        if (arg.Length > 0 && arg == "--verbose" && !verbose)
+                        {
+                            verbose = true;
+                        }
+                    }
                     Logger.Log($"Arguments received ({argc}):", LoggingTarget.MainConstructor);
                     for (int i = 0; i < argArray.Length; i++)
                     {
@@ -64,10 +70,9 @@ namespace Game
                     Logger.Log("", LoggingTarget.MainConstructor);
                 }
 
-                Logger.Log("Calling RunGame()...", LoggingTarget.MainConstructor);
+                Logger.Log("Calling RunGame...", LoggingTarget.MainConstructor);
 
-                // Call your game Logger.Logic
-                RunGame();
+                RunGame(verbose);
 
                 Logger.Log("\n========================================", LoggingTarget.MainConstructor);
                 Logger.Log("  Game completed successfully", LoggingTarget.MainConstructor);
@@ -77,19 +82,23 @@ namespace Game
             }
             catch (Exception ex)
             {
-                Logger.Log($"\nFATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, logLevel:LogLevel.Critical, exception: ex);
+                Logger.Log($"\nFATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, logLevel: LogLevel.Critical, exception: ex);
                 return 1; // Error
             }
         }
 
-        private static void RunGame()
+        private static void RunGame(bool verbose)
         {
             try
             {
                 Logger.Log("RunGame() started", LoggingTarget.Engine);
 
-                var instances = new Instances();
-                instances.MakeInstances();
+                Stopwatch t = new Stopwatch();
+                t.Start();
+
+                instances = new Instances();
+                instances.MakeInstances(verbose);
+                instances.verbose = verbose;
 
                 double dto = 0.0d;
                 double dtl = 0.0d;
@@ -101,7 +110,13 @@ namespace Game
                 try
                 {
                     WindowConfig config = new WindowConfig();
-                    config.Title = "Angene | WindowTest";
+                    /*
+                    instances.settings.SetSetting("Main.getIsGameAllowedForWebsockets", true);
+                    config.cTI = true;       // enable connection type injection
+                    config.cTS = "ws";       // set type to websocket
+                    config.cTT = "ws";       // set transport type
+                    */
+                    config.Title = "Angene | testGame";
                     config.Transparency = Win32.WindowTransparency.SemiTransparent;
                     config.Width = 1280; config.Height = 720;
                     window = new Window(config);
@@ -117,7 +132,7 @@ namespace Game
                 PackageTest? scene = null;
                 try
                 {
-                    scene = new PackageTest(window, new object());
+                    scene = new PackageTest(window, null);
                     Logger.Log("Scene created successfully", LoggingTarget.Engine);
                 }
                 catch (Exception ex)
@@ -139,6 +154,9 @@ namespace Game
 
                 // Main game loop - platform-specific message handling
                 Logger.Log("Using Windows message loop", LoggingTarget.Engine, LogLevel.Important);
+                t.Stop();
+                Logger.Log($"Initialized in {t.ElapsedMilliseconds} ms", LoggingTarget.MasterScene, LogLevel.Debug);
+
                 RunWindowsMessageLoop(window, ref dto, ref dtl);
 
                 // Cleanup
@@ -161,7 +179,7 @@ namespace Game
             {
                 while (Win32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Win32.PM_REMOVE))
                 {
-                    if (msg.message == Win32.WM_QUIT)
+                    if (msg.message == (uint)WM.QUIT)
                     {
                         running = false;
                         break;
@@ -173,14 +191,18 @@ namespace Game
 
                 if (!running) break;
 
+                double dt = (DateTime.Now - lastFrame).TotalSeconds;
+                lastFrame = DateTime.Now; // ← you were also never updating lastFrame, so dt was always wrong
+
                 foreach (var scene in window.Scenes)
                 {
-                    double dt = (DateTime.Now - lastFrame).TotalSeconds;
                     ScriptBinding.Lifecycle.Tick(scene, dt, EngineMode.Play);
                     ScriptBinding.Lifecycle.Draw(scene, EngineMode.Play);
                     scene?.Render();
                 }
-                
+
+                // After all scenes have rendered their frame, capture and broadcast it
+                window._screenPlay?.LateUpdate(dt);
 
                 Thread.Sleep(16);
             }

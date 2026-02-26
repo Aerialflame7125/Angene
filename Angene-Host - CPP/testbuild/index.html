@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Angene Stream</title>
+  <style>
+    body { margin: 0; background: #000; display: flex; justify-content: center; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="screen"></canvas>
+
+  <script>
+    const canvas = document.getElementById('screen');
+    const ctx = canvas.getContext('2d');
+
+    // Connect to the engine — use port 8000 (not 8080 as the log incorrectly says)
+    const ws = new WebSocket('ws://localhost:8000');
+    ws.binaryType = 'blob';
+
+    ws.onopen = () => console.log('Connected to Angene stream');
+    ws.onclose = () => console.log('Disconnected');
+    ws.onerror = (e) => console.error('WebSocket error', e);
+
+    ws.onmessage = (event) => {
+      // Each message is a JPEG blob — decode it and draw onto canvas
+      const url = URL.createObjectURL(event.data);
+      const img = new Image();
+      img.onload = () => {
+        // Match canvas to frame size on first frame
+        if (canvas.width !== img.width || canvas.height !== img.height) {
+          canvas.width = img.width;
+          canvas.height = img.height;
+        }
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url); // Free memory
+      };
+      img.src = url;
+    };
+
+    function sendInput(packet) {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(packet));
+        }
+    }
+    
+    // Keyboard
+    document.addEventListener('keydown', (e) => {
+        e.preventDefault(); // stop browser shortcuts interfering
+        sendInput({ type: 'keydown', keyCode: e.keyCode });
+    });
+    document.addEventListener('keyup', (e) => {
+        e.preventDefault();
+        sendInput({ type: 'keyup', keyCode: e.keyCode });
+    });
+    
+    // Mouse — positions relative to the canvas
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        sendInput({ 
+            type: 'mousemove', 
+            x: Math.floor(e.clientX - rect.left), 
+            y: Math.floor(e.clientY - rect.top) 
+        });
+    });
+    canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        sendInput({ 
+            type: 'mousedown', 
+            button: e.button, // 0=left, 1=middle, 2=right
+            x: Math.floor(e.clientX - rect.left), 
+            y: Math.floor(e.clientY - rect.top) 
+        });
+    });
+    canvas.addEventListener('mouseup', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        sendInput({ 
+            type: 'mouseup', 
+            button: e.button,
+            x: Math.floor(e.clientX - rect.left), 
+            y: Math.floor(e.clientY - rect.top) 
+        });
+    });
+  </script>
+</body>
+</html>
