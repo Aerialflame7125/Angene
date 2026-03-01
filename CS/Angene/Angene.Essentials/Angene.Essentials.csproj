@@ -7,10 +7,6 @@
     <Configurations>Debug;Release;Publish</Configurations>
   </PropertyGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="C:\Users\Gold Ship\Documents\GitHub\Angene\CS\Angene\Angene.Common\Angene.Common.csproj" />
-	</ItemGroup>
-
   <Target Name="MoveBinariesToBuild" AfterTargets="Build">
     <ItemGroup>
       <BinariesToMove Include="$(TargetDir)*.dll; $(TargetDir)*.exe" />
@@ -25,4 +21,7 @@
       
       <Copy SourceFiles="@(BinariesToMove)" DestinationFolder="$(SolutionDir)..\Build\" SkipUnchangedFiles="true" />
 	</Target>
+  <ItemGroup>
+    <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
+  </ItemGroup>
 </Project>

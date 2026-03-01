@@ -253,7 +253,6 @@ The C# library/variant of Angene. Functions and calls are described here:
   );
   - int GetWindowLong(IntPtr hWnd, int nIndex);
   - int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-
 - Angene.Win32Messages (WM, EM, not a global namespace.)
   - enum WM : uint
   {
@@ -324,7 +323,6 @@ The C# library/variant of Angene. Functions and calls are described here:
       - const uint NOACTIVATE    = 0x0010;
       - const uint SHOWWINDOW    = 0x0040;
   }
-
 - Angene.Gdi32
   - SRCCOPY = 0x00CC0020;
   - CreateCompatibleDC(IntPtr hdc);
@@ -368,7 +366,6 @@ The C# library/variant of Angene. Functions and calls are described here:
      uint bmiColors; // Just enough for the header
   }
   - GetDIBits(IntPtr hdc, IntPtr hbmp, uint uStartScan, uint cScanLines, [Out] byte[] lpvBits, ref BITMAPINFO lpbi, uint uUsage);
-
 - Angene.Graphics
   - GraphicsBackend
     - interface IGraphicsContext
@@ -412,7 +409,6 @@ The C# library/variant of Angene. Functions and calls are described here:
       - Clear() # Clears RPC
       - schedule() # Schedules Cts token debounce
       - Dispose() # Clears client
-
 - Angene.PkgHandler
   - Package
     - IReadOnlyList<ManifestEntry> Entries => _manifest.Files;
@@ -469,7 +465,6 @@ The C# library/variant of Angene. Functions and calls are described here:
         - string Tag { get; set; }
     }
 }
-
 - Angene.Platform
   - WindowConfig
     - string Title { get; set; } = "Angene Window";
@@ -647,7 +642,6 @@ The C# library/variant of Angene. Functions and calls are described here:
     - LateUpdate(double) # Calls *after* every frame
     - OnMessage(IntPtr) # Calls on every message
     - OnDraw() # Calls after Render, but after drawing.
-
 ## Angene.Common
 - Common.Logger
   - enum LogLevel # Logging levels
@@ -705,6 +699,54 @@ The C# library/variant of Angene. Functions and calls are described here:
     - EndFrame() # Ends frame
   - IRenderer3D # 3D renderer
     - Cleanup()
+## Angene.Audio
+- AudioFile
+  - LoadType _loadType;
+  - enum LoadType
+    {
+      loadOnInstantiate = 0,
+      loadOnGet = 1,
+      streamed = 2,
+      loadOnGetThenDestroy = 3
+    };
+
+  - AudioFile(string packagePath, string path, LoadType loadType, byte[] key = null)
+
+  - byte[] GetAudioBytes()
+  - Stream GetAudioStream()
+  - void Dispose()
+- AudioManager
+  - bool IsPlaying
+  - bool IsPaused
+  - float Volume
+  - bool Looping
+
+  - AudioManager(AudioFile file, bool playOnLoad = true,
+     bool loop = false, float volume = 1f)
+
+  - void Play()
+  - void Stop()
+  - void Pause()
+  - void Resume()
+  - void SetVolume(float v)
+  - void SetLooping(bool loop)
+
+  - void Dispose()
+- interface IAudioPlayer : IDisposable
+  - bool IsPlaying { get; }
+  - bool IsPaused { get; }
+  - float Volume { get; }
+  - bool Looping { get; }
+  - void Play();
+  - void Stop();
+  - void Pause();
+  - void Resume();
+  - void SetVolume(float volume);   // 0.0 - 1.0
+  - void SetLooping(bool loop);
+
+- Common
+  - AudioFactory
+    - IAudioPlayer Create(AudioFile) # Checks loadtype if is streamed, else provides full audio bytes
 
 # Examples
 ## Engine
@@ -733,7 +775,7 @@ Later using this Engine class, you are able to create a new window:
 ```cs
 WindowConfig conf = new WindowConfig();
 conf.Title = "Angene | Demo Code";
-conf.Transparency = Win32.WindowTransparancy.SemiTransparent; // Not required, nice touch though
+conf.Transparency = Win32.WindowTransparency.SemiTransparent; // Not required, nice touch though
 conf.Width = 1280; conf.Height = 720;
 window = new Window(conf);
 Logger.Log("New window, yaey!", LoggingTarget.Engine);
@@ -899,8 +941,8 @@ internal class ScriptExample : IScreenPlay
 ```
 This is just an example script, but you still have to set it up with the lifecycle:
 ```cs
-Entity.AddScript<ScriptExample>();
-Entity.Initialize(46); // Following example from earlier
+var script = Entity.AddScript<ScriptExample>();
+script.Initialize(46); // Following example from earlier
 Entity.SetEnabled(true); // Start entity, sets up script with lifecycle.
 ```
 I find this really cool to be honest, you (the developer) do not have to touch the lifecycle at all. (Unless you are setting up OnMessage handlers in the message loop.)
@@ -1093,7 +1135,7 @@ public static int Main(IntPtr args, int argc)
 
         return 0;
     }
-    except (Exception ex)
+    catch (Exception ex)
     {
         Logger.Log($"\nFATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, logLevel: LogLevel.Critical, exception: ex);
         return 1; // Error
@@ -1101,6 +1143,79 @@ public static int Main(IntPtr args, int argc)
 }
 ```
 Again just an example, but the arguments are as follows. If a log directory is not created after launching the host, something is incorrect with the entry point or the engine hasn't initialized.
+
+## Audio
+Audio is really strange, but I attempted to have this as simple as possible. You first need to create an AudioFile() var:
+```cs
+// In scene Initialize() or inside a script:
+
+var audio = new AudioFile(
+  packagePath: "assets.angpkg",
+  path: "audio/music/myAudioFile.wav", // currently at writing (2/28/26), only support wav files.
+  loadType: AudioFile.LoadType.loadOnInstantiate // Loads on scene/script instantiation, other enum values are listed in tree for Angene.Audio.
+  );
+```
+Then create an audio manager, this is handled in its own thread to save the original game threads.
+```cs
+var audioManager = new AudioManager(
+  file: audio,
+  playOnLoad: true, // Play the audio once the file is loaded
+  loop: true, // Your choice of looping the audio when it finishes
+  volume: 0.3f // A float value between 0 and 1, no higher or lower.
+);
+```
+This creates a new AudioManager thread, able to be called.
+### Audio calls
+You can make many different calls towards audio, it's just a matter of how you use them. Here's an example of a function call:
+```cs
+public void OnGunFire()
+{
+  // For this example, loadOnGetThenDestroy is ideal, starts reading bytes, plays, then disposes file handle to save resources.
+  var sfxFile = new AudioFile(
+    "assets.angpkg",
+    "audio/sfx/shoot.wav",
+    AudioFile.LoadType.loadOnGetThenDestroy
+  );
+
+  var sfx = new AudioManager(sfxFile, playOnLoad: true, loop: false, volume: 0.7f);
+  // Then track it elsewhere if you need to Dispose() later.
+}
+```
+Or you can have it idle to be played later:
+```cs
+public void CreateAudio()
+{
+  var file = new AudioFile(
+    "assets.angpkg",
+    "audio/sfx.wav",
+    AudioFile.LoadType.loadOnInstantiate
+  );
+
+  var manager = new AudioManager(file, playOnLoad: false, loop: false, volume: 1f);
+
+  // nobody would ever do this but here:
+  manager.Play(); // start playing audio
+  manager.Pause(); // pause audio
+  manager.Resume(); // resume
+  manager.SetLooping(true); // start looping
+  manager.SetVolume(0f); // silence
+  manager.Stop(); // stop
+  manager.Dispose(); // and just remove it
+}
+```
+Now if your package has a key on it, you have to define a key:
+```cs
+byte[] key; //just set your key later
+// ...
+
+var file = new AudioFile(
+  packagePath: "assets_enc.angpkg",
+  path: "audio/music/theme.wav",
+  loadType: AudioFile.LoadType.loadOnInstantiate,
+  key: key
+);
+// then do the same as usual
+```
 
 # Conclusion
 i'm really fucking tired, see yall next commit.

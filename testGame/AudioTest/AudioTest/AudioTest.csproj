@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Game</AssemblyName>
+    <RootNamespace>Game</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <!-- Platform defines matching your engine's convention -->
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <DefineConstants>WINDOWS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <DefineConstants>LINUX</DefineConstants>
+  </PropertyGroup>
+	
+  <ItemGroup>
+    <Reference Include="Angene">
+      <HintPath>..\..\..\Build\Angene.dll</HintPath>
+    </Reference>
+    <Reference Include="Angene.Audio">
+      <HintPath>..\..\..\Build\Angene.Audio.dll</HintPath>
+    </Reference>
+    <Reference Include="Angene.Common">
+      <HintPath>..\..\..\Build\Angene.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Angene.Essentials">
+      <HintPath>..\..\..\Build\Angene.Essentials.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

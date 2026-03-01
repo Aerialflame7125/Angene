@@ -1,0 +1,34 @@
+Log file created on 2/28/2026 11:23:29 PM
+Logger initialized!
+Engine Version: v0.1c35
+[Important] Engine (2/28/2026 11:23:29 PM): Verbose log console initialized.
+[Info] MainConstructor (2/28/2026 11:23:29 PM): AudioTest: Engine initialized.
+[Info] Engine (2/28/2026 11:23:29 PM): Window(657732) shown
+[Important] Engine (2/28/2026 11:23:29 PM): Window created successfully
+[Info] MainConstructor (2/28/2026 11:23:29 PM): AudioTest: Window created.
+[Info] MasterScene (2/28/2026 11:23:29 PM): AudioTestScene: Initializing.
+[Debug] Engine (2/28/2026 11:23:29 PM): Entity 'AudioTester' registered with lifecycle system (Awake called)
+[Debug] Engine (2/28/2026 11:23:29 PM): Script 'AudioTestScript' registered to entity 'AudioTester'
+[Debug] Engine (2/28/2026 11:23:29 PM): Script 'AudioTestScript' added to entity 'AudioTester'
+[Info] MasterScene (2/28/2026 11:23:29 PM): AudioTestScene: Entity 'AudioTester' created with AudioTestScript.
+[Info] MasterScene (2/28/2026 11:23:29 PM): AudioTestScene: Initializing.
+[Debug] Engine (2/28/2026 11:23:29 PM): Entity 'AudioTester' registered with lifecycle system (Awake called)
+[Debug] Engine (2/28/2026 11:23:29 PM): Script 'AudioTestScript' registered to entity 'AudioTester'
+[Debug] Engine (2/28/2026 11:23:29 PM): Script 'AudioTestScript' added to entity 'AudioTester'
+[Info] MasterScene (2/28/2026 11:23:29 PM): AudioTestScene: Entity 'AudioTester' created with AudioTestScript.
+[Important] Engine (2/28/2026 11:23:29 PM): Primary scene set to 'AudioTestScene'
+[Info] MainConstructor (2/28/2026 11:23:29 PM): AudioTest: Scene loaded. Starting message loop.
+[Info] MainGame (2/28/2026 11:23:29 PM): AudioTestScript: Start()
+[Info] MainGame (2/28/2026 11:23:29 PM): AudioTestScript: AudioManager created OK. Playback will begin at t=0s.
+[Info] MainGame (2/28/2026 11:23:29 PM): [t=0.0s] Phase 0: Play()
+[Info] MainGame (2/28/2026 11:23:31 PM): [t=2.0s] Phase 1: Pause() — IsPlaying=True IsPaused=False
+[Info] MainGame (2/28/2026 11:23:31 PM):   After Pause() — IsPlaying=True IsPaused=False
+[Info] MainGame (2/28/2026 11:23:33 PM): [t=4.0s] Phase 2: Resume() + SetVolume(0.3f)
+[Info] MainGame (2/28/2026 11:23:35 PM): [t=6.0s] Phase 3: Stop() then SetLooping(true) + Play()
+[Info] MainGame (2/28/2026 11:23:37 PM): [t=8.0s] Phase 4: Final Stop(). All audio tests passed.
+[Info] MasterScene (2/28/2026 11:23:58 PM): AudioTestScene: Cleanup.
+[Debug] Engine (2/28/2026 11:23:58 PM): Entity 'AudioTester' destroyed and removed from lifecycle
+[Debug] Engine (2/28/2026 11:23:58 PM): Entity 'AudioTester' destroyed
+[Important] Engine (2/28/2026 11:23:58 PM): Cleaning up window resources
+[Info] MasterScene (2/28/2026 11:23:58 PM): AudioTestScene: Cleanup.
+[Info] MainConstructor (2/28/2026 11:23:58 PM): AudioTest: Clean exit.

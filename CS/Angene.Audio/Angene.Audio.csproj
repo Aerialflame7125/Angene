@@ -6,7 +6,15 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+  	<DefineConstants>WINDOWS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+  	<DefineConstants>LINUX</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
+    <ProjectReference Include="..\Angene\Angene.Common\Angene.Common.csproj" />
     <ProjectReference Include="..\Angene\Angene.Essentials\Angene.Essentials.csproj" />
     <ProjectReference Include="..\Angene\Angene.Main\Angene.csproj" />
   </ItemGroup>

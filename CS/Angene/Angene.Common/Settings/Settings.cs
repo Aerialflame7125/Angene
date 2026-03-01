@@ -48,7 +48,7 @@ namespace Angene.Common.Settings
                 {
                     if (keyParts[1] == "Version")
                     {
-                        return "v0.1c35";
+                        return "v0.1c38 | Gay Frogs";
                     }
                     if (keyParts[1] == "getIsGameAllowedForWebsockets")
                     {
