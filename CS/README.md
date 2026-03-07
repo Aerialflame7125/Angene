@@ -1217,5 +1217,64 @@ var file = new AudioFile(
 // then do the same as usual
 ```
 
+# QnA
+## Have you vibecoded any part of this engine?
+Sadly, yes. There are major parts within this game engine that are vibe coded. Most of that is the partial lack of interest and lack of thinking that I would ever use it in the future.
+If you need to know which parts are vibe coded, I will list them here:
+### Angene.Math (At the time of writing, not tested yet.)
+- Angene.Math
+  - Rand
+- Angene.Math.Defs
+  - IComputeBackend
+  - IComputeJob
+- Angene.Math.GPU
+  - Math
+- Angene.Math.Interpolation
+  - Mathf
+- Angene.Math.Vectors
+  - Vectors
+### Angene.Essentials
+- Angene.Entity (Partial, logic that is listed carries from human implementation.)
+- Angene.IScene (Partial, original logic and implementations carry from Python and older versions. See commit history.)
+- Angene.Lifecycle
+- Angene.ScreenPlay (Partial, format follows deprecated python version for flexibility, logic roughly sketched by hand.)
+### Angene.Common
+- Globals
+  - IRenderer3D (Partial, literally just a header to differentiate renderer types.)
+### Angene.Audio
+- All of the above.
+  * I state this because the entire audio library is vibecoded. Windows audio formats suck and are horrible to work with.
+  * If you wish to fact check me, just remember that the audio libraries are all in CPP and C, requiring importing.
+  * Another thing, Windows audio derives from older versions that still exist in newer systems (Windows 11) still completely being deprecated and dead code. Microslop has yet to remove these older versions, causing discrepancies in what library users should use.
+### Angene (main library)
+- Graphics
+  - All of the above
+    * Not going to rant about microsoft implementations, just that me personally, I have no idea how D3D works, nor does the documentation really help me in the case of using C#.
+    * Although I do state all of the above, GDI is the only one that does not adhere to this. The implementation carries from Python, and is human written (for the most part, conversion was AI.)
+- Main
+  - Win32
+  - Win32Messages
+  - WS
+  - Kernel32
+  - Gdi32
+  - PkgHandler
+  * All of the listed libraries is vibe coded. This primarilly consists of Win32 messages and headers pertaining to specific windows implementations. Microsoft documentation is correct and actually helped a lot when writing python implementations, but I will refer you to the [definitions file](https://github.com/Aerialflame7125/Angene/blob/main/Python/Angene/Main/definitions.py) written in python, and you tell me if you want to implement that in C#.
+  * Most of this is also at the hands of bad implementations, very generously providing a great help when it comes to conversions to other languages :thumbs_up: (sarcasm.)
+- Platform
+  - X11Native
+  * Self-explanatory. Yet to remove it at the time of writing (2026,03,07), considering this is windows-first.
+- Crypto
+  * Literally just a conversion wrapper. Too lazy to change all of the references, so why not make it yourself to shut the console up!
+Also, this entire readme is written by hand before you ask. I'm not going to document a game engine I am working on with AI. What kind of person do you take me for?
+## Why is this Windows-Only (for now)?
+This engine is windows only because of how I just couldn't find documentation. Not to mention, I started this project on Windows 10 and will continue working on it in Windows.
+Before yall Linux nerds and soul-less Fedora users come in here and rip on me for not using "ThE BEsT OpERaTiNG sYsTEm eVeR!" Just remember that C# is made by Microsoft, not to mention Visual-fucking-Studio is not on any Linux system other than of-fucking course MacOS. (other than VSCode, but respectfully I'm not using VSC for C#.)
+## Who all is working on this?
+Me, myself, and fucking I. Sure, some coding agents and slop AI was slapped into here as a temporary bandage, but as of now, [I am the only contributor](https://github.com/Aerialflame7125/Angene/commits/main/).
+## Why do you still work on this?
+Passion project. Next!
+## Can you explain ALL OF THAT again?
+I would rather work for [CrowdStrike](https://www.cisa.gov/news-events/alerts/2024/07/19/widespread-it-outage-due-crowdstrike-update) than that.
+
 # Conclusion
 i'm really fucking tired, see yall next commit.
