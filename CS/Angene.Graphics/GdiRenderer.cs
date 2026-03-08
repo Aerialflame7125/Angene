@@ -2,7 +2,7 @@ using Angene.Globals;
 using System;
 using System.Collections.Generic;
 using static Angene.Main.Win32;
-using static Angene.Main.Gdi32;
+using static Angene.Graphics.Win.Gdi32;
 
 namespace Angene.Graphics
 {

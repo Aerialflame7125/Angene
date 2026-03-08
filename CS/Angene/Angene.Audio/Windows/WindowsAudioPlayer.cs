@@ -1,7 +1,6 @@
 ﻿using Angene.Audio;
 using Angene.Audio.Common;
 using Angene.Common;
-using Angene.Audio.Methods;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using static Angene.Audio.Windows.WinMM;
