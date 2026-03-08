@@ -26,8 +26,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="AudioTest\**" />
+	  <Compile Remove="MathTest\**" />
 	  <Compile Remove="WebsocketServer\**" />
+	  <EmbeddedResource Remove="AudioTest\**" />
+	  <EmbeddedResource Remove="MathTest\**" />
 	  <EmbeddedResource Remove="WebsocketServer\**" />
+	  <None Remove="AudioTest\**" />
+	  <None Remove="MathTest\**" />
 	  <None Remove="WebsocketServer\**" />
 	</ItemGroup>
 
@@ -39,11 +45,23 @@
 	  <Reference Include="Angene">
 	    <HintPath>..\Build\Angene.dll</HintPath>
 	  </Reference>
+	  <Reference Include="Angene.Audio">
+	    <HintPath>..\Build\Angene.Audio.dll</HintPath>
+	  </Reference>
 	  <Reference Include="Angene.Common">
 	    <HintPath>..\Build\Angene.Common.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Essentials">
 	    <HintPath>..\Build\Angene.Essentials.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Graphics">
+	    <HintPath>..\Build\Angene.Graphics.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Math">
+	    <HintPath>..\Build\Angene.Math.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Windows">
+	    <HintPath>..\Build\Angene.Windows.dll</HintPath>
 	  </Reference>
 	  <Reference Include="BouncyCastle.Crypto">
 	    <HintPath>..\Build\BouncyCastle.Crypto.dll</HintPath>

@@ -19,7 +19,6 @@
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <DefineConstants>LINUX</DefineConstants>
   </PropertyGroup>
-	
   <ItemGroup>
     <Reference Include="Angene">
       <HintPath>..\..\..\Build\Angene.dll</HintPath>
@@ -32,6 +31,15 @@
     </Reference>
     <Reference Include="Angene.Essentials">
       <HintPath>..\..\..\Build\Angene.Essentials.dll</HintPath>
+    </Reference>
+    <Reference Include="Angene.Graphics">
+      <HintPath>..\..\..\Build\Angene.Graphics.dll</HintPath>
+    </Reference>
+    <Reference Include="Angene.Math">
+      <HintPath>..\..\..\Build\Angene.Math.dll</HintPath>
+    </Reference>
+    <Reference Include="Angene.Windows">
+      <HintPath>..\..\..\Build\Angene.Windows.dll</HintPath>
     </Reference>
   </ItemGroup>
 

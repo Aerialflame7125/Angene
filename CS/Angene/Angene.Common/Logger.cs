@@ -3,9 +3,29 @@ using System;
 using System.IO;
 using Angene.Common.Settings;
 using System.Linq.Expressions;
+using System.ComponentModel;
 
 namespace Angene.Common
 {
+    public class AngeneException : Exception
+    {
+        // 1. Default constructor
+        public AngeneException()
+        {
+        }
+
+        // 2. Constructor with a message
+        public AngeneException(string message)
+            : base(message)
+        {
+        }
+
+        // 3. Constructor with a message and an inner exception
+        public AngeneException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
+    }
     public enum LogLevel
     {
         Debug,
@@ -38,6 +58,7 @@ namespace Angene.Common
         private static readonly Settings.Settings settings = new Settings.Settings();
         private static readonly object logLock = new();
         public bool _verbose = false;
+        public bool six = false;
 
         public Action<object, object, object, object, object> OnLog { get; set; } = (_, _, _, _, _) => { };
 
@@ -81,12 +102,19 @@ namespace Angene.Common
         {
             lock (logLock)
             {
+                
                 if (LogInstance == null)
                 {
                     System.Console.WriteLine($"[ERROR] Logger.Log ({DateTime.Now}): LogInstance is null. Message: {message}");
                     return;
                 }
-
+                if (!Instance.six && message.Contains("67"))
+                {
+                    Instance.six = true;
+                    Logger.LogCritical("What comes after 6?", LoggingTarget.Engine,
+                        new AngeneException("IntOverflowWarningToError"));
+                    return;
+                }
                 // Write to file — including exception if present
                 Logger.LogInstance.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                 if (exception != null)
@@ -137,6 +165,7 @@ namespace Angene.Common
                         Instance.OnLog(message, logFrom, logLevel, DateTime.Now, null);
                         break;
                 }
+                
                 System.Console.ResetColor();
 
             }

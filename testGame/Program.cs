@@ -3,6 +3,7 @@ using Angene.Common.Settings;
 using Angene.Essentials;
 using Angene.Main;
 using Angene.Platform;
+using Angene.Windows;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;

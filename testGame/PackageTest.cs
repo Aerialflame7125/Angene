@@ -10,6 +10,8 @@ using Angene.Platform;
 using Org.BouncyCastle.Security;
 using Angene.Common;
 using Angene.Essentials;
+using Angene.Windows;
+
 
 #if WINDOWS
 using Angene.Graphics;

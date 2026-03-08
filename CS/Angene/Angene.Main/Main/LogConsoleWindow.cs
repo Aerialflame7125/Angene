@@ -1,4 +1,5 @@
 ﻿#if WINDOWS
+using Angene.Common;
 using Angene.Windows;
 using System;
 using System.Runtime.InteropServices;

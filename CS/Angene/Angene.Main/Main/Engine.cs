@@ -20,26 +20,6 @@ using System.Threading.Tasks;
 
 namespace Angene.Main
 {
-    public class AngeneException : Exception
-    {
-        // 1. Default constructor
-        public AngeneException()
-        {
-        }
-
-        // 2. Constructor with a message
-        public AngeneException(string message)
-            : base(message)
-        {
-        }
-
-        // 3. Constructor with a message and an inner exception
-        public AngeneException(string message, Exception inner)
-            : base(message, inner)
-        {
-        }
-    }
-
     public class Console
     {
         public static void WriteLine(string text)
@@ -100,6 +80,16 @@ namespace Angene.Main
             SettingHandlerInstanced = new Settings();
             SettingHandlerInstanced.LoadDefaults();
             Logger.Instance.Init(verbose);
+
+            Logger.Instance.OnLog += (message, target, level, time, exception) =>
+            {
+                string msg = message?.ToString() ?? "";
+                if (msg == "What comes after 6?")
+                {
+                    Logger.LogCritical($"The engine has been forcefully shut down to preserve itself, preventing corruption. The logger reports " + "67!1!1!1!!!1!.", LoggingTarget.Engine, new AngeneException("FailFromCrash:0xFA4"));
+                    Environment.Exit(67);
+                }
+            };
 
             if (verbose)
             {
