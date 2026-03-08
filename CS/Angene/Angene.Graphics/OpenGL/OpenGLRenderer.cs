@@ -1,4 +1,5 @@
 ﻿using Angene.Graphics;
+using Angene.Windows;
 using Org.BouncyCastle.Asn1.Pkcs;
 using System;
 using System.Runtime.InteropServices;
@@ -55,7 +56,7 @@ namespace Angene.Graphics.OpenGL
         /// </summary>
         private void Initialize()
         {
-            _hdc = Angene.Main.Win32.GetDC(_hwnd);
+            _hdc = Win32.GetDC(_hwnd);
             if (_hdc == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to get device context");
@@ -348,7 +349,7 @@ namespace Angene.Graphics.OpenGL
 
             if (_hdc != IntPtr.Zero)
             {
-                Angene.Main.Win32.ReleaseDC(_hwnd, _hdc);
+                Win32.ReleaseDC(_hwnd, _hdc);
                 _hdc = IntPtr.Zero;
             }
 

@@ -1,0 +1,152 @@
+Log file created on 2026/03/07 22:29:30
+Logger initialized!
+Engine Version: v0.1c38 | Gay Frogs
+[Important] Engine (2026/03/07 22:29:30): Verbose log console initialized.
+[Info] MainConstructor (2026/03/07 22:29:30): MathTest: Engine initialized.
+[Info] Engine (2026/03/07 22:29:30): Window(196874436) shown
+[Important] Engine (2026/03/07 22:29:30): Window created successfully
+[Info] MainConstructor (2026/03/07 22:29:30): MathTest: Window created.
+[Info] MasterScene (2026/03/07 22:29:30): MathTestScene: Initializing.
+[Debug] Engine (2026/03/07 22:29:30): Entity 'MathTester' registered with lifecycle system (Awake called)
+[Debug] Engine (2026/03/07 22:29:30): Script 'MathTestScript' registered to entity 'MathTester'
+[Debug] Engine (2026/03/07 22:29:30): Script 'MathTestScript' added to entity 'MathTester'
+[Info] MasterScene (2026/03/07 22:29:30): MathTestScene: Entity 'MathTester' created with MathTestScript.
+[Info] MasterScene (2026/03/07 22:29:30): MathTestScene: Initializing.
+[Debug] Engine (2026/03/07 22:29:30): Entity 'MathTester' registered with lifecycle system (Awake called)
+[Debug] Engine (2026/03/07 22:29:30): Script 'MathTestScript' registered to entity 'MathTester'
+[Debug] Engine (2026/03/07 22:29:30): Script 'MathTestScript' added to entity 'MathTester'
+[Info] MasterScene (2026/03/07 22:29:30): MathTestScene: Entity 'MathTester' created with MathTestScript.
+[Important] Engine (2026/03/07 22:29:30): Primary scene set to 'MathTestScene'
+[Info] MainConstructor (2026/03/07 22:29:30): MathTest: Scene loaded. Starting message loop.
+[Info] MainGame (2026/03/07 22:29:30): MathTestScript: Start() — Angene.Math demo beginning.
+[Info] MainGame (2026/03/07 22:29:30): MathTestScript: Phases 0-8 run at 1-second intervals; ESC closes early.
+[Info] MainGame (2026/03/07 22:29:30): [t=0.0s] ── Phase 0: Vec2 ──
+[Info] MainGame (2026/03/07 22:29:30):   a = (3, 4)
+[Info] MainGame (2026/03/07 22:29:30):   b = (1, 2)
+[Info] MainGame (2026/03/07 22:29:30):   a + b         = (4, 6)
+[Info] MainGame (2026/03/07 22:29:30):   a - b         = (2, 2)
+[Info] MainGame (2026/03/07 22:29:30):   a * 2         = (6, 8)
+[Info] MainGame (2026/03/07 22:29:30):   a / 2         = (1.5, 2)
+[Info] MainGame (2026/03/07 22:29:30):   |a|           = 5.0000  (expected 5)
+[Info] MainGame (2026/03/07 22:29:30):   |a|²          = 25.0000  (expected 25)
+[Info] MainGame (2026/03/07 22:29:30):   a.Normalized  = (0.6000, 0.8000)
+[Info] MainGame (2026/03/07 22:29:30):   Dot(a,b)      = 11.0000  (expected 11)
+[Info] MainGame (2026/03/07 22:29:30):   Distance(a,b) = 2.8284
+[Info] MainGame (2026/03/07 22:29:30):   Lerp(a,b,0.5) = (2.0000, 3.0000)
+[Info] MainGame (2026/03/07 22:29:30):   Reflect(a,Up) = (3.0000, -4.0000)
+[Info] MainGame (2026/03/07 22:29:30):   Vec2.Zero  = (0, 0)
+[Info] MainGame (2026/03/07 22:29:30):   Vec2.One   = (1, 1)
+[Info] MainGame (2026/03/07 22:29:30):   Vec2.Up    = (0, -1)  [screen space — y-up is -1]
+[Info] MainGame (2026/03/07 22:29:30):   Vec2.Right = (1, 0)
+[Info] MainGame (2026/03/07 22:29:30):   Phase 0 OK.
+[Info] MainGame (2026/03/07 22:29:31): [t=1.0s] ── Phase 1: Vec3 ──
+[Info] MainGame (2026/03/07 22:29:31):   a             = (1, 0, 0)
+[Info] MainGame (2026/03/07 22:29:31):   b             = (0, 1, 0)
+[Info] MainGame (2026/03/07 22:29:31):   Cross(a,b)    = (0.0000, 0.0000, 1.0000)  (expected 0,0,1)
+[Info] MainGame (2026/03/07 22:29:31):   Dot(a,b)      = 0.0000  (expected 0)
+[Info] MainGame (2026/03/07 22:29:31):   v             = (3, 4, 0)
+[Info] MainGame (2026/03/07 22:29:31):   |v|           = 5.0000  (expected 5)
+[Info] MainGame (2026/03/07 22:29:31):   v.Normalized  = (0.6000, 0.8000, 0.0000)
+[Info] MainGame (2026/03/07 22:29:31):   Lerp(a,b,0.5) = (0.5000, 0.5000, 0.0000)
+[Info] MainGame (2026/03/07 22:29:31):   a + b         = (1, 1, 0)
+[Info] MainGame (2026/03/07 22:29:31):   v * 3         = (9, 12, 0)
+[Info] MainGame (2026/03/07 22:29:31):   Phase 1 OK.
+[Info] MainGame (2026/03/07 22:29:32): [t=2.0s] ── Phase 2: Matrix3x3 ──
+[Info] MainGame (2026/03/07 22:29:32):   Identity * (5,3)         = (5.0000, 3.0000)  (expected 5,3)
+[Info] MainGame (2026/03/07 22:29:32):   Translate(10,20) * (5,3) = (15.0000, 23.0000)  (expected 15,23)
+[Info] MainGame (2026/03/07 22:29:32):   Scale(2,3) * (5,3)       = (10.0000, 9.0000)  (expected 10,9)
+[Info] MainGame (2026/03/07 22:29:32):   Rotate90 * (1,0)         = (-0.0000, 1.0000)  (expected ~0,1)
+[Info] MainGame (2026/03/07 22:29:32):   (Translate*Scale) * (5,3)= (20.0000, 29.0000)
+[Info] MainGame (2026/03/07 22:29:32):   Phase 2 OK.
+[Info] MainGame (2026/03/07 22:29:33): [t=3.0s] ── Phase 3: Rect ──
+[Info] MainGame (2026/03/07 22:29:33):   Rect: x=10 y=10 w=100 h=50
+[Info] MainGame (2026/03/07 22:29:33):   Edges: L=10 R=110 T=10 B=60
+[Info] MainGame (2026/03/07 22:29:33):   Center: (60, 35)  (expected 60, 35)
+[Info] MainGame (2026/03/07 22:29:33):   Contains(50,30)  = True   (expected True)
+[Info] MainGame (2026/03/07 22:29:33):   Contains(5,5) = False  (expected False)
+[Info] MainGame (2026/03/07 22:29:33):   Intersects(overlapping) = True  (expected True)
+[Info] MainGame (2026/03/07 22:29:33):   Intersects(separate)    = False  (expected False)
+[Info] MainGame (2026/03/07 22:29:33):   Expand(5): x=5 y=5 w=110 h=60  (expected 5,5,110,60)
+[Info] MainGame (2026/03/07 22:29:33):   Phase 3 OK.
+[Info] MainGame (2026/03/07 22:29:34): [t=4.0s] ── Phase 4: Interpolation (Mathf) ──
+[Info] MainGame (2026/03/07 22:29:34):   -- Clamp / Remap --
+[Info] MainGame (2026/03/07 22:29:34):   Clamp(5, 0, 3)        = 3  (expected 3)
+[Info] MainGame (2026/03/07 22:29:34):   Clamp01(-0.5)         = 0  (expected 0)
+[Info] MainGame (2026/03/07 22:29:34):   Remap(5, 0,10, 0,100) = 50  (expected 50)
+[Info] MainGame (2026/03/07 22:29:34):   InverseLerp(0,10,5)   = 0.5000  (expected 0.5)
+[Info] MainGame (2026/03/07 22:29:34):   -- Lerp --
+[Info] MainGame (2026/03/07 22:29:34):   Lerp(0, 100, 0.25)    = 25  (expected 25)
+[Info] MainGame (2026/03/07 22:29:34):   Lerp(0, 100, 1.5)     = 100   (clamped to 100)
+[Info] MainGame (2026/03/07 22:29:34):   LerpUnclamped(0,100,1.5) = 150  (unclamped: 150)
+[Info] MainGame (2026/03/07 22:29:34):   -- Smoothing --
+[Info] MainGame (2026/03/07 22:29:34):   SmoothStep(0,1,0.5)   = 0.5000  (expected 0.5)
+[Info] MainGame (2026/03/07 22:29:34):   SmootherStep(0,1,0.5) = 0.5000  (expected 0.5)
+[Info] MainGame (2026/03/07 22:29:34):   MoveTowards(0,10,3)   = 3  (expected 3)
+[Info] MainGame (2026/03/07 22:29:34):   MoveTowards(9,10,3)   = 10  (clamped to 10)
+[Info] MainGame (2026/03/07 22:29:34):   SmoothDamp(0→100, dt=16ms) = 0.1902  (small step toward target)
+[Info] MainGame (2026/03/07 22:29:34):   -- Angle helpers --
+[Info] MainGame (2026/03/07 22:29:34):   DeltaAngle(10, 350)   = -20.0000  (expected -20 — shortest arc)
+[Info] MainGame (2026/03/07 22:29:34):   LerpAngle(0, 90, 0.5) = 45.0000  (expected 45)
+[Info] MainGame (2026/03/07 22:29:34):   -- Easing (t=0 / 0.5 / 1) --
+[Info] MainGame (2026/03/07 22:29:34):   InQuad         t=0:0.0000  t=0.5:0.2500  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   OutQuad        t=0:0.0000  t=0.5:0.7500  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   InOutQuad      t=0:0.0000  t=0.5:0.5000  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   InCubic        t=0:0.0000  t=0.5:0.1250  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   OutCubic       t=0:0.0000  t=0.5:0.8750  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   InOutCubic     t=0:0.0000  t=0.5:0.5000  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   InBack         t=0:0.0000  t=0.5:-0.0877  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   OutBack        t=0:0.0000  t=0.5:1.0877  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   InElastic      t=0:0.0000  t=0.5:-0.0156  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   OutElastic     t=0:0.0000  t=0.5:1.0156  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   InBounce       t=0:0.0000  t=0.5:0.2344  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   OutBounce      t=0:0.0000  t=0.5:0.7656  t=1:1.0000
+[Info] MainGame (2026/03/07 22:29:34):   Phase 4 OK.
+[Info] MainGame (2026/03/07 22:29:35): [t=5.0s] ── Phase 5: Rand ──
+[Info] MainGame (2026/03/07 22:29:35):   Seed set to 42 — results below are reproducible.
+[Info] MainGame (2026/03/07 22:29:35):   Value × 2 : 0.668106, 0.140907  (in [0,1))
+[Info] MainGame (2026/03/07 22:29:35):   Range(-5, 5) : -3.7448
+[Info] MainGame (2026/03/07 22:29:35):   Range(0, 10) : 5  (in [0,10))
+[Info] MainGame (2026/03/07 22:29:35):   InsideUnitCircle : (-0.6631, -0.4748)  |v|=0.8156  (≤ 1)
+[Info] MainGame (2026/03/07 22:29:35):   OnUnitCircle     : (-0.1601, -0.9871)  |v|=1.0000  (≈ 1)
+[Info] MainGame (2026/03/07 22:29:35):   Chance(0.3) over 1000 trials : 319 trues  (expected ~300)
+[Info] MainGame (2026/03/07 22:29:35):   Pick([alpha,beta,gamma,delta]) : "beta"
+[Info] MainGame (2026/03/07 22:29:35):   Shuffle([1..5]) : [3, 1, 5, 4, 2]
+[Info] MainGame (2026/03/07 22:29:35):   Phase 5 OK.
+[Info] MainGame (2026/03/07 22:29:36): [t=6.0s] ── Phase 6: GpuMath Vec2 (CPU fallback) ──
+[Info] MainGame (2026/03/07 22:29:36):   Arrays are 8 elements — below GpuThreshold=512, so CPU path runs.
+[Info] MainGame (2026/03/07 22:29:36):   Add [0..7] + (1,1) : first=(1,1) last=(8,15)
+[Info] MainGame (2026/03/07 22:29:36):   Scale [0..7] × 2   : first=(0,0) last=(14,28)
+[Info] MainGame (2026/03/07 22:29:36):   Normalize[1..7][0] = (0.4472,0.8944)  |v|≈1.0000
+[Info] MainGame (2026/03/07 22:29:36):   Dot [0..7],(1,1)   : first=0.0000 (0*1+0*1=0), [1]=3.0000 (1+2=3)
+[Info] MainGame (2026/03/07 22:29:36):   Length [0..7]      : [0]=0.0000 [3]=6.7082 (expected 6.7082)
+[Info] MainGame (2026/03/07 22:29:36):   Lerp(a,b,0.5)[1]   = (1.0000,1.5000)  (expected 1,1.5)
+[Info] MainGame (2026/03/07 22:29:36):   Lerp(a,b,t[])[4]   = (2.2857,4.0000)
+[Info] MainGame (2026/03/07 22:29:36):   Phase 6 OK.
+[Info] MainGame (2026/03/07 22:29:37): [t=7.0s] ── Phase 7: GpuMath Vec3 + Scalars (CPU fallback) ──
+[Info] MainGame (2026/03/07 22:29:37):   Vec3 Add[0] = (1,1,0)  (expected 1,1,0)
+[Info] MainGame (2026/03/07 22:29:37):   Vec3 Cross[0] = (0.0000,0.0000,1.0000)  (expected 0,0,1)
+[Info] MainGame (2026/03/07 22:29:37):   Vec3 Normalize[0] = (1.0000,0.0000,0.0000)
+[Info] MainGame (2026/03/07 22:29:37):   Vec3 Dot(X,Y)[0] = 0.0000  (expected 0 — perpendicular)
+[Info] MainGame (2026/03/07 22:29:37):   Clamp([0..70], 15, 55): [15, 15, 20, 30, 40, 50, 55, 55]
+[Info] MainGame (2026/03/07 22:29:37):   Lerp(vals, 100, 0.5)[0] = 50.0000  (expected 50)
+[Info] MainGame (2026/03/07 22:29:37):   Remap([0..70], 0,70→0,1): [0.00, 0.14, 0.29, 0.43, 0.57, 0.71, 0.86, 1.00]
+[Info] MainGame (2026/03/07 22:29:37):   Sqrt([0²..7²]) = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]
+[Info] MainGame (2026/03/07 22:29:37):   Abs([-3..4])   = [3, 2, 1, 0, 1, 2, 3, 4]
+[Info] MainGame (2026/03/07 22:29:37):   Matrix Transform (Identity+T(2,4)) * (5,3)[0] = (7,7)  (expected 7,7)
+[Info] MainGame (2026/03/07 22:29:37):   Matrix Multiply (I*I)[0].M00 = 1  (expected 1)
+[Info] MainGame (2026/03/07 22:29:37):   Phase 7 OK.
+[Info] MainGame (2026/03/07 22:29:38): [t=8.0s] ── Phase 8: GpuMath Reductions (CPU fallback) ──
+[Info] MainGame (2026/03/07 22:29:38):   Data   : [3, 1, 4, 1, 5, 9, 2, 6]
+[Info] MainGame (2026/03/07 22:29:38):   Sum    : 31  (expected 31)
+[Info] MainGame (2026/03/07 22:29:38):   Min    : 1  (expected 1)
+[Info] MainGame (2026/03/07 22:29:38):   Max    : 9  (expected 9)
+[Info] MainGame (2026/03/07 22:29:38):   Vec2 Sum     = (16, 20)  (expected 16, 20)
+[Info] MainGame (2026/03/07 22:29:38):   Vec2 Average = (4, 5)  (expected 4, 5)
+[Info] MainGame (2026/03/07 22:29:38):   Phase 8 OK.
+[Info] MainGame (2026/03/07 22:29:39): [t=9.0s] All Angene.Math tests complete. Requesting close.
+[Info] MasterScene (2026/03/07 22:29:39): MathTestScene: Cleanup.
+[Debug] Engine (2026/03/07 22:29:39): Entity 'MathTester' destroyed and removed from lifecycle
+[Debug] Engine (2026/03/07 22:29:39): Entity 'MathTester' destroyed
+[Important] Engine (2026/03/07 22:29:39): Cleaning up window resources
+[Info] MasterScene (2026/03/07 22:29:39): MathTestScene: Cleanup.
+[Info] MainConstructor (2026/03/07 22:29:39): MathTest: Clean exit.

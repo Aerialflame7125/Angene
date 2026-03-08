@@ -35,15 +35,12 @@
 
 	<ItemGroup>
 		<!-- Core Engine Files -->
-		<Compile Include="Examples\OpenGL.cs" />
 		<Compile Include="Main\Engine.cs" />
-		<Compile Include="Main\Kernel32.cs" />
 		<Compile Include="Main\LogConsoleWindow.cs" />
 		<Compile Include="Main\PkgHandler.cs" />
+		<Compile Include="Main\WS.cs" />
 
 		<!-- Graphics Files -->
-		<Compile Include="Graphics\**\*.cs" />
-		<Compile Include="Main\WS.cs" />
 
 		<!-- Platform Files -->
 		<Compile Include="Platform\Platform.cs" />
@@ -56,9 +53,6 @@
 		<Compile Include="Crypto\**\*.cs" />
 
 		<!-- Windows-only files -->
-		<Compile Include="Main\Win32.cs" />
-		<Compile Include="Main\Gdi32.cs" />
-		<Compile Include="Main\Win32Messages.cs" />
 		<Compile Include="Platform\WindowConfig.cs" />
 
 		<!-- Linux-only files -->
@@ -69,8 +63,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <EmbeddedResource Remove="Examples\**" />
+	  <None Remove="Examples\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
 	  <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
+	  <ProjectReference Include="..\Angene.Graphics\Angene.Graphics.csproj" />
+	  <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
 	</ItemGroup>
 
     <Target Name="MoveBinariesToBuild" AfterTargets="Build">

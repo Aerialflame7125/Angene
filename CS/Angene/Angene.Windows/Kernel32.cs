@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Angene.Main
+namespace Angene.Windows
 {
     public static class Kernel32
     {

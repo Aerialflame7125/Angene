@@ -1,5 +1,6 @@
 ﻿using System;
 using Angene.Main;
+using Angene.Windows;
 
 namespace Angene.Platform
 {
@@ -23,10 +24,20 @@ namespace Angene.Platform
         /// <summary>Y position (CW_USEDEFAULT for system default)</summary>
         public int Y { get; set; } = Win32.CW_USEDEFAULT;
 
+        /// <summary>
+        /// convertToInterface bool
+        /// </summary>
         public bool cTI { internal get; set; } = false;
 
+        /// <summary>
+        /// connectToSocket string
+        /// Contains socket type as string
+        /// </summary>
         public string cTS { internal get; set; } = "";
-
+        /// <summary>
+        /// convertToType string
+        /// Can be [ "Websocket" ]
+        /// </summary>
         public string cTT { internal get; set; } = "";
 
         /// <summary>Window style flags</summary>

@@ -1,6 +1,7 @@
 ![Angene Logo](https://github.com/Aerialflame7125/Angene/blob/main/AngeneLogoBig.png?raw=true)
 # Angene
 (pronounced 'engine')
+Last updated 2026/03/07
 
 The C# library/variant of Angene. Functions and calls are described here:
 ## Angene
@@ -23,384 +24,6 @@ The C# library/variant of Angene. Functions and calls are described here:
   - Engine.Init(Bool verbose) # Verbose call refers to log window
 
   - Engine.Instance
-- Angene.Win32
-  - enum WindowStyle : uint
-  {
-      Overlapped = 0x00000000,
-      Popup = 0x80000000,
-      Child = 0x40000000,
-      Minimize = 0x20000000,
-      Visible = 0x10000000,
-      Disabled = 0x08000000,
-      ClipSiblings = 0x04000000,
-      ClipChildren = 0x02000000,
-      Maximize = 0x01000000,
-      Caption = 0x00C00000,
-      Border = 0x00800000,
-      DialogFrame = 0x00400000,
-      VScroll = 0x00200000,
-      HScroll = 0x00100000,
-      SysMenu = 0x00080000,
-      ThickFrame = 0x00040000,
-      Group = 0x00020000,
-      TabStop = 0x00010000,
-      MinimizeBox = 0x00020000,
-      MaximizeBox = 0x00010000,
-
-      OverlappedWindow = Overlapped | Caption | SysMenu | ThickFrame | MinimizeBox | MaximizeBox,
-      PopupWindow = Popup | Border | SysMenu
-  }
-
-  - enum WindowStyleEx : uint
-  {
-      None = 0x00000000,
-      DlgModalFrame = 0x00000001,
-      NoParentNotify = 0x00000004,
-      Topmost = 0x00000008,
-      AcceptFiles = 0x00000010,
-      Transparent = 0x00000020,
-      MdiChild = 0x00000040,
-      ToolWindow = 0x00000080,
-      WindowEdge = 0x00000100,
-      ClientEdge = 0x00000200,
-      ContextHelp = 0x00000400,
-      Right = 0x00001000,
-      Left = 0x00000000,
-      RtlReading = 0x00002000,
-      LtrReading = 0x00000000,
-      LeftScrollBar = 0x00004000,
-      RightScrollBar = 0x00000000,
-      ControlParent = 0x00010000,
-      StaticEdge = 0x00020000,
-      AppWindow = 0x00040000,
-      Layered = 0x00080000,
-      NoInheritLayout = 0x00100000,
-      NoRedirectionBitmap = 0x00200000,
-      LayoutRtl = 0x00400000,
-      Composited = 0x02000000,
-      NoActivate = 0x08000000,
-
-      OverlappedWindow = WindowEdge | ClientEdge,
-      PaletteWindow = WindowEdge | ToolWindow | Topmost
-  }
-
-  - struct WindowTransparency
-  {
-      - bool Enabled;
-      - byte Alpha;
-      - bool ClickThrough;
-
-      - WindowTransparency None => new WindowTransparency { Enabled = false, Alpha = 255, ClickThrough = false };
-      - WindowTransparency Opaque => new WindowTransparency { Enabled = true, Alpha = 255, ClickThrough = false };
-      - WindowTransparency SemiTransparent => new WindowTransparency { Enabled = true, Alpha = 128, ClickThrough = false };
-      - WindowTransparency FullyTransparent => new WindowTransparency { Enabled = true, Alpha = 0, ClickThrough = true };
-  }
-
-  - const uint GR_GDIOBJECTS = 0;
-  - const int PM_REMOVE = 0x0001;
-
-  - const uint WM_CLOSE = 0x0010;
-  - const uint WM_DESTROY = 0x0002;
-  - const uint WM_ERASEBKGND = 0x0014;
-  - const uint WM_QUIT = 0x0012;
-
-  - const uint WS_OVERLAPPEDWINDOW = 0x00CF0000;
-  - const int CW_USEDEFAULT = unchecked((int)0x80000000);
-  - const int SW_SHOW = 5;
-
-  - delegate IntPtr WndProcDelegate(
-      IntPtr hWnd,
-      uint msg,
-      IntPtr wParam,
-      IntPtr lParam
-  );
-
-  - const uint IMAGE_ICON = 1;
-  - const uint LR_DEFAULTSIZE = 0x00000040;
-  - const uint LR_LOADFROMFILE = 0x00000010;
-  - const uint WM_SETICON = 0x0080;
-  - const int ICON_SMALL = 0;
-  - const int ICON_BIG = 1;
-
-  - IntPtr LoadImage(
-      IntPtr hInst,
-      string lpszName,
-      uint uType,
-      int cxDesired,
-      int cyDesired,
-      uint fuLoad
-  );
-
-  - IntPtr SendMessage(
-      IntPtr hWnd,
-      uint Msg,
-      IntPtr wParam,
-      IntPtr lParam
-  );
-
-  - IntPtr CreateIconFromResourceEx(
-      IntPtr presbits,
-      uint dwResSize,
-      bool fIcon,
-      uint dwVer,
-      int cxDesired,
-      int cyDesired,
-      uint Flags
-  );
-
-  - const uint LR_DEFAULTCOLOR = 0x00000000;
-  - bool DestroyIcon(IntPtr hIcon);
-  - struct WNDCLASSEX
-  {
-      - uint cbSize;
-      - uint style;
-      - WndProcDelegate lpfnWndProc;
-      - int cbClsExtra;
-      - int cbWndExtra;
-      - IntPtr hInstance;
-      - IntPtr hIcon;
-      - IntPtr hCursor;
-      - IntPtr hbrBackground;
-      - string lpszMenuName;
-      - string lpszClassName;
-      - IntPtr hIconSm;
-  }
-  - struct MSG
-  {
-      - IntPtr hwnd;
-      - uint message;
-      - IntPtr wParam;
-      - IntPtr lParam;
-      - uint time;
-      - int pt_x;
-      - int pt_y;
-  }
-
-  - uint GetGuiResources(IntPtr hProcess, uint uiFlags);
-  - IntPtr GetDC(IntPtr hWnd);
-  - int ReleaseDC(IntPtr hWnd, IntPtr hDC);
-  - IntPtr CreateWindowExW(
-      uint dwExStyle,
-      string lpClassName,
-      string lpWindowName,
-      uint dwStyle,
-      int X,
-      int Y,
-      int nWidth,
-      int nHeight,
-      IntPtr hWndParent,
-      IntPtr hMenu,
-      IntPtr hInstance,
-      IntPtr lpParam
-  );
-  - bool PeekMessageW(
-      out MSG lpMsg,
-      IntPtr hWnd,
-      uint wMsgFilterMin,
-      uint wMsgFilterMax,
-      int wRemoveMsg
-  );
-  - bool TranslateMessage(ref MSG lpMsg);
-  - IntPtr DispatchMessageW(ref MSG lpMsg);
-  - IntPtr DefWindowProcW(
-      IntPtr hWnd,
-      uint message,
-      IntPtr wParam,
-      IntPtr lParam
-  );
-
-  - IntPtr BeginPaint(IntPtr hWnd, out PAINTSTRUCT lpPaint);
-  - bool EndPaint(IntPtr hWnd, ref PAINTSTRUCT lpPaint);
-  - bool DestroyWindow(IntPtr hWnd);
-  - void PostQuitMessage(int nExitCode);
-  - IntPtr LoadCursorW(IntPtr hInstance, IntPtr lpCursorName);
-  - ushort RegisterClassExW(ref WNDCLASSEX lpwcx);
-  - bool InvalidateRect(IntPtr hWnd, IntPtr lpRect, bool bErase);
-  - bool ShowWindow(IntPtr hWnd, int nCmdShow);
-  - bool UpdateWindow(IntPtr hWnd);
-
-  - struct PAINTSTRUCT
-  {
-      - IntPtr hdc;
-      - bool fErase;
-      - RECT rcPaint;
-      - bool fRestore;
-      - bool fIncUpdate;
-      - byte[] rgbReserved;
-  }
-
-  - struct RECT
-  {
-      - int left;
-      - int top;
-      - int right;
-      - int bottom;
-  }
-
-  - const uint WS_POPUP = 0x80000000;
-  - const uint WS_EX_LAYERED = 0x00080000;
-  - const uint WS_EX_TRANSPARENT = 0x00000020;
-  - const uint WS_EX_TOPMOST = 0x00000008;
-  - const int LWA_COLORKEY = 0x1;
-  - const int LWA_ALPHA = 0x2;
-  - const int GWL_EXSTYLE = -20;
-
-  - bool SetLayeredWindowAttributes(
-      IntPtr hwnd,
-      uint crKey,
-      byte bAlpha,
-      uint dwFlags
-  );
-  - int GetWindowLong(IntPtr hWnd, int nIndex);
-  - int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-- Angene.Win32Messages (WM, EM, not a global namespace.)
-  - enum WM : uint
-  {
-      NULL            = 0x0000,
-      CREATE          = 0x0001,
-      DESTROY         = 0x0002,
-      MOVE            = 0x0003,
-      SIZE            = 0x0005,
-      SETFOCUS        = 0x0007,
-      KILLFOCUS       = 0x0008,
-      PAINT           = 0x000F,
-      CLOSE           = 0x0010,
-      QUIT            = 0x0012,
-      ERASEBKGND      = 0x0014,
-
-      KEYDOWN         = 0x0100,
-      KEYUP           = 0x0101,
-      CHAR            = 0x0102,
-
-      MOUSEMOVE       = 0x0200,
-      LBUTTONDOWN     = 0x0201,
-      LBUTTONUP       = 0x0202,
-      RBUTTONDOWN     = 0x0204,
-      RBUTTONUP       = 0x0205,
-      MOUSEWHEEL      = 0x020A,
-
-      ENTERSIZEMOVE   = 0x0231,
-      EXITSIZEMOVE    = 0x0232,
-  }
-
-  - enum EM : uint
-  {
-      GETSEL          = 0x00B0,
-      SETSEL          = 0x00B1,
-      GETRECT         = 0x00B2,
-      SETRECT         = 0x00B3,
-      REPLACESEL      = 0x00C2,
-      GETLINE         = 0x00C4,
-  }
-
-  - class WS
-  {
-      - const uint OVERLAPPED       = 0x00000000;
-      - const uint POPUP            = 0x80000000;
-      - const uint CHILD            = 0x40000000;
-      - const uint VISIBLE          = 0x10000000;
-      - const uint DISABLED         = 0x08000000;
-      - const uint CLIPSIBLINGS     = 0x04000000;
-      - const uint CLIPCHILDREN     = 0x02000000;
-      - const uint SYSMENU          = 0x00080000;
-      - const uint THICKFRAME       = 0x00040000;
-  }
-
-  - class WS_EX
-  {
-      - const uint TOPMOST           = 0x00000008;
-      - const uint TOOLWINDOW        = 0x00000080;
-      - const uint APPWINDOW         = 0x00040000;
-      - const uint LAYERED           = 0x00080000;
-      - const uint NOACTIVATE        = 0x08000000;
-  }
-
-  - class SWP
-  {
-      - const uint NOSIZE        = 0x0001;
-      - const uint NOMOVE        = 0x0002;
-      - const uint NOZORDER      = 0x0004;
-      - const uint NOACTIVATE    = 0x0010;
-      - const uint SHOWWINDOW    = 0x0040;
-  }
-- Angene.Gdi32
-  - SRCCOPY = 0x00CC0020;
-  - CreateCompatibleDC(IntPtr hdc);
-  - CreateCompatibleBitmap(IntPtr hdc, int nWidth, int nHeight);
-  - SelectObject(IntPtr hdc, IntPtr hObject);
-  - DeleteObject(IntPtr hObject);
-  - DeleteDC(IntPtr hdc);
-  - BitBlt(
-      IntPtr hdcDest,
-      int nXDest,
-      int nYDest,
-      int nWidth,
-      int nHeight,
-      IntPtr hdcSrc,
-      int nXSrc,
-      int nYSrc,
-      uint dwRop);
-  - CreateSolidBrush(uint crColor);
-  - GetStockObject(int fnObject);
-  - Rectangle(IntPtr hdc, int left, int top, int right, int bottom);
-  - SetBkMode(IntPtr hdc, int mode);
-  - SetTextColor(IntPtr hdc, uint color);
-  - TextOutW(IntPtr hdc, int nXStart, int nYStart, string lpString, int cchString);
-  - BITMAPINFOHEADER
-  {
-     uint biSize;
-     int biWidth;
-     int biHeight;
-     ushort biPlanes;
-     ushort biBitCount;
-     uint biCompression;
-     uint biSizeImage;
-     int biXPelsPerMeter;
-     int biYPelsPerMeter;
-     uint biClrUsed;
-     uint biClrImportant;
-  }
-  - BITMAPINFO
-  {
-     BITMAPINFOHEADER bmiHeader;
-     uint bmiColors; // Just enough for the header
-  }
-  - GetDIBits(IntPtr hdc, IntPtr hbmp, uint uStartScan, uint cScanLines, [Out] byte[] lpvBits, ref BITMAPINFO lpbi, uint uUsage);
-- Angene.Graphics
-  - GraphicsBackend
-    - interface IGraphicsContext
-    {
-        IntPtr Handle { get; }
-        void Clear(uint color);
-        void DrawRectangle(int x, int y, int width, int height, uint color);
-        void DrawText(string text, int x, int y, uint color);
-        void Present(IntPtr windowHandle);
-        void Cleanup();
-        byte[] GetRawPixels();
-    }
-    
-    - class GdiGraphicsContext : IGraphicsContext        
-        - IntPtr Handle => memDc;
-        
-        - GdiGraphicsContext(IntPtr hwnd, int w, int h)
-        - void Clear(uint color)
-        - void DrawRectangle(int x, int y, int w, int h, uint color)
-        - void DrawText(string text, int x, int y, uint color)
-        - void Present(IntPtr hwnd)
-        
-        - byte[] GetRawPixels() { return null; }
-
-    - class WSGraphicsContext : IGraphicsContext
-      - IntPtr Handle => memDc;
-
-      - WSGraphicsContext(string hwnd, int w, int h)
-      - void Clear(uint color)
-      - void DrawRectangle(int x, int y, int w, int h, uint color)
-      - void DrawText(string text, int x, int y, uint color)
-      - byte[] GetRawPixels()
-
-    - class GraphicsContextFactory
-      - IGraphicsContext Create(IntPtr windowHandle, int width, int height)
 - Angene.External
   - External.DiscordRichPresence
     - (partial class) DiscordRichPresence
@@ -747,6 +370,549 @@ The C# library/variant of Angene. Functions and calls are described here:
 - Common
   - AudioFactory
     - IAudioPlayer Create(AudioFile) # Checks loadtype if is streamed, else provides full audio bytes
+## Angene.Graphics
+- GraphicsBackend
+  - interface IGraphicsContext
+  {
+      IntPtr Handle { get; }
+      void Clear(uint color);
+      void DrawRectangle(int x, int y, int width, int height, uint color);
+      void DrawText(string text, int x, int y, uint color);
+      void Present(IntPtr windowHandle);
+      void Cleanup();
+      byte[] GetRawPixels();
+  }
+  
+  - class GdiGraphicsContext : IGraphicsContext        
+      - IntPtr Handle => memDc;
+      
+      - GdiGraphicsContext(IntPtr hwnd, int w, int h)
+      - void Clear(uint color)
+      - void DrawRectangle(int x, int y, int w, int h, uint color)
+      - void DrawText(string text, int x, int y, uint color)
+      - void Present(IntPtr hwnd)
+      
+      - byte[] GetRawPixels() { return null; }
+
+  - class WSGraphicsContext : IGraphicsContext
+    - IntPtr Handle => memDc;
+
+    - WSGraphicsContext(string hwnd, int w, int h)
+    - void Clear(uint color)
+    - void DrawRectangle(int x, int y, int w, int h, uint color)
+    - void DrawText(string text, int x, int y, uint color)
+    - byte[] GetRawPixels()
+
+  - class GraphicsContextFactory
+    - IGraphicsContext Create(IntPtr windowHandle, int width, int height)
+## Angene.Windows
+- Angene.Windows.Gdi32
+  - SRCCOPY = 0x00CC0020;
+  - CreateCompatibleDC(IntPtr hdc);
+  - CreateCompatibleBitmap(IntPtr hdc, int nWidth, int nHeight);
+  - SelectObject(IntPtr hdc, IntPtr hObject);
+  - DeleteObject(IntPtr hObject);
+  - DeleteDC(IntPtr hdc);
+  - BitBlt(
+      IntPtr hdcDest,
+      int nXDest,
+      int nYDest,
+      int nWidth,
+      int nHeight,
+      IntPtr hdcSrc,
+      int nXSrc,
+      int nYSrc,
+      uint dwRop);
+  - CreateSolidBrush(uint crColor);
+  - GetStockObject(int fnObject);
+  - Rectangle(IntPtr hdc, int left, int top, int right, int bottom);
+  - SetBkMode(IntPtr hdc, int mode);
+  - SetTextColor(IntPtr hdc, uint color);
+  - TextOutW(IntPtr hdc, int nXStart, int nYStart, string lpString, int cchString);
+  - BITMAPINFOHEADER
+  {
+     uint biSize;
+     int biWidth;
+     int biHeight;
+     ushort biPlanes;
+     ushort biBitCount;
+     uint biCompression;
+     uint biSizeImage;
+     int biXPelsPerMeter;
+     int biYPelsPerMeter;
+     uint biClrUsed;
+     uint biClrImportant;
+  }
+  - BITMAPINFO
+  {
+     BITMAPINFOHEADER bmiHeader;
+     uint bmiColors; // Just enough for the header
+  }
+  - GetDIBits(IntPtr hdc, IntPtr hbmp, uint uStartScan, uint cScanLines, [Out] byte[] lpvBits, ref BITMAPINFO lpbi, uint uUsage);
+- Angene.Windows.Win32
+  - enum WindowStyle : uint
+  {
+      Overlapped = 0x00000000,
+      Popup = 0x80000000,
+      Child = 0x40000000,
+      Minimize = 0x20000000,
+      Visible = 0x10000000,
+      Disabled = 0x08000000,
+      ClipSiblings = 0x04000000,
+      ClipChildren = 0x02000000,
+      Maximize = 0x01000000,
+      Caption = 0x00C00000,
+      Border = 0x00800000,
+      DialogFrame = 0x00400000,
+      VScroll = 0x00200000,
+      HScroll = 0x00100000,
+      SysMenu = 0x00080000,
+      ThickFrame = 0x00040000,
+      Group = 0x00020000,
+      TabStop = 0x00010000,
+      MinimizeBox = 0x00020000,
+      MaximizeBox = 0x00010000,
+
+      OverlappedWindow = Overlapped | Caption | SysMenu | ThickFrame | MinimizeBox | MaximizeBox,
+      PopupWindow = Popup | Border | SysMenu
+  }
+
+  - enum WindowStyleEx : uint
+  {
+      None = 0x00000000,
+      DlgModalFrame = 0x00000001,
+      NoParentNotify = 0x00000004,
+      Topmost = 0x00000008,
+      AcceptFiles = 0x00000010,
+      Transparent = 0x00000020,
+      MdiChild = 0x00000040,
+      ToolWindow = 0x00000080,
+      WindowEdge = 0x00000100,
+      ClientEdge = 0x00000200,
+      ContextHelp = 0x00000400,
+      Right = 0x00001000,
+      Left = 0x00000000,
+      RtlReading = 0x00002000,
+      LtrReading = 0x00000000,
+      LeftScrollBar = 0x00004000,
+      RightScrollBar = 0x00000000,
+      ControlParent = 0x00010000,
+      StaticEdge = 0x00020000,
+      AppWindow = 0x00040000,
+      Layered = 0x00080000,
+      NoInheritLayout = 0x00100000,
+      NoRedirectionBitmap = 0x00200000,
+      LayoutRtl = 0x00400000,
+      Composited = 0x02000000,
+      NoActivate = 0x08000000,
+
+      OverlappedWindow = WindowEdge | ClientEdge,
+      PaletteWindow = WindowEdge | ToolWindow | Topmost
+  }
+
+  - struct WindowTransparency
+  {
+      - bool Enabled;
+      - byte Alpha;
+      - bool ClickThrough;
+
+      - WindowTransparency None => new WindowTransparency { Enabled = false, Alpha = 255, ClickThrough = false };
+      - WindowTransparency Opaque => new WindowTransparency { Enabled = true, Alpha = 255, ClickThrough = false };
+      - WindowTransparency SemiTransparent => new WindowTransparency { Enabled = true, Alpha = 128, ClickThrough = false };
+      - WindowTransparency FullyTransparent => new WindowTransparency { Enabled = true, Alpha = 0, ClickThrough = true };
+  }
+
+  - const uint GR_GDIOBJECTS = 0;
+  - const int PM_REMOVE = 0x0001;
+
+  - const uint WM_CLOSE = 0x0010;
+  - const uint WM_DESTROY = 0x0002;
+  - const uint WM_ERASEBKGND = 0x0014;
+  - const uint WM_QUIT = 0x0012;
+
+  - const uint WS_OVERLAPPEDWINDOW = 0x00CF0000;
+  - const int CW_USEDEFAULT = unchecked((int)0x80000000);
+  - const int SW_SHOW = 5;
+
+  - delegate IntPtr WndProcDelegate(
+      IntPtr hWnd,
+      uint msg,
+      IntPtr wParam,
+      IntPtr lParam
+  );
+
+  - const uint IMAGE_ICON = 1;
+  - const uint LR_DEFAULTSIZE = 0x00000040;
+  - const uint LR_LOADFROMFILE = 0x00000010;
+  - const uint WM_SETICON = 0x0080;
+  - const int ICON_SMALL = 0;
+  - const int ICON_BIG = 1;
+
+  - IntPtr LoadImage(
+      IntPtr hInst,
+      string lpszName,
+      uint uType,
+      int cxDesired,
+      int cyDesired,
+      uint fuLoad
+  );
+
+  - IntPtr SendMessage(
+      IntPtr hWnd,
+      uint Msg,
+      IntPtr wParam,
+      IntPtr lParam
+  );
+
+  - IntPtr CreateIconFromResourceEx(
+      IntPtr presbits,
+      uint dwResSize,
+      bool fIcon,
+      uint dwVer,
+      int cxDesired,
+      int cyDesired,
+      uint Flags
+  );
+
+  - const uint LR_DEFAULTCOLOR = 0x00000000;
+  - bool DestroyIcon(IntPtr hIcon);
+  - struct WNDCLASSEX
+  {
+      - uint cbSize;
+      - uint style;
+      - WndProcDelegate lpfnWndProc;
+      - int cbClsExtra;
+      - int cbWndExtra;
+      - IntPtr hInstance;
+      - IntPtr hIcon;
+      - IntPtr hCursor;
+      - IntPtr hbrBackground;
+      - string lpszMenuName;
+      - string lpszClassName;
+      - IntPtr hIconSm;
+  }
+  - struct MSG
+  {
+      - IntPtr hwnd;
+      - uint message;
+      - IntPtr wParam;
+      - IntPtr lParam;
+      - uint time;
+      - int pt_x;
+      - int pt_y;
+  }
+
+  - uint GetGuiResources(IntPtr hProcess, uint uiFlags);
+  - IntPtr GetDC(IntPtr hWnd);
+  - int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+  - IntPtr CreateWindowExW(
+      uint dwExStyle,
+      string lpClassName,
+      string lpWindowName,
+      uint dwStyle,
+      int X,
+      int Y,
+      int nWidth,
+      int nHeight,
+      IntPtr hWndParent,
+      IntPtr hMenu,
+      IntPtr hInstance,
+      IntPtr lpParam
+  );
+  - bool PeekMessageW(
+      out MSG lpMsg,
+      IntPtr hWnd,
+      uint wMsgFilterMin,
+      uint wMsgFilterMax,
+      int wRemoveMsg
+  );
+  - bool TranslateMessage(ref MSG lpMsg);
+  - IntPtr DispatchMessageW(ref MSG lpMsg);
+  - IntPtr DefWindowProcW(
+      IntPtr hWnd,
+      uint message,
+      IntPtr wParam,
+      IntPtr lParam
+  );
+
+  - IntPtr BeginPaint(IntPtr hWnd, out PAINTSTRUCT lpPaint);
+  - bool EndPaint(IntPtr hWnd, ref PAINTSTRUCT lpPaint);
+  - bool DestroyWindow(IntPtr hWnd);
+  - void PostQuitMessage(int nExitCode);
+  - IntPtr LoadCursorW(IntPtr hInstance, IntPtr lpCursorName);
+  - ushort RegisterClassExW(ref WNDCLASSEX lpwcx);
+  - bool InvalidateRect(IntPtr hWnd, IntPtr lpRect, bool bErase);
+  - bool ShowWindow(IntPtr hWnd, int nCmdShow);
+  - bool UpdateWindow(IntPtr hWnd);
+
+  - struct PAINTSTRUCT
+  {
+      - IntPtr hdc;
+      - bool fErase;
+      - RECT rcPaint;
+      - bool fRestore;
+      - bool fIncUpdate;
+      - byte[] rgbReserved;
+  }
+
+  - struct RECT
+  {
+      - int left;
+      - int top;
+      - int right;
+      - int bottom;
+  }
+
+  - const uint WS_POPUP = 0x80000000;
+  - const uint WS_EX_LAYERED = 0x00080000;
+  - const uint WS_EX_TRANSPARENT = 0x00000020;
+  - const uint WS_EX_TOPMOST = 0x00000008;
+  - const int LWA_COLORKEY = 0x1;
+  - const int LWA_ALPHA = 0x2;
+  - const int GWL_EXSTYLE = -20;
+
+  - bool SetLayeredWindowAttributes(
+      IntPtr hwnd,
+      uint crKey,
+      byte bAlpha,
+      uint dwFlags
+  );
+  - int GetWindowLong(IntPtr hWnd, int nIndex);
+  - int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+- Angene.Windows.Win32Messages (WM, EM, not a global namespace.)
+  - enum WM : uint
+  {
+      NULL            = 0x0000,
+      CREATE          = 0x0001,
+      DESTROY         = 0x0002,
+      MOVE            = 0x0003,
+      SIZE            = 0x0005,
+      SETFOCUS        = 0x0007,
+      KILLFOCUS       = 0x0008,
+      PAINT           = 0x000F,
+      CLOSE           = 0x0010,
+      QUIT            = 0x0012,
+      ERASEBKGND      = 0x0014,
+
+      KEYDOWN         = 0x0100,
+      KEYUP           = 0x0101,
+      CHAR            = 0x0102,
+
+      MOUSEMOVE       = 0x0200,
+      LBUTTONDOWN     = 0x0201,
+      LBUTTONUP       = 0x0202,
+      RBUTTONDOWN     = 0x0204,
+      RBUTTONUP       = 0x0205,
+      MOUSEWHEEL      = 0x020A,
+
+      ENTERSIZEMOVE   = 0x0231,
+      EXITSIZEMOVE    = 0x0232,
+  }
+
+  - enum EM : uint
+  {
+      GETSEL          = 0x00B0,
+      SETSEL          = 0x00B1,
+      GETRECT         = 0x00B2,
+      SETRECT         = 0x00B3,
+      REPLACESEL      = 0x00C2,
+      GETLINE         = 0x00C4,
+  }
+
+  - class WS
+  {
+      - const uint OVERLAPPED       = 0x00000000;
+      - const uint POPUP            = 0x80000000;
+      - const uint CHILD            = 0x40000000;
+      - const uint VISIBLE          = 0x10000000;
+      - const uint DISABLED         = 0x08000000;
+      - const uint CLIPSIBLINGS     = 0x04000000;
+      - const uint CLIPCHILDREN     = 0x02000000;
+      - const uint SYSMENU          = 0x00080000;
+      - const uint THICKFRAME       = 0x00040000;
+  }
+
+  - class WS_EX
+  {
+      - const uint TOPMOST           = 0x00000008;
+      - const uint TOOLWINDOW        = 0x00000080;
+      - const uint APPWINDOW         = 0x00040000;
+      - const uint LAYERED           = 0x00080000;
+      - const uint NOACTIVATE        = 0x08000000;
+  }
+
+  - class SWP
+  {
+      - const uint NOSIZE        = 0x0001;
+      - const uint NOMOVE        = 0x0002;
+      - const uint NOZORDER      = 0x0004;
+      - const uint NOACTIVATE    = 0x0010;
+      - const uint SHOWWINDOW    = 0x0040;
+  }
+## Angene.Math
+- Defs
+  - interface IComputeBackend : IDisposable
+    {
+        IComputeJob<TIn, TOut> CreateJob<TIn, TOut>(string shaderSource, int maxElements)
+            where TIn : unmanaged
+            where TOut : unmanaged;
+
+        void Flush();
+    }
+  - interface IComputeJob<TInput, TOutput> : IDisposable
+    where TInput : unmanaged
+    where TOutput : unmanaged
+    {
+        void Upload(TInput[] data);
+        void Dispatch();
+        TOutput[] Collect();   // Blocks until done — GPU readback
+        bool IsComplete { get; }
+    }
+- GPU
+  - Math
+    - int GpuThreshold { get; set; } = 512; // below this, falls back to CPU
+    - Math(IComputeBackend backend)
+    - Vec2[] Add(Vec2[] a, Vec2[] b)
+    - Vec2[] Scale(Vec2[] vectors, float scalar)
+    - Vec2[] Normalize(Vec2[] vectors)
+    - float[] Dot(Vec2[] a, Vec2[] b)
+    - float[] Length(Vec2[] vectors)
+    - Vec2[] Lerp(Vec2[] a, Vec2[] b, float t)
+    - Vec2[] Lerp(Vec2[] a, Vec2[] b, float[] t)
+    - Vec3[] Add(Vec3[] a, Vec3[] b)
+    - Vec3[] Cross(Vec3[] a, Vec3[] b)
+    - Vec3[] Normalize(Vec3[] vectors)
+    - float[] Dot(Vec3[] a, Vec3[] b)
+    - Vec2[] Transform(Matrix3x3 matrix, Vec2[] points)
+    - Matrix3x3[] Multiply(Matrix3x3[] a, Matrix3x3[] b)
+    - float[] Clamp(float[] values, float min, float max)
+    - float[] Lerp(float[] a, float[] b, float t)
+    - float[] Remap(float[] values, float inMin, float inMax, float outMin, float outMax)
+    - float[] Sqrt(float[] values)
+    - float[] Abs(float[] values)
+    - float Sum(float[] values)
+    - float Min(float[] values)
+    - float Max(float[] values)
+    - Vec2 Sum(Vec2[] vectors)
+    - Vec2 Average(Vec2[] vectors)
+- Interpolation
+  - const float PI = MathF.PI;
+  - const float Deg2Rad = MathF.PI / 180f;
+  - const float Rad2Deg = 180f / MathF.PI;
+  - static float Clamp(float v, float min, float max)
+  - static float Clamp01(float v)
+  - static float Remap(float v, float inMin, float inMax, float outMin, float outMax)
+  - static float Lerp(float a, float b, float t)
+  - static float LerpUnclamped(float a, float b, float t)
+  - static float InverseLerp(float a, float b, float v)
+  - static float SmoothStep(float a, float b, float t)
+  - static float SmootherStep(float a, float b, float t)
+  - static float MoveTowards(float current, float target, float maxDelta)
+  - static float SmoothDamp(float current, float target, ref float velocity,
+                                  float smoothTime, double dt)
+  - static float DeltaAngle(float from, float to)
+  - static float LerpAngle(float a, float b, float t)
+  - static class Ease
+  {
+    - static float InQuad(float t)
+    - static float OutQuad(float t)
+    - static float InOutQuad(float t)
+    - static float InCubic(float t)
+    - static float OutCubic(float t)
+    - static float InOutCubic(float t)
+    - static float InBack(float t)
+    - static float InBounce(float t)
+    - static float InElastic(float t)
+    - static float OutBack(float t)
+    - static float OutBounce(float t)
+    - static float OutElastic(float t)
+  }
+- Vectors
+    - struct Vec2(float x = 0, float y = 0)
+    {
+        - float X = x, Y = y;
+        - static Vec2 Zero
+        - static Vec2 One
+        - static Vec2 Up
+        - static Vec2 Down
+        - static Vec2 Left
+        - static Vec2 Right
+        - float Length
+        - float LengthSquared
+        - Vec2 Normalized
+        - static float Dot(Vec2 a, Vec2 b)
+        - static float Distance(Vec2 a, Vec2 b)
+        - static Vec2 Lerp(Vec2 a, Vec2 b, float t)
+        - static Vec2 Reflect(Vec2 v, Vec2 normal)
+        - static Vec2 operator +(Vec2 a, Vec2 b)
+        - static Vec2 operator -(Vec2 a, Vec2 b)
+        - static Vec2 operator *(Vec2 v, float s)
+        - static Vec2 operator *(float s, Vec2 v)
+        - static Vec2 operator /(Vec2 v, float s)
+    }
+    - struct Vec3(float x = 0, float y = 0, float z = 0)
+    {
+        - float X = x, Y = y, Z = z;
+        - float Length
+        - Vec3 Normalized
+        - static float Dot(Vec3 a, Vec3 b)
+        - static Vec3 Cross(Vec3 a, Vec3 b)
+        - static Vec3 Lerp(Vec3 a, Vec3 b, float t)
+        - static Vec3 operator +(Vec3 a, Vec3 b)
+        - static Vec3 operator -(Vec3 a, Vec3 b)
+        - static Vec3 operator *(Vec3 v, float s)
+        - static Vec3 operator /(Vec3 v, float s)
+    }
+    - struct Rect(float x = 0, float y = 0, float width = 0, float height = 0)
+    {
+        - float X = x, Y = y, Width = width, Height = height;
+        - float Left
+        - float Right
+        - float Top
+        - float Bottom
+        - Vec2 Center
+        - bool Contains(Vec2 point)
+        - bool Intersects(Rect other)
+        - Rect Expand(float amount)
+    }
+    - struct Matrix3x3
+    {
+      - float M00, M01, M02;
+      - float M10, M11, M12;
+      - float M20, M21, M22;
+      - static Matrix3x3 Identity
+      - static Matrix3x3 Translation(float tx, float ty)
+      - static Matrix3x3 Rotation(float radians)
+      - static Matrix3x3 Scale(float sx, float sy)
+      - static Matrix3x3 operator *(Matrix3x3 a, Matrix3x3 b)
+      - static Vec2 operator *(Matrix3x3 m, Vec2 v)
+    }
+- Rand
+  - static void SetSeed(int seed)
+  - static float Value
+  - static float Range(float min, float max)
+  - static int Range(int min, int max)
+  - static Vec2 InsideUnitCircle
+  {
+      get
+      {
+          Vec2 v;
+          do { v = new Vec2(Range(-1f, 1f), Range(-1f, 1f)); }
+          while (v.LengthSquared > 1f);
+          return v;
+      }
+  }
+  - static Vec2 OnUnitCircle
+  {
+      get
+      {
+          float angle = Range(0f, Mathf.PI * 2f);
+          return new Vec2(MathF.Cos(angle), MathF.Sin(angle));
+      }
+  }
+  - static bool Chance(float probability)
+  - static T Pick<T>(IList<T> items)
+  - static void Shuffle<T>(IList<T> items)
 
 # Examples
 ## Engine
@@ -1217,11 +1383,95 @@ var file = new AudioFile(
 // then do the same as usual
 ```
 
+## Math
+This entire math library includes a fuck ton
+Vectors, Interpolation, randomisation, and gpu-acceleration.
+
+### Vectors
+```cs
+var a = new Vec2(3f, 4f);
+var b = new Vec2(1f, 2f);
+
+float len  = a.Length;           // 5
+float dot  = Vec2.Dot(a, b);     // 11
+Vec2 norm  = a.Normalized;       // (0.6, 0.8)
+Vec2 lerp  = Vec2.Lerp(a, b, 0.5f);
+Vec2 refl  = Vec2.Reflect(a, Vec2.Up);
+
+var x = new Vec3(1f, 0f, 0f);
+var y = new Vec3(0f, 1f, 0f);
+Vec3 cross = Vec3.Cross(x, y);   // (0, 0, 1)
+
+var rect = new Rect(10f, 10f, 100f, 50f);
+bool hit  = rect.Contains(new Vec2(50f, 30f)); // true
+
+var translate = Matrix3x3.Translation(10f, 20f);
+Vec2 moved = translate * new Vec2(5f, 3f);     // (15, 23)
+```
+
+### Interpolation (Mathf)
+```cs
+float clamped   = Mathf.Clamp(5f, 0f, 3f);           // 3
+float remapped  = Mathf.Remap(5f, 0f, 10f, 0f, 100f); // 50
+float lerped    = Mathf.Lerp(0f, 100f, 0.25f);         // 25
+float smooth    = Mathf.SmoothStep(0f, 1f, 0.5f);      // 0.5
+float delta     = Mathf.DeltaAngle(10f, 350f);         // -20 (shortest arc)
+
+float vel = 0f;
+float damped = Mathf.SmoothDamp(0f, 100f, ref vel, smoothTime: 0.5f, dt: 0.016);
+
+// Easing — all take t in [0,1]
+float eased = Mathf.Ease.OutBack(0.5f);   // overshoots past 1
+float bounce = Mathf.Ease.OutBounce(0.5f);
+```
+
+### Randomisation (Rand)
+```cs
+Rand.SetSeed(42); // deterministic from here on
+
+float f   = Rand.Value;               // [0, 1)
+float r   = Rand.Range(-5f, 5f);
+int   i   = Rand.Range(0, 10);
+Vec2  inC = Rand.InsideUnitCircle;    // |v| ≤ 1
+Vec2  onC = Rand.OnUnitCircle;        // |v| ≈ 1
+bool  hit = Rand.Chance(0.3f);        // ~30% true
+
+string picked = Rand.Pick(new[] { "alpha", "beta", "gamma" });
+
+var list = new List { 1, 2, 3, 4, 5 };
+Rand.Shuffle(list);
+```
+
+### GpuMath (bulk ops, CPU fallback below threshold)
+```cs
+// Requires an IComputeBackend — pass a real D3D11/Vulkan backend for GPU dispatch.
+// Arrays smaller than GpuMath.GpuThreshold (default 512) fall back to CPU automatically.
+var gpu = new Angene.Math.GPU.Math(myComputeBackend);
+
+Vec2[] a = /* ... */;
+Vec2[] b = /* ... */;
+
+Vec2[]  added    = gpu.Add(a, b);
+Vec2[]  normed   = gpu.Normalize(a);
+float[] dots     = gpu.Dot(a, b);
+Vec2[]  lerped   = gpu.Lerp(a, b, 0.5f);     // uniform t
+Vec2[]  lerped2  = gpu.Lerp(a, b, tArray);   // per-element t
+
+float[] clamped  = gpu.Clamp(values, 0f, 1f);
+float[] remapped = gpu.Remap(values, 0f, 100f, 0f, 1f);
+float   sum      = gpu.Sum(values);
+float   max      = gpu.Max(values);
+Vec2    vecAvg   = gpu.Average(vec2Array);
+
+gpu.Dispose();
+```
+An example of all of these is in [testGame/MathTest](https://github.com/Aerialflame7125/Angene/tree/main/testGame/MathTest).
+
 # QnA
 ## Have you vibecoded any part of this engine?
 Sadly, yes. There are major parts within this game engine that are vibe coded. Most of that is the partial lack of interest and lack of thinking that I would ever use it in the future.
 If you need to know which parts are vibe coded, I will list them here:
-### Angene.Math (At the time of writing, not tested yet.)
+### Angene.Math
 - Angene.Math
   - Rand
 - Angene.Math.Defs
@@ -1247,24 +1497,27 @@ If you need to know which parts are vibe coded, I will list them here:
   * If you wish to fact check me, just remember that the audio libraries are all in CPP and C, requiring importing.
   * Another thing, Windows audio derives from older versions that still exist in newer systems (Windows 11) still completely being deprecated and dead code. Microslop has yet to remove these older versions, causing discrepancies in what library users should use.
 ### Angene (main library)
-- Graphics
-  - All of the above
-    * Not going to rant about microsoft implementations, just that me personally, I have no idea how D3D works, nor does the documentation really help me in the case of using C#.
-    * Although I do state all of the above, GDI is the only one that does not adhere to this. The implementation carries from Python, and is human written (for the most part, conversion was AI.)
 - Main
-  - Win32
-  - Win32Messages
   - WS
-  - Kernel32
-  - Gdi32
   - PkgHandler
-  * All of the listed libraries is vibe coded. This primarilly consists of Win32 messages and headers pertaining to specific windows implementations. Microsoft documentation is correct and actually helped a lot when writing python implementations, but I will refer you to the [definitions file](https://github.com/Aerialflame7125/Angene/blob/main/Python/Angene/Main/definitions.py) written in python, and you tell me if you want to implement that in C#.
-  * Most of this is also at the hands of bad implementations, very generously providing a great help when it comes to conversions to other languages :thumbs_up: (sarcasm.)
 - Platform
   - X11Native
   * Self-explanatory. Yet to remove it at the time of writing (2026,03,07), considering this is windows-first.
 - Crypto
   * Literally just a conversion wrapper. Too lazy to change all of the references, so why not make it yourself to shut the console up!
+### Angene.Graphics
+- Graphics
+  - All of the above
+    * Not going to rant about microsoft implementations, just that me personally, I have no idea how D3D works, nor does the documentation really help me in the case of using C#.
+    * Although I do state all of the above, GDI is the only one that does not adhere to this. The implementation carries from Python, and is human written (for the most part, conversion was AI.)
+### Angene.Windows
+- Kernel32
+- Gdi32
+- Win32
+- Win32Messages
+* All of the listed libraries is vibe coded. This primarilly consists of Win32 messages and headers pertaining to specific windows implementations. Microsoft documentation is correct and actually helped a lot when writing python implementations, but I will refer you to the [definitions file](https://github.com/Aerialflame7125/Angene/blob/main/Python/Angene/Main/definitions.py) written in python, and you tell me if you want to implement that in C#.
+* Most of this is also at the hands of bad implementations, very generously providing a great help when it comes to conversions to other languages :thumbs_up: (sarcasm.)
+
 Also, this entire readme is written by hand before you ask. I'm not going to document a game engine I am working on with AI. What kind of person do you take me for?
 ## Why is this Windows-Only (for now)?
 This engine is windows only because of how I just couldn't find documentation. Not to mention, I started this project on Windows 10 and will continue working on it in Windows.

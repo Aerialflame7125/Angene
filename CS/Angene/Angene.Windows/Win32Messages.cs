@@ -1,4 +1,4 @@
-namespace Angene.Main
+namespace Angene.Windows
 {
     // window messages (wm)
     public enum WM : uint

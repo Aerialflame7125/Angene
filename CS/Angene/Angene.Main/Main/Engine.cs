@@ -5,6 +5,7 @@ using Angene.External;
 using Angene.Globals;
 using Angene.Graphics;
 using Angene.Platform;
+using Angene.Windows;
 using Org.BouncyCastle.Asn1.Cmp;
 using System;
 using System.Collections.Generic;

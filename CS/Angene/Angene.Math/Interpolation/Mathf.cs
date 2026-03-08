@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Angene.Math.Interpolation
 {
     // Being completely honest and truthful, most of this implementation was vibecoded, I have no idea how interpolation math works.
-    static class Mathf
+    public static class Mathf
     {
         public const float PI = MathF.PI;
         public const float Deg2Rad = MathF.PI / 180f;

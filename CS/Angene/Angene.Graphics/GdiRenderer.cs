@@ -1,8 +1,7 @@
 using Angene.Globals;
 using System;
 using System.Collections.Generic;
-using static Angene.Main.Win32;
-using static Angene.Graphics.Win.Gdi32;
+using Angene.Windows;
 
 namespace Angene.Graphics
 {
@@ -28,7 +27,7 @@ namespace Angene.Graphics
             _hdc = hdc;
 
             if (_nullPen == IntPtr.Zero)
-                _nullPen = GetStockObject(NULL_PEN);
+                _nullPen = Gdi32.GetStockObject(NULL_PEN);
         }
 
         // Create a memory DC/backbuffer and set it as the target for all draw calls.
@@ -38,7 +37,7 @@ namespace Angene.Graphics
                 return;
 
             // Create compatible DC and bitmap for double buffering
-            _memDc = CreateCompatibleDC(_hdc);
+            _memDc = Gdi32.CreateCompatibleDC(_hdc);
             if (_memDc == IntPtr.Zero)
             {
                 // fallback: use actual hdc if we can't create memDC
@@ -47,16 +46,16 @@ namespace Angene.Graphics
                 return;
             }
 
-            _backBufferBitmap = CreateCompatibleBitmap(_hdc, Math.Max(1, width), Math.Max(1, height));
+            _backBufferBitmap = Gdi32.CreateCompatibleBitmap(_hdc, Math.Max(1, width), Math.Max(1, height));
             if (_backBufferBitmap == IntPtr.Zero)
             {
-                DeleteDC(_memDc);
+                Gdi32.DeleteDC(_memDc);
                 _memDc = IntPtr.Zero;
                 _frameBegun = true;
                 return;
             }
 
-            _oldBitmap = SelectObject(_memDc, _backBufferBitmap);
+            _oldBitmap = Gdi32.SelectObject(_memDc, _backBufferBitmap);
             _frameBegun = true;
         }
 
@@ -74,10 +73,10 @@ namespace Angene.Graphics
             );
 
             var brush = GetBrush(color);
-            var oldPen = SelectObject(target, _nullPen);
-            var oldBrush = SelectObject(target, brush);
+            var oldPen = Gdi32.SelectObject(target, _nullPen);
+            var oldBrush = Gdi32.SelectObject(target, brush);
 
-            Rectangle(target, -1, -1, 10000, 10000);
+            Gdi32.Rectangle(target, -1, -1, 10000, 10000);
 
             Restore(target, oldPen, oldBrush);
         }
@@ -90,10 +89,10 @@ namespace Angene.Graphics
 
             var brush = GetBrush(color);
 
-            var oldPen = SelectObject(target, _nullPen);
-            var oldBrush = SelectObject(target, brush);
+            var oldPen = Gdi32.SelectObject(target, _nullPen);
+            var oldBrush = Gdi32.SelectObject(target, brush);
 
-            Rectangle(
+            Gdi32.Rectangle(
                 target,
                 (int)x,
                 (int)y,
@@ -110,13 +109,13 @@ namespace Angene.Graphics
             if (target == IntPtr.Zero)
                 return;
 
-            SetBkMode(target, TRANSPARENT);
-            SetTextColor(target, color);
+            Gdi32.SetBkMode(target, TRANSPARENT);
+            Gdi32.SetTextColor(target, color);
 
             if (text.Length > 256)
                 text = text.Substring(0, 256);
 
-            TextOutW(
+            Gdi32.TextOutW(
                 target,
                 (int)x,
                 (int)y,
@@ -137,7 +136,7 @@ namespace Angene.Graphics
                 {
                     // BitBlt from memory DC to window DC
                     // Use the full area of the bitmap: use GetObject fallback if needed, but simple SRCCOPY is used here.
-                    BitBlt(_hdc, 0, 0, 32767, 32767, _memDc, 0, 0, SRCCOPY);
+                    Gdi32.BitBlt(_hdc, 0, 0, 32767, 32767, _memDc, 0, 0, SRCCOPY);
                 }
             }
             finally
@@ -147,17 +146,17 @@ namespace Angene.Graphics
                 {
                     if (_oldBitmap != IntPtr.Zero)
                     {
-                        SelectObject(_memDc, _oldBitmap);
+                        Gdi32.SelectObject(_memDc, _oldBitmap);
                         _oldBitmap = IntPtr.Zero;
                     }
 
                     if (_backBufferBitmap != IntPtr.Zero)
                     {
-                        DeleteObject(_backBufferBitmap);
+                        Gdi32.DeleteObject(_backBufferBitmap);
                         _backBufferBitmap = IntPtr.Zero;
                     }
 
-                    DeleteDC(_memDc);
+                    Gdi32.DeleteDC(_memDc);
                     _memDc = IntPtr.Zero;
                 }
 
@@ -171,7 +170,7 @@ namespace Angene.Graphics
             EndFrame();
 
             foreach (var brush in BrushCache.Values)
-                DeleteObject(brush);
+                Gdi32.DeleteObject(brush);
 
             BrushCache.Clear();
         }
@@ -184,7 +183,7 @@ namespace Angene.Graphics
         {
             if (!BrushCache.TryGetValue(color, out var brush))
             {
-                brush = CreateSolidBrush(color);
+                brush = Gdi32.CreateSolidBrush(color);
                 BrushCache[color] = brush;
             }
 
@@ -195,10 +194,10 @@ namespace Angene.Graphics
         private static void Restore(IntPtr hdc, IntPtr oldPen, IntPtr oldBrush)
         {
             if (oldBrush != IntPtr.Zero)
-                SelectObject(hdc, oldBrush);
+                Gdi32.SelectObject(hdc, oldBrush);
 
             if (oldPen != IntPtr.Zero)
-                SelectObject(hdc, oldPen);
+                Gdi32.SelectObject(hdc, oldPen);
         }
 
         private static uint RGB(byte r, byte g, byte b)
