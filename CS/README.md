@@ -1,9 +1,9 @@
 ![Angene Logo](https://github.com/Aerialflame7125/Angene/blob/main/AngeneLogoBig.png?raw=true)
 # Angene
 (pronounced 'engine')
-Last updated 2026/03/07
+Last updated 2026/03/15
 
-The C# library/variant of Angene. Functions and calls are described here:
+The C# library/variant of Angene. If you want to skip the entire tree for the engine, skip to the [examples.](https://github.com/Aerialflame7125/Angene/blob/main/CS/README.md#Examples)
 ## Angene
 - Angene.Engine
   - (Settings) Engine.SettingHandlerInstanced() # Returns the settings instance, do NOT INSTANTIATE NEW SETTINGS AFTER INIT
@@ -226,7 +226,7 @@ The C# library/variant of Angene. Functions and calls are described here:
     - Play # Playing
     - Paused # Paused
 
-  - sealed class ScriptBinding
+  - sealed class Lifecycle
     - object Instance # Binding to Instance
     - Action? Awake # Binding to Awake
     - Action? OnEnable # Binding to OnEnable
@@ -247,7 +247,7 @@ The C# library/variant of Angene. Functions and calls are described here:
       - bool HasOnDraw # If OnDraw() is defined
       - bool HasStart # If Start() is defined
 
-    - Lifecycle
+    - ScriptBinding
       - Tick(IScene, double, EngineMode) # Defines a tick, on every tick call Update
       - Draw(IScene, EngineMode) # Draws object to scene
       - HandleEntityCreated(Entity) # On entity created
@@ -1018,8 +1018,8 @@ private static void RunWindowsMessageLoop(Window window, ref double dto, ref dou
     foreach (var scene in window.Scenes)
     {
       double dt = (DateTime.Now - lastFrame).TotalSeconds;
-      ScriptBinding.Lifecycle.Tick(scene, dt, EngineMode.Play);
-      ScriptBinding.Lifecycle.Draw(scene, EngineMode.Play);
+      Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
+      Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
       scene?.Render();
     }
 
