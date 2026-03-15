@@ -58,7 +58,6 @@ namespace Angene.Common
         private static readonly Settings.Settings settings = new Settings.Settings();
         private static readonly object logLock = new();
         public bool _verbose = false;
-        public bool six = false;
 
         public Action<object, object, object, object, object> OnLog { get; set; } = (_, _, _, _, _) => { };
 
@@ -108,13 +107,7 @@ namespace Angene.Common
                     System.Console.WriteLine($"[ERROR] Logger.Log ({DateTime.Now}): LogInstance is null. Message: {message}");
                     return;
                 }
-                if (!Instance.six && message.Contains("67"))
-                {
-                    Instance.six = true;
-                    Logger.LogCritical("What comes after 6?", LoggingTarget.Engine,
-                        new AngeneException("IntOverflowWarningToError"));
-                    return;
-                }
+
                 // Write to file — including exception if present
                 Logger.LogInstance.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                 if (exception != null)

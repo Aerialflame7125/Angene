@@ -83,5 +83,15 @@ namespace Angene.Windows
 
         [DllImport("gdi32.dll")]
         public static extern int GetDIBits(IntPtr hdc, IntPtr hbmp, uint uStartScan, uint cScanLines, [Out] byte[] lpvBits, ref BITMAPINFO lpbi, uint uUsage);
+        [DllImport("gdi32.dll")]
+        public static extern int SetDIBits(
+            IntPtr hdc,
+            IntPtr hbm,
+            uint start,
+            uint cLines,
+            byte[] lpBits,        // instead of IntPtr — marshals your byte[] automatically
+            ref Gdi32.BITMAPINFO lpbmi,  // instead of IntPtr — matches the ref bmi call
+            uint ColorUse
+        );
     }
 }

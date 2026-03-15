@@ -56,7 +56,6 @@
 		<Compile Include="Platform\WindowConfig.cs" />
 
 		<!-- Linux-only files -->
-		<Compile Include="Platform\X11Native.cs" />
 
 		<!-- External Implementations -->
 		<Compile Include="External\**\*.cs" />

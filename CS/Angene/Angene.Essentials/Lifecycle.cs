@@ -14,7 +14,7 @@ namespace Angene.Essentials
         Paused
     }
 
-    public sealed class ScriptBinding
+    public sealed class Lifecycle
     {
         public object Instance;
 
@@ -30,7 +30,7 @@ namespace Angene.Essentials
         public Action? Render;
         public Action? Cleanup;
 
-        public ScriptBinding(object instance)
+        public Lifecycle(object instance)
         {
             Instance = instance;
             BindLifecycleMethods();
@@ -94,11 +94,11 @@ namespace Angene.Essentials
             public bool HasStart;
         }
 
-        public static class Lifecycle
+        public static class ScriptBinding
         {
             // storage for entity script runtime
             private static readonly Dictionary<Entity, EntityRuntimeState> _entityStates = new();
-            private static readonly Dictionary<Entity, List<ScriptBinding>> _entityScripts = new();
+            private static readonly Dictionary<Entity, List<Lifecycle>> _entityScripts = new();
             public static List<Action> destroyEngineList = new();
 
             // api
@@ -224,7 +224,7 @@ namespace Angene.Essentials
                 // Initialize script bindings if not already present
                 if (!_entityScripts.ContainsKey(entity))
                 {
-                    _entityScripts[entity] = new List<ScriptBinding>();
+                    _entityScripts[entity] = new List<Lifecycle>();
                 }
 
                 // Execute Awake immediately
@@ -348,10 +348,10 @@ namespace Angene.Essentials
 
                 if (!_entityScripts.ContainsKey(entity))
                 {
-                    _entityScripts[entity] = new List<ScriptBinding>();
+                    _entityScripts[entity] = new List<Lifecycle>();
                 }
 
-                var binding = new ScriptBinding(scriptInstance);
+                var binding = new Lifecycle(scriptInstance);
                 _entityScripts[entity].Add(binding);
 
                 Logger.Log(

@@ -397,7 +397,7 @@ namespace Game
             Logger.LogInfo("  Arrays are 8 elements — below GpuThreshold=512, so CPU path runs.", LoggingTarget.MainGame);
 
             if (_gpu == null) { Logger.LogError("  GpuMath not initialised — skipping.", LoggingTarget.MainGame); return; }
-
+            _gpu.GpuThreshold = 0;
             var a = Enumerable.Range(0, 8).Select(i => new Vec2(i, i * 2f)).ToArray();
             var b = Enumerable.Range(0, 8).Select(i => new Vec2(1f, 1f)).ToArray();
 

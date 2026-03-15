@@ -13,6 +13,7 @@ using System.Net;
 using System.Net.WebSockets;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using System.Security.Permissions;
 using System.Text;
 using System.Threading;
@@ -64,7 +65,7 @@ namespace Angene.Main
 
         private Engine()
         {
-            ScriptBinding.Lifecycle.destroyEngineList.Add(destroyInstances);
+            Lifecycle.ScriptBinding.destroyEngineList.Add(destroyInstances);
         }
 
         public static Engine Instance { get; } = new Engine();
@@ -75,21 +76,14 @@ namespace Angene.Main
             Instance._logConsole = null;
         }
 
-        public void Init(bool verbose = false)
+        public void Init(bool verbose = false, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
             SettingHandlerInstanced = new Settings();
             SettingHandlerInstanced.LoadDefaults();
             Logger.Instance.Init(verbose);
-
-            Logger.Instance.OnLog += (message, target, level, time, exception) =>
-            {
-                string msg = message?.ToString() ?? "";
-                if (msg == "What comes after 6?")
-                {
-                    Logger.LogCritical($"The engine has been forcefully shut down to preserve itself, preventing corruption. The logger reports " + "67!1!1!1!!!1!.", LoggingTarget.Engine, new AngeneException("FailFromCrash:0xFA4"));
-                    Environment.Exit(67);
-                }
-            };
+            _settingHandlerInstanced.SetSetting("Main.engineCallerMemberName", memberName);
+            _settingHandlerInstanced.SetSetting("Main.engineCallerFilePath", callerFilePath);
+            _settingHandlerInstanced.SetSetting("Main.engineCallerLineNumber", sourceLineNumber);
 
             if (verbose)
             {
@@ -130,16 +124,9 @@ namespace Angene.Main
 
         private string _instanceConnectionString;
 
-#if WINDOWS
         // Windows-specific fields
         private static readonly Win32.WndProcDelegate s_wndProc = DefaultWndProc;
         private static bool s_classRegistered;
-#else
-        // Linux/macOS-specific fields
-        private IntPtr display;
-        private IntPtr wmDeleteWindow;
-        private bool shouldClose;
-#endif
 
         public Window(WindowConfig config)
         {
@@ -174,7 +161,7 @@ namespace Angene.Main
             else if (config.Use3D && config.cTI)
             {
                 Logger.LogError("You are opting for 3D on a websocket streamer. I'm going to give you a second to let this sink in, then I'll get back to you.", LoggingTarget.Engine);
-                ScriptBinding.Lifecycle.ShutdownEngine();
+                Lifecycle.ScriptBinding.ShutdownEngine();
             }
             else if (!config.Use3D && config.cTI)
             {
@@ -184,13 +171,7 @@ namespace Angene.Main
                 RegisterWebSocketInput();
             }
 #else
-            CreateWindowX11(config.Title, config.Width, config.Height);
-            WindowMap[Hwnd] = this;
-
-            if (!config.Use3D && !config.cTI)
-            {
-                graphicsContext = GraphicsContextFactory.CreateX11(display, (IntPtr)Hwnd, config.Width, config.Height);
-            }
+            throw new AngeneException("You are running on a non-Windows system. Please use a windows application wrapper for whichever distribution of system you may be using.");
 #endif
 
 
@@ -385,11 +366,17 @@ namespace Angene.Main
                 scene?.Cleanup();
             }
         }
+#if !WINDOWS
+        private static object CreateWindowWindows(WindowConfig config, bool cTI, string cTS, object type)
+        {
+            throw new AngeneException("You are running on a non-Windows system. Please use a windows application wrapper for whichever distribution of system you may be using.");
+        }
+#endif
 
-#if WINDOWS
         // windows apis
         private static object CreateWindowWindows(WindowConfig config, bool cTI, string cTS, object type)
         {
+            
             if (cTI && cTS != null && type != null)
             {
                 // use strings to shut up the compiler
@@ -413,7 +400,7 @@ namespace Angene.Main
                     listener.Prefixes.Add($"{url}{port}/");
                     listener.Start();
                     Logger.LogInfo("The websocket streamer has started on 'localhost:8080', best of luck to you developer. o7", LoggingTarget.Engine);
-#pragma warning disable CS4014 
+#pragma warning disable CS4014
                     // I'm going to fucking kill the compiler, complains about blocking because it isnt awaited.
                     Websocket.StartWebsocket(listener);
 #pragma warning restore CS4014
@@ -557,160 +544,6 @@ namespace Angene.Main
             }
             return true;
         }
-#else
-        // ==================== LINUX/MACOS X11 IMPLEMENTATION ====================
-
-        private void CreateWindowX11(string title, int width, int height)
-        {
-            display = Platform.Linux.X11.XOpenDisplay(IntPtr.Zero);
-            if (display == IntPtr.Zero)
-            {
-                throw new Exception("Failed to open X11 display");
-            }
-
-            int screen = Platform.Linux.X11.XDefaultScreen(display);
-            IntPtr rootWindow = Platform.Linux.X11.XRootWindow(display, screen);
-
-            var attributes = new Platform.Linux.X11.XSetWindowAttributes();
-            attributes.background_pixel = Platform.Linux.X11.XWhitePixel(display, screen);
-            attributes.event_mask =
-                Platform.Linux.X11.KeyPressMask |
-                Platform.Linux.X11.KeyReleaseMask |
-                Platform.Linux.X11.ButtonPressMask |
-                Platform.Linux.X11.ButtonReleaseMask |
-                Platform.Linux.X11.PointerMotionMask |
-                Platform.Linux.X11.ExposureMask |
-                Platform.Linux.X11.StructureNotifyMask;
-
-            Hwnd = Platform.Linux.X11.XCreateWindow(
-                display,
-                rootWindow,
-                0, 0,
-                (uint)width, (uint)height,
-                0,
-                24, // depth
-                1, // InputOutput class
-                IntPtr.Zero, // default visual
-                Platform.Linux.X11.CWBackPixel | Platform.Linux.X11.CWEventMask,
-                ref attributes
-            );
-
-            if (Hwnd == IntPtr.Zero)
-            {
-                throw new Exception("Failed to create X11 window");
-            }
-
-            Platform.Linux.X11.XStoreName(display, Hwnd, title);
-
-            wmDeleteWindow = Platform.Linux.X11.XInternAtom(display, "WM_DELETE_WINDOW", false);
-            Platform.Linux.X11.XSetWMProtocols(display, Hwnd, new[] { wmDeleteWindow }, 1);
-
-            Platform.Linux.X11.XMapWindow(display, Hwnd);
-            Platform.Linux.X11.XFlush(display);
-
-            shouldClose = false;
-        }
-
-        public bool ProcessMessages()
-        {
-            if (shouldClose)
-                return false;
-
-            while (Platform.Linux.X11.XPending(display) > 0)
-            {
-                Platform.Linux.X11.XNextEvent(display, out var xevent);
-
-                var msg = new PlatformMessage
-                {
-                    hwnd = Hwnd,
-                    message = (uint)xevent.type,
-                    wParam = IntPtr.Zero,
-                    lParam = IntPtr.Zero
-                };
-
-                switch (xevent.type)
-                {
-                    case Platform.Linux.X11.ClientMessage:
-                        if (xevent.xclient.data[0] == wmDeleteWindow)
-                        {
-                            Cleanup();
-                            shouldClose = true;
-                            return false;
-                        }
-                        break;
-
-                    case Platform.Linux.X11.KeyPress:
-                        msg.wParam = new IntPtr((int)xevent.xkey.keycode);
-                        break;
-
-                    case Platform.Linux.X11.KeyRelease:
-                        msg.wParam = new IntPtr((int)xevent.xkey.keycode);
-                        break;
-
-                    case Platform.Linux.X11.ButtonPress:
-                        msg.wParam = new IntPtr((int)xevent.xbutton.button);
-                        msg.lParam = new IntPtr((xevent.xbutton.y << 16) | (xevent.xbutton.x & 0xFFFF));
-                        break;
-
-                    case Platform.Linux.X11.ButtonRelease:
-                        msg.wParam = new IntPtr((int)xevent.xbutton.button);
-                        msg.lParam = new IntPtr((xevent.xbutton.y << 16) | (xevent.xbutton.x & 0xFFFF));
-                        break;
-
-                    case Platform.Linux.X11.MotionNotify:
-                        msg.lParam = new IntPtr((xevent.xmotion.y << 16) | (xevent.xmotion.x & 0xFFFF));
-                        break;
-
-                    case Platform.Linux.X11.Expose:
-                        // Repaint request
-                        break;
-                }
-
-                // Forward to scenes
-                if (PrimaryScene != null)
-                {
-                    IntPtr msgPtr = Marshal.AllocHGlobal(Marshal.SizeOf<PlatformMessage>());
-                    try
-                    {
-                        Marshal.StructureToPtr(msg, msgPtr, false);
-                        try
-                        {
-                            for (int i = Scenes.Count - 1; i >= 0; i--)
-                            {
-                                Scenes[i].OnMessage(msgPtr);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log(
-                                $"Exception in scene OnMessage: {ex.Message}",
-                                LoggingTarget.Engine,
-                                LogLevel.Error
-                            );
-                        }
-                    }
-                    finally
-                    {
-                        Marshal.FreeHGlobal(msgPtr);
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        ~Window()
-        {
-            if (display != IntPtr.Zero)
-            {
-                if (Hwnd != IntPtr.Zero)
-                {
-                    Platform.Linux.X11.XDestroyWindow(display, Hwnd);
-                }
-                Platform.Linux.X11.XCloseDisplay(display);
-            }
-        }
-#endif
 
         // platform messages
         [StructLayout(LayoutKind.Sequential)]

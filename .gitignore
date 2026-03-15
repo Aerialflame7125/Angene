@@ -185,4 +185,3 @@ cython_debug/
 obj
 *.pdb
 *.deps.json
-/Angene-Host - CPP/testbuild/Log

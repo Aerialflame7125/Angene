@@ -84,6 +84,69 @@ namespace Angene.Graphics
         public byte[] GetRawPixels() { return null; }
     }
 
+    public class AnGraphicsContext : IGraphicsContext
+    {
+        private IntPtr windowHandle;
+        private IntPtr memDc;
+        private IntPtr bitmap;
+        private IntPtr oldBitmap;
+        private object swapchain;
+        private int width;
+        private int height;
+
+        public IntPtr Handle => memDc;
+
+        public AnGraphicsContext(IntPtr hwnd, int w, int h)
+        {
+            windowHandle = hwnd;
+            width = w;
+            height = h;
+
+            IntPtr hdc = Win32.GetDC(hwnd);
+            memDc = Gdi32.CreateCompatibleDC(hdc);
+            bitmap = Gdi32.CreateCompatibleBitmap(hdc, w, h);
+            oldBitmap = Gdi32.SelectObject(memDc, bitmap);
+            Win32.ReleaseDC(hwnd, hdc);
+        }
+
+        public void Clear(uint color)
+        {
+            
+        }
+
+        public void Present(IntPtr hwnd)
+        {
+            IntPtr hdc = Win32.GetDC(hwnd);
+            Gdi32.BitBlt(hdc, 0, 0, width, height, memDc, 0, 0, Gdi32.SRCCOPY);
+            Win32.ReleaseDC(hwnd, hdc);
+        }
+
+        public void Cleanup()
+        {
+            if (oldBitmap != IntPtr.Zero)
+                memDc = IntPtr.Zero;
+            if (bitmap != IntPtr.Zero)
+                memDc = IntPtr.Zero;
+            if (memDc != IntPtr.Zero)
+                memDc = IntPtr.Zero;
+            if (swapchain != null)
+            {
+                swapchain = null;
+            }
+        }
+        public byte[] GetRawPixels() { return null; }
+
+        public void DrawRectangle(int x, int y, int width, int height, uint color)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DrawText(string text, int x, int y, uint color)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 
     public class WSGraphicsContext : IGraphicsContext
     {
