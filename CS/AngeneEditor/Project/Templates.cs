@@ -146,8 +146,8 @@ namespace {rootNamespace}
                 foreach (var s in window.Scenes)
                 {{
                     double dt = (DateTime.Now - lastFrame).TotalSeconds;
-                    ScriptBinding.Lifecycle.Tick(s, dt, EngineMode.Play);
-                    ScriptBinding.Lifecycle.Draw(s, EngineMode.Play);
+                    Lifecycle.ScriptBinding.Tick(s, dt, EngineMode.Play);
+                    Lifecycle.ScriptBinding.Draw(s, EngineMode.Play);
                     s?.Render();
                 }}
                 lastFrame = DateTime.Now;

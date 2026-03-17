@@ -58,12 +58,10 @@ class LogScene:
 print("Creating windows...")
 game_window = main.Window("Main Game", 500, 400)
 log_window = main.Window("Debug Log", 400, 300)
-wina = main.Window("a", 300, 400)
 
 # Assign scenes
 game_window.set_scene(GameScene())
 log_window.set_scene(LogScene())
-wina.set_scene(LogScene())
 
 # Run
 print("Starting engine...")

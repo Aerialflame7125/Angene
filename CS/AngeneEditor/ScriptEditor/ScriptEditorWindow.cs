@@ -1,26 +1,29 @@
-﻿using System;
+﻿using AngeneEditor.Project;
+using AngeneEditor.Theme;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using AngeneEditor.Theme;
 
 namespace AngeneEditor.ScriptEditor
 {
     /// <summary>
     /// Built-in script editor window.
     /// Provides basic C# syntax highlighting via RichTextBox coloring.
-    /// Offers option to open in Visual Studio if available.
+    /// Offers options to open in Visual Studio or VS Code.
     /// Auto-saves on close back to the source file.
     /// </summary>
     public sealed class ScriptEditorWindow : Form
     {
         private readonly string _filePath;
-        private RichTextBox _editor;
-        private Label _statusLabel;
+        private RichTextBox? _editor;
+        private Label? _statusLabel;
         private bool _modified;
-        private System.Windows.Forms.Timer _highlightDebounce;
+
+        // Initialized AFTER BuildUI+LoadFile so OnTextChanged must null-check it
+        private System.Windows.Forms.Timer? _highlightDebounce;
 
         public ScriptEditorWindow(string filePath)
         {
@@ -37,15 +40,104 @@ namespace AngeneEditor.ScriptEditor
             BuildUI();
             LoadFile();
 
+            // Timer must be created AFTER LoadFile() so the TextChanged
+            // fired by setting _editor.Text doesn't dereference a null timer
             _highlightDebounce = new System.Windows.Forms.Timer { Interval = 300 };
-            _highlightDebounce.Tick += (_, _) => { _highlightDebounce.Stop(); ApplySyntaxHighlight(); };
+            _highlightDebounce.Tick += (_, _) =>
+            {
+                _highlightDebounce.Stop();
+                ApplySyntaxHighlight();
+            };
 
             FormClosing += OnClosing;
         }
 
+        // ── Static factory helpers ────────────────────────────────────────────────
+
+        /// <summary>
+        /// Opens the project's Program.cs in the editor.
+        /// </summary>
+        public static void OpenProgramCs(Form owner)
+        {
+            var project = ProjectManager.Instance.CurrentProject;
+            if (project == null)
+            { MessageBox.Show("No project open.", "Error"); return; }
+
+            string path = Path.Combine(project.RootPath, "Program.cs");
+            if (!File.Exists(path))
+            { MessageBox.Show($"Program.cs not found at:\n{path}", "Not Found"); return; }
+
+            new ScriptEditorWindow(path).Show(owner);
+        }
+
+        /// <summary>
+        /// Opens the project's .csproj in Visual Studio (searches common install paths).
+        /// Falls back to a message if VS is not found.
+        /// </summary>
+        public static void OpenCsprojInVs(Form owner)
+        {
+            var project = ProjectManager.Instance.CurrentProject;
+            if (project == null)
+            { MessageBox.Show("No project open.", "Error"); return; }
+
+            string csproj = project.CsprojPath;
+            if (!File.Exists(csproj))
+            { MessageBox.Show($"csproj not found at:\n{csproj}", "Not Found"); return; }
+
+            string? vsPath = FindVisualStudio();
+            if (vsPath == null)
+            {
+                MessageBox.Show(
+                    "Visual Studio 2019/2022 not found.\n" +
+                    "Make sure it is installed in the default location.",
+                    "Visual Studio Not Found",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // Launch VS with the csproj — VS opens the project and you can navigate to any file
+            Process.Start(vsPath, $"\"{csproj}\"");
+        }
+
+        /// <summary>
+        /// Opens a specific file in Visual Studio via devenv /edit.
+        /// VS must already be open with the project, or it opens a new instance.
+        /// </summary>
+        public static void OpenFileInVs(string filePath, Form owner)
+        {
+            string? vsPath = FindVisualStudio();
+            if (vsPath == null)
+            {
+                // Fall back to built-in editor
+                if (File.Exists(filePath))
+                    new ScriptEditorWindow(filePath).Show(owner);
+                return;
+            }
+
+            Process.Start(vsPath, $"/edit \"{filePath}\"");
+        }
+
+        private static string? FindVisualStudio()
+        {
+            string[] candidates = {
+                @"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe",
+                @"C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe",
+                @"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe",
+                @"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe",
+                @"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe",
+                @"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe",
+            };
+
+            foreach (var p in candidates)
+                if (File.Exists(p)) return p;
+
+            return null;
+        }
+
+        // ── UI ────────────────────────────────────────────────────────────────────
+
         private void BuildUI()
         {
-            // ── Toolbar ──────────────────────────────────────────────────────────
             var toolbar = new Panel
             {
                 Dock = DockStyle.Top,
@@ -66,7 +158,6 @@ namespace AngeneEditor.ScriptEditor
 
             toolbar.Controls.AddRange(new Control[] { saveBtn, openVsBtn, openVsCodeBtn });
 
-            // ── Line number gutter ───────────────────────────────────────────────
             var gutter = new Panel
             {
                 Dock = DockStyle.Left,
@@ -75,7 +166,6 @@ namespace AngeneEditor.ScriptEditor
             };
             gutter.Paint += DrawGutter;
 
-            // ── Editor ───────────────────────────────────────────────────────────
             _editor = new RichTextBox
             {
                 Dock = DockStyle.Fill,
@@ -92,7 +182,6 @@ namespace AngeneEditor.ScriptEditor
             _editor.KeyDown += OnKeyDown;
             _editor.VScroll += (_, _) => gutter.Invalidate();
 
-            // ── Status bar ───────────────────────────────────────────────────────
             var status = new Panel
             {
                 Dock = DockStyle.Bottom,
@@ -115,11 +204,11 @@ namespace AngeneEditor.ScriptEditor
             Controls.Add(status);
         }
 
-        // ── File operations ──────────────────────────────────────────────────────
+        // ── File operations ───────────────────────────────────────────────────────
 
         private void LoadFile()
         {
-            if (!File.Exists(_filePath)) return;
+            if (_editor == null || !File.Exists(_filePath)) return;
             _editor.Text = File.ReadAllText(_filePath);
             ApplySyntaxHighlight();
             _modified = false;
@@ -128,10 +217,11 @@ namespace AngeneEditor.ScriptEditor
 
         private void SaveFile()
         {
+            if (_editor == null) return;
             File.WriteAllText(_filePath, _editor.Text);
             _modified = false;
-            UpdateStatus();
-            _statusLabel.Text = $"Saved — {Path.GetFileName(_filePath)}";
+            if (_statusLabel != null)
+                _statusLabel.Text = $"Saved — {Path.GetFileName(_filePath)}";
         }
 
         private void OnClosing(object? s, FormClosingEventArgs e)
@@ -148,32 +238,21 @@ namespace AngeneEditor.ScriptEditor
             else if (result == DialogResult.Cancel) e.Cancel = true;
         }
 
-        // ── Open externally ──────────────────────────────────────────────────────
+        // ── Open externally ───────────────────────────────────────────────────────
 
         private void OpenInVs(object? s, EventArgs e)
         {
-            // Try to find devenv.exe
-            string[] vsInstalls = {
-                @"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe",
-                @"C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe",
-                @"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe",
-                @"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe",
-            };
-
-            foreach (var vs in vsInstalls)
+            string? vsPath = FindVisualStudio();
+            if (vsPath != null)
             {
-                if (File.Exists(vs))
-                {
-                    Process.Start(vs, $"\"{_filePath}\"");
-                    return;
-                }
+                Process.Start(vsPath, $"/edit \"{_filePath}\"");
+                return;
             }
 
             MessageBox.Show(
                 "Visual Studio 2019/2022 not found.\nMake sure it is installed.",
                 "Visual Studio not found",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void OpenInVsCode(object? s, EventArgs e)
@@ -181,15 +260,12 @@ namespace AngeneEditor.ScriptEditor
             try { Process.Start("code", $"\"{_filePath}\""); }
             catch
             {
-                MessageBox.Show(
-                    "VS Code not found in PATH.",
-                    "VS Code not found",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                MessageBox.Show("VS Code not found in PATH.", "VS Code not found",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
-        // ── Syntax highlighting ──────────────────────────────────────────────────
+        // ── Syntax highlighting ───────────────────────────────────────────────────
 
         private static readonly Color ColKeyword = Color.FromArgb(86, 156, 214);
         private static readonly Color ColType = Color.FromArgb(78, 201, 176);
@@ -216,14 +292,14 @@ namespace AngeneEditor.ScriptEditor
 
         private void ApplySyntaxHighlight()
         {
+            if (_editor == null) return;
+
             _editor.SuspendLayout();
             int selStart = _editor.SelectionStart;
             int selLength = _editor.SelectionLength;
 
             _editor.SelectAll();
             _editor.SelectionColor = ColDefault;
-
-            string text = _editor.Text;
 
             ColorPattern(@"//[^\n]*", ColComment);
             ColorPattern(@"""(?:[^""\\]|\\.)*""", ColString);
@@ -245,6 +321,7 @@ namespace AngeneEditor.ScriptEditor
 
         private void ColorPattern(string pattern, Color color)
         {
+            if (_editor == null) return;
             string text = _editor.Text;
             foreach (Match m in Regex.Matches(text, pattern, RegexOptions.Multiline))
             {
@@ -254,17 +331,18 @@ namespace AngeneEditor.ScriptEditor
             }
         }
 
-        // ── Gutter (line numbers) ────────────────────────────────────────────────
+        // ── Gutter ────────────────────────────────────────────────────────────────
 
         private void DrawGutter(object? s, PaintEventArgs e)
         {
-            if (s is not Panel gutter) return;
+            if (s is not Panel gutter || _editor == null) return;
             e.Graphics.Clear(EditorTheme.BackgroundAlt);
 
             int lineHeight = _editor.Font.Height + 2;
-            int firstLine = _editor.GetLineFromCharIndex(_editor.GetCharIndexFromPosition(new Point(0, 0)));
-            int lastLine = _editor.GetLineFromCharIndex(_editor.GetCharIndexFromPosition(
-                new Point(0, _editor.ClientSize.Height)));
+            int firstLine = _editor.GetLineFromCharIndex(
+                _editor.GetCharIndexFromPosition(new Point(0, 0)));
+            int lastLine = _editor.GetLineFromCharIndex(
+                _editor.GetCharIndexFromPosition(new Point(0, _editor.ClientSize.Height)));
 
             for (int i = firstLine; i <= Math.Min(lastLine + 1, _editor.Lines.Length - 1); i++)
             {
@@ -279,27 +357,30 @@ namespace AngeneEditor.ScriptEditor
             }
         }
 
-        // ── Events ───────────────────────────────────────────────────────────────
+        // ── Events ────────────────────────────────────────────────────────────────
 
         private void OnTextChanged(object? s, EventArgs e)
         {
             _modified = true;
             UpdateStatus();
+
+            // _highlightDebounce is null during LoadFile() — skip safely
+            if (_highlightDebounce == null) return;
+
             _highlightDebounce.Stop();
             _highlightDebounce.Start();
         }
 
         private void OnKeyDown(object? s, KeyEventArgs e)
         {
-            // Ctrl+S to save
             if (e.Control && e.KeyCode == Keys.S)
             {
                 SaveFile();
                 e.Handled = true;
             }
-            // Tab → 4 spaces
             if (e.KeyCode == Keys.Tab && !e.Shift)
             {
+                if (_editor == null) return;
                 int sel = _editor.SelectionStart;
                 _editor.SelectedText = "    ";
                 _editor.SelectionStart = sel + 4;
@@ -310,6 +391,7 @@ namespace AngeneEditor.ScriptEditor
 
         private void UpdateStatus()
         {
+            if (_statusLabel == null || _editor == null) return;
             string modified = _modified ? "● " : "";
             int line = _editor.GetLineFromCharIndex(_editor.SelectionStart) + 1;
             int col = _editor.SelectionStart - _editor.GetFirstCharIndexOfCurrentLine() + 1;

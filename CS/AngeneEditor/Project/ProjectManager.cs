@@ -263,13 +263,59 @@ namespace AngeneEditor.Project
 
         private void CopyLibs(string destLibsPath)
         {
-            if (!Directory.Exists(EditorLibsPath)) return;
+            Directory.CreateDirectory(destLibsPath);
 
-            foreach (var dll in Directory.GetFiles(EditorLibsPath, "*.dll"))
+            string editorDir = AppContext.BaseDirectory;
+
+            // Names the generated .csproj references in its <Reference> items
+            string[] requiredLibs =
             {
-                string dest = Path.Combine(destLibsPath, Path.GetFileName(dll));
-                if (!File.Exists(dest))
-                    File.Copy(dll, dest);
+                "Angene.dll",
+                "Angene.Common.dll",
+                "Angene.Essentials.dll",
+                "Angene.Audio.dll",
+                "Angene.Graphics.dll",
+                "Angene.Windows.dll",
+                "Angene.Math.dll",
+                "BouncyCastle.Crypto.dll",
+                "DiscordRPC.dll",
+                "Newtonsoft.Json.dll",
+                "System.Security.Permissions.dll",
+                "System.Windows.Extensions.dll",
+            };
+
+            int copied = 0;
+            foreach (string lib in requiredLibs)
+            {
+                string src = Path.Combine(editorDir, lib);
+                if (!File.Exists(src))
+                {
+                    // Also check a Libs\ subfolder in case the editor was installed that way
+                    src = Path.Combine(editorDir, "Libs", lib);
+                }
+
+                if (!File.Exists(src)) continue;
+
+                string dest = Path.Combine(destLibsPath, lib);
+                File.Copy(src, dest, overwrite: true);
+                copied++;
+            }
+
+            // If none of the named files were found, fall back to copying everything
+            // from the editor directory that looks like an engine DLL
+            if (copied == 0)
+            {
+                foreach (var dll in Directory.GetFiles(editorDir, "*.dll"))
+                {
+                    string name = Path.GetFileName(dll);
+                    // Skip framework / WinForms internals
+                    if (name.StartsWith("System.") ||
+                        name.StartsWith("Microsoft.") ||
+                        name.StartsWith("netstandard"))
+                        continue;
+
+                    File.Copy(dll, Path.Combine(destLibsPath, name), overwrite: true);
+                }
             }
         }
 
@@ -284,6 +330,15 @@ namespace AngeneEditor.Project
             if (name.Length == 0 || char.IsDigit(name[0]))
                 name = "_" + name;
             return name;
+        }
+        /// <summary>
+        /// Registers a script that already exists on disk with an entity,
+        /// firing the ScriptAdded event so the hierarchy panel updates.
+        /// Called when the user picks an existing .cs file via the inspector.
+        /// </summary>
+        public void ScriptAddedExternal(EntityDefinition entity, string scriptName)
+        {
+            ScriptAdded?.Invoke(entity, scriptName);
         }
     }
 }

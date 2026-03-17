@@ -16,4 +16,38 @@
 	  <ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
 	  </ItemGroup>
+	
+	  <ItemGroup>
+	    <ProjectReference Include="..\Angene\Angene.Audio\Angene.Audio.csproj" />
+	    <ProjectReference Include="..\Angene\Angene.Common\Angene.Common.csproj" />
+	    <ProjectReference Include="..\Angene\Angene.Essentials\Angene.Essentials.csproj" />
+	    <ProjectReference Include="..\Angene\Angene.Graphics\Angene.Graphics.csproj" />
+	    <ProjectReference Include="..\Angene\Angene.Main\Angene.csproj" />
+	    <ProjectReference Include="..\Angene\Angene.Math\Angene.Math.csproj" />
+	    <ProjectReference Include="..\Angene\Angene.Windows\Angene.Windows.csproj" />
+	  </ItemGroup>
+	
+	  <ItemGroup>
+	    <Reference Include="Angene">
+	      <HintPath>..\..\Build\Angene.dll</HintPath>
+	    </Reference>
+	    <Reference Include="Angene.Audio">
+	      <HintPath>..\..\Build\Angene.Audio.dll</HintPath>
+	    </Reference>
+	    <Reference Include="Angene.Common">
+	      <HintPath>..\..\Build\Angene.Common.dll</HintPath>
+	    </Reference>
+	    <Reference Include="Angene.Essentials">
+	      <HintPath>..\..\Build\Angene.Essentials.dll</HintPath>
+	    </Reference>
+	    <Reference Include="Angene.Graphics">
+	      <HintPath>..\..\Build\Angene.Graphics.dll</HintPath>
+	    </Reference>
+	    <Reference Include="Angene.Math">
+	      <HintPath>..\..\Build\Angene.Math.dll</HintPath>
+	    </Reference>
+	    <Reference Include="Angene.Windows">
+	      <HintPath>..\..\Build\Angene.Windows.dll</HintPath>
+	    </Reference>
+	  </ItemGroup>
 </Project>

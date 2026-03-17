@@ -197,8 +197,8 @@ namespace Game
 
                 foreach (var scene in window.Scenes)
                 {
-                    ScriptBinding.Lifecycle.Tick(scene, dt, EngineMode.Play);
-                    ScriptBinding.Lifecycle.Draw(scene, EngineMode.Play);
+                    Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
+                    Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
                     scene?.Render();
                 }
 

@@ -8,7 +8,7 @@ namespace Angene.Essentials
     /// <summary>
     /// Entity represents a game object in the scene.
     /// Entities do NOT execute lifecycle logic directly.
-    /// All lifecycle is managed by Angene.ScriptBinding.Lifecycle.
+    /// All lifecycle is managed by Angene.Lifecycle.ScriptBinding.
     /// </summary>
     public class Entity : IEquatable<Entity>
     {
@@ -47,7 +47,7 @@ namespace Angene.Essentials
             _enabled = true;
 
             // Register with lifecycle system
-            ScriptBinding.Lifecycle.HandleEntityCreated(this);
+            Lifecycle.ScriptBinding.HandleEntityCreated(this);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Angene.Essentials
             }
 
             _scripts.Add(scriptInstance);
-            ScriptBinding.Lifecycle.RegisterScript(this, scriptInstance);
+            Lifecycle.ScriptBinding.RegisterScript(this, scriptInstance);
 
             Logger.Log(
                 $"Script '{scriptInstance.GetType().Name}' added to entity '{name}'",
@@ -147,7 +147,7 @@ namespace Angene.Essentials
         /// </summary>
         public void SetEnabled(bool enabled)
         {
-            ScriptBinding.Lifecycle.SetEntityEnabled(this, enabled);
+            Lifecycle.ScriptBinding.SetEntityEnabled(this, enabled);
         }
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace Angene.Essentials
             }
 
             // Notify lifecycle system
-            ScriptBinding.Lifecycle.HandleEntityDestroyed(this);
+            Lifecycle.ScriptBinding.HandleEntityDestroyed(this);
 
             // Clear scripts
             _scripts.Clear();
