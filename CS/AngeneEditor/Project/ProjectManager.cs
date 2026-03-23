@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Angene = AngeneEditor; // avoid namespace clash
+using Angene = AngeneEditor;
 
 namespace AngeneEditor.Project
 {
-    /// <summary>
-    /// Represents a loaded Angene project.
-    /// </summary>
     public sealed class AngeneProject
     {
         public string Name { get; set; } = "";
@@ -23,9 +20,6 @@ namespace AngeneEditor.Project
         public List<EntityDefinition> Entities { get; set; } = new();
     }
 
-    /// <summary>
-    /// In-editor representation of a game entity and its scripts.
-    /// </summary>
     public sealed class EntityDefinition
     {
         public string Name { get; set; } = "Entity";
@@ -35,9 +29,6 @@ namespace AngeneEditor.Project
         public bool Enabled { get; set; } = true;
     }
 
-    /// <summary>
-    /// Manages project lifecycle: creation, opening, saving, scaffolding.
-    /// </summary>
     public sealed class ProjectManager
     {
         public static ProjectManager Instance { get; } = new();
@@ -48,7 +39,6 @@ namespace AngeneEditor.Project
         public event Action<EntityDefinition, string>? ScriptAdded;
         public event Action? ProjectSaved;
 
-        // Editor's own Libs\ directory (source for copying to new projects)
         private string EditorLibsPath =>
             Path.Combine(AppContext.BaseDirectory, "Libs");
 
@@ -56,10 +46,6 @@ namespace AngeneEditor.Project
 
         // ── Create ───────────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Scaffolds a brand new project at the given path.
-        /// Creates: .csproj, Libs\, Program.cs, Scenes\Init.cs, Scripts\
-        /// </summary>
         public AngeneProject CreateProject(string projectName, string parentDir)
         {
             string ns = SanitizeNamespace(projectName);
@@ -70,19 +56,11 @@ namespace AngeneEditor.Project
             Directory.CreateDirectory(Path.Combine(root, "Scripts"));
             Directory.CreateDirectory(Path.Combine(root, "Libs"));
 
-            // Write .csproj
             string csprojPath = Path.Combine(root, $"{projectName}.csproj");
             File.WriteAllText(csprojPath, Templates.CsProj(projectName, ns));
-
-            // Write Program.cs
             File.WriteAllText(Path.Combine(root, "Program.cs"), Templates.ProgramCs(ns));
+            File.WriteAllText(Path.Combine(root, "Scenes", "Init.cs"), Templates.InitSceneCs(ns));
 
-            // Write Scenes\Init.cs
-            File.WriteAllText(
-                Path.Combine(root, "Scenes", "Init.cs"),
-                Templates.InitSceneCs(ns));
-
-            // Copy Libs from editor directory
             CopyLibs(Path.Combine(root, "Libs"));
 
             var project = new AngeneProject
@@ -114,9 +92,9 @@ namespace AngeneEditor.Project
                 RootPath = root,
                 Namespace = ns,
                 CsprojPath = csprojPath,
+                Entities = new List<EntityDefinition>(), // always start fresh
             };
 
-            // Parse existing Init.cs entities (best-effort)
             ParseInitScene(project);
 
             CurrentProject = project;
@@ -141,9 +119,6 @@ namespace AngeneEditor.Project
             CurrentProject?.Entities.Remove(entity);
         }
 
-        /// <summary>
-        /// Creates a new script file and registers it on the entity.
-        /// </summary>
         public string AddScript(EntityDefinition entity, string scriptName)
         {
             if (CurrentProject == null) throw new InvalidOperationException("No project open.");
@@ -163,16 +138,11 @@ namespace AngeneEditor.Project
             return path;
         }
 
-        // ── Save (regenerate Init.cs) ─────────────────────────────────────────────
+        // ── Save ─────────────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Regenerates Scenes\Init.cs to match the current entity list.
-        /// Preserves any manual code outside the auto-generated region.
-        /// </summary>
         public void SaveProject()
         {
             if (CurrentProject == null) return;
-
             RegenerateInitScene(CurrentProject);
             ProjectSaved?.Invoke();
         }
@@ -183,7 +153,6 @@ namespace AngeneEditor.Project
         {
             string initPath = Path.Combine(project.ScenesPath, "Init.cs");
 
-            // Build entity block
             var entityBlock = new System.Text.StringBuilder();
             entityBlock.AppendLine("            // ── ANGENE EDITOR — AUTO GENERATED BEGIN ────────────────────────────");
             foreach (var e in project.Entities)
@@ -191,13 +160,10 @@ namespace AngeneEditor.Project
             entityBlock.AppendLine("            // ── ANGENE EDITOR — AUTO GENERATED END ──────────────────────────────");
 
             if (!File.Exists(initPath))
-            {
                 File.WriteAllText(initPath, Templates.InitSceneCs(project.Namespace));
-            }
 
             string content = File.ReadAllText(initPath);
 
-            // Replace between markers if they exist, else inject before closing comment
             const string beginMarker = "// ── ANGENE EDITOR — AUTO GENERATED BEGIN";
             const string endMarker = "// ── ANGENE EDITOR — AUTO GENERATED END";
 
@@ -211,7 +177,6 @@ namespace AngeneEditor.Project
             }
             else
             {
-                // Inject before closing comment in Initialize()
                 const string anchor = "// ── Add your entities here";
                 int pos = content.IndexOf(anchor);
                 if (pos >= 0)
@@ -228,13 +193,30 @@ namespace AngeneEditor.Project
 
         private void ParseInitScene(AngeneProject project)
         {
+            project.Entities.Clear(); // always clear before re-parsing
+
             string initPath = Path.Combine(project.ScenesPath, "Init.cs");
             if (!File.Exists(initPath)) return;
 
             string content = File.ReadAllText(initPath);
 
-            // Look for: Entity <name> = new Entity(<x>, <y>, "<label>");
-            var matches = Regex.Matches(content,
+            // Only look inside the auto-generated region if it exists
+            const string beginMarker = "// ── ANGENE EDITOR — AUTO GENERATED BEGIN";
+            const string endMarker = "// ── ANGENE EDITOR — AUTO GENERATED END";
+            int regionStart = content.IndexOf(beginMarker);
+            int regionEnd = content.IndexOf(endMarker);
+
+            // If markers exist, only parse the generated region
+            // If not (hand-written file), parse the whole file
+            string parseTarget = (regionStart >= 0 && regionEnd > regionStart)
+                ? content[regionStart..regionEnd]
+                : content;
+
+            // Skip commented-out lines before matching
+            // Remove all lines that start with optional whitespace followed by //
+            string uncommented = Regex.Replace(parseTarget, @"^\s*//.*$", "", RegexOptions.Multiline);
+
+            var matches = Regex.Matches(uncommented,
                 @"Entity\s+(\w+)\s*=\s*new\s+Entity\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*""([^""]+)""\s*\)");
 
             foreach (Match m in matches)
@@ -246,17 +228,30 @@ namespace AngeneEditor.Project
                     Y = int.Parse(m.Groups[3].Value),
                 };
 
-                // Find AddScript calls following this entity
-                int pos = m.Index;
-                int nextEntity = content.IndexOf("new Entity(", pos + 1);
-                string slice = nextEntity > 0 ? content[pos..nextEntity] : content[pos..];
+                // Find AddScript calls that follow this entity variable name
+                string varName = m.Groups[1].Value;
+                int pos = uncommented.IndexOf(m.Value);
+                int nextEntity = FindNextEntityPos(uncommented, pos + m.Length);
+                string slice = nextEntity > 0 ? uncommented[pos..nextEntity] : uncommented[pos..];
 
-                var scriptMatches = Regex.Matches(slice, @"AddScript<(?:Scripts\.)?(\w+)>\(\)");
+                // Match both namespaced and bare AddScript<T>()
+                var scriptMatches = Regex.Matches(slice,
+                    @"AddScript<(?:[A-Za-z0-9_]+\.)*([A-Za-z0-9_]+)>\s*\(\s*\)");
                 foreach (Match sm in scriptMatches)
                     def.Scripts.Add(sm.Groups[1].Value);
 
+                // Read enabled state: look for .SetEnabled(true/false)
+                var enabledMatch = Regex.Match(slice, @"\.SetEnabled\s*\(\s*(true|false)\s*\)");
+                def.Enabled = !enabledMatch.Success || enabledMatch.Groups[1].Value == "true";
+
                 project.Entities.Add(def);
             }
+        }
+
+        private static int FindNextEntityPos(string content, int after)
+        {
+            // Find the next "= new Entity(" after the given position
+            return content.IndexOf("= new Entity(", after);
         }
 
         // ── Lib copying ───────────────────────────────────────────────────────────
@@ -267,7 +262,6 @@ namespace AngeneEditor.Project
 
             string editorDir = AppContext.BaseDirectory;
 
-            // Names the generated .csproj references in its <Reference> items
             string[] requiredLibs =
             {
                 "Angene.dll",
@@ -289,10 +283,7 @@ namespace AngeneEditor.Project
             {
                 string src = Path.Combine(editorDir, lib);
                 if (!File.Exists(src))
-                {
-                    // Also check a Libs\ subfolder in case the editor was installed that way
                     src = Path.Combine(editorDir, "Libs", lib);
-                }
 
                 if (!File.Exists(src)) continue;
 
@@ -301,14 +292,11 @@ namespace AngeneEditor.Project
                 copied++;
             }
 
-            // If none of the named files were found, fall back to copying everything
-            // from the editor directory that looks like an engine DLL
             if (copied == 0)
             {
                 foreach (var dll in Directory.GetFiles(editorDir, "*.dll"))
                 {
                     string name = Path.GetFileName(dll);
-                    // Skip framework / WinForms internals
                     if (name.StartsWith("System.") ||
                         name.StartsWith("Microsoft.") ||
                         name.StartsWith("netstandard"))
@@ -331,11 +319,7 @@ namespace AngeneEditor.Project
                 name = "_" + name;
             return name;
         }
-        /// <summary>
-        /// Registers a script that already exists on disk with an entity,
-        /// firing the ScriptAdded event so the hierarchy panel updates.
-        /// Called when the user picks an existing .cs file via the inspector.
-        /// </summary>
+
         public void ScriptAddedExternal(EntityDefinition entity, string scriptName)
         {
             ScriptAdded?.Invoke(entity, scriptName);

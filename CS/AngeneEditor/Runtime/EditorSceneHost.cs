@@ -1,5 +1,4 @@
-﻿// Runtime/EditorSceneHost.cs
-using Angene.Common;
+﻿using Angene.Common;
 using Angene.Essentials;
 using Angene.Graphics;
 using Angene.Main;
@@ -8,17 +7,13 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Windows.Forms;
-using static Angene.Essentials.Lifecycle;
 
-
-// Explicit alias to avoid ambiguity with System.Windows.Forms.VisualStyles.VisualStyleElement.Window
 using AngeneWindow = Angene.Main.Window;
 
 namespace AngeneEditor.Runtime
 {
     /// <summary>
     /// Hosts a game scene in-process, rendering directly into an editor Panel.
-    /// This is the WYSIWYG core — no subprocess, no window embedding.
     /// </summary>
     public sealed class EditorSceneHost : IDisposable
     {
@@ -30,11 +25,8 @@ namespace AngeneEditor.Runtime
 
         private DateTime _lastTick = DateTime.Now;
         private EngineMode _mode = EngineMode.Edit;
-
-        // Selected entity for gizmo drawing — set via SelectEntity()
         private Entity? _selectedEntity;
 
-        // Gizmo display size in pixels (entities have no intrinsic size yet)
         private const int GizmoSize = 24;
 
         public IScene? Scene => _scene;
@@ -50,24 +42,32 @@ namespace AngeneEditor.Runtime
             Unload();
 
             _target = targetPanel;
-
             _loadContext = new AssemblyLoadContext("GameScene", isCollectible: true);
 
             string? dllPath = FindGameDll(projectDir);
             if (dllPath == null)
             {
-                Log?.Invoke("[EditorHost] Game DLL not found — build first.");
+                Log?.Invoke("[EditorHost] Game DLL not found — build the project first.");
                 return;
             }
 
             try
             {
+                // Load all dependency DLLs from the same output folder first
+                string dllDir = Path.GetDirectoryName(dllPath)!;
+                foreach (var dep in Directory.GetFiles(dllDir, "Angene*.dll"))
+                {
+                    try { _loadContext.LoadFromAssemblyPath(dep); }
+                    catch { /* ignore — may already be loaded */ }
+                }
+
                 var asm = _loadContext.LoadFromAssemblyPath(dllPath);
                 _scene = CreateScene(asm, targetPanel);
 
                 if (_scene == null)
                 {
-                    Log?.Invoke("[EditorHost] Could not find IScene implementation in game DLL.");
+                    Log?.Invoke("[EditorHost] No IScene implementation found in game DLL.");
+                    Log?.Invoke("[EditorHost] Make sure your scene class is public and implements IScene.");
                     return;
                 }
 
@@ -77,13 +77,15 @@ namespace AngeneEditor.Runtime
                     targetPanel.Height);
 
                 _scene.Initialize();
-                Log?.Invoke("[EditorHost] Scene loaded in-process (WYSIWYG mode).");
+                Log?.Invoke($"[EditorHost] Scene '{_scene.GetType().Name}' loaded (WYSIWYG mode).");
 
                 StartRenderLoop();
             }
             catch (Exception ex)
             {
-                Log?.Invoke($"[EditorHost] Load failed: {ex.Message}");
+                Log?.Invoke($"[EditorHost] Load failed: {ex.GetType().Name}: {ex.Message}");
+                if (ex.InnerException != null)
+                    Log?.Invoke($"[EditorHost] Inner: {ex.InnerException.Message}");
             }
         }
 
@@ -121,36 +123,21 @@ namespace AngeneEditor.Runtime
             }
         }
 
-        /// <summary>
-        /// Draws a fixed-size cyan outline around the selected entity's position.
-        /// Entities have no intrinsic size in Angene, so GizmoSize is used.
-        /// </summary>
         private void DrawSelectionGizmo(Entity entity)
         {
             int half = GizmoSize / 2;
             _gfx?.DrawRectangle(
-                entity.x - half - 2,
-                entity.y - half - 2,
+                (int)(entity.x - half - 2),
+                (int)(entity.y - half - 2),
                 GizmoSize + 4,
                 GizmoSize + 4,
-                0xFF00AAFF); // ARGB cyan outline
+                0xFF00AAFF);
         }
 
         // ── Selection ─────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Sets the entity that receives the selection gizmo in Edit mode.
-        /// Pass null to clear the selection.
-        /// </summary>
-        public void SelectEntity(Entity? entity)
-        {
-            _selectedEntity = entity;
-        }
+        public void SelectEntity(Entity? entity) => _selectedEntity = entity;
 
-        /// <summary>
-        /// Finds a live Entity by name so the inspector can select it after
-        /// the scene is loaded.
-        /// </summary>
         public Entity? FindEntity(string name)
         {
             if (_scene == null) return null;
@@ -159,16 +146,11 @@ namespace AngeneEditor.Runtime
             return null;
         }
 
-        // ── Live entity sync ──────────────────────────────────────────────────
+        // ── Live sync ─────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Called by the Inspector whenever a property changes.
-        /// Updates the live Entity directly — no rebuild required.
-        /// </summary>
         public void SyncEntity(string name, int x, int y, bool enabled)
         {
             if (_scene == null) return;
-
             foreach (var entity in _scene.GetEntities())
             {
                 if (entity.name != name) continue;
@@ -179,7 +161,7 @@ namespace AngeneEditor.Runtime
             }
         }
 
-        // ── Mode switching ────────────────────────────────────────────────────
+        // ── Mode ──────────────────────────────────────────────────────────────
 
         public void SetMode(EngineMode mode)
         {
@@ -206,7 +188,6 @@ namespace AngeneEditor.Runtime
             _renderTimer?.Stop();
             _renderTimer?.Dispose();
             _renderTimer = null;
-
             _selectedEntity = null;
 
             try { _scene?.Cleanup(); } catch { }
@@ -223,20 +204,34 @@ namespace AngeneEditor.Runtime
 
         private static string? FindGameDll(string projectDir)
         {
-            string debugOut = Path.Combine(projectDir, "bin", "Debug", "net8.0");
-            if (!Directory.Exists(debugOut)) return null;
-
-            foreach (var dll in Directory.GetFiles(debugOut, "*.dll"))
+            // Check Debug then Release output
+            string[] searchDirs =
             {
-                string name = Path.GetFileNameWithoutExtension(dll);
-                if (!name.StartsWith("Angene") &&
-                    !name.StartsWith("System") &&
-                    !name.StartsWith("Microsoft") &&
-                    !name.StartsWith("Newtonsoft") &&
-                    !name.StartsWith("DiscordRPC") &&
-                    !name.StartsWith("BouncyCastle"))
-                    return dll;
+                Path.Combine(projectDir, "bin", "Debug", "net8.0"),
+                Path.Combine(projectDir, "bin", "Release", "net8.0"),
+            };
+
+            foreach (string dir in searchDirs)
+            {
+                if (!Directory.Exists(dir)) continue;
+
+                foreach (var dll in Directory.GetFiles(dir, "*.dll"))
+                {
+                    string name = Path.GetFileNameWithoutExtension(dll);
+                    // Skip engine / framework / third-party DLLs
+                    if (name.StartsWith("Angene", StringComparison.OrdinalIgnoreCase) ||
+                        name.StartsWith("System", StringComparison.OrdinalIgnoreCase) ||
+                        name.StartsWith("Microsoft", StringComparison.OrdinalIgnoreCase) ||
+                        name.StartsWith("Newtonsoft", StringComparison.OrdinalIgnoreCase) ||
+                        name.StartsWith("DiscordRPC", StringComparison.OrdinalIgnoreCase) ||
+                        name.StartsWith("BouncyCastle", StringComparison.OrdinalIgnoreCase) ||
+                        name.StartsWith("netstandard", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    return dll; // first non-engine DLL is the game
+                }
             }
+
             return null;
         }
 
@@ -250,19 +245,30 @@ namespace AngeneEditor.Runtime
                 // 1. Parameterless constructor
                 try
                 {
-                    return (IScene?)Activator.CreateInstance(type);
+                    var inst = (IScene?)Activator.CreateInstance(type);
+                    if (inst != null) return inst;
                 }
-                catch { /* fall through */ }
+                catch { }
 
-                // 2. Constructor that accepts a HeadlessWindow
+                // 2. Constructor that accepts null (Window parameter — passes null safely)
                 try
                 {
-                    return (IScene?)Activator.CreateInstance(
+                    var inst = (IScene?)Activator.CreateInstance(type, new object?[] { null });
+                    if (inst != null) return inst;
+                }
+                catch { }
+
+                // 3. Constructor that accepts a HeadlessWindow
+                try
+                {
+                    var inst = (IScene?)Activator.CreateInstance(
                         type,
                         new HeadlessWindow(targetPanel.Width, targetPanel.Height));
+                    if (inst != null) return inst;
                 }
-                catch { /* fall through */ }
+                catch { }
             }
+
             return null;
         }
 

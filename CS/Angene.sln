@@ -17,10 +17,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Windows", "Angene\An
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Graphics", "Angene\Angene.Graphics\Angene.Graphics.csproj", "{B9BD6AED-01B2-A873-9F7E-B2B53DB6AA26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game", "..\testGame\Game.csproj", "{36B397B0-C37E-B32B-1EF7-AED56CA41DA1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AngeneEditor", "AngeneEditor\AngeneEditor.csproj", "{7FE1DE3D-D701-D543-7749-9601FEB0F914}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,14 +51,6 @@ Global
 		{B9BD6AED-01B2-A873-9F7E-B2B53DB6AA26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9BD6AED-01B2-A873-9F7E-B2B53DB6AA26}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9BD6AED-01B2-A873-9F7E-B2B53DB6AA26}.Release|Any CPU.Build.0 = Release|Any CPU
-		{36B397B0-C37E-B32B-1EF7-AED56CA41DA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36B397B0-C37E-B32B-1EF7-AED56CA41DA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{36B397B0-C37E-B32B-1EF7-AED56CA41DA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36B397B0-C37E-B32B-1EF7-AED56CA41DA1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7FE1DE3D-D701-D543-7749-9601FEB0F914}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7FE1DE3D-D701-D543-7749-9601FEB0F914}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7FE1DE3D-D701-D543-7749-9601FEB0F914}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7FE1DE3D-D701-D543-7749-9601FEB0F914}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

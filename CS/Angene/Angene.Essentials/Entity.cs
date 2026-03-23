@@ -17,9 +17,9 @@ namespace Angene.Essentials
         public int Id { get; private set; }
 
         // Transform
-        public int x;
-        public int y;
-        public int z;
+        public float x;
+        public float y;
+        public float z;
 
         // Identity
         public string name;
@@ -34,7 +34,7 @@ namespace Angene.Essentials
         // Internal enabled state (use Lifecycle.SetEntityEnabled to change)
         internal bool _enabled;
 
-        public Entity(int _x, int _y, string _name = "New Object")
+        public Entity(float _x, float _y, string _name = "New Object")
         {
             Id = _nextId++;
             x = _x;

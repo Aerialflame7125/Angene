@@ -49,8 +49,6 @@ namespace AngeneEditor.Panels
             ShowEmpty();
         }
 
-        // ── Public API ────────────────────────────────────────────────────────────
-
         public void ShowEntity(EntityDefinition entity)
         {
             _entity = entity;
@@ -61,8 +59,6 @@ namespace AngeneEditor.Panels
         {
             if (_entity != null) ShowEntity(_entity);
         }
-
-        // ── Build ─────────────────────────────────────────────────────────────────
 
         private void ShowEmpty()
         {
@@ -119,7 +115,7 @@ namespace AngeneEditor.Panels
             foreach (var script in _entity.Scripts)
                 AddScriptRow(script, ref y);
 
-            // ── New script ────────────────────────────────────────────────────────
+            // Add new script
             var addNewBtn = new Button
             {
                 Text = "+ New Script",
@@ -134,7 +130,7 @@ namespace AngeneEditor.Panels
             addNewBtn.Click += AddNewScript;
             _content.Controls.Add(addNewBtn);
 
-            // ── Add existing script ───────────────────────────────────────────────
+            // Add existing script
             var addExistBtn = new Button
             {
                 Text = "+ Existing",
@@ -152,44 +148,12 @@ namespace AngeneEditor.Panels
 
             Divider(ref y);
 
-            // ── Open Program.cs ───────────────────────────────────────────────────
-            var programBtn = new Button
-            {
-                Text = "✎ Program.cs",
-                Location = new Point(10, y),
-                Size = new Size(115, 26),
-                BackColor = EditorTheme.PanelHeader,
-                ForeColor = EditorTheme.TextSecondary,
-                FlatStyle = FlatStyle.Flat,
-                Font = EditorTheme.FontUISmall,
-                FlatAppearance = { BorderColor = EditorTheme.PanelBorder },
-            };
-            programBtn.Click += (_, _) => ScriptEditorWindow.OpenProgramCs(FindForm()!);
-            _content.Controls.Add(programBtn);
-
-            // ── Open in Visual Studio ─────────────────────────────────────────────
-            var vsBtn = new Button
-            {
-                Text = "Open in VS",
-                Location = new Point(132, y),
-                Size = new Size(90, 26),
-                BackColor = EditorTheme.PanelHeader,
-                ForeColor = EditorTheme.TextSecondary,
-                FlatStyle = FlatStyle.Flat,
-                Font = EditorTheme.FontUISmall,
-                FlatAppearance = { BorderColor = EditorTheme.PanelBorder },
-            };
-            vsBtn.Click += (_, _) => ScriptEditorWindow.OpenCsprojInVs(FindForm()!);
-            _content.Controls.Add(vsBtn);
-            y += 32;
-
-            Divider(ref y);
-
+            // Apply to scene
             var saveBtn = new Button
             {
                 Text = "💾 Apply to Scene",
                 Location = new Point(10, y),
-                Size = new Size(150, 28),
+                Size = new Size(222, 28),
                 BackColor = EditorTheme.Accent,
                 ForeColor = EditorTheme.TextPrimary,
                 FlatStyle = FlatStyle.Flat,
@@ -230,7 +194,6 @@ namespace AngeneEditor.Panels
                 Font = EditorTheme.FontUI,
             });
 
-            // Edit in built-in editor
             var editBtn = new Button
             {
                 Text = "✎",
@@ -245,7 +208,6 @@ namespace AngeneEditor.Panels
             editBtn.Click += (_, _) => OpenScriptInEditor(scriptName);
             row.Controls.Add(editBtn);
 
-            // Open in Visual Studio
             var vsBtn = new Button
             {
                 Text = "VS",
@@ -264,7 +226,6 @@ namespace AngeneEditor.Panels
             };
             row.Controls.Add(vsBtn);
 
-            // Remove
             var removeBtn = new Button
             {
                 Text = "✕",
@@ -292,7 +253,6 @@ namespace AngeneEditor.Panels
             if (dlg.ShowDialog() != DialogResult.OK) return;
             string path = ProjectManager.Instance.AddScript(_entity, dlg.Value);
             Rebuild();
-            // Offer to open it immediately
             new ScriptEditorWindow(path).Show(FindForm());
         }
 
@@ -315,8 +275,6 @@ namespace AngeneEditor.Panels
             if (dlg.ShowDialog() != DialogResult.OK) return;
 
             string scriptName = Path.GetFileNameWithoutExtension(dlg.FileName);
-
-            // If the file is outside Scripts\, copy it in
             string dest = Path.Combine(project.ScriptsPath, Path.GetFileName(dlg.FileName));
             if (!File.Exists(dest) && dlg.FileName != dest)
                 File.Copy(dlg.FileName, dest);
@@ -400,7 +358,6 @@ namespace AngeneEditor.Panels
                     BorderStyle = BorderStyle.FixedSingle,
                     Font = EditorTheme.FontUI,
                 };
-                // Single handler: propagate + WYSIWYG sync
                 box.TextChanged += (_, _) =>
                 {
                     onChange?.Invoke(box.Text);

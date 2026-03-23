@@ -19,6 +19,7 @@ namespace AngeneEditor
         private HierarchyPanel? _hierarchy;
         private InspectorPanel? _inspector;
         private ConsolePanel? _console;
+        private SolutionExplorerPanel? _solutionExplorer;
         private Panel? _preview;
         private Panel? _previewLabel;
 
@@ -31,12 +32,13 @@ namespace AngeneEditor
         // ── Runtime ───────────────────────────────────────────────────────────────
         private readonly EditorSceneHost _sceneHost = new();
         private readonly BuildLogWindow _buildLog = new();
+        private readonly EventHandler _stopHandler;
 
         public EditorWindow()
         {
             Text = "Angene Editor";
-            Size = new Size(1440, 860);
-            MinimumSize = new Size(1000, 600);
+            Size = new Size(1600, 900);
+            MinimumSize = new Size(1100, 650);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = EditorTheme.Background;
             ForeColor = EditorTheme.TextPrimary;
@@ -49,6 +51,10 @@ namespace AngeneEditor
 
             _console?.AppendEditorLine("Angene Editor initialized.");
             _console?.AppendEditorLine("Create or open a project to begin.");
+            _stopHandler = (_, _) => Stop();
+
+            // Show log window on startup — docked to bottom-right
+            _buildLog.Show(this);
         }
 
         // ── Menu ──────────────────────────────────────────────────────────────────
@@ -61,6 +67,7 @@ namespace AngeneEditor
                 BackColor = EditorTheme.PanelHeader,
             };
 
+            // File
             var file = AddMenu(menu, "File");
             AddItem(file, "New Project...", Shortcut.CtrlN, OnNewProject);
             AddItem(file, "Open Project...", Shortcut.CtrlO, OnOpenProject);
@@ -69,21 +76,51 @@ namespace AngeneEditor
             file.DropDownItems.Add(new ToolStripSeparator());
             AddItem(file, "Exit", Shortcut.AltF4, (_, _) => Close());
 
+            // Edit
             var edit = AddMenu(menu, "Edit");
             AddItem(edit, "Add Entity", Shortcut.None, (_, _) => AddEntityPrompt());
             AddItem(edit, "Add Script...", Shortcut.None, (_, _) => AddScriptPrompt());
 
+            // Run
             var run = AddMenu(menu, "Run");
             AddItem(run, "▶  Play", Shortcut.F5, (_, _) => _ = PlayAsync());
             AddItem(run, "■  Stop", Shortcut.ShiftF5, (_, _) => Stop());
             run.DropDownItems.Add(new ToolStripSeparator());
             AddItem(run, "▶  Edit Preview", Shortcut.None, (_, _) => _ = LoadEditPreviewAsync());
 
+            // Open In (formerly scattered around Inspector)
+            var openIn = AddMenu(menu, "Open In");
+            AddItem(openIn, "✎  Program.cs in Script Editor", Shortcut.None,
+                (_, _) => ScriptEditor.ScriptEditorWindow.OpenProgramCs(this));
+            AddItem(openIn, "✎  Init.cs in Script Editor", Shortcut.None, OpenInitCs);
+            openIn.DropDownItems.Add(new ToolStripSeparator());
+            AddItem(openIn, "Open Project in Visual Studio", Shortcut.None,
+                (_, _) => ScriptEditor.ScriptEditorWindow.OpenCsprojInVs(this));
+            AddItem(openIn, "Open Project Folder in Explorer", Shortcut.None, OpenProjectFolder);
+
+            // View
             var view = AddMenu(menu, "View");
             AddItem(view, "Build Log", Shortcut.None, (_, _) => _buildLog.ShowAndFocus());
+            AddItem(view, "Refresh Solution Explorer", Shortcut.None, (_, _) => _solutionExplorer?.Refresh());
 
             Controls.Add(menu);
             MainMenuStrip = menu;
+        }
+
+        private void OpenInitCs(object? s, EventArgs e)
+        {
+            var project = ProjectManager.Instance.CurrentProject;
+            if (project == null) { MessageBox.Show("No project open.", "Error"); return; }
+            string path = Path.Combine(project.ScenesPath, "Init.cs");
+            if (!File.Exists(path)) { MessageBox.Show("Init.cs not found.", "Not Found"); return; }
+            new ScriptEditor.ScriptEditorWindow(path).Show(this);
+        }
+
+        private void OpenProjectFolder(object? s, EventArgs e)
+        {
+            var project = ProjectManager.Instance.CurrentProject;
+            if (project == null || !Directory.Exists(project.RootPath)) return;
+            Process.Start("explorer.exe", project.RootPath);
         }
 
         // ── Toolbar ───────────────────────────────────────────────────────────────
@@ -104,6 +141,7 @@ namespace AngeneEditor
             _stopBtn = ToolBtn("■  Stop", EditorTheme.Error, new Point(116, 6));
             _stopBtn.Enabled = false;
             _stopBtn.Click += (_, _) => Stop();
+            _stopBtn.Click += _stopHandler;
 
             var saveBtn = ToolBtn("💾 Save", EditorTheme.AccentDim, new Point(226, 6));
             saveBtn.Click += (_, _) => ProjectManager.Instance.SaveProject();
@@ -116,7 +154,7 @@ namespace AngeneEditor
             {
                 Text = "No project",
                 Location = new Point(450, 12),
-                Size = new Size(400, 18),
+                Size = new Size(500, 18),
                 ForeColor = EditorTheme.TextSecondary,
                 Font = EditorTheme.FontUI,
             };
@@ -124,7 +162,7 @@ namespace AngeneEditor
             _statusLabel = new Label
             {
                 Text = "",
-                Location = new Point(860, 12),
+                Location = new Point(960, 12),
                 Size = new Size(300, 18),
                 ForeColor = EditorTheme.TextDisabled,
                 Font = EditorTheme.FontUISmall,
@@ -142,8 +180,10 @@ namespace AngeneEditor
             _console = new ConsolePanel();
             _hierarchy = new HierarchyPanel();
             _inspector = new InspectorPanel();
+            _solutionExplorer = new SolutionExplorerPanel();
 
-            var splitterL = new Splitter { Dock = DockStyle.Left, Width = 4, BackColor = EditorTheme.PanelBorder };
+            var splitterL1 = new Splitter { Dock = DockStyle.Left, Width = 4, BackColor = EditorTheme.PanelBorder };
+            var splitterL2 = new Splitter { Dock = DockStyle.Left, Width = 4, BackColor = EditorTheme.PanelBorder };
             var splitterR = new Splitter { Dock = DockStyle.Right, Width = 4, BackColor = EditorTheme.PanelBorder };
             var splitterB = new Splitter { Dock = DockStyle.Bottom, Height = 4, BackColor = EditorTheme.PanelBorder };
 
@@ -168,16 +208,17 @@ namespace AngeneEditor
             };
 
             Controls.Add(_preview);
-            Controls.Add(splitterL);
-            Controls.Add(_hierarchy);
             Controls.Add(splitterR);
             Controls.Add(_inspector);
+            Controls.Add(splitterL2);
+            Controls.Add(_hierarchy);
+            Controls.Add(splitterL1);
+            Controls.Add(_solutionExplorer);
             Controls.Add(splitterB);
             Controls.Add(_console);
 
             _inspector.SetHost(_sceneHost);
 
-            // Route scene host log to both the bottom console panel and the floating log window
             _sceneHost.Log += line =>
             {
                 _console.AppendLine(line);
@@ -202,6 +243,7 @@ namespace AngeneEditor
             {
                 _projectLabel!.Text = $"Project: {p.Name}  ({p.RootPath})";
                 _console!.AppendEditorLine($"Project opened: {p.Name}");
+                Text = $"Angene Editor — {p.Name}";
             };
             pm.ProjectSaved += () =>
             {
@@ -284,13 +326,115 @@ namespace AngeneEditor
             bool ok = await BuildAsync(project.RootPath);
             if (!ok) { SetPlayButtonsEnabled(true); return; }
 
-            _previewLabel!.Visible = false;
-            _sceneHost.Load(project.RootPath, _preview!);
-            _sceneHost.SetMode(EngineMode.Play);
+            // Find the native host executable next to the editor binary
+            string hostExe = FindHostExe();
+            if (hostExe == null)
+            {
+                MessageBox.Show(
+                    "AngenHost.exe not found.\n\nMake sure AngenHost.exe is in the same folder as the editor.",
+                    "Host Not Found",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                SetPlayButtonsEnabled(true);
+                return;
+            }
+
+            string outputDir = Path.Combine(project.RootPath, "bin", "Debug", "net8.0");
+
+            _console?.AppendEditorLine($"Launching host: {hostExe}");
+            _console?.AppendEditorLine($"Working directory: {outputDir}");
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = hostExe,
+                Arguments = "--verbose",
+                WorkingDirectory = outputDir,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = false,       // Show the game window
+                StandardOutputEncoding = System.Text.Encoding.UTF8,
+                StandardErrorEncoding = System.Text.Encoding.UTF8,
+            };
+
+            var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
+
+            proc.OutputDataReceived += (_, e) =>
+            {
+                if (e.Data == null) return;
+                _buildLog.AppendLine(e.Data);
+                _console?.AppendLine(e.Data);
+            };
+            proc.ErrorDataReceived += (_, e) =>
+            {
+                if (e.Data == null) return;
+                _buildLog.AppendLine($"[ERR] {e.Data}");
+                _console?.AppendLine($"[ERR] {e.Data}");
+            };
+            proc.Exited += (_, _) =>
+            {
+                BeginInvoke(() =>
+                {
+                    SetPlayButtonsEnabled(true);
+                    _stopBtn!.Enabled = false;
+                    SetStatus($"Stopped (exit {proc.ExitCode})");
+                    _console?.AppendEditorLine($"Host exited with code {proc.ExitCode}.");
+                    proc.Dispose();
+                });
+            };
+
+            proc.Start();
+            proc.BeginOutputReadLine();
+            proc.BeginErrorReadLine();
 
             _playBtn!.Enabled = false;
             _stopBtn!.Enabled = true;
-            SetStatus("Running");
+
+            // Wire stop button to kill the host process
+            void StopHandler(object? s, EventArgs e)
+            {
+                try
+                {
+                    if (!proc.HasExited) proc.Kill(entireProcessTree: true);
+                }
+                catch { }
+            }
+            _stopBtn.Click -= _stopHandler;        // detach normal Stop
+            _stopBtn.Click += StopHandler;         // attach process-kill
+
+            proc.Exited += (_, _) =>
+            {
+                BeginInvoke(() =>
+                {
+                    _stopBtn.Click -= StopHandler;
+                    _stopBtn.Click += _stopHandler; // restore normal Stop
+                });
+            };
+
+            SetStatus("Running (host)");
+        }
+
+        /// <summary>
+        /// Looks for AngenHost.exe next to the editor, then one directory up (Build\).
+        /// </summary>
+        private static string? FindHostExe()
+        {
+            string editorDir = AppContext.BaseDirectory;
+
+            string[] candidates =
+            {
+                Path.Combine(editorDir, "AngenHost.exe"),
+                Path.Combine(editorDir, "..", "AngenHost.exe"),
+                Path.Combine(editorDir, "..", "Build", "AngenHost.exe"),
+            };
+
+            foreach (string path in candidates)
+            {
+                string full = Path.GetFullPath(path);
+                if (File.Exists(full)) return full;
+            }
+
+            return null;
         }
 
         private async Task LoadEditPreviewAsync()
@@ -331,14 +475,11 @@ namespace AngeneEditor
 
         // ── Async build ───────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Builds the project on a background thread so the UI never freezes.
-        /// Every stdout/stderr line is forwarded live to the BuildLogWindow.
-        /// </summary>
         private async Task<bool> BuildAsync(string projectDir)
         {
             var project = ProjectManager.Instance.CurrentProject;
             _buildLog.BeginBuild(project?.Name ?? Path.GetFileName(projectDir));
+            _buildLog.ShowAndFocus();
 
             var psi = new ProcessStartInfo
             {
@@ -349,13 +490,10 @@ namespace AngeneEditor
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
-
-                // Force UTF-8 output so Japanese / CJK characters aren't mojibaked
                 StandardOutputEncoding = System.Text.Encoding.UTF8,
                 StandardErrorEncoding = System.Text.Encoding.UTF8,
             };
 
-            // Tell dotnet to use UTF-8 console output regardless of system locale
             psi.Environment["DOTNET_CLI_UI_LANGUAGE"] = "en-US";
             psi.Environment["DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION"] = "1";
             psi.Environment["TERM"] = "xterm-256color";
@@ -388,6 +526,11 @@ namespace AngeneEditor
 
             bool success = exitCode == 0;
             _buildLog.EndBuild(success, exitCode);
+
+            // Refresh solution explorer after build (bin/ folder changes)
+            if (success)
+                _solutionExplorer?.Refresh();
+
             SetStatus(success ? "Build succeeded" : "Build failed — see Log");
             return success;
         }

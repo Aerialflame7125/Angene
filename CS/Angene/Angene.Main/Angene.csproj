@@ -23,7 +23,6 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="System.Drawing.Common" Version="10.0.3" />
 		<PackageReference Include="System.Memory" Version="4.5.5" />
-		<PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
 		<PackageReference Include="System.Buffers" Version="4.5.1" />
 		<PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
 		<PackageReference Include="System.Security.Permissions" Version="8.0.0" />
@@ -35,6 +34,7 @@
 
 	<ItemGroup>
 		<!-- Core Engine Files -->
+		<Compile Include="Crypto\AesGcmWrapper.cs" />
 		<Compile Include="Main\Engine.cs" />
 		<Compile Include="Main\LogConsoleWindow.cs" />
 		<Compile Include="Main\PkgHandler.cs" />
@@ -50,7 +50,6 @@
 		<Compile Include="Renderers\**\*.cs" />
 
 		<!-- Crypto Files -->
-		<Compile Include="Crypto\**\*.cs" />
 
 		<!-- Windows-only files -->
 		<Compile Include="Platform\WindowConfig.cs" />
