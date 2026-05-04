@@ -185,3 +185,4 @@ cython_debug/
 obj
 *.pdb
 *.deps.json
+/CS/.vscode
