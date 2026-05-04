@@ -4,6 +4,7 @@ using Angene.External;
 using Angene.Graphics;
 using Angene.Main;
 using Angene.Platform;
+using Angene.Windows;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,13 +21,10 @@ namespace Game
         private List<string> _entryNames = new();
         private Window _window;
         private List<Entity> _entities;
-        private PackageTest _scene;
-
-        public void Initialize(List<Entity> entities, Window window, PackageTest scene)
+        public void Initialize(List<Entity> entities, Window window)
         {
             _entities = entities;
             _window = window;
-            _scene = scene;
         }
 
         public void Start()
@@ -174,57 +172,6 @@ namespace Game
             _package?.Dispose();
             _package = null;
         }
-
-#if WINDOWS
-        public void DrawWS()
-        {
-            var graphics = _window.Graphics;
-            if (graphics == null) return;
-
-            // ── Background ───────────────────────────────────────────────
-            graphics.Clear(0x001F1A13);
-
-            // ── Static UI ────────────────────────────────────────────────
-            graphics.DrawText("Angene Input Demo", 12, 8, 0x00FFFF00);
-            graphics.DrawText($"Package : {_packagePath}", 12, 32, 0x00AAAAAA);
-            graphics.DrawText($"Entries : {_entryNames.Count}", 12, 48, 0x00AAAAAA);
-            graphics.DrawText($"Platform: {PlatformDetection.CurrentPlatform}", 12, 64, 0x00AAAAAA);
-
-            // ── Input state display ──────────────────────────────────────
-            int mx = _scene.MouseX;
-            int my = _scene.MouseY;
-
-            // Choose cursor colour based on which button is held
-            uint cursorColor = (_scene.LeftMouseDown, _scene.RightMouseDown) switch
-            {
-                (true, false) => 0x0000FF00,   // green  — left held
-                (false, true) => 0x000000FF,   // red    — right held
-                (true, true) => 0x00FFFF00,   // yellow — both held
-                _ => 0x00FFFFFF    // white  — nothing held
-            };
-
-            // Draw a small crosshair at the current mouse position
-            int cs = 10; // crosshair arm length
-            graphics.DrawRectangle(mx - cs, my - 1, cs * 2, 3, cursorColor); // horizontal bar
-            graphics.DrawRectangle(mx - 1, my - cs, 3, cs * 2, cursorColor); // vertical bar
-
-            // Draw a label next to the cursor showing coordinates
-            graphics.DrawText($"({mx},{my})", mx + cs + 4, my - 6, cursorColor);
-
-            // Draw key display in the bottom-left corner
-            uint keyColor = _scene.LastKey == "None" ? 0x00555555U : 0x0000FFFFU;
-            graphics.DrawText("Last key:", 12, _window.Height - 52, 0x00AAAAAA);
-            graphics.DrawText(_scene.LastKey, 12, _window.Height - 34, keyColor);
-
-            // Draw mouse button indicators
-            uint lColor = _scene.LeftMouseDown ? 0x0000FF00U : 0x00333333U;
-            uint rColor = _scene.RightMouseDown ? 0x000000FFU : 0x00333333U;
-            graphics.DrawRectangle(12, _window.Height - 18, 30, 12, lColor);
-            graphics.DrawRectangle(48, _window.Height - 18, 30, 12, rColor);
-            graphics.DrawText("LMB", 14, _window.Height - 16, 0x00FFFFFF);
-            graphics.DrawText("RMB", 50, _window.Height - 16, 0x00FFFFFF);
-        }
-#endif
 
         // Very small helper to split into lines of approximate width (characters)
         private static IEnumerable<string> WrapLines(string text, int maxChars)

@@ -43,6 +43,7 @@ namespace Angene.Main
     {
         private Settings? _settingHandlerInstanced;
         private LogConsoleWindow? _logConsole; // log window keepalive
+        public List<Angene.Main.Window> OpenWindows = new List<Angene.Main.Window>();
 
         public Settings SettingHandlerInstanced
         {
@@ -108,6 +109,7 @@ namespace Angene.Main
 
         public List<IScene> Scenes { get; private set; } = new List<IScene>();
         public IScene? PrimaryScene { get; private set; }
+        public IScene ManagementScene { get; internal set; }
 
         public int Width { get; }
         public int Height { get; }
@@ -153,6 +155,12 @@ namespace Angene.Main
             {
                 WindowMap[Hwnd] = this;
             }
+            Engine.Instance.OpenWindows.Add(this);
+
+            string initToken = Guid.NewGuid().ToString("N");
+            Engine.Instance.SettingHandlerInstanced.SetSetting("Main.OTT", initToken);
+            var mgmtScene = new Angene.Management.ManagementScene(initToken);
+            AddScene(mgmtScene);
 
             if (!config.Use3D && !config.cTI)
             {
@@ -176,6 +184,15 @@ namespace Angene.Main
 
 
             Logger.Log("Window created successfully", LoggingTarget.Engine, LogLevel.Important);
+        }
+
+        private int CheckSceneIndexOf(IScene scene)
+        {
+            if (scene.Instance.Name == "ManagementScene")
+            {
+                return -2; // ManagementScene will not be able to be removed, therefore not indexed or returned.
+            }
+            return Scenes.IndexOf(scene);
         }
 
         /// <summary>
@@ -212,13 +229,40 @@ namespace Angene.Main
         {
             if (scene == null)
             {
-                Logger.Log("Attempted to add null scene", LoggingTarget.Engine, LogLevel.Error);
+                Logger.Log("Attempted to add nil scene", LoggingTarget.Engine, LogLevel.Error);
+                return;
+            }
+
+            foreach (var e in Scenes)
+            {
+                if (e == scene)
+                {
+                    Logger.Log("Attempted to add a scene that is already in the scene list", LoggingTarget.Engine, LogLevel.Warning);
+                    return;
+                }
+            }
+
+            if (scene is Angene.Management.ManagementScene && ManagementScene == null)
+            {
+                Logger.LogDebug("Recieved a new ManagementScene call. Verifying...", LoggingTarget.Engine);
+                // Silently add without logging, but check signatures.
+                List<Entity> e = scene.Instance.GetEntities(); // If this throws a new Entity of 'ManagementCheck$o7' (creating entity of this name would fail), then we have passed.
+                if (e != null && e.Count == 1)
+                {
+                    if (e[0].name == Engine.Instance.SettingHandlerInstanced.GetSetting("Main.OTT").ToString())
+                    {
+                        e[0].name = "Ent1"; // Rename to indicate success, set management scene, and fail on all other occurances of a Management Scene.
+                        Engine.Instance.SettingHandlerInstanced.SetSetting("Main.OTT", null); // Clear the one time token to prevent reuse
+                        ManagementScene = scene;
+                        scene.Initialize();
+                        Logger.LogDebug("ManagementScene attached successfully.", LoggingTarget.Engine);
+                    }
+                }
                 return;
             }
 
             Scenes.Add(scene);
             scene.Initialize();
-
             Logger.Log($"Scene '{scene.GetType().Name}' added to window", LoggingTarget.Engine, LogLevel.Debug);
         }
 
@@ -233,10 +277,15 @@ namespace Angene.Main
                 return;
             }
 
-            int index = Scenes.IndexOf(scene);
+            int index = CheckSceneIndexOf(scene);
             if (index == -1)
             {
                 Logger.Log("The scene to be removed was not found in the current scene list", LoggingTarget.Engine, LogLevel.Warning);
+                return;
+            } 
+            else if (index == -2)
+            {
+                Logger.Log($"The scene to be removed is a fundamental part of Angene and cannot be removed. (Attempted to remove '{scene.Instance.Name}'.)", LoggingTarget.Engine, LogLevel.Error);
                 return;
             }
 
@@ -316,6 +365,8 @@ namespace Angene.Main
                         Marshal.StructureToPtr(msg, msgPtr, false);
                         for (int i = Scenes.Count - 1; i >= 0; i--)
                             Scenes[i].OnMessage(msgPtr);
+                        ManagementScene.OnMessage(msgPtr);
+                        Lifecycle.ScriptBinding.Tick(ManagementScene, 0, GetEngineMode());
                     }
                     finally
                     {
@@ -329,7 +380,6 @@ namespace Angene.Main
             };
         }
 
-        // Minimal JSON field extractors so you don't need a JSON library
         private static string ExtractJsonString(string json, string key)
         {
             string search = $"\"{key}\":\"";
@@ -490,9 +540,10 @@ namespace Angene.Main
                     {
                         // Forward to all scenes (in reverse order for event bubbling)
                         for (int i = win.Scenes.Count - 1; i >= 0; i--)
-                        {
                             win.Scenes[i].OnMessage(msgPtr);
-                        }
+                        // ManagementScene ticking
+                        win.ManagementScene.OnMessage(msgPtr);
+                        Lifecycle.ScriptBinding.Tick(win.ManagementScene, 0, win.GetEngineMode());
                     }
                     catch (Exception ex)
                     {

@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
+    <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
+    <ProjectReference Include="..\Angene.Main\Angene.csproj" />
+    <ProjectReference Include="..\Angene.Management\Angene.Management.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -11,6 +11,8 @@ namespace Angene.Essentials
     /// </summary>
     public interface IScene
     {
+        public IScene Instance => this;
+        string Name => "New Scene";
         void Initialize(); //On Scene Init
 
         List<Entity> GetEntities();
@@ -21,6 +23,6 @@ namespace Angene.Essentials
 
         void Cleanup(); // Scene cleanup
 
-        IRenderer3D? Renderer3D { get; } // 3D renderer
+        IRenderer3D? Renderer3D => null; // 3D renderer
     }
 }

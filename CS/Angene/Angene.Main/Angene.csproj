@@ -40,8 +40,6 @@
 		<Compile Include="Main\PkgHandler.cs" />
 		<Compile Include="Main\WS.cs" />
 
-		<!-- Graphics Files -->
-
 		<!-- Platform Files -->
 		<Compile Include="Platform\Platform.cs" />
 		<Compile Include="Platform\WindowConfig.cs" />
@@ -49,12 +47,8 @@
 		<!-- Renderer Files -->
 		<Compile Include="Renderers\**\*.cs" />
 
-		<!-- Crypto Files -->
-
 		<!-- Windows-only files -->
 		<Compile Include="Platform\WindowConfig.cs" />
-
-		<!-- Linux-only files -->
 
 		<!-- External Implementations -->
 		<Compile Include="External\**\*.cs" />
@@ -69,6 +63,7 @@
 	  <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
 	  <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
 	  <ProjectReference Include="..\Angene.Graphics\Angene.Graphics.csproj" />
+	  <ProjectReference Include="..\Angene.Management\Angene.Management.csproj" />
 	  <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
 	</ItemGroup>
 

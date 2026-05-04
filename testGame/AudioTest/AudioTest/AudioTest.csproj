@@ -21,25 +21,25 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Angene">
-      <HintPath>..\..\..\Build\Angene.dll</HintPath>
+      <HintPath>..\..\..\Angene-Host - CPP\testbuild\Angene.dll</HintPath>
     </Reference>
     <Reference Include="Angene.Audio">
-      <HintPath>..\..\..\Build\Angene.Audio.dll</HintPath>
+      <HintPath>..\..\..\Angene-Host - CPP\testbuild\Angene.Audio.dll</HintPath>
     </Reference>
     <Reference Include="Angene.Common">
-      <HintPath>..\..\..\Build\Angene.Common.dll</HintPath>
+      <HintPath>..\..\..\Angene-Host - CPP\testbuild\Angene.Common.dll</HintPath>
     </Reference>
     <Reference Include="Angene.Essentials">
-      <HintPath>..\..\..\Build\Angene.Essentials.dll</HintPath>
+      <HintPath>..\..\..\Angene-Host - CPP\testbuild\Angene.Essentials.dll</HintPath>
     </Reference>
     <Reference Include="Angene.Graphics">
-      <HintPath>..\..\..\Build\Angene.Graphics.dll</HintPath>
+      <HintPath>..\..\..\Angene-Host - CPP\testbuild\Angene.Graphics.dll</HintPath>
     </Reference>
     <Reference Include="Angene.Math">
-      <HintPath>..\..\..\Build\Angene.Math.dll</HintPath>
+      <HintPath>..\..\..\Angene-Host - CPP\testbuild\Angene.Math.dll</HintPath>
     </Reference>
     <Reference Include="Angene.Windows">
-      <HintPath>..\..\..\Build\Angene.Windows.dll</HintPath>
+      <HintPath>..\..\..\Angene-Host - CPP\testbuild\Angene.Windows.dll</HintPath>
     </Reference>
   </ItemGroup>
 

@@ -83,16 +83,16 @@ namespace AngeneEditor
 
             // Run
             var run = AddMenu(menu, "Run");
-            AddItem(run, "▶  Play", Shortcut.F5, (_, _) => _ = PlayAsync());
-            AddItem(run, "■  Stop", Shortcut.ShiftF5, (_, _) => Stop());
+            AddItem(run, "Play", Shortcut.F5, (_, _) => _ = PlayAsync());
+            AddItem(run, "Stop", Shortcut.ShiftF5, (_, _) => Stop());
             run.DropDownItems.Add(new ToolStripSeparator());
-            AddItem(run, "▶  Edit Preview", Shortcut.None, (_, _) => _ = LoadEditPreviewAsync());
+            AddItem(run, "Edit Preview", Shortcut.None, (_, _) => _ = LoadEditPreviewAsync());
 
             // Open In (formerly scattered around Inspector)
             var openIn = AddMenu(menu, "Open In");
-            AddItem(openIn, "✎  Program.cs in Script Editor", Shortcut.None,
+            AddItem(openIn, "Program.cs in Script Editor", Shortcut.None,
                 (_, _) => ScriptEditor.ScriptEditorWindow.OpenProgramCs(this));
-            AddItem(openIn, "✎  Init.cs in Script Editor", Shortcut.None, OpenInitCs);
+            AddItem(openIn, "Init.cs in Script Editor", Shortcut.None, OpenInitCs);
             openIn.DropDownItems.Add(new ToolStripSeparator());
             AddItem(openIn, "Open Project in Visual Studio", Shortcut.None,
                 (_, _) => ScriptEditor.ScriptEditorWindow.OpenCsprojInVs(this));
@@ -135,18 +135,18 @@ namespace AngeneEditor
                 Padding = new Padding(6, 6, 6, 0),
             };
 
-            _playBtn = ToolBtn("▶  Play", EditorTheme.Success, new Point(6, 6));
+            _playBtn = ToolBtn("Play", EditorTheme.Success, new Point(6, 6));
             _playBtn.Click += (_, _) => _ = PlayAsync();
 
-            _stopBtn = ToolBtn("■  Stop", EditorTheme.Error, new Point(116, 6));
+            _stopBtn = ToolBtn("Stop", EditorTheme.Error, new Point(116, 6));
             _stopBtn.Enabled = false;
             _stopBtn.Click += (_, _) => Stop();
             _stopBtn.Click += _stopHandler;
 
-            var saveBtn = ToolBtn("💾 Save", EditorTheme.AccentDim, new Point(226, 6));
+            var saveBtn = ToolBtn("Save", EditorTheme.AccentDim, new Point(226, 6));
             saveBtn.Click += (_, _) => ProjectManager.Instance.SaveProject();
 
-            var logBtn = ToolBtn("📋 Log", EditorTheme.PanelHeader, new Point(336, 6));
+            var logBtn = ToolBtn("Log", EditorTheme.PanelHeader, new Point(336, 6));
             logBtn.ForeColor = EditorTheme.TextSecondary;
             logBtn.Click += (_, _) => _buildLog.ShowAndFocus();
 
@@ -192,7 +192,7 @@ namespace AngeneEditor
             _previewLabel = new Panel { Dock = DockStyle.Fill, BackColor = Color.FromArgb(10, 10, 14) };
             _previewLabel.Controls.Add(new Label
             {
-                Text = "No game running\n\nPress ▶ Play to launch",
+                Text = "All done!",
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleCenter,
                 ForeColor = EditorTheme.TextDisabled,
@@ -423,9 +423,9 @@ namespace AngeneEditor
 
             string[] candidates =
             {
-                Path.Combine(editorDir, "AngenHost.exe"),
-                Path.Combine(editorDir, "..", "AngenHost.exe"),
-                Path.Combine(editorDir, "..", "Build", "AngenHost.exe"),
+                Path.Combine(editorDir, "AngeneHost.exe"),
+                Path.Combine(editorDir, "..", "AngeneHost.exe"),
+                Path.Combine(editorDir, "..", "Build", "AngeneHost.exe"),
             };
 
             foreach (string path in candidates)

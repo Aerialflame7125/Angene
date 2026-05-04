@@ -24,7 +24,7 @@ namespace Angene.Common.Settings
             Register("Console.LogDebugToConsole", 0,
                 v => v is int i && i is 0 or 1);
 
-            Register("Main.Version", "Angene CS v0.1c44 | Brain Implosion");
+            Register("Main.Version", "Angene CS v0.1c50 | Jingling Keys");
 
             Register("Main.getIsGameAllowedForWebsockets", false,
                 v => v is bool);

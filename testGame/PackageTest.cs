@@ -48,7 +48,7 @@ namespace Game
                 else if (a.name == "Text")
                 {
                     var script = a.AddScript<TextHandler>();
-                    script.Initialize(entities, _window, this);
+                    script.Initialize(entities, _window);
                     a.SetEnabled(true);
                 }
             }

@@ -213,6 +213,8 @@ namespace Angene.Essentials
             return _parent;
         }
 
+        public void Remove() => Destroy();
+
         /// <summary>
         /// Destroy this entity and all its children.
         /// This will trigger OnDisable and OnDestroy lifecycle callbacks.
@@ -227,16 +229,10 @@ namespace Angene.Essentials
             }
 
             // Notify lifecycle system
-            Lifecycle.ScriptBinding.HandleEntityDestroyed(this);
+            Lifecycle.ScriptBinding.DestroyEntity(this);
 
             // Clear scripts
             _scripts.Clear();
-
-            Logger.Log(
-                $"Entity '{name}' destroyed",
-                LoggingTarget.Engine,
-                LogLevel.Debug
-            );
         }
 
         // Equality members for use as dictionary keys

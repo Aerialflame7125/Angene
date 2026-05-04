@@ -1,4 +1,5 @@
 ﻿using Angene.Common;
+using Angene.Common.Settings;
 using Angene.Globals;
 using System;
 using System.Collections.Generic;
@@ -211,7 +212,7 @@ namespace Angene.Essentials
                 if (_entityStates.ContainsKey(entity))
                 {
                     Logger.Log(
-                        $"Entity '{entity.name}' already registered with lifecycle system",
+                        $"Entity '{entity.name}' already registered with lifecycle",
                         LoggingTarget.Engine,
                         LogLevel.Warning
                     );
@@ -236,12 +237,6 @@ namespace Angene.Essentials
                 {
                     ExecuteOnEnable(entity);
                 }
-
-                Logger.Log(
-                    $"Entity '{entity.name}' registered with lifecycle system (Awake called)",
-                    LoggingTarget.Engine,
-                    LogLevel.Debug
-                );
             }
 
             /// <summary>
@@ -249,7 +244,7 @@ namespace Angene.Essentials
             /// Mark state as destroyed and prevent future lifecycle execution.
             /// NOTE: This is public because Entity.Destroy() calls it, and Entity may be in a different assembly.
             /// </summary>
-            public static void HandleEntityDestroyed(Entity entity)
+            public static void DestroyEntity(Entity entity)
             {
                 if (!_entityStates.TryGetValue(entity, out var state))
                 {
@@ -264,7 +259,7 @@ namespace Angene.Essentials
                 if (state.Destroyed)
                 {
                     Logger.Log(
-                        $"Entity '{entity.name}' already destroyed",
+                        $"Attempted to remove '{entity.name}' which is already destroyed.",
                         LoggingTarget.Engine,
                         LogLevel.Warning
                     );
