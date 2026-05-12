@@ -3,7 +3,7 @@
 # Angene
 
 (pronounced 'engine')
-Last updated 2026/05/03
+Last updated 2026/05/12
 
 The C# library/variant of Angene. If you want to skip the entire tree for the engine, skip to the [examples.](https://github.com/Aerialflame7125/Angene/blob/main/CS/README.md#Examples)
 
