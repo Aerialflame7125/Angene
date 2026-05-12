@@ -1,4 +1,4 @@
-!\[Angene Logo](https://github.com/Aerialflame7125/Angene/blob/main/AngeneLogoBig.png?raw=true)
+![Angene Logo](https://github.com/Aerialflame7125/Angene/blob/main/AngeneLogoBig.png?raw=true)
 
 # Angene
 
@@ -1145,16 +1145,14 @@ Use3D = true
             MediaStop = 0xB2,
             MediaPlayPause = 0xB3,
 
-
-
 # Examples
 
-  ## Engine
+## Engine
 
-    The engine is instantiated whenever you call upon the 'Engine.Instance.Init()' function.
+The engine is instantiated whenever you call upon the 'Engine.Instance.Init()' function.
 This sits at the top of the runtime, providing the log window, lifetime instantiation, Window definitions, everything.
 
-    ```cs
+```cs
 // You can do this if you want, but it's easier in my opinion to make instances.
 public class Instances
 {
@@ -1173,10 +1171,10 @@ Instances i = new Instances();
 i.MakeInstances(true);
 ```
 
-    This is just an example of instantiation, and yes, the logger is required to be initialized.
+This is just an example of instantiation, and yes, the logger is required to be initialized.
 Later using this Engine class, you are able to create a new window:
 
-    ```cs
+```cs
 WindowConfig conf = new WindowConfig();
 conf.Title = "Angene | Demo Code";
 conf.Transparency = Win32.WindowTransparency.SemiTransparent; // Not required, nice touch though
@@ -1185,9 +1183,9 @@ window = new Window(conf);
 Logger.Log("New window, yaey!", LoggingTarget.Engine);
 ```
 
-    Then add a scene to said window:
+Then add a scene to said window:
 
-    ```cs
+```cs
 DemoScene scene = null;
 try
 {
@@ -1199,15 +1197,15 @@ try
 }
 ```
 
-    I find it somewhat intuitive, but sometimes a pain. testGame is accessible in the root of this repo, so you can see how I initialize the engine.
+I find it somewhat intuitive, but sometimes a pain. testGame is accessible in the root of this repo, so you can see how I initialize the engine.
 
-    ## Logger
+## Logger
 
-    The logger is instantiated by the engine when 'Engine.Init(bool)' is called.
+The logger is instantiated by the engine when 'Engine.Init(bool)' is called.
 I hate logs as much as the next guy, but it makes debugging or helping users so much easier.
 At least its better than placing it in 'LocalLow{Dev}{Game}\\Player.log' where NO ORDINARY USER WILL BE ABLE TO FIND IT.
 
-    ```cs
+```cs
 engine = Engine.Instance;
 engine.Init(true); // If true, opens a new log window
 
@@ -1215,9 +1213,9 @@ Logger.Log("Hey i'm a debug log!", LoggingTarget.MainGame); // Logs to file, log
 Logger.Log("Woah I'm an error, be scared.", LoggingTarget.Class, logLevel: LogLevel.Error);
 ```
 
-    But there is even easier:
+But there is even easier:
 
-    ```cs
+```cs
 try
 {
   Logger.LogError("I'm already an error, no need for logLevel!", LoggingTarget.MainScene);
@@ -1227,7 +1225,7 @@ catch (Exception ex) {
 } // not that the logger would ever call an exception, just an example.
 ```
 
-    There are more examples of this logger, above shows the calls. Below is the hierarchy for importance, top is most important.
+There are more examples of this logger, above shows the calls. Below is the hierarchy for importance, top is most important.
 
 * LogCritical
 * LogError
@@ -1237,13 +1235,13 @@ catch (Exception ex) {
 * LogDebug
 This logger already pre-writes a new file to a folder called "Log", picking everything up from the engine and game stack. Debug is written here instead of window when log window instance exists.
 
-  ## Windows message loop (Win32)
+## Windows message loop (Win32)
 
-  Please, please, please, do not forget the message loop.
+Please, please, please, do not forget the message loop.
 The message loop is what keeps the entire lifecycle in check, as well as triggering every tick.
 This is left open for the developer in case they want anything in between ticks or draw. Use the below as a template if you want:
 
-  ```cs
+```cs
 private static void RunWindowsMessageLoop(Window window, ref double dto, ref double dtl)
 {
   bool running = true;
@@ -1277,15 +1275,15 @@ private static void RunWindowsMessageLoop(Window window, ref double dto, ref dou
 }
 ```
 
-  Sure, it's a little counter-intuitive, but it leaves the lifecycle as a choice for the developer, maybe even allowing some funky shit later.
+Sure, it's a little counter-intuitive, but it leaves the lifecycle as a choice for the developer, maybe even allowing some funky shit later.
 Just remember, if you detatch the tick method, no scene or script will run. Everything is reliant on ticks and OnDraw.
 
-  ## Package Handler (Angene.PkgHandler)
+## Package Handler (Angene.PkgHandler)
 
-  This loads angpkg files that are compiled from the packer in the root of this repo. If you aren't familiar, it is the equivelant of a unitypackage file or assetbundle.
+This loads angpkg files that are compiled from the packer in the root of this repo. If you aren't familiar, it is the equivelant of a unitypackage file or assetbundle.
 It is designed to be instantiated at runtime for easier usage. Scripts may not work in this, at the time of writing (2/21/26), it hasn't been tested.
 
-  ```cs
+```cs
 try
 {
   private string \_packagePath = Path.Combine(AppContext.BaseDirectory, "game.angpkg");
@@ -1326,18 +1324,18 @@ catch (Exception ex)
 }
 ```
 
-  Sadly incredibly fraile, will fall apart if path is not met up to standard.
+Sadly incredibly fraile, will fall apart if path is not met up to standard.
 This example shows loading text from a package to be used later, this is the exact same thing as in TextHandler in testGame.
 If it has hexadecimal in the actual file, it can be packed. The same can't be said about loading, but whatever.
 This can also be used for OTA (Over The Air) updates, download a package, load and 'unzip' it, then you have a new version!
 
-  ## ScreenPlay scripts (Essentials.IScreenPlay)
+## ScreenPlay scripts (Essentials.IScreenPlay)
 
-  These are scripts that load at runtime as children of entities.
+These are scripts that load at runtime as children of entities.
 I attempted to make this cleaner than it really is, sorry for that.
 You can use these to instantiate new objects, handle other entities, or even Discord RPC if you feel inclined to do.
 
-  ```cs
+```cs
 internal class ScriptExample : IScreenPlay
 {
   private int num;
@@ -1361,22 +1359,22 @@ internal class ScriptExample : IScreenPlay
 }
 ```
 
-  This is just an example script, but you still have to set it up with the lifecycle:
+This is just an example script, but you still have to set it up with the lifecycle:
 
-  ```cs
+```cs
 var script = Entity.AddScript<ScriptExample>();
 script.Initialize(46); // Following example from earlier
 Entity.SetEnabled(true); // Start entity, sets up script with lifecycle.
 ```
 
-  I find this really cool to be honest, you (the developer) do not have to touch the lifecycle at all. (Unless you are setting up OnMessage handlers in the message loop.)
+I find this really cool to be honest, you (the developer) do not have to touch the lifecycle at all. (Unless you are setting up OnMessage handlers in the message loop.)
 
-  ## Scenes (Essentials.IScene)
+## Scenes (Essentials.IScene)
 
-  The nitty gritty, how games work and how things are instantiated and ran in lifetime.
+The nitty gritty, how games work and how things are instantiated and ran in lifetime.
 The scene spec is simple, very few things to add.
 
-  ```cs
+```cs
 public class DemoScene : IScene
 {
   // The following 3 vars are not required, but are recommended.
@@ -1421,28 +1419,28 @@ public class DemoScene : IScene
   public void Cleanup() { }
 ```
 
-  Really long exerpt, but it was worth it. Take note of how there is an OnMessage scene call, Messages are also distributed to scenes handled by window lifetime.
+Really long exerpt, but it was worth it. Take note of how there is an OnMessage scene call, Messages are also distributed to scenes handled by window lifetime.
 
-  ## Window Configs (Platform.WindowConfig)
+## Window Configs (Platform.WindowConfig)
 
-  Honestly one of the more easier parts of this engine. This defines the construct that the window is based off of.
+Honestly one of the more easier parts of this engine. This defines the construct that the window is based off of.
 You (the developer) have a plethora of options for the window, and I honestly recommend that you actually read the (C# spec for yourself)\[https://github.com/Aerialflame7125/Angene/blob/main/CS/Angene/Angene.Main/Platform/WindowConfig.cs].
 Here is a really basic window config, along with instantiation:
 
-  ```cs
+```cs
 WindowConfig winconf = new WindowConfig();
 winconf.Title = "Angene | Demo";
 winconf.Width = 1280; winconf.Height = 720;
 Window win = new Window(winconf);
 ```
 
-  It just creates a new 720p window showing nothing. Everything else is handled by lifetime.
+It just creates a new 720p window showing nothing. Everything else is handled by lifetime.
 
-  ## Rich Presence (External.DiscordRichPresence)
+## Rich Presence (External.DiscordRichPresence)
 
-  Leverages an already made library, but adjusted it within my engine so it is easier on the developer.
+Leverages an already made library, but adjusted it within my engine so it is easier on the developer.
 
-  ```cs
+```cs
 internal class RPC : IScreenPlay
 {
   private RichPresence presence = new RichPresence
@@ -1473,14 +1471,14 @@ internal class RPC : IScreenPlay
 }
 ```
 
-  Again really long exerpt, but essentially initializes RPC. I am aware I put an app id in there. It's the same one in testGame, its not special.
+Again really long exerpt, but essentially initializes RPC. I am aware I put an app id in there. It's the same one in testGame, its not special.
 
-  ## Websocket Windows
+## Websocket Windows
 
-  Not recommended, this forwards all window graphics (gdi) to a websocket to be interpreted by an http connection. There is NO CERTIFICATE.
+Not recommended, this forwards all window graphics (gdi) to a websocket to be interpreted by an http connection. There is NO CERTIFICATE.
 Just to initialize is simple as can be:
 
-  ```cs
+```cs
 instances.settings.SetSetting("Main.getIsGameAllowedForWebsockets", true);
 WindowConfig config = new WindowConfig();
 config.cTI = true;       // enable connection type injection
@@ -1493,17 +1491,17 @@ window = new Window(config);
 Logger.Log("Window created successfully", LoggingTarget.Engine);
 ```
 
-  Simple right? Well the implementation isn't.
+Simple right? Well the implementation isn't.
 If you want an example for a http server via html5, [reach out here](https://github.com/Aerialflame7125/Angene/blob/main/testGame/WebsocketServer/index.html)
 
-  There are lots of other obscure methods, but if you want the easiest example, just use [the text handler from there](https://github.com/Aerialflame7125/Angene/blob/main/testGame/WebsocketServer/TextHandler.cs) or refer to the graphics context at the top listing.
+There are lots of other obscure methods, but if you want the easiest example, just use [the text handler from there](https://github.com/Aerialflame7125/Angene/blob/main/testGame/WebsocketServer/TextHandler.cs) or refer to the graphics context at the top listing.
 
-  ## Example CSProj
+## Example CSProj
 
-  Not really a helper to provide an example but whatever
+Not really a helper to provide an example but whatever
 The CPP host file is really picky on namespaces, so here is an example:
 
-  ```csproj
+```csproj
 <PropertyGroup>
 	<TargetFramework>net8.0</TargetFramework>
 	<OutputType>Library</OutputType>
@@ -1529,15 +1527,15 @@ The CPP host file is really picky on namespaces, so here is an example:
 </PropertyGroup>
 ```
 
-  This literally is the simplest you need if you want to at least compile.
+This literally is the simplest you need if you want to at least compile.
 Next the entry point:
 
-  ## Entry point
+## Entry point
 
-  The engine's host cpp file has a very specific entry point definition as well:
+The engine's host cpp file has a very specific entry point definition as well:
 
-  ```cs
-\[UnmanagedCallersOnly]
+```cs
+[UnmanagedCallersOnly]
 public static int Main(IntPtr args, int argc)
 {
     bool verbose = false;
@@ -1584,13 +1582,13 @@ public static int Main(IntPtr args, int argc)
 }
 ```
 
-  Again just an example, but the arguments are as follows. If a log directory is not created after launching the host, something is incorrect with the entry point or the engine hasn't initialized.
+Again just an example, but the arguments are as follows. If a log directory is not created after launching the host, something is incorrect with the entry point or the engine hasn't initialized.
 
-  ## Audio
+## Audio
 
-  Audio is really strange, but I attempted to have this as simple as possible. You first need to create an AudioFile() var:
+Audio is really strange, but I attempted to have this as simple as possible. You first need to create an AudioFile() var:
 
-  ```cs
+```cs
 // In scene Initialize() or inside a script:
 
 var audio = new AudioFile(
@@ -1600,9 +1598,9 @@ var audio = new AudioFile(
   );
 ```
 
-  Then create an audio manager, this is handled in its own thread to save the original game threads.
+Then create an audio manager, this is handled in its own thread to save the original game threads:
 
-  ```cs
+```cs
 var audioManager = new AudioManager(
   file: audio,
   playOnLoad: true, // Play the audio once the file is loaded
@@ -1611,13 +1609,13 @@ var audioManager = new AudioManager(
 );
 ```
 
-  This creates a new AudioManager thread, able to be called.
+This creates a new AudioManager thread, able and ready to be called.
 
-  ### Audio calls
+### Audio calls
 
-  You can make many different calls towards audio, it's just a matter of how you use them. Here's an example of a function call:
+You can make many different calls towards audio, it's just a matter of how you use them. Here's an example of a function call:
 
-  ```cs
+```cs
 public void OnGunFire()
 {
   // For this example, loadOnGetThenDestroy is ideal, starts reading bytes, plays, then disposes file handle to save resources.
@@ -1632,9 +1630,9 @@ public void OnGunFire()
 }
 ```
 
-  Or you can have it idle to be played later:
+Or you can have it idle to be played later:
 
-  ```cs
+```cs
 public void CreateAudio()
 {
   var file = new AudioFile(
@@ -1656,9 +1654,9 @@ public void CreateAudio()
 }
 ```
 
-  Now if your package has a key on it, you have to define a key:
+Now if your package has a key on it, you have to define a key:
 
-  ```cs
+```cs
 byte\[] key; //just set your key later
 // ...
 
@@ -1671,14 +1669,13 @@ var file = new AudioFile(
 // then do the same as usual
 ```
 
-  ## Math
+## Math
 
-  This entire math library includes a fuck ton
-Vectors, Interpolation, randomisation, and gpu-acceleration.
+This entire math library includes a fuck ton of Vectors, Interpolation, randomisation, and gpu-acceleration.
 
-  ### Vectors
+### Vectors
 
-  ```cs
+```cs
 var a = new Vec2(3f, 4f);
 var b = new Vec2(1f, 2f);
 
@@ -1699,9 +1696,9 @@ var translate = Matrix3x3.Translation(10f, 20f);
 Vec2 moved = translate \* new Vec2(5f, 3f);     // (15, 23)
 ```
 
-  ### Interpolation (Mathf)
+### Interpolation (Mathf)
 
-  ```cs
+```cs
 float clamped   = Mathf.Clamp(5f, 0f, 3f);           // 3
 float remapped  = Mathf.Remap(5f, 0f, 10f, 0f, 100f); // 50
 float lerped    = Mathf.Lerp(0f, 100f, 0.25f);         // 25
@@ -1716,9 +1713,9 @@ float eased = Mathf.Ease.OutBack(0.5f);   // overshoots past 1
 float bounce = Mathf.Ease.OutBounce(0.5f);
 ```
 
-  ### Randomisation (Rand)
+### Randomisation (Rand)
 
-  ```cs
+```cs
 Rand.SetSeed(42); // deterministic from here on
 
 float f   = Rand.Value;               // \[0, 1)
@@ -1734,9 +1731,9 @@ var list = new List { 1, 2, 3, 4, 5 };
 Rand.Shuffle(list);
 ```
 
-  ### GpuMath (bulk ops, CPU fallback below threshold)
+### GpuMath (bulk ops, CPU fallback below threshold)
 
-  ```cs
+```cs
 // Requires an IComputeBackend — pass a real D3D11/Vulkan backend for GPU dispatch.
 // Arrays smaller than GpuMath.GpuThreshold (default 512) fall back to CPU automatically.
 var gpu = new Angene.Math.GPU.Math(myComputeBackend);
@@ -1759,30 +1756,33 @@ Vec2    vecAvg   = gpu.Average(vec2Array);
 gpu.Dispose();
 ```
 
-  An example of all of these is in [testGame/MathTest](https://github.com/Aerialflame7125/Angene/tree/main/testGame/MathTest).
+An example of all of these is in [testGame/MathTest](https://github.com/Aerialflame7125/Angene/tree/main/testGame/MathTest).
 
-  ## Key Detection
-  ```cs
-  bool held = KeyDetection.IsKeyDown(key);
+## Key Detection
+  
+```cs
+bool held = KeyDetection.IsKeyDown(key);
 
-  uint bg = held ? 0x003A6E3Au : 0x00222233u;
-  uint fg = held ? 0x0000FF00u : 0x00AAAAAAu;
-  uint border = held ? 0x0000CC00u : 0x00444466u;
-  ```
-  This example takes in if a key is down and decides uint color values when a key is down.
-  The specifications show exactly what you are able to call, as well as how to return a list of down keys.
-  You need to register the key detection script seperately. This is by design to save performance.
-  You can do it like so:
-  ```cs
-  _keyDetection.Register(_window.ManagementScene as ManagementScene);
-  // Or you can do it like this, not needing an argument at all:
-  _keyDetection.Register();
-  ```
-  IsKeyDown() returns a boolean based upon if the key given is down.
+uint bg = held ? 0x003A6E3Au : 0x00222233u;
+uint fg = held ? 0x0000FF00u : 0x00AAAAAAu;
+uint border = held ? 0x0000CC00u : 0x00444466u;
+```
+
+This example takes in if a key is down and decides uint color values when a key is down.
+The specifications show exactly what you are able to call, as well as how to return a list of down keys.
+You need to register the key detection script seperately. This is by design to save performance.
+You can do it like so:
+
+```cs
+_keyDetection.Register(_window.ManagementScene as ManagementScene);
+// Or you can do it like this, not needing an argument at all:
+_keyDetection.Register();
+```
+IsKeyDown() returns a boolean based upon if the key given is down.
 
 # QnA
 
-  ## Have you vibecoded any part of this engine?
+  ## Have you [vibecoded](http://vibe-coded.urbanup.com/18530338) any part of this engine?
 
   Sadly, yes. There are major parts within this game engine that are vibe coded. Most of that is the partial lack of interest and lack of thinking that I would ever use it in the future.
 If you need to know which parts are vibe coded, I will list them here:
@@ -1847,7 +1847,7 @@ If you need to know which parts are vibe coded, I will list them here:
 
   * All of the above
 
-    * Not going to rant about microsoft implementations, just that me personally, I have no idea how D3D works, nor does the documentation really help me in the case of using C#.
+    * Not going to rant about microsoft implementations, just that me personally, I have no idea (as of now) how graphics rendering works in the terms of creation, nor does the documentation really help me in the case of using C#.
     * Although I do state all of the above, GDI is the only one that does not adhere to this. The implementation carries from Python, and is human written (for the most part, conversion was AI.)
 
     ### Angene.Windows
