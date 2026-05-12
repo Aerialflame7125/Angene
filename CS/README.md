@@ -43,21 +43,21 @@ The C# library/variant of Angene. If you want to skip the entire tree for the en
 
   * Package
 
-    * IReadOnlyList<ManifestEntry> Entries => \_manifest.Files;
+    * IReadOnlyList<ManifestEntry> Entries => _manifest.Files;
 
-    private Package(FileStream fs, Manifest manifest, byte\[] key,
-bool manifestEncrypted, bool manifestCompressed, byte\[] manifestNonce, long manifestOffset)
+    private Package(FileStream fs, Manifest manifest, byte[] key,
+bool manifestEncrypted, bool manifestCompressed, byte[] manifestNonce, long manifestOffset)
 {
-\_fs = fs;
-\_manifest = manifest;
-\_key = key;
-\_manifestEncrypted = manifestEncrypted;
-\_manifestCompressed = manifestCompressed;
-\_manifestNonce = manifestNonce;
-\_manifestOffset = manifestOffset;
+_fs = fs;
+_manifest = manifest;
+_key = key;
+_manifestEncrypted = manifestEncrypted;
+_manifestCompressed = manifestCompressed;
+_manifestNonce = manifestNonce;
+_manifestOffset = manifestOffset;
 }
 
-    * Package Open(string path, byte\[] key = null)
+    * Package Open(string path, byte[] key = null)
 {
 var fs = File.OpenRead(path);
 var magic = br.ReadBytes(8);
@@ -65,11 +65,11 @@ var magicStr = Encoding.ASCII.GetString(magic);
 var version = br.ReadUInt32();
 var manifestLength = br.ReadInt64();
 var manifestFlags = br.ReadByte();
-bool manifestEncrypted = (manifestFlags \& 0x01) != 0;
-bool manifestCompressed = (manifestFlags \& 0x02) != 0;
-byte\[] manifestNonce = null;
+bool manifestEncrypted = (manifestFlags & 0x01) != 0;
+bool manifestCompressed = (manifestFlags & 0x02) != 0;
+byte[] manifestNonce = null;
 long manifestOffset = fs.Position;
-var manifestBytes = new byte\[manifestLength];
+var manifestBytes = new byte[manifestLength];
 int toRead = (int)manifestLength;
 int totalRead = 0;
 return new Package(fs, manifest, key, manifestEncrypted, manifestCompressed, manifestNonce, manifestOffset);
@@ -79,7 +79,7 @@ return new Package(fs, manifest, key, manifestEncrypted, manifestCompressed, man
 
     private class Manifest
 {
-- ManifestEntry\[] Files { get; set; }
+- ManifestEntry[] Files { get; set; }
 - DateTime Created { get; set; }
 }
 
@@ -102,8 +102,8 @@ return new Package(fs, manifest, key, manifestEncrypted, manifestCompressed, man
     * string Title { get; set; } = "Angene Window";
     * int Width { get; set; } = 800;
     * int Height { get; set; } = 600;
-    * int X { get; set; } = Win32.CW\_USEDEFAULT;
-    * int Y { get; set; } = Win32.CW\_USEDEFAULT;
+    * int X { get; set; } = Win32.CW_USEDEFAULT;
+    * int Y { get; set; } = Win32.CW_USEDEFAULT;
     * bool cTI { internal get; set; } = false;
     * string cTS { internal get; set; } = "";
     * string cTT { internal get; set; } = "";
@@ -120,7 +120,7 @@ set
 if (value)
 StyleEx |= Win32.WindowStyleEx.Topmost;
 else
-StyleEx \&= \~Win32.WindowStyleEx.Topmost;
+StyleEx &= ~Win32.WindowStyleEx.Topmost;
 }
 }
     * WindowConfig Standard(string title, int width, int height)
@@ -201,10 +201,10 @@ Use3D = true
       * y # Y axis
       * z = 0 # Z axis (Not implemented, but placeholder and not required.)
       * name # name of object
-      * \_scripts # All script objects (List<object>)
+      * _scripts # All script objects (List<object>)
       * childEntities # All child entities (List<Entity>)
-      * \_parent # Parent object
-      * \_enabled # If enabled
+      * _parent # Parent object
+      * _enabled # If enabled
     * T AddScript<T>() where T : new() # Add a script component to lifecycle system
     * AddScript(object) # Adds a new script *instance* to hierarchy
     * RemoveScript(object) # Remove a script, does **NOT TRIGGER LIFECYCLE CALLBACKS**
@@ -310,7 +310,7 @@ Use3D = true
 
       * readonly Logger Instance # Logger instance
       * StreamWriter? LogInstance # Log instance streamwriter, writes to log file.
-      * bool \_verbose # Verbose setting
+      * bool _verbose # Verbose setting
       * Action<object, object, object, object, object> OnLog { get; set; } # Action per log
       * Init(bool) # Initializes logger, bool defines if new window is created.
       * Log(string, LoggingTarget, LogLevel, Exception, int) # Logs
@@ -324,7 +324,7 @@ Use3D = true
 
     * List<string> namespaces # Namespaces for settings
     * Dictionary<string, object> consoleSettings # Console settings (Does literally nothing)
-    * Action<string, object>\[] OnSettingsChanged # Action that happens when setting changed.
+    * Action<string, object>[] OnSettingsChanged # Action that happens when setting changed.
     * Settings() # Literally calls LoadDefaults() when instantiated.
     * LoadDefaults() # Loads setting defaults
     * object GetSetting(string) # Gets a setting, returns an object from setting value
@@ -346,7 +346,7 @@ Use3D = true
 
   * AudioFile
 
-    * LoadType \_loadType;
+    * LoadType _loadType;
     * enum LoadType
   {
   loadOnInstantiate = 0,
@@ -354,8 +354,8 @@ Use3D = true
   streamed = 2,
   loadOnGetThenDestroy = 3
   };
-    * AudioFile(string packagePath, string path, LoadType loadType, byte\[] key = null)
-    * byte\[] GetAudioBytes()
+    * AudioFile(string packagePath, string path, LoadType loadType, byte[] key = null)
+    * byte[] GetAudioBytes()
     * Stream GetAudioStream()
     * void Dispose()
   * AudioManager
@@ -403,7 +403,7 @@ Use3D = true
   void DrawText(string text, int x, int y, uint color);
   void Present(IntPtr windowHandle);
   void Cleanup();
-  byte\[] GetRawPixels();
+  byte[] GetRawPixels();
   }
     * class GdiGraphicsContext : IGraphicsContext
 
@@ -413,7 +413,7 @@ Use3D = true
       * void DrawRectangle(int x, int y, int w, int h, uint color)
       * void DrawText(string text, int x, int y, uint color)
       * void Present(IntPtr hwnd)
-      * byte\[] GetRawPixels() { return null; }
+      * byte[] GetRawPixels() { return null; }
     * class WSGraphicsContext : IGraphicsContext
 
       * IntPtr Handle => memDc;
@@ -421,7 +421,7 @@ Use3D = true
       * void Clear(uint color)
       * void DrawRectangle(int x, int y, int w, int h, uint color)
       * void DrawText(string text, int x, int y, uint color)
-      * byte\[] GetRawPixels()
+      * byte[] GetRawPixels()
     * class GraphicsContextFactory
 
       * IGraphicsContext Create(IntPtr windowHandle, int width, int height)
@@ -471,7 +471,7 @@ Use3D = true
   BITMAPINFOHEADER bmiHeader;
   uint bmiColors; // Just enough for the header
   }
-    * GetDIBits(IntPtr hdc, IntPtr hbmp, uint uStartScan, uint cScanLines, \[Out] byte\[] lpvBits, ref BITMAPINFO lpbi, uint uUsage);
+    * GetDIBits(IntPtr hdc, IntPtr hbmp, uint uStartScan, uint cScanLines, [Out] byte[] lpvBits, ref BITMAPINFO lpbi, uint uUsage);
   * Angene.Windows.Win32
 
     * enum WindowStyle : uint
@@ -545,27 +545,27 @@ Use3D = true
       * WindowTransparency SemiTransparent => new WindowTransparency { Enabled = true, Alpha = 128, ClickThrough = false };
       * WindowTransparency FullyTransparent => new WindowTransparency { Enabled = true, Alpha = 0, ClickThrough = true };
   }
-    * const uint GR\_GDIOBJECTS = 0;
-    * const int PM\_REMOVE = 0x0001;
-    * const uint WM\_CLOSE = 0x0010;
-    * const uint WM\_DESTROY = 0x0002;
-    * const uint WM\_ERASEBKGND = 0x0014;
-    * const uint WM\_QUIT = 0x0012;
-    * const uint WS\_OVERLAPPEDWINDOW = 0x00CF0000;
-    * const int CW\_USEDEFAULT = unchecked((int)0x80000000);
-    * const int SW\_SHOW = 5;
+    * const uint GR_GDIOBJECTS = 0;
+    * const int PM_REMOVE = 0x0001;
+    * const uint WM_CLOSE = 0x0010;
+    * const uint WM_DESTROY = 0x0002;
+    * const uint WM_ERASEBKGND = 0x0014;
+    * const uint WM_QUIT = 0x0012;
+    * const uint WM_OVERLAPPEDWINDOW = 0x00CF0000;
+    * const int CW_USEDEFAULT = unchecked((int)0x80000000);
+    * const int SW_SHOW = 5;
     * delegate IntPtr WndProcDelegate(
   IntPtr hWnd,
   uint msg,
   IntPtr wParam,
   IntPtr lParam
   );
-    * const uint IMAGE\_ICON = 1;
-    * const uint LR\_DEFAULTSIZE = 0x00000040;
-    * const uint LR\_LOADFROMFILE = 0x00000010;
-    * const uint WM\_SETICON = 0x0080;
-    * const int ICON\_SMALL = 0;
-    * const int ICON\_BIG = 1;
+    * const uint IMAGE_ICON = 1;
+    * const uint LR_DEFAULTSIZE = 0x00000040;
+    * const uint LR_LOADFROMFILE = 0x00000010;
+    * const uint WM_SETICON = 0x0080;
+    * const int ICON_SMALL = 0;
+    * const int ICON_BIG = 1;
     * IntPtr LoadImage(
   IntPtr hInst,
   string lpszName,
@@ -589,7 +589,7 @@ Use3D = true
   int cyDesired,
   uint Flags
   );
-    * const uint LR\_DEFAULTCOLOR = 0x00000000;
+    * const uint LR_DEFAULTCOLOR = 0x00000000;
     * bool DestroyIcon(IntPtr hIcon);
     * struct WNDCLASSEX
   {
@@ -615,8 +615,8 @@ Use3D = true
       * IntPtr wParam;
       * IntPtr lParam;
       * uint time;
-      * int pt\_x;
-      * int pt\_y;
+      * int pt_x;
+      * int pt_y;
   }
     * uint GetGuiResources(IntPtr hProcess, uint uiFlags);
     * IntPtr GetDC(IntPtr hWnd);
@@ -667,7 +667,7 @@ Use3D = true
       * RECT rcPaint;
       * bool fRestore;
       * bool fIncUpdate;
-      * byte\[] rgbReserved;
+      * byte[] rgbReserved;
   }
     * struct RECT
   {
@@ -677,13 +677,13 @@ Use3D = true
       * int right;
       * int bottom;
   }
-    * const uint WS\_POPUP = 0x80000000;
-    * const uint WS\_EX\_LAYERED = 0x00080000;
-    * const uint WS\_EX\_TRANSPARENT = 0x00000020;
-    * const uint WS\_EX\_TOPMOST = 0x00000008;
-    * const int LWA\_COLORKEY = 0x1;
-    * const int LWA\_ALPHA = 0x2;
-    * const int GWL\_EXSTYLE = -20;
+    * const uint WS_POPUP = 0x80000000;
+    * const uint WS_EX_LAYERED = 0x00080000;
+    * const uint WS_EX_TRANSPARENT = 0x00000020;
+    * const uint WS_EX_TOPMOST = 0x00000008;
+    * const int LWA_COLORKEY = 0x1;
+    * const int LWA_ALPHA = 0x2;
+    * const int GWL_EXSTYLE = -20;
     * bool SetLayeredWindowAttributes(
   IntPtr hwnd,
   uint crKey,
@@ -745,7 +745,7 @@ Use3D = true
       * const uint SYSMENU          = 0x00080000;
       * const uint THICKFRAME       = 0x00040000;
   }
-    * class WS\_EX
+    * class WS_EX
   {
 
       * const uint TOPMOST           = 0x00000008;
@@ -782,9 +782,9 @@ Use3D = true
   where TInput : unmanaged
   where TOutput : unmanaged
   {
-  void Upload(TInput\[] data);
+  void Upload(TInput[] data);
   void Dispatch();
-  TOutput\[] Collect();   // Blocks until done — GPU readback
+  TOutput[] Collect();   // Blocks until done — GPU readback
   bool IsComplete { get; }
   }
   * GPU
@@ -793,29 +793,29 @@ Use3D = true
 
       * int GpuThreshold { get; set; } = 512; // below this, falls back to CPU
       * Math(IComputeBackend backend)
-      * Vec2\[] Add(Vec2\[] a, Vec2\[] b)
-      * Vec2\[] Scale(Vec2\[] vectors, float scalar)
-      * Vec2\[] Normalize(Vec2\[] vectors)
-      * float\[] Dot(Vec2\[] a, Vec2\[] b)
-      * float\[] Length(Vec2\[] vectors)
-      * Vec2\[] Lerp(Vec2\[] a, Vec2\[] b, float t)
-      * Vec2\[] Lerp(Vec2\[] a, Vec2\[] b, float\[] t)
-      * Vec3\[] Add(Vec3\[] a, Vec3\[] b)
-      * Vec3\[] Cross(Vec3\[] a, Vec3\[] b)
-      * Vec3\[] Normalize(Vec3\[] vectors)
-      * float\[] Dot(Vec3\[] a, Vec3\[] b)
-      * Vec2\[] Transform(Matrix3x3 matrix, Vec2\[] points)
-      * Matrix3x3\[] Multiply(Matrix3x3\[] a, Matrix3x3\[] b)
-      * float\[] Clamp(float\[] values, float min, float max)
-      * float\[] Lerp(float\[] a, float\[] b, float t)
-      * float\[] Remap(float\[] values, float inMin, float inMax, float outMin, float outMax)
-      * float\[] Sqrt(float\[] values)
-      * float\[] Abs(float\[] values)
-      * float Sum(float\[] values)
-      * float Min(float\[] values)
-      * float Max(float\[] values)
-      * Vec2 Sum(Vec2\[] vectors)
-      * Vec2 Average(Vec2\[] vectors)
+      * Vec2[] Add(Vec2[] a, Vec2[] b)
+      * Vec2[] Scale(Vec2[] vectors, float scalar)
+      * Vec2[] Normalize(Vec2[] vectors)
+      * float[] Dot(Vec2[] a, Vec2[] b)
+      * float[] Length(Vec2[] vectors)
+      * Vec2[] Lerp(Vec2[] a, Vec2[] b, float t)
+      * Vec2[] Lerp(Vec2[] a, Vec2[] b, float[] t)
+      * Vec3[] Add(Vec3[] a, Vec3[] b)
+      * Vec3[] Cross(Vec3[] a, Vec3[] b)
+      * Vec3[] Normalize(Vec3[] vectors)
+      * float[] Dot(Vec3[] a, Vec3[] b)
+      * Vec2[] Transform(Matrix3x3 matrix, Vec2[] points)
+      * Matrix3x3[] Multiply(Matrix3x3[] a, Matrix3x3[] b)
+      * float[] Clamp(float[] values, float min, float max)
+      * float[] Lerp(float[] a, float[] b, float t)
+      * float[] Remap(float[] values, float inMin, float inMax, float outMin, float outMax)
+      * float[] Sqrt(float[] values)
+      * float[] Abs(float[] values)
+      * float Sum(float[] values)
+      * float Min(float[] values)
+      * float Max(float[] values)
+      * Vec2 Sum(Vec2[] vectors)
+      * Vec2 Average(Vec2[] vectors)
   * Interpolation
 
     * const float PI = MathF.PI;
@@ -871,8 +871,8 @@ Use3D = true
       * static Vec2 Reflect(Vec2 v, Vec2 normal)
       * static Vec2 operator +(Vec2 a, Vec2 b)
       * static Vec2 operator -(Vec2 a, Vec2 b)
-      * static Vec2 operator \*(Vec2 v, float s)
-      * static Vec2 operator \*(float s, Vec2 v)
+      * static Vec2 operator *(Vec2 v, float s)
+      * static Vec2 operator *(float s, Vec2 v)
       * static Vec2 operator /(Vec2 v, float s)
   }
     * struct Vec3(float x = 0, float y = 0, float z = 0)
@@ -886,7 +886,7 @@ Use3D = true
       * static Vec3 Lerp(Vec3 a, Vec3 b, float t)
       * static Vec3 operator +(Vec3 a, Vec3 b)
       * static Vec3 operator -(Vec3 a, Vec3 b)
-      * static Vec3 operator \*(Vec3 v, float s)
+      * static Vec3 operator *(Vec3 v, float s)
       * static Vec3 operator /(Vec3 v, float s)
   }
     * struct Rect(float x = 0, float y = 0, float width = 0, float height = 0)
@@ -912,8 +912,8 @@ Use3D = true
       * static Matrix3x3 Translation(float tx, float ty)
       * static Matrix3x3 Rotation(float radians)
       * static Matrix3x3 Scale(float sx, float sy)
-      * static Matrix3x3 operator \*(Matrix3x3 a, Matrix3x3 b)
-      * static Vec2 operator \*(Matrix3x3 m, Vec2 v)
+      * static Matrix3x3 operator *(Matrix3x3 a, Matrix3x3 b)
+      * static Vec2 operator *(Matrix3x3 m, Vec2 v)
   }
   * Rand
 
@@ -935,7 +935,7 @@ Use3D = true
   {
   get
   {
-  float angle = Range(0f, Mathf.PI \* 2f);
+  float angle = Range(0f, Mathf.PI * 2f);
   return new Vec2(MathF.Cos(angle), MathF.Sin(angle));
   }
   }
@@ -1203,7 +1203,7 @@ I find it somewhat intuitive, but sometimes a pain. testGame is accessible in th
 
 The logger is instantiated by the engine when 'Engine.Init(bool)' is called.
 I hate logs as much as the next guy, but it makes debugging or helping users so much easier.
-At least its better than placing it in 'LocalLow{Dev}{Game}\\Player.log' where NO ORDINARY USER WILL BE ABLE TO FIND IT.
+At least its better than placing it in 'LocalLow{Dev}{Game}Player.log' where NO ORDINARY USER WILL BE ABLE TO FIND IT.
 
 ```cs
 engine = Engine.Instance;
@@ -1248,9 +1248,9 @@ private static void RunWindowsMessageLoop(Window window, ref double dto, ref dou
 
   while (running)
   {
-    while (Win32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Win32.PM\_REMOVE))
+    while (Win32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Win32.PM_REMOVE))
     {
-      if (msg.message == Win32.WM\_QUIT)
+      if (msg.message == Win32.WM_QUIT)
       {
         running = false;
         break;
@@ -1286,41 +1286,41 @@ It is designed to be instantiated at runtime for easier usage. Scripts may not w
 ```cs
 try
 {
-  private string \_packagePath = Path.Combine(AppContext.BaseDirectory, "game.angpkg");
-  if (File.Exists(\_packagePath))
+  private string _packagePath = Path.Combine(AppContext.BaseDirectory, "game.angpkg");
+  if (File.Exists(_packagePath))
   {
-    \_package = Angene.Main.Package.Open(\_packagePath, key: null); // Key is used if encrypted with a key at package time.
-    foreach (var e in \_package.Entries)
-      \_entryNames.Add(e.Path);
+    _package = Angene.Main.Package.Open(_packagePath, key: null); // Key is used if encrypted with a key at package time.
+    foreach (var e in _package.Entries)
+      _entryNames.Add(e.Path);
 
     // Use known path
-    var target = \_entryNames.FirstOrDefault(p => p.EndsWith("text/hello.txt", StringComparison.OrdinalIgnoreCase))
-                ?? \_entryNames.FirstOrDefault();
+    var target = _entryNames.FirstOrDefault(p => p.EndsWith("text/hello.txt", StringComparison.OrdinalIgnoreCase))
+                ?? _entryNames.FirstOrDefault();
 
     if (target != null)
     {
-      var entry = \_package.Entries.FirstOrDefault(x => string.Equals(x.Path, target, StringComparison.OrdinalIgnoreCase));
+      var entry = _package.Entries.FirstOrDefault(x => string.Equals(x.Path, target, StringComparison.OrdinalIgnoreCase));
       if (entry != null)
       {
-        using var s = \_package.OpenStream(entry);
+        using var s = _package.OpenStream(entry);
         using var sr = new StreamReader(s, Encoding.UTF8);
-        \_loadedText = sr.ReadToEnd();
+        _loadedText = sr.ReadToEnd();
       };
     }
     else
     {
-      \_loadedText = "Package opened, but no entries found.";
+      _loadedText = "Package opened, but no entries found.";
     }
   }
   else
   {
-    \_loadedText = $"Package not found at '{\_packagePath}'.";
+    _loadedText = $"Package not found at '{_packagePath}'.";
   }
 }
 catch (Exception ex)
 {
     // Keep the scene functional; show error text
-    \_loadedText = $"Error opening package: {ex.Message}";
+    _loadedText = $"Error opening package: {ex.Message}";
 }
 ```
 
@@ -1339,9 +1339,9 @@ You can use these to instantiate new objects, handle other entities, or even Dis
 internal class ScriptExample : IScreenPlay
 {
   private int num;
-  public void Initialize(int \_num)
+  public void Initialize(int _num)
   {
-    num = \_num;
+    num = _num;
   }
 
   public void Start()
@@ -1380,13 +1380,13 @@ public class DemoScene : IScene
   // The following 3 vars are not required, but are recommended.
   public object Instance {get; private set;} 
   public List<Entity> entities {get; private set;}
-  public Window \_window;
+  public Window _window;
 
   public IRenderer3D? Renderer3D => null; // Required by spec, not needed if not rendering 3D.
 
   internal DemoScene(Window window) // Again, not needed by spec, but useful.
   {
-    \_window = window;
+    _window = window;
     Instance = this;
   }
 
@@ -1404,9 +1404,9 @@ public class DemoScene : IScene
 
 #if WINDOWS
     var msg = Marshal.PtrToStructure<Win32.MSG>(msgPtr);
-    if (msg.message == Win32.WM\_CLOSE)
+    if (msg.message == Win32.WM_CLOSE)
     {
-      Angene.Main.Console.WriteLine("\[PackageTest] Received WM\_CLOSE");
+      Angene.Main.Console.WriteLine("[PackageTest] Received WM_CLOSE");
     }
 #else
     Logger.LogError("Other platforms are not supported at the moment.", LoggingTarget.MainGame);
@@ -1424,7 +1424,7 @@ Really long exerpt, but it was worth it. Take note of how there is an OnMessage 
 ## Window Configs (Platform.WindowConfig)
 
 Honestly one of the more easier parts of this engine. This defines the construct that the window is based off of.
-You (the developer) have a plethora of options for the window, and I honestly recommend that you actually read the (C# spec for yourself)\[https://github.com/Aerialflame7125/Angene/blob/main/CS/Angene/Angene.Main/Platform/WindowConfig.cs].
+You (the developer) have a plethora of options for the window, and I honestly recommend that you actually read the (C# spec for yourself)[https://github.com/Aerialflame7125/Angene/blob/main/CS/Angene/Angene.Main/Platform/WindowConfig.cs].
 Here is a really basic window config, along with instantiation:
 
 ```cs
@@ -1445,15 +1445,15 @@ internal class RPC : IScreenPlay
 {
   private RichPresence presence = new RichPresence
   {
-    Assets = new Assets {SmallImageKey = "angene\_logo", SmallImageText = $"Running on Angene"}
+    Assets = new Assets {SmallImageKey = "angene_logo", SmallImageText = $"Running on Angene"}
   };
-  private DiscordRichPresence? \_rpc = new ("1467308284322254862");
+  private DiscordRichPresence? _rpc = new ("1467308284322254862");
   public void Start()
   {
     presence.State = "woah demo rpc!?!?!?";
-    presence.Assets.LargeImageKey = "g\_khlbfbmaec9sq";
+    presence.Assets.LargeImageKey = "g_khlbfbmaec9sq";
     presence.Assets.LargeImageText = "SHOT DEAD IN THE BRONX";
-    presence.Buttons = new\[]
+    presence.Buttons = new[]
       {
       new Button
       {
@@ -1461,12 +1461,12 @@ internal class RPC : IScreenPlay
         Url = "https://amretar.com"
       }
     };
-    \_rpc.SetPresence(presence);
+    _rpc.SetPresence(presence);
   }
   void Cleanup()
   {
-    \_rpc?.Dispose();
-    \_rpc = null;
+    _rpc?.Dispose();
+    _rpc = null;
   }
 }
 ```
@@ -1519,10 +1519,10 @@ The CPP host file is really picky on namespaces, so here is an example:
 </PropertyGroup>
 
 <!-- Platform-specific defines -->
-<PropertyGroup Condition="'$(OS)' == 'Windows\_NT'">
+<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
 	<DefineConstants>WINDOWS</DefineConstants>
 </PropertyGroup>
-<PropertyGroup Condition="'$(OS)' != 'Windows\_NT'">
+<PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
 	<DefineConstants>LINUX</DefineConstants>
 </PropertyGroup>
 ```
@@ -1542,21 +1542,21 @@ public static int Main(IntPtr args, int argc)
     try
     {
         // Parse command-line arguments if provided
-        string\[] argArray = Array.Empty<string>();
-        if (args != IntPtr.Zero \&\& argc > 0)
+        string[] argArray = Array.Empty<string>();
+        if (args != IntPtr.Zero && argc > 0)
         {
-            argArray = new string\[argc];
+            argArray = new string[argc];
             unsafe
             {
-                IntPtr\* pArgs = (IntPtr\*)args;
+                IntPtr* pArgs = (IntPtr*)args;
                 for (int i = 0; i < argc; i++)
                 {
-                    argArray\[i] = Marshal.PtrToStringUni(pArgs\[i]) ?? string.Empty;
+                    argArray[i] = Marshal.PtrToStringUni(pArgs[i]) ?? string.Empty;
                 }
             }
             foreach (string arg in argArray)
             {
-                if (arg.Length > 0 \&\& arg == "--verbose" \&\& !verbose)
+                if (arg.Length > 0 && arg == "--verbose" && !verbose)
                 {
                     verbose = true;
                 }
@@ -1564,7 +1564,7 @@ public static int Main(IntPtr args, int argc)
             Logger.Log($"Arguments received ({argc}):", LoggingTarget.MainConstructor);
             for (int i = 0; i < argArray.Length; i++)
             {
-                Logger.Log($"  \[{i}] {argArray\[i]}", LoggingTarget.MainConstructor);
+                Logger.Log($"  [{i}] {argArray[i]}", LoggingTarget.MainConstructor);
             }
             Logger.Log("", LoggingTarget.MainConstructor);
         }
@@ -1576,7 +1576,7 @@ public static int Main(IntPtr args, int argc)
     }
     catch (Exception ex)
     {
-        Logger.Log($"\\nFATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, logLevel: LogLevel.Critical, exception: ex);
+        Logger.Log($"nFATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, logLevel: LogLevel.Critical, exception: ex);
         return 1; // Error
     }
 }
@@ -1657,11 +1657,11 @@ public void CreateAudio()
 Now if your package has a key on it, you have to define a key:
 
 ```cs
-byte\[] key; //just set your key later
+byte[] key; //just set your key later
 // ...
 
 var file = new AudioFile(
-  packagePath: "assets\_enc.angpkg",
+  packagePath: "assets_enc.angpkg",
   path: "audio/music/theme.wav",
   loadType: AudioFile.LoadType.loadOnInstantiate,
   key: key
@@ -1693,7 +1693,7 @@ var rect = new Rect(10f, 10f, 100f, 50f);
 bool hit  = rect.Contains(new Vec2(50f, 30f)); // true
 
 var translate = Matrix3x3.Translation(10f, 20f);
-Vec2 moved = translate \* new Vec2(5f, 3f);     // (15, 23)
+Vec2 moved = translate * new Vec2(5f, 3f);     // (15, 23)
 ```
 
 ### Interpolation (Mathf)
@@ -1708,7 +1708,7 @@ float delta     = Mathf.DeltaAngle(10f, 350f);         // -20 (shortest arc)
 float vel = 0f;
 float damped = Mathf.SmoothDamp(0f, 100f, ref vel, smoothTime: 0.5f, dt: 0.016);
 
-// Easing — all take t in \[0,1]
+// Easing — all take t in [0,1]
 float eased = Mathf.Ease.OutBack(0.5f);   // overshoots past 1
 float bounce = Mathf.Ease.OutBounce(0.5f);
 ```
@@ -1718,14 +1718,14 @@ float bounce = Mathf.Ease.OutBounce(0.5f);
 ```cs
 Rand.SetSeed(42); // deterministic from here on
 
-float f   = Rand.Value;               // \[0, 1)
+float f   = Rand.Value;               // [0, 1)
 float r   = Rand.Range(-5f, 5f);
 int   i   = Rand.Range(0, 10);
 Vec2  inC = Rand.InsideUnitCircle;    // |v| ≤ 1
 Vec2  onC = Rand.OnUnitCircle;        // |v| ≈ 1
-bool  hit = Rand.Chance(0.3f);        // \~30% true
+bool  hit = Rand.Chance(0.3f);        // ~30% true
 
-string picked = Rand.Pick(new\[] { "alpha", "beta", "gamma" });
+string picked = Rand.Pick(new[] { "alpha", "beta", "gamma" });
 
 var list = new List { 1, 2, 3, 4, 5 };
 Rand.Shuffle(list);
@@ -1738,17 +1738,17 @@ Rand.Shuffle(list);
 // Arrays smaller than GpuMath.GpuThreshold (default 512) fall back to CPU automatically.
 var gpu = new Angene.Math.GPU.Math(myComputeBackend);
 
-Vec2\[] a = /\* ... \*/;
-Vec2\[] b = /\* ... \*/;
+Vec2[] a = /* ... */;
+Vec2[] b = /* ... */;
 
-Vec2\[]  added    = gpu.Add(a, b);
-Vec2\[]  normed   = gpu.Normalize(a);
-float\[] dots     = gpu.Dot(a, b);
-Vec2\[]  lerped   = gpu.Lerp(a, b, 0.5f);     // uniform t
-Vec2\[]  lerped2  = gpu.Lerp(a, b, tArray);   // per-element t
+Vec2[]  added    = gpu.Add(a, b);
+Vec2[]  normed   = gpu.Normalize(a);
+float[] dots     = gpu.Dot(a, b);
+Vec2[]  lerped   = gpu.Lerp(a, b, 0.5f);     // uniform t
+Vec2[]  lerped2  = gpu.Lerp(a, b, tArray);   // per-element t
 
-float\[] clamped  = gpu.Clamp(values, 0f, 1f);
-float\[] remapped = gpu.Remap(values, 0f, 100f, 0f, 1f);
+float[] clamped  = gpu.Clamp(values, 0f, 1f);
+float[] remapped = gpu.Remap(values, 0f, 100f, 0f, 1f);
 float   sum      = gpu.Sum(values);
 float   max      = gpu.Max(values);
 Vec2    vecAvg   = gpu.Average(vec2Array);
@@ -1857,7 +1857,7 @@ If you need to know which parts are vibe coded, I will list them here:
 * Win32
 * Win32Messages
 * All of the listed libraries is vibe coded. This primarilly consists of Win32 messages and headers pertaining to specific windows implementations. Microsoft documentation is correct and actually helped a lot when writing python implementations, but I will refer you to the [definitions file](https://github.com/Aerialflame7125/Angene/blob/main/Python/Angene/Main/definitions.py) written in python, and you tell me if you want to implement that in C#.
-* Most of this is also at the hands of bad implementations, very generously providing a great help when it comes to conversions to other languages :thumbs\_up: (sarcasm.)
+* Most of this is also at the hands of bad implementations, very generously providing a great help when it comes to conversions to other languages :thumbs_up: (sarcasm.)
 
   Also, this entire readme is written by hand before you ask. I'm not going to document a game engine I am working on with AI. What kind of person do you take me for?
 
