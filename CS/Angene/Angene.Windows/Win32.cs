@@ -94,14 +94,21 @@ namespace Angene.Windows
         public const uint GR_GDIOBJECTS = 0;
         public const int PM_REMOVE = 0x0001;
 
-        public const uint WM_CLOSE = 0x0010;
-        public const uint WM_DESTROY = 0x0002;
-        public const uint WM_ERASEBKGND = 0x0014;
-        public const uint WM_QUIT = 0x0012;
-
         public const uint WS_OVERLAPPEDWINDOW = 0x00CF0000;
         public const int CW_USEDEFAULT = unchecked((int)0x80000000);
         public const int SW_SHOW = 5;
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct TRACKMOUSEEVENT
+        {
+            public uint cbSize;
+            public uint dwFlags;
+            public IntPtr hwndTrack;
+            public uint dwHoverTime;
+        }
+
+        [DllImport("user32.dll")]
+        public static extern bool TrackMouseEvent(ref TRACKMOUSEEVENT lpEventTrack);
 
         // delegates
         public delegate IntPtr WndProcDelegate(

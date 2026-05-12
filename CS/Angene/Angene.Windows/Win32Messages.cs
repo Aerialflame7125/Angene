@@ -25,6 +25,7 @@ namespace Angene.Windows
         RBUTTONDOWN     = 0x0204,
         RBUTTONUP       = 0x0205,
         MOUSEWHEEL      = 0x020A,
+        MOUSELEAVE      = 0x02A3,
 
         ENTERSIZEMOVE   = 0x0231,
         EXITSIZEMOVE    = 0x0232,

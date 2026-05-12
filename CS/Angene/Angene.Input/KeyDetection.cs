@@ -10,7 +10,7 @@ using System.Runtime.InteropServices.Marshalling;
 
 namespace Angene.Input
 {
-    internal class DetectionScript : IScreenPlay
+    internal class KeyDetectionScript : IScreenPlay
     {
         private readonly HashSet<object> _heldKeys = new();
 
@@ -46,8 +46,8 @@ namespace Angene.Input
 
     public class KeyDetection
     {
-        private static DetectionScript? _script;
-        private static Engine _engineReference;
+        private static KeyDetectionScript? _script;
+
         /// <summary>
         /// Collection of all entities that have KeyDetection instances on them.
         /// </summary>
@@ -69,7 +69,7 @@ namespace Angene.Input
             foreach (Window w in Engine.Instance.OpenWindows)
             {
                 Entity DetectionEntity = new Entity(0, 0, "KeyDetection");
-                _script = new DetectionScript();
+                _script = new KeyDetectionScript();
                 ManagementScene? a = w.ManagementScene as ManagementScene;
                 Entity b = a.AddEntity(DetectionEntity);
                 Instances.Add(b);
@@ -97,7 +97,7 @@ namespace Angene.Input
                 return;
             }
 
-            _script = new DetectionScript();
+            _script = new KeyDetectionScript();
             entity.AddScript(_script);
             Instances.Add(entity);
 

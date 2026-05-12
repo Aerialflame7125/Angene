@@ -78,7 +78,7 @@ namespace Angene.Common
 
                 string logFile = Path.Combine(
                     filePath,
-                    $"log_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt"
+                    $"log_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.log"
                 );
 
                 LogInstance = new StreamWriter(logFile)

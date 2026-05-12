@@ -560,7 +560,7 @@ namespace Angene.Main
                 }
             }
 
-            if (msg == Win32.WM_CLOSE)
+            if (msg == (uint)WM.CLOSE)
             {
                 if (WindowMap.TryGetValue(hWnd, out var w))
                 {
@@ -570,7 +570,7 @@ namespace Angene.Main
                 return IntPtr.Zero;
             }
 
-            if (msg == Win32.WM_DESTROY)
+            if (msg == (uint)WM.DESTROY)
             {
                 Win32.PostQuitMessage(0);
                 return IntPtr.Zero;
@@ -587,7 +587,7 @@ namespace Angene.Main
         {
             while (Win32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Win32.PM_REMOVE))
             {
-                if (msg.message == Win32.WM_QUIT)
+                if (msg.message == (uint)WM.QUIT)
                     return false;
 
                 Win32.TranslateMessage(ref msg);

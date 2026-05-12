@@ -2,13 +2,13 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*/bin/
 
 # C extensions
 *.so
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
@@ -24,7 +24,6 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-*.dll
 MANIFEST
 
 # PyInstaller
@@ -181,8 +180,26 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-.vs
-obj
+.vs/
+obj/
 *.pdb
 *.deps.json
-/CS/.vscode
+.vscode/
+*.mp3
+*.wav
+**/bin/Release/
+**/bin/Debug/
+*.runtimeconfig.json
+
+# Re-include Directories (but keep tracked)
+!Angene-Host - CPP/
+!AngenePackageCompiler/
+!Python/
+
+Python/**/*.pyc
+AngenePackageCompiler/*.json
+AngenePackageCompiler/*.props
+AngenePackageCompiler/*.targets
+AngenePackageCompiler/*.cache
+Angene-Host - CPP/*.pdb
+Angene-Host - CPP/*.log
