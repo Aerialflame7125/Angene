@@ -1,4 +1,4 @@
-﻿using Angene.Common;
+using Angene.Common;
 using Angene.Common.Settings;
 using Angene.Globals;
 using System;

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -28,9 +28,20 @@ namespace Angene.Common.Settings
 
             Register("Main.getIsGameAllowedForWebsockets", false,
                 v => v is bool);
+
+            Register("Graphics.RenderMode", (char)'d'); // Direct render mode, no viewports allowed.
+            /* Graphics.RenderMode:
+             * Changes the rendermode between viewports and direct. What this means is listed below:
+             * Direct (d):
+             *   - Renders directly to the window, no alternate viewport system.
+             * Viewport (v):
+             *   - Renders with a viewport/camera and are able to create multiple viewports.
+             *   
+             * Default is 'd' for direct rendering. Viewport rendering needs to be set if applicable.
+            */
         }
 
-        public void Register(string key, object defaultValue, Func<object, bool>? validator = null)
+        public void Register(string key, object? defaultValue, Func<object, bool>? validator = null)
         {
             var (ns, field) = ParseKey(key);
 
@@ -101,7 +112,7 @@ namespace Angene.Common.Settings
                     if (!File.Exists(path))
                         File.Create(path).Close();
 
-                    jo[ns] = (JToken)value;
+                    jo[ns] = value as JToken;
                 }
                 string o = jo.ToString();
                 byte[] bytes = System.Text.Encoding.UTF8.GetBytes(o);

@@ -92,6 +92,11 @@ namespace Angene.Main
 
                 Logger.Instance.OnLog += (message, target, level, time, exception) =>
                 {
+                    if (exception == null && (string)message == "[OnQuit] ExitOnException")
+                    {
+                        destroyInstances();
+                        Environment.Exit(1);
+                    }
                     if (exception != null)
                         _logConsole.AppendLine($"[{level}] {target} ({time}) {message}\n{exception}");
                     else
@@ -147,6 +152,7 @@ namespace Angene.Main
 
 #if WINDOWS
             Hwnd = CreateWindowWindows(config, config.cTI, config.cTS, config.cTT);
+            
             if (Hwnd.GetType() != typeof(String))
             {
                 WindowMap[(IntPtr)Hwnd] = this;
@@ -158,13 +164,13 @@ namespace Angene.Main
             Engine.Instance.OpenWindows.Add(this);
 
             string initToken = Guid.NewGuid().ToString("N");
-            Engine.Instance.SettingHandlerInstanced.SetSetting("Main.OTT", initToken);
+            Engine.Instance.SettingHandlerInstanced.SetSetting("Main.OTT", initToken); // One Time Token
             var mgmtScene = new Angene.Management.ManagementScene(initToken);
             AddScene(mgmtScene);
 
             if (!config.Use3D && !config.cTI)
             {
-                graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height);
+                graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height, (char)Engine.Instance.SettingHandlerInstanced.GetSetting("Graphics.RenderMode"));
             }
             else if (config.Use3D && config.cTI)
             {
@@ -426,7 +432,6 @@ namespace Angene.Main
         // windows apis
         private static object CreateWindowWindows(WindowConfig config, bool cTI, string cTS, object type)
         {
-            
             if (cTI && cTS != null && type != null)
             {
                 // use strings to shut up the compiler
@@ -438,10 +443,10 @@ namespace Angene.Main
 
                     // check settings
                     Settings settings = Engine.Instance.SettingHandlerInstanced;
-                    object a = settings.GetSetting("Main.getIsGameAllowedForWebsockets");
+                    object? a = settings.GetSetting("Main.getIsGameAllowedForWebsockets");
                     if (!(bool)a)
                     {
-                        Logger.LogCritical("You are NOT licensed to run this game. Entitlement Check FAILED.", LoggingTarget.MainGame, new AngeneException("Entitlement Check Failed. You are not licensed to execute binaries of this program."));
+                        Logger.LogCritical("You are NOT licensed to run this game. Entitlement Check FAILED.", LoggingTarget.MainGame, new AngeneException("Entitlement Check Failed. You are not licensed to execute binaries of this program."), true);
                         System.Diagnostics.Process.GetCurrentProcess().Kill();
                     }
                     string url = "http://localhost";

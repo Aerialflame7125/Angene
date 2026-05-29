@@ -1,5 +1,6 @@
 using Angene.Windows;
 using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 
 namespace Angene.Graphics
@@ -147,7 +148,6 @@ namespace Angene.Graphics
         }
     }
 
-
     public class WSGraphicsContext : IGraphicsContext
     {
         private string windowHandle;
@@ -243,9 +243,21 @@ namespace Angene.Graphics
     // Factory for creating platform-specific graphics contexts
     public static class GraphicsContextFactory
     {
-        public static IGraphicsContext Create(IntPtr windowHandle, int width, int height)
+        public static IGraphicsContext Create(IntPtr windowHandle, int width, int height, char renderMode)
         {
-            return new GdiGraphicsContext(windowHandle, width, height);
+            if (renderMode == 'd')
+                return new GdiGraphicsContext(windowHandle, width, height);
+            if (renderMode == 'v')
+                // return new AnGraphicsContext(windowHandle, width, height);
+                return new GdiGraphicsContext(windowHandle, width, height); // Just for now, will replace when renderer done. | TODO
+
+            Common.Logger.LogCritical(
+                "[GraphicsContextFactory] Failed to create IGraphicsContext, 'Graphics.RenderMode' is not a possible value.",
+                Common.LoggingTarget.Graphics,
+                new Exceptions.FailedToCreateGraphicsBackendException("[GraphicsContextFactory] Failed to create IGraphicsContext, 'Graphics.RenderMode' is not a possible value."),
+                true
+            );
+            return null;
         }
         
         public static IGraphicsContext CreateWS(string windowHandle, int width, int height)
