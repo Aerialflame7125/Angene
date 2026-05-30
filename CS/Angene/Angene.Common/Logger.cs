@@ -9,22 +9,8 @@ namespace Angene.Common
 {
     public class AngeneException : Exception
     {
-        // 1. Default constructor
-        public AngeneException()
-        {
-        }
-
-        // 2. Constructor with a message
-        public AngeneException(string message)
-            : base(message)
-        {
-        }
-
-        // 3. Constructor with a message and an inner exception
-        public AngeneException(string message, Exception inner)
-            : base(message, inner)
-        {
-        }
+        public AngeneException(string message) : base(message) { }
+        public AngeneException(string message, Exception inner) : base(message, inner) { }
     }
     public enum LogLevel
     {
@@ -48,7 +34,8 @@ namespace Angene.Common
         MainGame,
         MasterScene,
         SlaveScene,
-        Package
+        Package,
+        Graphics
     }
 
     public class Logger
@@ -88,7 +75,7 @@ namespace Angene.Common
 
                 LogInstance.WriteLine($"Log file created on {DateTime.Now}");
                 LogInstance.WriteLine("Logger initialized!");
-                string version = (string)settings.GetSetting("Main.Version");
+                string? version = settings.GetSetting("Main.Version") as string;
                 LogInstance.WriteLine($"Engine Version: {version}");
             }
             catch (Exception ex)
@@ -97,7 +84,7 @@ namespace Angene.Common
             }
         }
 
-        public static void Log(string message, LoggingTarget logFrom, LogLevel logLevel = LogLevel.Info, Exception exception = null, int sceneNumber = -1)
+        public static void Log(string message, LoggingTarget logFrom, LogLevel logLevel = LogLevel.Info, Exception? exception = null, bool enginePanic = false, int sceneNumber = -1)
         {
             lock (logLock)
             {
@@ -109,57 +96,44 @@ namespace Angene.Common
                 }
 
                 // Write to file — including exception if present
-                Logger.LogInstance.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
+                LogInstance.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                 if (exception != null)
                 {
-                    Logger.LogInstance.WriteLine($"  >> {exception.GetType().FullName}: {exception.Message}");
-                    Logger.LogInstance.WriteLine($"  >> Stack Trace: {exception.StackTrace}");
+                    LogInstance.WriteLine($"  >> {exception.GetType().FullName}: {exception.Message}");
+                    LogInstance.WriteLine($"  >> Stack Trace: {exception.StackTrace}");
                     if (exception.InnerException != null)
-                        Logger.LogInstance.WriteLine($"  >> Inner: {exception.InnerException.GetType().FullName}: {exception.InnerException.Message}");
+                        LogInstance.WriteLine($"  >> Inner: {exception.InnerException.GetType().FullName}: {exception.InnerException.Message}");
                 }
 
                 if (sceneNumber != -1)
+                    LogInstance.WriteLine($"Log came from Scene Number: {sceneNumber}");
 
-                    Logger.LogInstance.WriteLine($"Log came from Scene Number: {sceneNumber}");
-
-                if (logLevel == LogLevel.Debug && settings.GetSetting("Console.LogDebugToConsole") == "1")
+                if (logLevel == LogLevel.Debug && settings.GetSetting("Console.LogDebugToConsole") as string == "1")
                 {
-                    System.Console.ForegroundColor = ConsoleColor.Gray;
                     System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                 }
+
+                // Message dispatcher
                 switch (logLevel)
                 {
                     case LogLevel.Info:
-                        System.Console.ForegroundColor = ConsoleColor.Green;
-                        System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                         Instance.OnLog(message, logFrom, logLevel, DateTime.Now, null);
                         break;
                     case LogLevel.Warning:
-                        System.Console.ForegroundColor = ConsoleColor.Yellow;
-                        System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                         Instance.OnLog(message, logFrom, logLevel, DateTime.Now, null);
                         break;
                     case LogLevel.Error:
-                        System.Console.ForegroundColor = ConsoleColor.Red;
-                        System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                         Instance.OnLog(message, logFrom, logLevel, DateTime.Now, null);
                         break;
                     case LogLevel.Critical:
-                        System.Console.ForegroundColor = ConsoleColor.Magenta;
-                        if (exception != null)
-                            System.Console.WriteLine($"[CRITICAL] {logFrom} ({DateTime.Now}): {message} Exception: {exception.Message}\nStack Trace: {exception.StackTrace}");
-                        else
-                            System.Console.WriteLine($"[CRITICAL] {logFrom} ({DateTime.Now}): {message}");
                         Instance.OnLog(message, logFrom, logLevel, DateTime.Now, exception);
+                        if (enginePanic)
+                            Instance.OnLog("[OnQuit] ExitOnException", logFrom, LogLevel.Important, DateTime.Now, null);
                         break;
                     case LogLevel.Important:
-                        System.Console.ForegroundColor = ConsoleColor.Cyan;
-                        System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                         Instance.OnLog(message, logFrom, logLevel, DateTime.Now, null);
                         break;
                 }
-                
-                System.Console.ResetColor();
 
             }
         }
@@ -168,7 +142,7 @@ namespace Angene.Common
         public static void LogInfo(string message, LoggingTarget logFrom) { Log(message, logFrom, LogLevel.Info); }
         public static void LogWarning(string message, LoggingTarget logFrom) { Log(message, logFrom, LogLevel.Warning); }
         public static void LogError(string message, LoggingTarget logFrom) { Log(message, logFrom, LogLevel.Error); }
-        public static void LogCritical(string message, LoggingTarget logFrom, Exception exception) { Log(message, logFrom, LogLevel.Critical, exception); }
+        public static void LogCritical(string message, LoggingTarget logFrom, Exception exception, bool enginePanic = false) { Log(message, logFrom, LogLevel.Critical, exception, enginePanic); }
 
         public static void Shutdown()
         {

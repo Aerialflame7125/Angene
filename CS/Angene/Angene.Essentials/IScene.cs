@@ -22,7 +22,5 @@ namespace Angene.Essentials
         void Render(); // Final render in scene
 
         void Cleanup(); // Scene cleanup
-
-        IRenderer3D? Renderer3D => null; // 3D renderer
     }
 }

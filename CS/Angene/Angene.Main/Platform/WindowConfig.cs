@@ -40,6 +40,13 @@ namespace Angene.Platform
         /// </summary>
         public string cTT { internal get; set; } = "";
 
+        /// <summary>
+        /// Gets or sets the graphics implementation type used for rendering.
+        /// </summary>
+        /// <remarks>Defaults to Angene.Graphics.GraphicsType.AnGraphics. Select an enum value to choose
+        /// the rendering backend.</remarks>
+        public Angene.Graphics.GraphicsType GraphicsType { get; set; } = Graphics.GraphicsType.AnGraphics;
+
         /// <summary>Window style flags</summary>
         public Win32.WindowStyle Style { get; set; } = Win32.WindowStyle.OverlappedWindow;
 

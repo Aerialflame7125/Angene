@@ -1,4 +1,4 @@
-﻿using Angene.Audio;
+using Angene.Audio;
 using Angene.Audio.Common;
 using Angene.Common;
 using System.Collections.Concurrent;

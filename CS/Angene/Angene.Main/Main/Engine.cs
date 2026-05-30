@@ -92,6 +92,11 @@ namespace Angene.Main
 
                 Logger.Instance.OnLog += (message, target, level, time, exception) =>
                 {
+                    if (exception == null && (string)message == "[OnQuit] ExitOnException")
+                    {
+                        destroyInstances();
+                        Environment.Exit(1);
+                    }
                     if (exception != null)
                         _logConsole.AppendLine($"[{level}] {target} ({time}) {message}\n{exception}");
                     else
@@ -130,6 +135,12 @@ namespace Angene.Main
         private static readonly Win32.WndProcDelegate s_wndProc = DefaultWndProc;
         private static bool s_classRegistered;
 
+        [Obsolete("This method is deprecated. Please use the 'WindowConfig' constructor instead.", true)]
+        public Window(string Name, int width, int height)
+        {
+            Logger.LogCritical("The 'Window(string, int, int) constructor is deprecated. Please use the 'WindowConfig' constructor instead.", LoggingTarget.Engine, new AngeneException(""), enginePanic: true);
+        }
+        
         public Window(WindowConfig config)
         {
             Width = config.Width;
@@ -147,6 +158,7 @@ namespace Angene.Main
 
 #if WINDOWS
             Hwnd = CreateWindowWindows(config, config.cTI, config.cTS, config.cTT);
+            
             if (Hwnd.GetType() != typeof(String))
             {
                 WindowMap[(IntPtr)Hwnd] = this;
@@ -158,13 +170,13 @@ namespace Angene.Main
             Engine.Instance.OpenWindows.Add(this);
 
             string initToken = Guid.NewGuid().ToString("N");
-            Engine.Instance.SettingHandlerInstanced.SetSetting("Main.OTT", initToken);
+            Engine.Instance.SettingHandlerInstanced.SetSetting("Main.OTT", initToken); // One Time Token
             var mgmtScene = new Angene.Management.ManagementScene(initToken);
             AddScene(mgmtScene);
 
             if (!config.Use3D && !config.cTI)
             {
-                graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height);
+                graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height, config.GraphicsType);
             }
             else if (config.Use3D && config.cTI)
             {
@@ -173,7 +185,7 @@ namespace Angene.Main
             }
             else if (!config.Use3D && config.cTI)
             {
-                graphicsContext = GraphicsContextFactory.CreateWS((string)Hwnd, config.Width, config.Height);
+                graphicsContext = GraphicsContextFactory.Create((string)Hwnd, config.Width, config.Height, config.GraphicsType);
                 var streamer = new Websocket.WebStreamer(this);
                 _screenPlay = streamer;
                 RegisterWebSocketInput();
@@ -411,10 +423,7 @@ namespace Angene.Main
             }
 
             foreach (IScene scene in Scenes)
-            {
-                scene?.Renderer3D?.Cleanup();
                 scene?.Cleanup();
-            }
         }
 #if !WINDOWS
         private static object CreateWindowWindows(WindowConfig config, bool cTI, string cTS, object type)
@@ -426,7 +435,6 @@ namespace Angene.Main
         // windows apis
         private static object CreateWindowWindows(WindowConfig config, bool cTI, string cTS, object type)
         {
-            
             if (cTI && cTS != null && type != null)
             {
                 // use strings to shut up the compiler
@@ -438,10 +446,10 @@ namespace Angene.Main
 
                     // check settings
                     Settings settings = Engine.Instance.SettingHandlerInstanced;
-                    object a = settings.GetSetting("Main.getIsGameAllowedForWebsockets");
+                    object? a = settings.GetSetting("Main.getIsGameAllowedForWebsockets");
                     if (!(bool)a)
                     {
-                        Logger.LogCritical("You are NOT licensed to run this game. Entitlement Check FAILED.", LoggingTarget.MainGame, new AngeneException("Entitlement Check Failed. You are not licensed to execute binaries of this program."));
+                        Logger.LogCritical("You are NOT licensed to run this game. Entitlement Check FAILED.", LoggingTarget.MainGame, new AngeneException("Entitlement Check Failed. You are not licensed to execute binaries of this program."), true);
                         System.Diagnostics.Process.GetCurrentProcess().Kill();
                     }
                     string url = "http://localhost";

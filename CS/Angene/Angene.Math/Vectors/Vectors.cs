@@ -7,8 +7,18 @@ using System.Threading.Tasks;
 
 namespace Angene.Math.Vectors
 {
-    // As stated in Interpolation.Mathf, most of this is vibecoded, all of this at the time of writing (2026,03,07) is completely no-mans-land for me.
-    // Just attempting to make it easier on people.
+    // Started new developments on 2026,05,24 for Angraphics
+    public struct Point { int x, y;
+        public int X;
+        public int Y;
+
+        public Point(int x1, int y2) : this()
+        {
+            this.X = x1;
+            this.Y = y2;
+        }
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct Vec2(float x = 0, float y = 0)
     {

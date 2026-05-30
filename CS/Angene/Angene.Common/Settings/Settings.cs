@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ namespace Angene.Common.Settings
                 v => v is bool);
         }
 
-        public void Register(string key, object defaultValue, Func<object, bool>? validator = null)
+        public void Register(string key, object? defaultValue, Func<object, bool>? validator = null)
         {
             var (ns, field) = ParseKey(key);
 
@@ -101,7 +101,7 @@ namespace Angene.Common.Settings
                     if (!File.Exists(path))
                         File.Create(path).Close();
 
-                    jo[ns] = (JToken)value;
+                    jo[ns] = value as JToken;
                 }
                 string o = jo.ToString();
                 byte[] bytes = System.Text.Encoding.UTF8.GetBytes(o);
