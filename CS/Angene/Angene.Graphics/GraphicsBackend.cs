@@ -70,7 +70,6 @@ namespace Angene.Graphics
         {
             IntPtr hdc = User32.GetDC(hwnd);
             Gdi32.BitBlt(hdc, 0, 0, width, height, memDc, 0, 0, Gdi32.SRCCOPY);
-            Win32.ReleaseDC(hwnd, hdc);
             User32.ReleaseDC(hwnd, hdc);
         }
         

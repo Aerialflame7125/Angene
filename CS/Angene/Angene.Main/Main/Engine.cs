@@ -132,9 +132,14 @@ namespace Angene.Main
         private string _instanceConnectionString;
 
         // Windows-specific fields
-        private static readonly Win32.WndProcDelegate s_wndProc = DefaultWndProc;
+        private static readonly User32.WndProcDelegate s_wndProc = DefaultWndProc;
         private static bool s_classRegistered;
 
+        [Obsolete("This method is deprecated. Please use the 'WindowConfig' constructor instead.", true)]
+        public Window(string Name, int width, int height)
+        {
+            Logger.LogCritical("The 'Window(string, int, int) constructor is deprecated. Please use the 'WindowConfig' constructor instead.", LoggingTarget.Engine, new AngeneException(""), enginePanic: true);
+        }
         public Window(WindowConfig config)
         {
             Width = config.Width;
@@ -248,7 +253,7 @@ namespace Angene.Main
                 }
             }
 
-            if (scene is Angene.Management.ManagementScene && ManagementScene == null)
+            if (scene is Management.ManagementScene && ManagementScene == null)
             {
                 Logger.LogDebug("Recieved a new ManagementScene call. Verifying...", LoggingTarget.Engine);
                 // Silently add without logging, but check signatures.
@@ -357,7 +362,7 @@ namespace Angene.Main
                     IntPtr lParam = new IntPtr((y << 16) | (x & 0xFFFF));
                     IntPtr wParam = new IntPtr(keyCode);
 
-                    var msg = new Win32.MSG
+                    var msg = new WindowManagement.MSG
                     {
                         hwnd = Hwnd is IntPtr h ? h : IntPtr.Zero,
                         message = message,
@@ -365,7 +370,7 @@ namespace Angene.Main
                         lParam = lParam
                     };
 
-                    IntPtr msgPtr = Marshal.AllocHGlobal(Marshal.SizeOf<Win32.MSG>());
+                    IntPtr msgPtr = Marshal.AllocHGlobal(Marshal.SizeOf<WindowManagement.MSG>());
                     try
                     {
                         Marshal.StructureToPtr(msg, msgPtr, false);
@@ -406,7 +411,6 @@ namespace Angene.Main
             while (end < json.Length && (char.IsDigit(json[end]) || json[end] == '-')) end++;
             return int.TryParse(json.Substring(start, end - start), out int val) ? val : 0;
         }
-
         public void Cleanup()
         {
             Logger.Log("Cleaning up window resources", LoggingTarget.Engine, LogLevel.Important);
@@ -468,9 +472,9 @@ namespace Angene.Main
                 // Register class once
                 if (!s_classRegistered)
                 {
-                    var wc = new Win32.WNDCLASSEX
+                    var wc = new WindowManagement.WNDCLASSEX
                     {
-                        cbSize = (uint)Marshal.SizeOf<Win32.WNDCLASSEX>(),
+                        cbSize = (uint)Marshal.SizeOf<WindowManagement.WNDCLASSEX>(),
                         style = 0,
                         lpfnWndProc = s_wndProc,
                         cbClsExtra = 0,
@@ -484,7 +488,7 @@ namespace Angene.Main
                         hIconSm = IntPtr.Zero
                     };
 
-                    ushort atom = Win32.RegisterClassExW(ref wc);
+                    ushort atom = User32.RegisterClassExW(ref wc);
                     if (atom == 0)
                     {
                         throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
@@ -494,7 +498,7 @@ namespace Angene.Main
                 }
 
                 IntPtr hInstance = Kernel32.GetModuleHandle(null);
-                IntPtr hwnd = Win32.CreateWindowExW(
+                IntPtr hwnd = User32.CreateWindowExW(
                     (uint)config.StyleEx,
                     "AngeneClass",
                     config.Title,
@@ -512,9 +516,9 @@ namespace Angene.Main
                 if (hwnd == IntPtr.Zero)
                     throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
 
-                Win32.ShowWindow(hwnd, Win32.SW_SHOW);
+                User32.ShowWindow(hwnd, Consts.SW_SHOW);
                 Logger.Log($"Window({hwnd}) shown", LoggingTarget.Engine);
-                Win32.UpdateWindow(hwnd);
+                User32.UpdateWindow(hwnd);
                 return hwnd;
 
             }
@@ -526,7 +530,7 @@ namespace Angene.Main
             // Forward message to scenes if window found
             if (WindowMap.TryGetValue(hWnd, out var win) && win.PrimaryScene != null)
             {
-                var managedMsg = new Win32.MSG
+                var managedMsg = new WindowManagement.MSG
                 {
                     hwnd = hWnd,
                     message = msg,
@@ -537,7 +541,7 @@ namespace Angene.Main
                     pt_y = 0
                 };
 
-                IntPtr msgPtr = Marshal.AllocHGlobal(Marshal.SizeOf<Win32.MSG>());
+                IntPtr msgPtr = Marshal.AllocHGlobal(Marshal.SizeOf<WindowManagement.MSG>());
                 try
                 {
                     Marshal.StructureToPtr(managedMsg, msgPtr, false);
@@ -571,17 +575,17 @@ namespace Angene.Main
                 {
                     w.Cleanup();
                 }
-                Win32.DestroyWindow(hWnd);
+                User32.DestroyWindow(hWnd);
                 return IntPtr.Zero;
             }
 
             if (msg == (uint)WM.DESTROY)
             {
-                Win32.PostQuitMessage(0);
+                User32.PostQuitMessage(0);
                 return IntPtr.Zero;
             }
 
-            return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
+            return User32.DefWindowProcW(hWnd, msg, wParam, lParam);
         }
 
         /// <summary>
@@ -590,13 +594,13 @@ namespace Angene.Main
         /// </summary>
         public static bool ProcessMessages()
         {
-            while (Win32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Win32.PM_REMOVE))
+            while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
             {
                 if (msg.message == (uint)WM.QUIT)
                     return false;
 
-                Win32.TranslateMessage(ref msg);
-                Win32.DispatchMessageW(ref msg);
+                User32.TranslateMessage(ref msg);
+                User32.DispatchMessageW(ref msg);
             }
             return true;
         }
