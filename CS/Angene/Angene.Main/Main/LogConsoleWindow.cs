@@ -11,7 +11,7 @@ namespace Angene.Main
         private IntPtr _hwnd;
         private IntPtr _editHwnd;
 
-        private static readonly Win32.WndProcDelegate s_wndProc = WndProc;
+        private static readonly User32.WndProcDelegate s_wndProc = WndProc;
         private static bool s_classRegistered = false;
 
         // Edit control styles not in your WS class yet — keeping as locals for clarity
@@ -68,9 +68,9 @@ namespace Angene.Main
         {
             if (!s_classRegistered)
             {
-                var wc = new Win32.WNDCLASSEX
+                var wc = new WindowManagement.WNDCLASSEX
                 {
-                    cbSize = (uint)Marshal.SizeOf<Win32.WNDCLASSEX>(),
+                    cbSize = (uint)Marshal.SizeOf<WindowManagement.WNDCLASSEX>(),
                     style = 0x0003, // CS_HREDRAW | CS_VREDRAW
                     lpfnWndProc = s_wndProc,
                     cbClsExtra = 0,
@@ -84,7 +84,7 @@ namespace Angene.Main
                     hIconSm = LoadIcon(IntPtr.Zero, new IntPtr(IDI_APPLICATION))
                 };
 
-                if (Win32.RegisterClassExW(ref wc) == 0)
+                if (User32.RegisterClassExW(ref wc) == 0)
                     throw new AngeneException("Failed to register LogConsoleWindow class.");
                 s_bgBrush = CreateSolidBrush(0x00000000);
                 s_classRegistered = true;
@@ -94,8 +94,8 @@ namespace Angene.Main
                              | WS.THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX
                              | WS.CLIPSIBLINGS | WS.CLIPCHILDREN;
 
-            _hwnd = Win32.CreateWindowExW(
-                (uint)Win32.WindowStyleEx.AppWindow,
+            _hwnd = User32.CreateWindowExW(
+                (uint)WindowManagement.WindowStyleEx.AppWindow,
                 "AngeneLogConsole",
                 "Angene — Log Console",
                 windowStyle,
@@ -111,7 +111,7 @@ namespace Angene.Main
             uint editStyle = WS.CHILD | WS.VISIBLE | WS_VSCROLL
                            | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY;
 
-            _editHwnd = Win32.CreateWindowExW(
+            _editHwnd = User32.CreateWindowExW(
                 0,
                 "EDIT",
                 "",
@@ -131,10 +131,10 @@ namespace Angene.Main
                 0, 0, 0, 1,
                 "Consolas"
             );
-            Win32.SendMessage(_editHwnd, EM_SETLIMITTEXT, new IntPtr(int.MaxValue), IntPtr.Zero);
+            User32.SendMessage(_editHwnd, EM_SETLIMITTEXT, new IntPtr(int.MaxValue), IntPtr.Zero);
 
-            Win32.ShowWindow(_hwnd, Win32.SW_SHOW);
-            Win32.UpdateWindow(_hwnd);
+            User32.ShowWindow(_hwnd, Consts.SW_SHOW);
+            User32.UpdateWindow(_hwnd);
         }
 
         private const uint EM_GETLINECOUNT = 0x00BA;
@@ -144,21 +144,21 @@ namespace Angene.Main
         public void AppendLine(string text)
         {
             // Remove first line if over the limit
-            int lineCount = (int)Win32.SendMessage(_editHwnd, EM_GETLINECOUNT, IntPtr.Zero, IntPtr.Zero).ToInt64();
+            int lineCount = (int)User32.SendMessage(_editHwnd, EM_GETLINECOUNT, IntPtr.Zero, IntPtr.Zero).ToInt64();
             if (lineCount >= MAX_LINES)
             {
                 // Get char index of start of line 0 and line 1
-                int line0Start = (int)Win32.SendMessage(_editHwnd, EM_LINEINDEX, new IntPtr(0), IntPtr.Zero).ToInt64();
-                int line1Start = (int)Win32.SendMessage(_editHwnd, EM_LINEINDEX, new IntPtr(1), IntPtr.Zero).ToInt64();
+                int line0Start = (int)User32.SendMessage(_editHwnd, EM_LINEINDEX, new IntPtr(0), IntPtr.Zero).ToInt64();
+                int line1Start = (int)User32.SendMessage(_editHwnd, EM_LINEINDEX, new IntPtr(1), IntPtr.Zero).ToInt64();
 
                 // Select from start of line 0 to start of line 1 (includes the \r\n)
-                Win32.SendMessage(_editHwnd, (uint)EM.SETSEL, new IntPtr(line0Start), new IntPtr(line1Start));
+                User32.SendMessage(_editHwnd, (uint)EM.SETSEL, new IntPtr(line0Start), new IntPtr(line1Start));
 
                 // Delete the selection by replacing with empty string
                 IntPtr empty = Marshal.StringToHGlobalUni("");
                 try
                 {
-                    Win32.SendMessage(_editHwnd, (uint)EM.REPLACESEL, IntPtr.Zero, empty);
+                    User32.SendMessage(_editHwnd, (uint)EM.REPLACESEL, IntPtr.Zero, empty);
                 }
                 finally
                 {
@@ -168,12 +168,12 @@ namespace Angene.Main
 
             // Append new line at end
             int len = GetWindowTextLength(_editHwnd);
-            Win32.SendMessage(_editHwnd, (uint)EM.SETSEL, new IntPtr(len), new IntPtr(len));
+            User32.SendMessage(_editHwnd, (uint)EM.SETSEL, new IntPtr(len), new IntPtr(len));
 
             IntPtr strPtr = Marshal.StringToHGlobalUni(text + "\r\n");
             try
             {
-                Win32.SendMessage(_editHwnd, (uint)EM.REPLACESEL, IntPtr.Zero, strPtr);
+                User32.SendMessage(_editHwnd, (uint)EM.REPLACESEL, IntPtr.Zero, strPtr);
             }
             finally
             {
@@ -205,17 +205,17 @@ namespace Angene.Main
 
             if (msg == (uint)WM.CLOSE)
             {
-                Win32.DestroyWindow(hWnd);
+                User32.DestroyWindow(hWnd);
                 return IntPtr.Zero;
             }
 
             if (msg == (uint)WM.DESTROY)
             {
-                Win32.PostQuitMessage(0);
+                User32.PostQuitMessage(0);
                 return IntPtr.Zero;
             }
 
-            return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
+            return User32.DefWindowProcW(hWnd, msg, wParam, lParam);
         }
     }
 }

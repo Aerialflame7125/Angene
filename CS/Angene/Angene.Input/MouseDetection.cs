@@ -20,7 +20,7 @@ namespace Angene.Input
         public void OnMessage(IntPtr msgPtr)
         {
             if (msgPtr == IntPtr.Zero) return;
-            var msg = Marshal.PtrToStructure<Win32.MSG>(msgPtr);
+            var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
 
             switch (msg.message)
             {
@@ -43,14 +43,14 @@ namespace Angene.Input
                     {
                         isInWindow = true;
                         // trackmouseevent because windows is fucking stinky and wont send mouseleave without it
-                        var tme = new Win32.TRACKMOUSEEVENT
+                        var tme = new WindowManagement.TRACKMOUSEEVENT
                         {
-                            cbSize = (uint)Marshal.SizeOf<Win32.TRACKMOUSEEVENT>(),
+                            cbSize = (uint)Marshal.SizeOf<WindowManagement.TRACKMOUSEEVENT>(),
                             dwFlags = 0x00000002, // TME_LEAVE
                             hwndTrack = msg.hwnd,
                             dwHoverTime = 0
                         };
-                        Win32.TrackMouseEvent(ref tme);
+                        User32.TrackMouseEvent(ref tme);
                     }
                     break;
                 case (uint)WM.MOUSELEAVE:

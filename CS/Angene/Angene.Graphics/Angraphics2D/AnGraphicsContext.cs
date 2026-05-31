@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Angene.Graphics.Angraphics
+namespace Angene.Graphics.Angraphics2D
 {
     public class AnGraphicsContext : IGraphicsContext
     {
@@ -27,11 +27,11 @@ namespace Angene.Graphics.Angraphics
             _height = h;
 
             // GDI objects are only used for the final upload (SetDIBits + BitBlt)
-            IntPtr hdc = Win32.GetDC(hwnd);
+            IntPtr hdc = User32.GetDC(hwnd);
             _memDc = Gdi32.CreateCompatibleDC(hdc);
             _bitmap = Gdi32.CreateCompatibleBitmap(hdc, w, h);
             _oldBitmap = Gdi32.SelectObject(_memDc, _bitmap);
-            Win32.ReleaseDC(hwnd, hdc);
+            User32.ReleaseDC(hwnd, hdc);
 
             // Our software device context with a double-buffered swapchain
             _dc = new Dc(w, h, useGpu: false, bufferCount: 2);
@@ -69,9 +69,9 @@ namespace Angene.Graphics.Angraphics
                             front.Pixels, ref bmi, 0);
 
             // BitBlt the memDc to the real window DC
-            IntPtr hdc = Win32.GetDC(hwnd);
+            IntPtr hdc = User32.GetDC(hwnd);
             Gdi32.BitBlt(hdc, 0, 0, _width, _height, _memDc, 0, 0, Gdi32.SRCCOPY);
-            Win32.ReleaseDC(hwnd, hdc);
+            User32.ReleaseDC(hwnd, hdc);
 
             // Advance the swapchain — back becomes front for next Present()
             _dc.SwapBuffers();

@@ -1,4 +1,5 @@
-﻿public class FrameBuffer
+﻿namespace Angene.Graphics.Angraphics2D;
+public class FrameBuffer
 {
     public int Width { get; }
     public int Height { get; }

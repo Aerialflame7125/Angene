@@ -81,21 +81,21 @@ namespace Angene.Graphics.OpenGL
 
             for (int i = 0; i < stacks; i++)
             {
-                float lat0 = (float)Math.PI * (-0.5f + (float)i / stacks);
-                float z0 = (float)Math.Sin(lat0);
-                float zr0 = (float)Math.Cos(lat0);
+                float lat0 = (float)System.Math.PI * (-0.5f + (float)i / stacks);
+                float z0 = (float)System.Math.Sin(lat0);
+                float zr0 = (float)System.Math.Cos(lat0);
 
-                float lat1 = (float)Math.PI * (-0.5f + (float)(i + 1) / stacks);
-                float z1 = (float)Math.Sin(lat1);
-                float zr1 = (float)Math.Cos(lat1);
+                float lat1 = (float)System.Math.PI * (-0.5f + (float)(i + 1) / stacks);
+                float z1 = (float)System.Math.Sin(lat1);
+                float zr1 = (float)System.Math.Cos(lat1);
 
                 renderer.BeginDraw(PrimitiveType.QuadStrip);
 
                 for (int j = 0; j <= slices; j++)
                 {
-                    float lng = 2 * (float)Math.PI * (float)j / slices;
-                    float x = (float)Math.Cos(lng);
-                    float y = (float)Math.Sin(lng);
+                    float lng = 2 * (float)System.Math.PI * (float)j / slices;
+                    float x = (float)System.Math.Cos(lng);
+                    float y = (float)System.Math.Sin(lng);
 
                     renderer.AddVertex(x * zr0 * radius, y * zr0 * radius, z0 * radius);
                     renderer.AddVertex(x * zr1 * radius, y * zr1 * radius, z1 * radius);
@@ -313,9 +313,9 @@ namespace Angene.Graphics.OpenGL
         /// <param name="distance">Distance to move (positive = forward, negative = backward).</param>
         public void MoveForward(float distance)
         {
-            float yawRad = Yaw * (float)Math.PI / 180.0f;
-            X += (float)Math.Sin(yawRad) * distance;
-            Z -= (float)Math.Cos(yawRad) * distance;
+            float yawRad = Yaw * (float)System.Math.PI / 180.0f;
+            X += (float)System.Math.Sin(yawRad) * distance;
+            Z -= (float)System.Math.Cos(yawRad) * distance;
         }
 
         /// <summary>
@@ -324,9 +324,9 @@ namespace Angene.Graphics.OpenGL
         /// <param name="distance">Distance to move (positive = right, negative = left).</param>
         public void Strafe(float distance)
         {
-            float yawRad = Yaw * (float)Math.PI / 180.0f;
-            X += (float)Math.Cos(yawRad) * distance;
-            Z += (float)Math.Sin(yawRad) * distance;
+            float yawRad = Yaw * (float)System.Math.PI / 180.0f;
+            X += (float)System.Math.Cos(yawRad) * distance;
+            Z += (float)System.Math.Sin(yawRad) * distance;
         }
 
         /// <summary>

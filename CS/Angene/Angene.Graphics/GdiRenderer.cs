@@ -46,7 +46,7 @@ namespace Angene.Graphics
                 return;
             }
 
-            _backBufferBitmap = Gdi32.CreateCompatibleBitmap(_hdc, Math.Max(1, width), Math.Max(1, height));
+            _backBufferBitmap = Gdi32.CreateCompatibleBitmap(_hdc, System.Math.Max(1, width), System.Math.Max(1, height));
             if (_backBufferBitmap == IntPtr.Zero)
             {
                 Gdi32.DeleteDC(_memDc);

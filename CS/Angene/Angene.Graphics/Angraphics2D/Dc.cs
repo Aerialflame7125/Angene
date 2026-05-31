@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Angene.Graphics.Angraphics
+namespace Angene.Graphics.Angraphics2D
 {
     public class Dc : IDisposable
     {

@@ -18,7 +18,7 @@ namespace Angene.Input
         public void OnMessage(IntPtr msgPtr)
         {
             if (msgPtr == IntPtr.Zero) return;
-            var msg = Marshal.PtrToStructure<Win32.MSG>(msgPtr);
+            var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
 
             switch (msg.message)
             {

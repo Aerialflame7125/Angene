@@ -19,10 +19,10 @@ namespace Angene.Platform
         public int Height { get; set; } = 600;
 
         /// <summary>X position (CW_USEDEFAULT for system default)</summary>
-        public int X { get; set; } = Win32.CW_USEDEFAULT;
+        public int X { get; set; } = Consts.CW_USEDEFAULT;
 
         /// <summary>Y position (CW_USEDEFAULT for system default)</summary>
-        public int Y { get; set; } = Win32.CW_USEDEFAULT;
+        public int Y { get; set; } = Consts.CW_USEDEFAULT;
 
         /// <summary>
         /// convertToInterface bool
@@ -41,13 +41,13 @@ namespace Angene.Platform
         public string cTT { internal get; set; } = "";
 
         /// <summary>Window style flags</summary>
-        public Win32.WindowStyle Style { get; set; } = Win32.WindowStyle.OverlappedWindow;
+        public WindowManagement.WindowStyle Style { get; set; } = WindowManagement.WindowStyle.OverlappedWindow;
 
         /// <summary>Extended window style flags</summary>
-        public Win32.WindowStyleEx StyleEx { get; set; } = Win32.WindowStyleEx.None;
+        public WindowManagement.WindowStyleEx StyleEx { get; set; } = WindowManagement.WindowStyleEx.None;
 
         /// <summary>Transparency settings</summary>
-        public Win32.WindowTransparency Transparency { get; set; } = Win32.WindowTransparency.None;
+        public WindowManagement.WindowTransparency Transparency { get; set; } = WindowManagement.WindowTransparency.None;
 
         /// <summary>Whether to use 3D rendering (OpenGL)</summary>
         public bool Use3D { get; set; } = false;
@@ -58,13 +58,13 @@ namespace Angene.Platform
         /// <summary>Whether window should be topmost</summary>
         public bool AlwaysOnTop
         {
-            get => StyleEx.HasFlag(Win32.WindowStyleEx.Topmost);
+            get => StyleEx.HasFlag(WindowManagement.WindowStyleEx.Topmost);
             set
             {
                 if (value)
-                    StyleEx |= Win32.WindowStyleEx.Topmost;
+                    StyleEx |= WindowManagement.WindowStyleEx.Topmost;
                 else
-                    StyleEx &= ~Win32.WindowStyleEx.Topmost;
+                    StyleEx &= ~WindowManagement.WindowStyleEx.Topmost;
             }
         }
 
@@ -78,9 +78,9 @@ namespace Angene.Platform
                 Title = title,
                 Width = width,
                 Height = height,
-                Style = Win32.WindowStyle.OverlappedWindow,
-                StyleEx = Win32.WindowStyleEx.None,
-                Transparency = Win32.WindowTransparency.None,
+                Style = WindowManagement.WindowStyle.OverlappedWindow,
+                StyleEx = WindowManagement.WindowStyleEx.None,
+                Transparency = WindowManagement.WindowTransparency.None,
                 Use3D = false
             };
         }
@@ -97,10 +97,10 @@ namespace Angene.Platform
                 Height = height,
                 X = 0,
                 Y = 0,
-                Style = Win32.WindowStyle.Popup,
-                StyleEx = Win32.WindowStyleEx.Layered | Win32.WindowStyleEx.Topmost |
-                         (clickThrough ? Win32.WindowStyleEx.Transparent : Win32.WindowStyleEx.None),
-                Transparency = new Win32.WindowTransparency
+                Style = WindowManagement.WindowStyle.Popup,
+                StyleEx = WindowManagement.WindowStyleEx.Layered | WindowManagement.WindowStyleEx.Topmost |
+                         (clickThrough ? WindowManagement.WindowStyleEx.Transparent : WindowManagement.WindowStyleEx.None),
+                Transparency = new WindowManagement.WindowTransparency
                 {
                     Enabled = true,
                     Alpha = 255,  // Window alpha (we use OpenGL alpha for per-pixel)
@@ -120,9 +120,9 @@ namespace Angene.Platform
                 Title = title,
                 Width = width,
                 Height = height,
-                Style = Win32.WindowStyle.Popup,
-                StyleEx = Win32.WindowStyleEx.None,
-                Transparency = Win32.WindowTransparency.None,
+                Style = WindowManagement.WindowStyle.Popup,
+                StyleEx = WindowManagement.WindowStyleEx.None,
+                Transparency = WindowManagement.WindowTransparency.None,
                 Use3D = false
             };
         }
@@ -137,9 +137,9 @@ namespace Angene.Platform
                 Title = title,
                 Width = width,
                 Height = height,
-                Style = Win32.WindowStyle.OverlappedWindow,
-                StyleEx = Win32.WindowStyleEx.None,
-                Transparency = Win32.WindowTransparency.None,
+                Style = WindowManagement.WindowStyle.OverlappedWindow,
+                StyleEx = WindowManagement.WindowStyleEx.None,
+                Transparency = WindowManagement.WindowTransparency.None,
                 Use3D = true
             };
         }

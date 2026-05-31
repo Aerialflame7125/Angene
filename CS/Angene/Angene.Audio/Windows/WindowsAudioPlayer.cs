@@ -1,6 +1,7 @@
 using Angene.Audio;
 using Angene.Audio.Common;
 using Angene.Common;
+using System;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using static Angene.Audio.Windows.WinMM;
@@ -149,7 +150,7 @@ namespace Angene.Audio.Windows
         public void Stop() => Enqueue(AudioCommandType.Stop);
         public void Pause() => Enqueue(AudioCommandType.Pause);
         public void Resume() => Enqueue(AudioCommandType.Resume);
-        public void SetVolume(float v) => Enqueue(AudioCommandType.Volume, Math.Clamp(v, 0f, 1f));
+        public void SetVolume(float v) => Enqueue(AudioCommandType.Volume, System.Math.Clamp(v, 0f, 1f));
         public void SetLooping(bool loop) => Enqueue(AudioCommandType.Loop, loop ? 1f : 0f);
 
         private void Enqueue(AudioCommandType type, float value = 0f)
@@ -221,7 +222,7 @@ namespace Angene.Audio.Windows
                     remaining = _pcmData.Length;
                 }
 
-                int toWrite = Math.Min(BufferSize, remaining);
+                int toWrite = System.Math.Min(BufferSize, remaining);
                 Marshal.Copy(_pcmData, _playPosition, buf.DataPtr, toWrite);
                 _playPosition += toWrite;
 
