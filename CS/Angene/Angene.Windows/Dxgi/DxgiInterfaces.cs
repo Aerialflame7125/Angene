@@ -1,4 +1,8 @@
 ﻿using System.Runtime.InteropServices;
+using static Angene.Windows.Dxgi.DxgiEnums;
+using static Angene.Windows.Dxgi.DxgiStructs;
+using static Angene.Windows.WindowManagement;
+using DXGI_DEBUG_ID = System.Guid;
 
 namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI generated code, so I made the entirety of DXGI myself.
 {
@@ -18,12 +22,17 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
 
         // Adapters
         [ComImport]
-        [Guid("bec2a66b-1718-4f6d-91aa-b554f21bcb6a")]
+        [Guid("2411e7e1-12ac-4ccf-bd14-9798e8534dc0")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIAdapter
         {
+            [PreserveSig] uint SetPrivateData(ref Guid Name, uint DataSize, IntPtr pData);
+            [PreserveSig] uint SetPrivateDataInterface(ref Guid Name, [MarshalAs(UnmanagedType.IUnknown)] object pUnknown);
+            [PreserveSig] uint GetPrivateData(ref Guid Name, ref uint pDataSize, IntPtr pData);
+            [PreserveSig] uint GetParent(ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppParent);
+
             [PreserveSig]
-            uint CheckInterfaceSupport(ref Guid InterfaceName, [MarshalAs(UnmanagedType.IUnknown)] out long pUMDVersion); // If system supports device interface for a graphics component
+            uint CheckInterfaceSupport(ref Guid InterfaceName, out LARGE_INTEGER pUMDVersion); // If system supports device interface for a graphics component
 
             /// <summary>
             /// Enumerates video card outputs. "Output" is the index of the video card output, "ppOutput" is a returning output pointer of type IDXGIOutput.
@@ -40,20 +49,20 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             /// <param name="pDesc"></param>
             /// <returns></returns>
             [PreserveSig]
-            uint GetDesc([MarshalAs(UnmanagedType.IUnknown)] out DXGI_ADAPTER_DESC pDesc); // 1.0 description of card
+            uint GetDesc(out DXGI_ADAPTER_DESC pDesc); // 1.0 description of card
         }
 
         [ComImport]
-        [Guid("be9c48bb-3367-4c2f-a119-dc22c04bca2d")]
+        [Guid("29038f61-3839-4626-91fd-086879011a05")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIAdapter1 : IDXGIAdapter
         {
             [PreserveSig]
-            uint GetDesc1([MarshalAs(UnmanagedType.IUnknown)] out DXGI_ADAPTER_DESC1 pDesc);
+            uint GetDesc1(out DXGI_ADAPTER_DESC1 pDesc);
         }
 
         [ComImport]
-        [Guid("812a9200-e209-4334-9517-8a9e8ded4721")]
+        [Guid("0aa22c78-c28b-4988-934f-98774bd000a1")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIAdapter2 : IDXGIAdapter1
         {
@@ -62,7 +71,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("6782722e-407a-4d2b-aaf8-5f2924c90581")]
+        [Guid("645967bd-4efb-4d44-aab1-27963914944d")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIAdapter3 : IDXGIAdapter2
         {
@@ -81,7 +90,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("0ffad788-42ab-47a8-819b-b2bda2b43eb2")]
+        [Guid("3c8d99d1-4fbf-4181-a82c-af66bf7bd24e")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIAdapter4 : IDXGIAdapter3
         {
@@ -92,21 +101,31 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
 
         // Outputs
         [ComImport]
-        [Guid("5d6de087-31c6-4e8d-ac4a-944614bf1c6f")]
+        [Guid("ae02eedb-c735-4690-8d52-5a8dc20213aa")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIOutput
         {
+            // object
+            [PreserveSig] uint SetPrivateData(ref Guid Name, uint DataSize, IntPtr pData);
+
+            [PreserveSig] uint SetPrivateDataInterface(ref Guid Name, [MarshalAs(UnmanagedType.IUnknown)] object pUnknown);
+
+            [PreserveSig] uint GetPrivateData(ref Guid Name, ref uint pDataSize, IntPtr pData);
+
+            [PreserveSig] uint GetParent(ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppParent);
+
+            // devicesubobject
+            [PreserveSig] uint GetDevice(ref Guid riid, out IntPtr ppDevice);
+
+            // output
             [PreserveSig]
-            uint FindClosestMatchingMode(ref DXGI_MODE_DESC pModeToMatch, out DXGI_MODE_DESC pClosestMatch); // will fix later maybe
-            
-            [PreserveSig]
-            uint GetDesc(out DXGI_OUTPUT_DESC pDesc);
+            uint FindClosestMatchingMode(ref DXGI_MODE_DESC pModeToMatch, out DXGI_MODE_DESC pClosestMatch, [MarshalAs(UnmanagedType.IUnknown)] IntPtr pConcernedDevice); // will fix later maybe
             
             [PreserveSig]
             uint GetDisplayModeList(
                 DXGI_FORMAT EnumFormat, 
                 uint Flags, 
-                uint pNumModes, // Listed as [in, out]
+                ref uint pNumModes, // Listed as [in, out]
                 out DXGI_MODE_DESC pDesc // Listed as optional
                 );
             
@@ -114,14 +133,17 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             uint GetDisplaySurfaceData(IDXGISurface pDestination);
             
             [PreserveSig]
-            uint GetFrameStatistics(DXGI_FRAME_STATISTICS pStats);
+            uint GetFrameStatistics(out DXGI_FRAME_STATISTICS pStats);
             
             [PreserveSig]
             uint GetGammaControl(out DXGI_GAMMA_CONTROL pArray);
             
             [PreserveSig]
             uint GetGammaControlCapabilities(out DXGI_GAMMA_CONTROL_CAPABILITIES pGammaCaps);
-            
+
+            [PreserveSig]
+            uint GetDesc(out DXGI_OUTPUT_DESC pDesc);
+
             [PreserveSig]
             void ReleaseOwnership(); // Release ownership of output
             
@@ -129,7 +151,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             uint SetDisplaySurface(IDXGISurface pScanoutSurface);
             
             [PreserveSig]
-            uint SetGammaControl(DXGI_GAMMA_CONTROL pArray);
+            uint SetGammaControl(ref DXGI_GAMMA_CONTROL pArray);
             
             [PreserveSig]
             uint TakeOwnership([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, bool Exclusive);
@@ -139,7 +161,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("33fda638-53fc-4b9d-a2eb-3e6a6fa0ba90")]
+        [Guid("00cddea8-939b-4b83-a340-a6851981dc85")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIOutput1 : IDXGIOutput
         {
@@ -147,12 +169,12 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             uint DuplicateOutput([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, out IDXGIOutputDuplication ppOutputDuplication);
 
             [PreserveSig] // might throw an error for an "in" after "out" specified.
-            uint FindClosestMatchingMode1(DXGI_MODE_DESC1 pModeToMatch, out DXGI_MODE_DESC1 pClosestMatch, [MarshalAs(UnmanagedType.IUnknown)] IntPtr pConcernedDevice);
+            uint FindClosestMatchingMode1(ref DXGI_MODE_DESC1 pModeToMatch, out DXGI_MODE_DESC1 pClosestMatch, [MarshalAs(UnmanagedType.IUnknown)] IntPtr pConcernedDevice);
             
             [PreserveSig]
             uint GetDisplayModeList1(DXGI_FORMAT EnumFormat, 
                 uint Flags, 
-                uint pNumModes, // Listed as "[in, out]"
+                ref uint pNumModes, // Listed as "[in, out]"
                 out DXGI_MODE_DESC1 pDesc // Listed as optional out
             );
             
@@ -161,16 +183,17 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("46c98038-9765-4993-95d6-ee753ecf8e82")]
+        [Guid("595e39d1-2724-4663-99b1-da969de28364")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIOutput2 : IDXGIOutput1
         {
             [PreserveSig]
+            [return: MarshalAs(UnmanagedType.Bool)]
             bool SupportsOverlays(); // Query adapter output for multipane overlay support. (https://learn.microsoft.com/en-us/windows/win32/api/dxgi1_3/nf-dxgi1_3-idxgioutput2-supportsoverlays)
         }
 
         [ComImport]
-        [Guid("e09b8df3-6899-40ba-bd8f-c151842d08a0")]
+        [Guid("8a6bb301-7e63-4713-b4a1-a78a41d252a4")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIOutput3 : IDXGIOutput2 
         {
@@ -179,25 +202,25 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("8a22c7d9-212c-4550-85ac-cda442790273")]
+        [Guid("dc7dca35-2196-414d-9f53-617884032a60")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIOutput4 : IDXGIOutput3
         {
             [PreserveSig]
-            uint CheckOverlayColorSpaceSupport(DXGI_FORMAT Format, DXGI_COLOR_SPACE_TYPE ColorSpace, [MarshalAs(UnmanagedType.IUnknown)] pConcernedDevice, out uint pFlags);
+            uint CheckOverlayColorSpaceSupport(DXGI_FORMAT Format, DXGI_COLOR_SPACE_TYPE ColorSpace, [MarshalAs(UnmanagedType.IUnknown)] IntPtr pConcernedDevice, out uint pFlags);
         }
 
         [ComImport]
-        [Guid("268a2745-ce50-48a2-bf4e-33f5421d34f6")]
+        [Guid("80a13635-ab52-4555-8ef2-ab14a27f8c2f")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIOutput5 : IDXGIOutput4
         {
             [PreserveSig]
-            uint DuplicateOutput1([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, uint Flags, uint SupportedFormatsCount, int DXGI_FORMAT pSupportedFormats, out IDXGIOutputDuplication ppOutputDuplication);
+            uint DuplicateOutput1([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, uint Flags, uint SupportedFormatsCount, IntPtr pSupportedFormats, out IDXGIOutputDuplication ppOutputDuplication);
         }
 
         [ComImport]
-        [Guid("166be73f-5f8b-437c-842a-a651699729b1")]
+        [Guid("f4a85484-055f-4efd-b92c-3d3173573f47")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIOutput6 : IDXGIOutput5
         {
@@ -211,10 +234,17 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
 
         // Factories
         [ComImport]
-        [Guid("7a65c7ed-301f-4aa0-b0be-c46584b5e1a7")]
+        [Guid("7b7166ec-21c7-44ae-b21a-c94ed2391e3e")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        public interface IDXGIFactory : IDXGIObject // praying this works
+        public interface IDXGIFactory
         {
+            // object
+            [PreserveSig] uint SetPrivateData(ref Guid Name, uint DataSize, IntPtr pData);
+            [PreserveSig] uint SetPrivateDataInterface(ref Guid Name, [MarshalAs(UnmanagedType.IUnknown)] object pUnknown);
+            [PreserveSig] uint GetPrivateData(ref Guid Name, ref uint pDataSize, IntPtr pData);
+            [PreserveSig] uint GetParent(ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppParent);
+
+            // factory
             [PreserveSig]
             uint EnumAdapters(uint Adapter, [MarshalAs(UnmanagedType.Interface)] out IDXGIAdapter ppAdapter);
 
@@ -226,7 +256,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
 
             [PreserveSig]
             uint CreateSwapChain(
-                [MarshalAs(UnmanagedType.IUnknown)] object pDevice, // D3D device
+                [MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, // D3D device
                 ref DXGI_SWAP_CHAIN_DESC pDesc,
                 [MarshalAs(UnmanagedType.Interface)] out IDXGISwapChain ppSwapChain);
 
@@ -235,7 +265,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("5b49cc29-3b1f-4003-823d-8b6e3633cad2")]
+        [Guid("770aae78-f26f-4dba-a829-253c83d1b387")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIFactory1 : IDXGIFactory
         {
@@ -243,26 +273,28 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             uint EnumAdapters1(uint Adapter, [MarshalAs(UnmanagedType.Interface)] out IDXGIAdapter1 ppAdapter);
 
             [PreserveSig]
+            [return: MarshalAs(UnmanagedType.Bool)]
             bool IsCurrent(); // False if becoming available or adapter is going away, True if no adapter changes.
             // Also returns false to inform application to re-enumerate adapters.
         }
 
         [ComImport]
-        [Guid("5e8b292f-f21e-4955-8b0c-0aa132a49a63")]
+        [Guid("50c83a1c-e072-4c48-87b0-3630d36a6a8c")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIFactory2 : IDXGIFactory1
         {
             [PreserveSig]
-            uint CreateSwapChainForComposition([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, ref DXGI_SWAP_CHAIN_DESC1 pDesc, IDXGIOutput pRestrictToOutput, [MarshalAs(UnmanagedType.IUnknown)] IDXGISwapChain1 ppSwapChain);
+            [return: MarshalAs(UnmanagedType.Bool)]
+            bool IsWindowedStereoEnabled(); // Indication of whether or not to use stereo mode.
+                                            // True inducates you can use stereo mode, otherwise false.
+            [PreserveSig]
+            uint CreateSwapChainForHwnd([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, IntPtr hWnd, ref DXGI_SWAP_CHAIN_DESC1 pDesc, IntPtr pFullScreenDesc, IDXGIOutput pRestrictToOutput, [MarshalAs(UnmanagedType.IUnknown)] out IDXGISwapChain1 ppSwapChain);
             [PreserveSig]
             uint CreateSwapChainForCoreWindow([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, [MarshalAs(UnmanagedType.IUnknown)] IntPtr pWindow, ref DXGI_SWAP_CHAIN_DESC1 pDesc, IDXGIOutput pRestrictToOutput, [MarshalAs(UnmanagedType.IUnknown)] out IDXGISwapChain1 ppSwapChain);
             [PreserveSig]
-            uint CreateSwapChainForHwnd([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, IntPtr hWnd, ref DXGI_SWAP_CHAIN_DESC1 pDesc, DXGI_SWAP_CHAIN_FULLSCREEN_DESC pFullScreenDesc, IDXGIOutput pRestrictToOutput, [MarshalAs(UnmanagedType.IUnknown)] out IDXGISwapChain1 ppSwapChain);
+            uint CreateSwapChainForComposition([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, ref DXGI_SWAP_CHAIN_DESC1 pDesc, IDXGIOutput pRestrictToOutput, out IDXGISwapChain1 ppSwapChain);
             [PreserveSig]
-            uint GetSharedResourceAdapterLuid(IntPtr hResource, [MarshalAs(UnmanagedType.IUnknown)] out LUID pLuid);
-            [PreserveSig]
-            bool IsWindowedStereoEnabled(); // Indication of whether or not to use stereo mode.
-            // True inducates you can use stereo mode, otherwise false.
+            uint GetSharedResourceAdapterLuid(IntPtr hResource, out LUID pLuid);
             [PreserveSig]
             uint RegisterOcclusionStatusEvent(IntPtr hEvent,  out uint pdwCookie);
             [PreserveSig]
@@ -270,15 +302,15 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             [PreserveSig]
             uint RegisterStereoStatusEvent(IntPtr hEvent, [MarshalAs(UnmanagedType.IUnknown)] out uint pdwCookie);
             [PreserveSig]
+            void UnregisterStereoStatus(UInt32 dwCookie); // Unregisters a window or event to stop from recieving notification when stereo status changes
+            [PreserveSig]
             uint RegisterStereoStatusWindow(IntPtr HWND, uint wMsg, [MarshalAs(UnmanagedType.IUnknown)] out uint pdwCookie);
             [PreserveSig]
-            uint UnregisterOcclusionStatus(UInt32 dwCookie); // Unregisters a window or event to stop from recieving notification when occlusion status changes
-            [PreserveSig]
-            uint UnregisterStereoStatus(UInt32 dwCookie); // Unregisters a window or event to stop from recieving notification when stereo status changes
+            void UnregisterOcclusionStatus(UInt32 dwCookie); // Unregisters a window or event to stop from recieving notification when occlusion status changes
         }
 
         [ComImport]
-        [Guid("d9c92741-5cd7-4d08-a2ce-f15d2ae98f91")]
+        [Guid("25483823-cd46-4c7d-86f4-f4d2f80800d2")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIFactory3 : IDXGIFactory2
         {
@@ -287,7 +319,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("dfbe594e-56f7-4a15-9cc9-032c769c3dc8")]
+        [Guid("1bc6ea02-ef36-464f-bf0c-21c385616cdb")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIFactory4 : IDXGIFactory3
         {
@@ -298,7 +330,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("2a342ec6-e959-49dc-bd39-0c7233e84077")]
+        [Guid("7632e1f5-ee65-4dca-87fd-84cd75f8838d")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIFactory5 : IDXGIFactory4
         {
@@ -307,21 +339,42 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("729c4365-cd85-4bb6-961c-cfc87d2cf06c")]
+        [Guid("c1b6694f-ff09-44a9-b0eb-c7aa351a0d6e")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIFactory6 : IDXGIFactory5
         {
             [PreserveSig]
-            uint EnumAdapterByGpuPreference(uint Adapter, DXGI_GPU_PREFERENCE GpuPreference, ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] IntPtr ppvAdapter);
+            uint EnumAdapterByGpuPreference(uint Adapter, DXGI_GPU_PREFERENCE GpuPreference, ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out IntPtr ppvAdapter);
+        }
+
+        [ComImport]
+        [Guid("a4a6616e-2844-42f5-b77a-a690e54ca62a")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        public interface IDXGIFactory7 : IDXGIFactory6
+        {
+            [PreserveSig]
+            uint RegisterAdaptersChangedEvent(IntPtr hEvent, out uint pdwCookie);
+            [PreserveSig]
+            uint UnregisterAdaptersChangedEvent(uint dwCookie);
         }
 
 
         // Swapchains
         [ComImport]
-        [Guid("d0a8576d-8cfd-4cc1-8622-81f345c85ba6")]
+        [Guid("310d36a0-d2e7-4c0a-aa04-6a9d23b8886a")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        public interface IDXGISwapchain
+        public interface IDXGISwapChain
         {
+            // object
+            [PreserveSig] uint SetPrivateData(ref Guid Name, uint DataSize, IntPtr pData);
+            [PreserveSig] uint SetPrivateDataInterface(ref Guid Name, [MarshalAs(UnmanagedType.IUnknown)] object pUnknown);
+            [PreserveSig] uint GetPrivateData(ref Guid Name, ref uint pDataSize, IntPtr pData);
+            [PreserveSig] uint GetParent(ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppParent);
+
+            // devicesubobject
+            [PreserveSig] uint GetDevice(ref Guid riid, out IntPtr ppDevice);
+
+            // swapchain
             [PreserveSig]
             uint GetBuffer(uint Buffer, ref Guid riid, out IntPtr ppSurface);
             [PreserveSig]
@@ -331,9 +384,9 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             [PreserveSig]
             uint GetFrameStatistics(out DXGI_FRAME_STATISTICS pStats);
             [PreserveSig]
-            uint GetFullScreenState(out bool pFullscreen, out IDXGIOutput ppTarget);
+            uint GetFullScreenState([MarshalAs(UnmanagedType.Bool)] out bool pFullscreen, out IDXGIOutput ppTarget);
             [PreserveSig]
-            uint GetLastPresetCount(out uint pLastPresentCount);
+            uint GetLastPresentCount(out uint pLastPresentCount);
             [PreserveSig]
             uint Present(uint SyncInterval, uint Flags);
             [PreserveSig]
@@ -341,13 +394,13 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             [PreserveSig]
             uint ResizeTarget(ref DXGI_MODE_DESC pNewTargetParameters);
             [PreserveSig]
-            uint SetFullscreenState(bool Fullscreen, ref IDXGIOutput pTarget);
+            uint SetFullscreenState([MarshalAs(UnmanagedType.Bool)] bool Fullscreen, ref IDXGIOutput pTarget);
         }
 
         [ComImport]
-        [Guid("d5cde982-d515-4560-a9c4-55f2128fc808")]
+        [Guid("790a45f7-0d42-4876-983a-0a55cfe6f4aa")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        public interface IDXGISwapchain1 : IDXGISwapchain
+        public interface IDXGISwapChain1 : IDXGISwapChain
         {
             [PreserveSig]
             uint GetBackgroundColor(out DXGI_RGBA pColor);
@@ -364,6 +417,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             [PreserveSig]
             uint GetRotation(out DXGI_MODE_ROTATION pRotation);
             [PreserveSig]
+            [return: MarshalAs(UnmanagedType.Bool)]
             bool IsTemporaryMonoSupported();
             [PreserveSig]
             uint Present1(uint SyncInterval, uint PresentFlags, ref DXGI_PRESENT_PARAMETERS pPresentParameters);
@@ -375,9 +429,9 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("f29ac532-e98b-431c-9cf7-821c32b9615a")]
+        [Guid("a8be2ac5-d107-4555-8763-c088edfd0354")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        public interface IDXGISwapchain2 : IDXGISwapchain1
+        public interface IDXGISwapChain2 : IDXGISwapChain1
         {
             [PreserveSig]
             IntPtr GetFrameLatencyWaitableObject();
@@ -396,9 +450,9 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("f8823b48-5640-4242-bf56-fe6f1a7ad2de")]
+        [Guid("94d99bdb-f1f8-4ab0-b236-7da0170edab1")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        public interface IDXGISwapchain3 : IDXGISwapchain2
+        public interface IDXGISwapChain3 : IDXGISwapChain2
         {
             [PreserveSig]
             uint CheckColorSpaceSupport(ref DXGI_COLOR_SPACE_TYPE ColorSpace, out uint pColorSpaceSupport);
@@ -411,9 +465,9 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("f3b2a8bb-45cc-45bb-80e6-91af1f9bf8d1")]
+        [Guid("3d585d5a-bd4a-489e-b1f4-3dbcb6452ffb")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        public interface IDXGISwapchain4 : IDXGISwapchain3
+        public interface IDXGISwapChain4 : IDXGISwapChain3
         {
             [PreserveSig]
             uint SetHDRMetaData(ref DXGI_HDR_METADATA_TYPE Type, uint Size, IntPtr pMetaData);
@@ -422,12 +476,19 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
 
         // Devices
         [ComImport]
-        [Guid("35ce0784-3c45-47ee-bcdc-f628061af33d")]
+        [Guid("54ec77fa-1377-44e6-8c32-88fd5f44c84c")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIDevice
         {
+            // object
+            [PreserveSig] uint SetPrivateData(ref Guid Name, uint DataSize, IntPtr pData);
+            [PreserveSig] uint SetPrivateDataInterface(ref Guid Name, [MarshalAs(UnmanagedType.IUnknown)] object pUnknown);
+            [PreserveSig] uint GetPrivateData(ref Guid Name, ref uint pDataSize, IntPtr pData);
+            [PreserveSig] uint GetParent(ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppParent);
+
+            // device
             [PreserveSig]
-            uint CreateSurface(ref DXGI_SURFACE_DESC pDesc, uint NumSurfaces, ref DXGI_USAGE Usage, DXGI_SHARED_RESOURCE pSharedResource, out IDXGISurface ppSurface);
+            uint CreateSurface(ref DXGI_SURFACE_DESC pDesc, uint NumSurfaces, ref DXGI_USAGE Usage, ref DXGI_SHARED_RESOURCE pSharedResource, out IntPtr ppSurface);
             [PreserveSig]
             uint GetAdapter(out IDXGIAdapter pAdapter);
             [PreserveSig]
@@ -439,9 +500,9 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("7500097b-2950-43ee-a3e5-1e25b3669eb5")]
+        [Guid("77db970f-6276-48ba-ba28-070143b4392c")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        public interface IDXGIDevice1
+        public interface IDXGIDevice1 : IDXGIDevice
         {
             [PreserveSig]
             uint GetMaximumFrameLatency(out uint pMaxLatency);
@@ -450,42 +511,42 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("91a205ce-955a-4e33-9300-0ecc3348c633")]
+        [Guid("05008617-fbfd-4051-a790-144884b4f6a9")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        public interface IDXGIDevice2
+        public interface IDXGIDevice2 : IDXGIDevice1
         {
             [PreserveSig]
             uint EnqueueSetEvent(IntPtr hEvent);
             [PreserveSig]
-            uint OfferResources(uint NumResources, ref IDXGIResource ppResources, ref DXGI_OFFER_RESOURCE_PRIORITY Priority);
+            uint OfferResources(uint NumResources, ref IDXGIResource ppResources, ref _DXGI_OFFER_RESOURCE_PRIORITY Priority);
             [PreserveSig]
             uint ReclaimResources(uint NumResources, ref IDXGIResource ppResources, out bool pDiscarded);
         }
 
         [ComImport]
-        [Guid("f83266d4-2303-4af9-96ca-524fa5f3e107")]
+        [Guid("6007896c-3244-4afd-bf18-a6d3beda5023")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        public interface IDXGIDevice3
+        public interface IDXGIDevice3 : IDXGIDevice2
         {
             [PreserveSig]
             void Trim();
         }
 
         [ComImport]
-        [Guid("dce9af25-584c-47a1-8335-bd9a7a41863f")]
+        [Guid("95b4f00e-6e0b-407a-b85b-bc617397f504")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        public interface IDXGIDevice4
+        public interface IDXGIDevice4 : IDXGIDevice3
         {
             [PreserveSig]
-            uint OfferResources1(uint NumResources, ref IDXGIResource ppResources, ref DXGI_OFFER_RESOURCE_PRIORITY Priority, uint Flags);
+            uint OfferResources1(uint NumResources, ref IDXGIResource ppResources, ref _DXGI_OFFER_RESOURCE_PRIORITY Priority, uint Flags);
             [PreserveSig]
-            uint ReclaimResources1(uint NumResources, ref IDXGIResource ppResources, ref DXGI_RECLAIM_RESOURCE_RESULTS pResults);
+            uint ReclaimResources1(uint NumResources, ref IDXGIResource ppResources, ref _DXGI_RECLAIM_RESOURCE_RESULTS pResults);
         }
 
 
         // Debug
         [ComImport]
-        [Guid("e36a46af-90a5-49e5-95d8-1d0ac05692dd")]
+        [Guid("119e7452-de9e-40fe-8806-88f90c12b441")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIDebug
         {
@@ -494,7 +555,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("cacd16c9-7a4c-4d68-be3b-e64ea7e8c20f")]
+        [Guid("c5a05f0c-16f2-4adf-9f4d-a8c4d58ac550")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIDebug1 : IDXGIDebug
         {
@@ -503,16 +564,27 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             [PreserveSig]
             void EnableLeakTrackingForThread();
             [PreserveSig]
+            [return: MarshalAs(UnmanagedType.Bool)]
             bool IsLeakTrackingEnabledForThread();
         }
 
 
         // Resources
         [ComImport]
-        [Guid("4e7c8f56-8d45-46fd-9758-a88433963abc")]
+        [Guid("035f3ab4-482e-4e50-b41f-8a7f8bd8960b")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIResource
         {
+            // object
+            [PreserveSig] uint SetPrivateData(ref Guid Name, uint DataSize, IntPtr pData);
+            [PreserveSig] uint SetPrivateDataInterface(ref Guid Name, [MarshalAs(UnmanagedType.IUnknown)] object pUnknown);
+            [PreserveSig] uint GetPrivateData(ref Guid Name, ref uint pDataSize, IntPtr pData);
+            [PreserveSig] uint GetParent(ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppParent);
+
+            // devicesubobject
+            [PreserveSig] uint GetDevice(ref Guid riid, out IntPtr ppDevice);
+
+            // resource
             [PreserveSig]
             uint GetEvictionPriority(out uint pEvictionPriority);
             [PreserveSig]
@@ -524,12 +596,12 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("a0841905-11de-4441-85c7-a70ddfae9566")]
+        [Guid("30961379-4609-4a41-998e-54fe567ee0c1")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIResource1 : IDXGIResource
         {
             [PreserveSig]
-            uint CreateSharedHandle(ref SECURITY_ATTRIBUTES pAttributes, uint dwAccess, string lpName, out IntPtr pHandle);
+            uint CreateSharedHandle(ref _SECURITY_ATTRIBUTES pAttributes, uint dwAccess, string lpName, out IntPtr pHandle);
             [PreserveSig]
             uint CreateSubresourceSurface(uint index, out IDXGISurface2 ppSurface);
         }
@@ -537,10 +609,20 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
 
         // Surfaces
         [ComImport]
-        [Guid("7d36ee18-654d-40b6-8428-68b2b38a4886")]
+        [Guid("cafcb56c-6ac3-4889-bf47-9e23bbd260ec")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGISurface
         {
+            // object
+            [PreserveSig] uint SetPrivateData(ref Guid Name, uint DataSize, IntPtr pData);
+            [PreserveSig] uint SetPrivateDataInterface(ref Guid Name, [MarshalAs(UnmanagedType.IUnknown)] object pUnknown);
+            [PreserveSig] uint GetPrivateData(ref Guid Name, ref uint pDataSize, IntPtr pData);
+            [PreserveSig] uint GetParent(ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppParent);
+
+            // devicesubobject
+            [PreserveSig] uint GetDevice(ref Guid riid, out IntPtr ppDevice);
+
+            // surface
             [PreserveSig]
             uint GetDesc(out DXGI_SURFACE_DESC pDesc);
             [PreserveSig]
@@ -550,18 +632,18 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("cf99c92c-77b1-4843-b48b-ed3a43a23f87")]
+        [Guid("4ae63092-6327-4c1b-80ae-bfe12ea32b86")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGISurface1 : IDXGISurface
         {
             [PreserveSig]
             uint GetDC(bool Discard, out IntPtr phdc);
             [PreserveSig]
-            uint ReleaseDC(ref tagRECT pDirtyRect);
+            uint ReleaseDC(ref RECT pDirtyRect);
         }
 
         [ComImport]
-        [Guid("d7c3be4f-08e8-4e60-92a3-0dd24c4f1634")]
+        [Guid("aba496dd-b617-4cb8-a866-bc44d7eb1fa2")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGISurface2 : IDXGISurface1
         {
@@ -576,21 +658,17 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIObject
         {
-            [PreserveSig]
-            uint SetPrivateData(ref Guid Name, uint DataSize, IntPtr pData);
+            [PreserveSig] uint SetPrivateData(ref Guid Name, uint DataSize, IntPtr pData);
 
-            [PreserveSig]
-            uint SetPrivateDataInterface(ref Guid Name, [MarshalAs(UnmanagedType.IUnknown)] object pUnknown);
+            [PreserveSig] uint SetPrivateDataInterface(ref Guid Name, [MarshalAs(UnmanagedType.IUnknown)] object pUnknown);
 
-            [PreserveSig]
-            uint GetPrivateData(ref Guid Name, ref uint pDataSize, IntPtr pData);
+            [PreserveSig] uint GetPrivateData(ref Guid Name, ref uint pDataSize, IntPtr pData);
 
-            [PreserveSig]
-            uint GetParent(ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppParent);
+            [PreserveSig] uint GetParent(ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppParent);
         }
 
         [ComImport]
-        [Guid("5106d9ed-e79d-42bf-9981-29d0dce47442")]
+        [Guid("2633066b-4514-4c7a-8fd8-12ea98059d18")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIDecodeSwapChain
         {
@@ -599,9 +677,9 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             [PreserveSig]
             uint GetDestSize(out uint pWidth, out uint pHeight);
             [PreserveSig]
-            uint GetSourceRect(out tagRECT pRect);
+            uint GetSourceRect(out RECT pRect);
             [PreserveSig]
-            uint GetTargetRect(out tagRECT pRect);
+            uint GetTargetRect(out RECT pRect);
             [PreserveSig]
             uint PresentBuffer(uint BufferToPresent, uint SyncInterval, uint Flags);
             [PreserveSig]
@@ -609,51 +687,51 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             [PreserveSig]
             uint SetDestSize(uint Width, uint Height);
             [PreserveSig]
-            uint SetSourceRect(ref tagRECT pRect);
+            uint SetSourceRect(ref RECT pRect);
             [PreserveSig]
-            uint SetTargetRect(ref tagRECT pRect);
+            uint SetTargetRect(ref RECT pRect);
         }
 
         [ComImport]
-        [Guid("ac794add-0f6f-4634-814a-9870c855ac5d")]
+        [Guid("3d3e0379-f9de-4d58-bb6c-18d62992f1a6")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIDeviceSubObject
         {
-            [PreserveSig]
-            uint GetDevice(ref Guid riid, out IntPtr ppDevice);
+            [PreserveSig] uint GetDevice(ref Guid riid, out IntPtr ppDevice);
         }
 
         [ComImport]
-        [Guid("ae5add06-5b2a-4bfc-8dd2-b572d1c5239e")]
+        [Guid("ea9dbf1a-c88e-448b-b7c1-22cd9757c8bc")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIDisplayControl
         {
             [PreserveSig]
+            [return: MarshalAs(UnmanagedType.Bool)]
             bool IsStereoEnabled();
             [PreserveSig]
             void SetStereoEnabled(bool enabled);
         }
 
         [ComImport]
-        [Guid("b9a5561d-62e0-4562-8a52-bedbff98a064")]
+        [Guid("41e7d1f2-a591-4f7b-a2e5-fa9c843e1c12")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIFactoryMedia
         {
             [PreserveSig]
             uint CreateDecodeSwapChainForCompositionSurfaceHandle([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, IntPtr hSurface, ref DXGI_DECODE_SWAP_CHAIN_DESC pDesc, ref IDXGIResource pYuvDecodeBuffers, ref IDXGIOutput pRestrictToOutput, out IDXGIDecodeSwapChain ppSwapChain);
             [PreserveSig]
-            uint CreateSwapChainForCompositionSurfaceHandle([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, IntPtr hSurface, ref DXGI_SWAP_CHAIN_DESC1 pDesc, ref IDXGIOutput pRestrictToOutput, out IDXGISwapchain1 ppSwapChain);
+            uint CreateSwapChainForCompositionSurfaceHandle([MarshalAs(UnmanagedType.IUnknown)] IntPtr pDevice, IntPtr hSurface, ref DXGI_SWAP_CHAIN_DESC1 pDesc, ref IDXGIOutput pRestrictToOutput, out IDXGISwapChain1 ppSwapChain);
         }
 
         [ComImport]
-        [Guid("7556e4d2-ea03-4b9d-835b-a75b510fb76f")]
+        [Guid("d67441c7-672a-476f-9e82-cd55b44949ce")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIInfoQueue
         {
             [PreserveSig]
             uint AddApplicationMessage(ref DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity, string pDescription);
             [PreserveSig]
-            uint AddMessage(ref DXGI_DEBUG_ID Producer, DXGI_INFO_QUEUE_MESSAGE_CATEGORY Category, DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity, DXGI_INFO_QUEUE_MESSAGE_ID ID, string pDescription);
+            uint AddMessage(ref DXGI_DEBUG_ID Producer, DXGI_INFO_QUEUE_MESSAGE_CATEGORY Category, DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity, uint ID, string pDescription);
             [PreserveSig]
             uint AddRetrievalFilterEntries(ref DXGI_DEBUG_ID Producer, ref DXGI_INFO_QUEUE_FILTER pFilter);
             [PreserveSig]
@@ -665,16 +743,20 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             [PreserveSig]
             void ClearStoredMessages(ref DXGI_DEBUG_ID Producer);
             [PreserveSig]
+            [return: MarshalAs(UnmanagedType.Bool)]
             bool GetBreakOnCategory(ref DXGI_DEBUG_ID Producer, ref DXGI_INFO_QUEUE_MESSAGE_CATEGORY Category);
             [PreserveSig]
-            bool GetBreakOnID(ref DXGI_DEBUG_ID Producer, ref DXGI_INFO_QUEUE_MESSAGE_ID ID);
+            [return: MarshalAs(UnmanagedType.Bool)]
+            bool GetBreakOnID(ref DXGI_DEBUG_ID Producer, uint ID);
             [PreserveSig]
+            [return: MarshalAs(UnmanagedType.Bool)]
             bool GetBreakOnSeverity(ref DXGI_DEBUG_ID Producer, ref DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity);
             [PreserveSig]
-            uint GetMessage(ref DXGI_DEBUG_ID Producer, ref UInt64 MessageIndex, out DXGI_INFO_QUEUE_MESSAGE pMessage, ref SIZE_T pMessageByteLength);
+            uint GetMessage(ref DXGI_DEBUG_ID Producer, ref UInt64 MessageIndex, out DXGI_INFO_QUEUE_MESSAGE pMessage, nuint pMessageByteLength);
             [PreserveSig]
             UInt64 GetMessageCountLimit(ref DXGI_DEBUG_ID Producer);
             [PreserveSig]
+            [return: MarshalAs(UnmanagedType.Bool)]
             bool GetMuteDebugOutput(ref DXGI_DEBUG_ID Producer);
             [PreserveSig]
             UInt64 GetNumMessagesAllowedByStorageFilter(ref DXGI_DEBUG_ID Producer);
@@ -687,11 +769,11 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             [PreserveSig]
             uint GetNumStoredMessagesAllowedByRetrievalFilters(ref DXGI_DEBUG_ID Producer);
             [PreserveSig]
-            uint GetRetrievalFilter(ref DXGI_DEBUG_ID Producer, out DXGI_INFO_QUEUE_FILTER pFilter, ref SIZE_T pFilterByteLength);
+            uint GetRetrievalFilter(ref DXGI_DEBUG_ID Producer, out DXGI_INFO_QUEUE_FILTER pFilter, nuint pFilterByteLength);
             [PreserveSig]
             uint GetRetrievalFilterStackSize(ref DXGI_DEBUG_ID Producer);
             [PreserveSig]
-            uint GetStorageFilter(ref DXGI_DEBUG_ID Producer, out DXGI_INFO_QUEUE_FILTER pFilter, ref SIZE_T pFilterByteLength);
+            uint GetStorageFilter(ref DXGI_DEBUG_ID Producer, out DXGI_INFO_QUEUE_FILTER pFilter, nuint pFilterByteLength);
             [PreserveSig]
             uint GetStorageFilterStackSize(ref DXGI_DEBUG_ID Producer);
             [PreserveSig]
@@ -717,7 +799,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             [PreserveSig]
             uint SetBreakOnCategory(ref DXGI_DEBUG_ID Producer, ref DXGI_INFO_QUEUE_MESSAGE_CATEGORY Category, bool bEnable);
             [PreserveSig]
-            uint SetBreakOnID(ref DXGI_DEBUG_ID Producer, ref DXGI_INFO_QUEUE_MESSAGE_ID ID, bool bEnable);
+            uint SetBreakOnID(ref DXGI_DEBUG_ID Producer, uint ID, bool bEnable);
             [PreserveSig]
             uint SetBreakOnSeverity(ref DXGI_DEBUG_ID Producer, ref DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity, bool bEnable);
             [PreserveSig]
@@ -727,10 +809,20 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("07c5bcb6-64ea-4f19-8b87-817c9fc85c84")]
+        [Guid("9d8e1289-d7b3-465f-8126-250e349af85d")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIKeyedMutex
         {
+            // object
+            [PreserveSig] uint SetPrivateData(ref Guid Name, uint DataSize, IntPtr pData);
+            [PreserveSig] uint SetPrivateDataInterface(ref Guid Name, [MarshalAs(UnmanagedType.IUnknown)] object pUnknown);
+            [PreserveSig] uint GetPrivateData(ref Guid Name, ref uint pDataSize, IntPtr pData);
+            [PreserveSig] uint GetParent(ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppParent);
+
+            // devicesubobject
+            [PreserveSig] uint GetDevice(ref Guid riid, out IntPtr ppDevice);
+
+            // keyedmutex
             [PreserveSig]
             uint AcquireSync(ref UInt64 Key, uint dwMilliseconds);
             [PreserveSig]
@@ -738,7 +830,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("6aedc9ab-ff7f-44d9-a1e6-29f37aba2cce")]
+        [Guid("191cfac3-a341-470d-b26e-a864f428319c")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGIOutputDuplication
         {
@@ -747,7 +839,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
             [PreserveSig]
             void GetDesc(out DXGI_OUTDUPL_DESC pDesc);
             [PreserveSig]
-            uint GetFrameDirtyRects(uint DirtyRectsBufferSize, out tagRECT pDirtyRectsBuffer, out uint pDirtyRectsBufferSizeRequired);
+            uint GetFrameDirtyRects(uint DirtyRectsBufferSize, out RECT pDirtyRectsBuffer, out uint pDirtyRectsBufferSizeRequired);
             [PreserveSig]
             uint GetFrameMoveRects(uint MoveRectsBufferSize, out DXGI_OUTDUPL_MOVE_RECT pMoveRectBuffer, out uint pMoveRectsBufferSizeRequired);
             [PreserveSig]
@@ -761,7 +853,7 @@ namespace Angene.Windows.Dxgi // I noticed there was a major amount of AI genera
         }
 
         [ComImport]
-        [Guid("ef9bec92-ab99-4e0b-83f9-09e9d0784903")]
+        [Guid("dd95b0ed-466f-461c-91d5-7b32f25f1716")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDXGISwapChainMedia
         {
