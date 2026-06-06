@@ -17,7 +17,7 @@ namespace Angene.Graphics
     }
 
     // Windows GDI implementation
-    public class GdiGraphicsContext : IGraphicsContext
+    public class GdiGraphicsContext : IGraphicsContext, IDisposable
     {
         private IntPtr windowHandle;
         private IntPtr memDc;
@@ -25,6 +25,7 @@ namespace Angene.Graphics
         private IntPtr oldBitmap;
         private int width;
         private int height;
+
         
         public IntPtr Handle => memDc;
         
@@ -72,8 +73,15 @@ namespace Angene.Graphics
             Gdi32.BitBlt(hdc, 0, 0, width, height, memDc, 0, 0, Gdi32.SRCCOPY);
             User32.ReleaseDC(hwnd, hdc);
         }
-        
+
         public void Cleanup()
+        {
+            Dispose();
+        }
+
+        public byte[] GetRawPixels() { return null; }
+
+        public void Dispose()
         {
             if (oldBitmap != IntPtr.Zero)
                 Gdi32.SelectObject(memDc, oldBitmap);
@@ -82,7 +90,6 @@ namespace Angene.Graphics
             if (memDc != IntPtr.Zero)
                 Gdi32.DeleteDC(memDc);
         }
-        public byte[] GetRawPixels() { return null; }
     }
 
     public class AnGraphicsContext : IGraphicsContext
