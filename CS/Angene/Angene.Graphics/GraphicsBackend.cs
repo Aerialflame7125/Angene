@@ -1,4 +1,4 @@
-using Angene.Graphics.Angraphics2D;
+using Angene.Graphics.DX11;
 using Angene.Windows;
 using System;
 using System.ComponentModel;
@@ -91,70 +91,6 @@ namespace Angene.Graphics
                 Gdi32.DeleteDC(memDc);
         }
     }
-
-    public class AnGraphicsContext : IGraphicsContext
-    {
-        private IntPtr windowHandle;
-        private IntPtr memDc;
-        private IntPtr bitmap;
-        private IntPtr oldBitmap;
-        private object swapchain;
-        private int width;
-        private int height;
-
-        public IntPtr Handle => memDc;
-
-        public AnGraphicsContext(IntPtr hwnd, int w, int h)
-        {
-            windowHandle = hwnd;
-            width = w;
-            height = h;
-
-            IntPtr hdc = User32.GetDC(hwnd);
-            memDc = Gdi32.CreateCompatibleDC(hdc);
-            bitmap = Gdi32.CreateCompatibleBitmap(hdc, w, h);
-            oldBitmap = Gdi32.SelectObject(memDc, bitmap);
-            User32.ReleaseDC(hwnd, hdc);
-        }
-
-        public void Clear(uint color)
-        {
-            
-        }
-
-        public void Present(IntPtr hwnd)
-        {
-            IntPtr hdc = User32.GetDC(hwnd);
-            Gdi32.BitBlt(hdc, 0, 0, width, height, memDc, 0, 0, Gdi32.SRCCOPY);
-            User32.ReleaseDC(hwnd, hdc);
-        }
-
-        public void Cleanup()
-        {
-            if (oldBitmap != IntPtr.Zero)
-                memDc = IntPtr.Zero;
-            if (bitmap != IntPtr.Zero)
-                memDc = IntPtr.Zero;
-            if (memDc != IntPtr.Zero)
-                memDc = IntPtr.Zero;
-            if (swapchain != null)
-            {
-                swapchain = null;
-            }
-        }
-        public byte[] GetRawPixels() { return null; }
-
-        public void DrawRectangle(int x, int y, int width, int height, uint color)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void DrawText(string text, int x, int y, uint color)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class WSGraphicsContext : IGraphicsContext
     {
         private string windowHandle;
@@ -250,13 +186,14 @@ namespace Angene.Graphics
     // Factory for creating platform-specific graphics contexts
     public static class GraphicsContextFactory
     {
-        public static IGraphicsContext Create(IntPtr windowHandle, int width, int height, char renderMode)
+        public static IGraphicsContext Create(IntPtr windowHandle, int width, int height, int renderMode)
         {
-            if (renderMode == 'd')
+            if (renderMode == 0)
                 return new GdiGraphicsContext(windowHandle, width, height);
-            if (renderMode == 'v')
-                // return new AnGraphicsContext(windowHandle, width, height);
-                return new GdiGraphicsContext(windowHandle, width, height); // Just for now, will replace when renderer done. | TODO
+            if (renderMode == 1)
+                throw new Exceptions.FailedToCreateGraphicsBackendException("There currently is not an IGraphicsContext definition for OpenGL.");
+            if (renderMode == 2)
+                return new DX11GraphicsContext(windowHandle, width, height);
 
             Common.Logger.LogCritical(
                 "[GraphicsContextFactory] Failed to create IGraphicsContext, 'Graphics.RenderMode' is not a possible value.",

@@ -260,6 +260,5 @@ namespace Angene.Windows
             return del(pSwapChain, SyncInterval, Flags);
         }
         private delegate int PresentDelegate(IntPtr pSwapChain, uint SyncInterval, uint Flags);
-        }
     }
 }

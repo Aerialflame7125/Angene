@@ -1,4 +1,5 @@
 ﻿using System;
+using Angene.Graphics;
 using Angene.Main;
 using Angene.Windows;
 
@@ -40,6 +41,11 @@ namespace Angene.Platform
         /// </summary>
         public string cTT { internal get; set; } = "";
 
+        /// <summary>
+        /// Changes the render mode for the window, defaults to GDI unless changed. Chooses between GDI, OpenGL, and DX11
+        /// </summary>
+        public RenderType renderMode = RenderType.Default;
+
         /// <summary>Window style flags</summary>
         public WindowManagement.WindowStyle Style { get; set; } = WindowManagement.WindowStyle.OverlappedWindow;
 
@@ -48,9 +54,6 @@ namespace Angene.Platform
 
         /// <summary>Transparency settings</summary>
         public WindowManagement.WindowTransparency Transparency { get; set; } = WindowManagement.WindowTransparency.None;
-
-        /// <summary>Whether to use 3D rendering (OpenGL)</summary>
-        public bool Use3D { get; set; } = false;
 
         /// <summary>Whether window should be shown immediately</summary>
         public bool ShowOnCreate { get; set; } = true;
@@ -81,7 +84,7 @@ namespace Angene.Platform
                 Style = WindowManagement.WindowStyle.OverlappedWindow,
                 StyleEx = WindowManagement.WindowStyleEx.None,
                 Transparency = WindowManagement.WindowTransparency.None,
-                Use3D = false
+                renderMode = RenderType.Default
             };
         }
 
@@ -106,7 +109,7 @@ namespace Angene.Platform
                     Alpha = 255,  // Window alpha (we use OpenGL alpha for per-pixel)
                     ClickThrough = clickThrough
                 },
-                Use3D = false
+                renderMode = RenderType.Default
             };
         }
 
@@ -123,7 +126,7 @@ namespace Angene.Platform
                 Style = WindowManagement.WindowStyle.Popup,
                 StyleEx = WindowManagement.WindowStyleEx.None,
                 Transparency = WindowManagement.WindowTransparency.None,
-                Use3D = false
+                renderMode = RenderType.Default
             };
         }
 
@@ -140,7 +143,7 @@ namespace Angene.Platform
                 Style = WindowManagement.WindowStyle.OverlappedWindow,
                 StyleEx = WindowManagement.WindowStyleEx.None,
                 Transparency = WindowManagement.WindowTransparency.None,
-                Use3D = true
+                renderMode = RenderType.D3D11
             };
         }
     }

@@ -144,7 +144,6 @@ namespace Angene.Main
         {
             Width = config.Width;
             Height = config.Height;
-            is3D = config.Use3D;
 
             if (config.cTI)
             {
@@ -173,16 +172,11 @@ namespace Angene.Main
             var mgmtScene = new Angene.Management.ManagementScene(initToken);
             AddScene(mgmtScene);
 
-            if (!config.Use3D && !config.cTI)
+            if (!config.cTI)
             {
-                graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height, (char)Engine.Instance.SettingHandlerInstanced.GetSetting("Graphics.RenderMode"));
+                graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height, (int)config.renderMode);
             }
-            else if (config.Use3D && config.cTI)
-            {
-                Logger.LogError("You are opting for 3D on a websocket streamer. I'm going to give you a second to let this sink in, then I'll get back to you.", LoggingTarget.Engine);
-                Lifecycle.ScriptBinding.ShutdownEngine();
-            }
-            else if (!config.Use3D && config.cTI)
+            else
             {
                 graphicsContext = GraphicsContextFactory.CreateWS((string)Hwnd, config.Width, config.Height);
                 var streamer = new Websocket.WebStreamer(this);
