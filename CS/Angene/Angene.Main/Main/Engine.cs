@@ -9,11 +9,13 @@ using Angene.Windows;
 using Org.BouncyCastle.Asn1.Cmp;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.WebSockets;
+using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
-using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using System.Text;
 using System.Threading;
@@ -41,6 +43,7 @@ namespace Angene.Main
 
     public class Engine
     {
+        private IEnumerable<System.Type> shaderTypes = null;
         private Settings? _settingHandlerInstanced;
         private LogConsoleWindow? _logConsole; // log window keepalive
         public List<Angene.Main.Window> OpenWindows = new List<Angene.Main.Window>();
@@ -79,6 +82,8 @@ namespace Angene.Main
 
         public void Init(bool verbose = false, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
+            shaderTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null);
+
             SettingHandlerInstanced = new Settings();
             SettingHandlerInstanced.LoadDefaults();
             Logger.Instance.Init(verbose);
@@ -105,6 +110,52 @@ namespace Angene.Main
 
                 Logger.Log("Verbose log console initialized.", LoggingTarget.Engine, LogLevel.Important);
             }
+            if (shaderTypes != null)
+            {
+                Logger.LogDebug($"Found {shaderTypes.Count()} Shaders. Halting startup and attempting compilation..", LoggingTarget.Graphics);
+            }
+        }
+
+        public void StartShaderCompilation(bool backgrounded = false)
+        {
+            // Create a new window
+            WindowConfig _w = new WindowConfig();
+            _w.Width = 640; _w.Height = 480;
+            _w.Style = WindowManagement.WindowStyle.PopupWindow;
+            _w.ShowOnCreate = true;
+            _w.Title = "Angene Shader Compilation";
+            _w.renderMode = RenderType.GDI;
+
+            Window _WindowInstance = new Window(_w);
+
+            IScene scene = new ShaderCompilationScene();
+            scene.Initialize();
+            _WindowInstance.SetScene(scene);
+        }
+    }
+
+    internal class ShaderCompilationScene : IScene
+    {
+        public ShaderCompilationScene() { }
+
+        public void Initialize()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnMessage(nint msgPtr)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Render()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Cleanup()
+        {
+            throw new NotImplementedException();
         }
     }
 

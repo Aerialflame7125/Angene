@@ -12,10 +12,11 @@ namespace Angene.Essentials
     public interface IScene
     {
         public IScene Instance => this;
+        public List<Entity> Entities => this.Entities;
         string Name => "New Scene";
         void Initialize(); //On Scene Init
 
-        List<Entity> GetEntities();
+        List<Entity> GetEntities() => Entities;
 
         void OnMessage(IntPtr msgPtr); //On WM Message
 

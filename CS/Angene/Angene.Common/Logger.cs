@@ -12,6 +12,7 @@ namespace Angene.Common
         public AngeneException(string message) : base(message) { }
         public AngeneException(string message, Exception inner) : base(message, inner) { }
     }
+
     public enum LogLevel
     {
         Debug,
