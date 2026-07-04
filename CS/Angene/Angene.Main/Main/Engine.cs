@@ -1,25 +1,26 @@
-﻿using Angene.Common;
-using Angene.Common.Settings;
-using Angene.Essentials;
-using Angene.External;
+﻿using System;
+using System.Net;
+using System.Text;
+using System.Linq;
+using Angene.Common;
+using Angene.Windows;
 using Angene.Globals;
+using Angene.External;
 using Angene.Graphics;
 using Angene.Platform;
-using Angene.Windows;
-using Org.BouncyCastle.Asn1.Cmp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.WebSockets;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security.Permissions;
-using System.Text;
 using System.Threading;
+using Angene.Essentials;
+using System.Reflection;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
+using Angene.Common.Settings;
+using Org.BouncyCastle.Asn1.Cmp;
+using System.Collections.Generic;
+using System.Security.Permissions;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+using System.Reflection.Metadata.Ecma335;
+using System.ComponentModel;
 
 namespace Angene.Main
 {
@@ -43,7 +44,10 @@ namespace Angene.Main
 
     public class Engine
     {
-        private IEnumerable<System.Type> shaderTypes = null;
+        List<Type> shaderTypes = new List<Type>();
+        int shaderCount = 0;
+        List<Window> WindowCreationQueue = null;
+
         private Settings? _settingHandlerInstanced;
         private LogConsoleWindow? _logConsole; // log window keepalive
         public List<Angene.Main.Window> OpenWindows = new List<Angene.Main.Window>();
@@ -80,16 +84,34 @@ namespace Angene.Main
             Instance._logConsole = null;
         }
 
+        internal Window AddSceneToCreationQueue(Window scene)
+        {
+            if (WindowCreationQueue == null)
+            {
+
+            }
+        }
+
         public void Init(bool verbose = false, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
-            shaderTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null);
-
             SettingHandlerInstanced = new Settings();
             SettingHandlerInstanced.LoadDefaults();
             Logger.Instance.Init(verbose);
+            
             _settingHandlerInstanced.SetSetting("Main.engineCallerMemberName", memberName);
             _settingHandlerInstanced.SetSetting("Main.engineCallerFilePath", callerFilePath);
             _settingHandlerInstanced.SetSetting("Main.engineCallerLineNumber", sourceLineNumber);
+            try
+            {
+                IEnumerable<Type> shaderTypesIe = Assembly.GetCallingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null);
+                shaderTypes = shaderTypesIe.ToList();
+
+                shaderCount = shaderTypes.Count();
+            }
+            catch(Exception e)
+            {
+                Logger.LogCritical("Failed to get shaders via attribute, Failing.", LoggingTarget.Engine, e, true);
+            }
 
             if (verbose)
             {
@@ -112,13 +134,16 @@ namespace Angene.Main
             }
             if (shaderTypes != null)
             {
-                Logger.LogDebug($"Found {shaderTypes.Count()} Shaders. Halting startup and attempting compilation..", LoggingTarget.Graphics);
+
+                Logger.LogDebug($"Found {shaderCount} Shaders. Halting startup and attempting compilation..", LoggingTarget.Graphics);
+                StartShaderCompilation(shaderTypes, shaderCount, false); // 2nd operator is to be optional later.
+            
             }
         }
 
-        public void StartShaderCompilation(bool backgrounded = false)
+        public void StartShaderCompilation(List<Type> _shaderTypes, int shaderCount, bool backgrounded = false)
         {
-            // Create a new window
+            // Create a new window for showing progress
             WindowConfig _w = new WindowConfig();
             _w.Width = 640; _w.Height = 480;
             _w.Style = WindowManagement.WindowStyle.PopupWindow;
@@ -128,34 +153,69 @@ namespace Angene.Main
 
             Window _WindowInstance = new Window(_w);
 
-            IScene scene = new ShaderCompilationScene();
-            scene.Initialize();
+            IScene scene = new ShaderCompilationScene(_shaderTypes, shaderCount);
             _WindowInstance.SetScene(scene);
+            scene.Initialize();
         }
     }
 
     internal class ShaderCompilationScene : IScene
     {
-        public ShaderCompilationScene() { }
-
+        private List<Type> _shaderTypes;
+        private int _shaderCount;
+        public double _timeElapsed;
+        public double _timeRemaining;
+        public int _shaderNum;
+        public bool _started;
+        public ShaderCompilationScene(List<Type> shaderTypes, int shaderCount)
+        { 
+            _shaderTypes = shaderTypes;
+            _shaderCount = shaderCount;
+            _timeElapsed = 0;
+            _timeRemaining = 1000;
+            _shaderNum = 0;
+            _started = false;
+        }
         public void Initialize()
         {
-            throw new NotImplementedException();
+            _started = true;
         }
-
-        public void OnMessage(nint msgPtr)
-        {
-            throw new NotImplementedException();
-        }
+        public void OnMessage(nint msgPtr) { } // Not needed for this scene
 
         public void Render()
         {
-            throw new NotImplementedException();
+            IntPtr hdc = User32.GetDC((IntPtr)Engine.Instance.OpenWindows[0].Hwnd);
+            if (hdc == IntPtr.Zero) return;
+
+            try
+            {
+                int centerx = 320;
+                int centery = 240;
+                using var r = new GdiRenderer(hdc);
+                r.BeginFrame(640, 480);
+                r.Clear(0, 0.51f, 0.58f, 0.72f);
+
+                r.DrawText(centerx, centery - 100, "Please Wait..", 0x0);
+                if (!_started)
+                {
+                    r.DrawText(centerx, centery - 70, "Waiting for Initialization..", 0x00FF0000);
+                } else
+                {
+                    r.DrawText(centerx, centery - 70, "Running...", 0x0F0);
+                }
+                r.DrawText(centerx, centery, $"Compiled {_shaderNum}/{_shaderCount} Shaders..", 0x0);
+
+                r.EndFrame();
+            }
+            finally
+            {
+                User32.ReleaseDC((IntPtr)Engine.Instance.OpenWindows[0].Hwnd, hdc);
+            }
         }
 
         public void Cleanup()
         {
-            throw new NotImplementedException();
+            // Not really a need for cleanup but can leave it here for freeing resources.
         }
     }
 
@@ -206,6 +266,12 @@ namespace Angene.Main
             }
 
 #if WINDOWS
+            IScene _inst = ShaderCompilationScene.Instance;
+            if (Engine.Instance.OpenWindows[0].Scenes.Contains(_inst))
+            {
+                Logger.LogInfo("You are not currently allowed to create windows while shader compilation is occuring. This window creation call has been added to a queue.", LoggingTarget.Engine);
+                
+            } 
             Hwnd = CreateWindowWindows(config, config.cTI, config.cTS, config.cTT);
             
             if (Hwnd.GetType() != typeof(String))
