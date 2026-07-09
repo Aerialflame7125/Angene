@@ -11,6 +11,7 @@ using Angene.Platform;
 using System.Threading;
 using Angene.Essentials;
 using System.Reflection;
+using System.ComponentModel;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Angene.Common.Settings;
@@ -20,7 +21,6 @@ using System.Security.Permissions;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Reflection.Metadata.Ecma335;
-using System.ComponentModel;
 
 namespace Angene.Main
 {
@@ -46,7 +46,8 @@ namespace Angene.Main
     {
         List<Type> shaderTypes = new List<Type>();
         int shaderCount = 0;
-        List<Window> WindowCreationQueue = null;
+        List<WindowConfig> WindowCreationQueue = new List<WindowConfig>([]);
+        internal bool IsCompilingShaders = false;
 
         private Settings? _settingHandlerInstanced;
         private LogConsoleWindow? _logConsole; // log window keepalive
@@ -84,12 +85,10 @@ namespace Angene.Main
             Instance._logConsole = null;
         }
 
-        internal Window AddSceneToCreationQueue(Window scene)
+        internal List<WindowConfig> AddSceneToCreationQueue(WindowConfig scene)
         {
-            if (WindowCreationQueue == null)
-            {
-
-            }
+            WindowCreationQueue.Add(scene);
+            return WindowCreationQueue;
         }
 
         public void Init(bool verbose = false, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
@@ -134,10 +133,8 @@ namespace Angene.Main
             }
             if (shaderTypes != null)
             {
-
                 Logger.LogDebug($"Found {shaderCount} Shaders. Halting startup and attempting compilation..", LoggingTarget.Graphics);
                 StartShaderCompilation(shaderTypes, shaderCount, false); // 2nd operator is to be optional later.
-            
             }
         }
 
@@ -161,12 +158,18 @@ namespace Angene.Main
 
     internal class ShaderCompilationScene : IScene
     {
+        public object Instance { get; private set; }
+        public List<Entity> Entities { get; internal set; }
+        public string Name => "ShaderCompilationScene";
+
         private List<Type> _shaderTypes;
         private int _shaderCount;
         public double _timeElapsed;
         public double _timeRemaining;
         public int _shaderNum;
         public bool _started;
+        public bool _done;
+
         public ShaderCompilationScene(List<Type> shaderTypes, int shaderCount)
         { 
             _shaderTypes = shaderTypes;
@@ -178,7 +181,10 @@ namespace Angene.Main
         }
         public void Initialize()
         {
+            Instance = this;
             _started = true;
+            _done = false;
+            Engine.Instance.IsCompilingShaders = true;
         }
         public void OnMessage(nint msgPtr) { } // Not needed for this scene
 
@@ -266,12 +272,13 @@ namespace Angene.Main
             }
 
 #if WINDOWS
-            IScene _inst = ShaderCompilationScene.Instance;
-            if (Engine.Instance.OpenWindows[0].Scenes.Contains(_inst))
+            if (Engine.Instance.IsCompilingShaders)
             {
                 Logger.LogInfo("You are not currently allowed to create windows while shader compilation is occuring. This window creation call has been added to a queue.", LoggingTarget.Engine);
-                
-            } 
+                Engine.Instance.AddSceneToCreationQueue(config);
+                return;
+            }
+
             Hwnd = CreateWindowWindows(config, config.cTI, config.cTS, config.cTT);
             
             if (Hwnd.GetType() != typeof(String))
@@ -310,7 +317,7 @@ namespace Angene.Main
 
         private int CheckSceneIndexOf(IScene scene)
         {
-            if (scene.Instance.Name == "ManagementScene")
+            if (scene.Name == "ManagementScene")
             {
                 return -2; // ManagementScene will not be able to be removed, therefore not indexed or returned.
             }
@@ -368,7 +375,7 @@ namespace Angene.Main
             {
                 Logger.LogDebug("Recieved a new ManagementScene call. Verifying...", LoggingTarget.Engine);
                 // Silently add without logging, but check signatures.
-                List<Entity> e = scene.Instance.GetEntities(); // If this throws a new Entity of 'ManagementCheck$o7' (creating entity of this name would fail), then we have passed.
+                List<Entity> e = scene.GetEntities(); // If this throws a new Entity of 'ManagementCheck$o7' (creating entity of this name would fail), then we have passed.
                 if (e != null && e.Count == 1)
                 {
                     if (e[0].name == Engine.Instance.SettingHandlerInstanced.GetSetting("Main.OTT").ToString())
@@ -407,7 +414,7 @@ namespace Angene.Main
             } 
             else if (index == -2)
             {
-                Logger.Log($"The scene to be removed is a fundamental part of Angene and cannot be removed. (Attempted to remove '{scene.Instance.Name}'.)", LoggingTarget.Engine, LogLevel.Error);
+                Logger.Log($"The scene to be removed is a fundamental part of Angene and cannot be removed. (Attempted to remove '{scene.Name}'.)", LoggingTarget.Engine, LogLevel.Error);
                 return;
             }
 
@@ -533,7 +540,6 @@ namespace Angene.Main
 
             foreach (IScene scene in Scenes)
             {
-                scene?.Renderer3D?.Cleanup();
                 scene?.Cleanup();
             }
         }

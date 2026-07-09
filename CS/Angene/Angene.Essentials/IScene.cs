@@ -11,19 +11,20 @@ namespace Angene.Essentials
     /// </summary>
     public interface IScene
     {
-        public IScene Instance => this;
-        public List<Entity> Entities => this.Entities;
-        string Name => "New Scene";
-        void Initialize(); //On Scene Init
+        object Instance { get; }
+        List<Entity> Entities { get; }
+        string Name { get; }
 
-        List<Entity> GetEntities() => Entities;
+        public List<Entity> GetEntities() => Entities;
+        public void AddEntity(Entity e) => Entities.Add(e);
+        public void RemoveEntity(Entity e) => Entities.Remove(e);
+
+        void Initialize(); //On Scene Init
 
         void OnMessage(IntPtr msgPtr); //On WM Message
 
         void Render(); // Final render in scene
 
         void Cleanup(); // Scene cleanup
-
-        IRenderer3D? Renderer3D => null; // 3D renderer
     }
 }
