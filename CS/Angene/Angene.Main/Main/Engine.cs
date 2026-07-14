@@ -28,23 +28,23 @@ namespace Angene.Main
     {
         public static void WriteLine(string text)
         {
-            Logger.Log("Call to WriteLine() is incorrect in this engine. Please use Logger.Log.", LoggingTarget.MainGame, LogLevel.Warning);
-            Logger.Log(text, LoggingTarget.MainGame, LogLevel.Info);
+            Logger.LogWarning("Call to WriteLine() is incorrect in this engine. Please use Logger.Log.", LoggingTarget.MainGame);
+            Logger.LogInfo(text, LoggingTarget.MainGame);
         }
         public static void ReadLine(string text)
         {
-            Logger.Log("Call to ReadLine() is incorrect in this engine. Console input is not available, nor supported.", LoggingTarget.MainGame, LogLevel.Warning);
+            Logger.LogWarning("Call to ReadLine() is incorrect in this engine. Console input is not available, nor supported.", LoggingTarget.MainGame);
         }
         public static void Write(string text)
         {
-            Logger.Log("Call to Write() is incorrect in this engine. Please use Logger.Log.", LoggingTarget.MainGame, LogLevel.Warning);
-            Logger.Log(text, LoggingTarget.MainGame, LogLevel.Info);
+            Logger.LogWarning("Call to Write() is incorrect in this engine. Please use Logger.Log.", LoggingTarget.MainGame);
+            Logger.LogInfo(text, LoggingTarget.MainGame);
         }
     }
 
     public class Engine
     {
-        List<Type> shaderTypes = new List<Type>();
+        List<SlangShaderResources.IShader> shaderTypes = new List<SlangShaderResources.IShader>();
         int shaderCount = 0;
         List<WindowConfig> WindowCreationQueue = new List<WindowConfig>([]);
         internal bool IsCompilingShaders = false;
@@ -102,7 +102,7 @@ namespace Angene.Main
             _settingHandlerInstanced.SetSetting("Main.engineCallerLineNumber", sourceLineNumber);
             try
             {
-                IEnumerable<Type> shaderTypesIe = Assembly.GetCallingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null);
+                IEnumerable<SlangShaderResources.IShader> shaderTypesIe = (IEnumerable<SlangShaderResources.IShader>)Assembly.GetCallingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null);
                 shaderTypes = shaderTypesIe.ToList();
 
                 shaderCount = shaderTypes.Count();
@@ -129,16 +129,16 @@ namespace Angene.Main
                         _logConsole.AppendLine($"[{level}] {target} ({time}) {message}");
                 };
 
-                Logger.Log("Verbose log console initialized.", LoggingTarget.Engine, LogLevel.Important);
+                Logger.LogDebug("Verbose log console initialized.", LoggingTarget.Engine);
             }
             if (shaderTypes != null)
             {
-                Logger.LogDebug($"Found {shaderCount} Shaders. Halting startup and attempting compilation..", LoggingTarget.Graphics);
+                Logger.LogImportant($"Found {shaderCount} Shaders. Halting startup and attempting compilation..", LoggingTarget.Graphics);
                 StartShaderCompilation(shaderTypes, shaderCount, false); // 2nd operator is to be optional later.
             }
         }
 
-        public void StartShaderCompilation(List<Type> _shaderTypes, int shaderCount, bool backgrounded = false)
+        public void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int shaderCount, bool backgrounded = false)
         {
             // Create a new window for showing progress
             WindowConfig _w = new WindowConfig();
@@ -162,23 +162,22 @@ namespace Angene.Main
         public List<Entity> Entities { get; internal set; }
         public string Name => "ShaderCompilationScene";
 
-        private List<Type> _shaderTypes;
+        private readonly List<SlangShaderResources.IShader> _shaderTypes;
         private int _shaderCount;
         public double _timeElapsed;
-        public double _timeRemaining;
         public int _shaderNum;
         public bool _started;
         public bool _done;
 
-        public ShaderCompilationScene(List<Type> shaderTypes, int shaderCount)
+        public ShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount)
         { 
             _shaderTypes = shaderTypes;
             _shaderCount = shaderCount;
             _timeElapsed = 0;
-            _timeRemaining = 1000;
             _shaderNum = 0;
             _started = false;
         }
+
         public void Initialize()
         {
             Instance = this;
@@ -207,7 +206,14 @@ namespace Angene.Main
                     r.DrawText(centerx, centery - 70, "Waiting for Initialization..", 0x00FF0000);
                 } else
                 {
-                    r.DrawText(centerx, centery - 70, "Running...", 0x0F0);
+                    _timeElapsed = 0;
+                    while (!_done)
+                    {
+                        r.DrawText(centerx, centery - 70, "Running...", 0x0F0);
+                        SlangShaderResources.IShader current = _shaderTypes[_shaderNum];
+
+
+                    }
                 }
                 r.DrawText(centerx, centery, $"Compiled {_shaderNum}/{_shaderCount} Shaders..", 0x0);
 
@@ -312,7 +318,7 @@ namespace Angene.Main
 #endif
 
 
-            Logger.Log("Window created successfully", LoggingTarget.Engine, LogLevel.Important);
+            Logger.LogDebug("Window created successfully", LoggingTarget.Engine);
         }
 
         private int CheckSceneIndexOf(IScene scene)
@@ -331,7 +337,7 @@ namespace Angene.Main
         {
             if (scene == null)
             {
-                Logger.Log("Attempted to set null scene", LoggingTarget.Engine, LogLevel.Error);
+                Logger.LogError("Attempted to set null scene", LoggingTarget.Engine);
                 return;
             }
 
@@ -348,7 +354,7 @@ namespace Angene.Main
             // Initialize the scene
             scene.Initialize();
 
-            Logger.Log($"Primary scene set to '{scene.GetType().Name}'", LoggingTarget.Engine, LogLevel.Important);
+            Logger.LogDebug($"Primary scene set to '{scene.GetType().Name}'", LoggingTarget.Engine);
         }
 
         /// <summary>
@@ -358,7 +364,7 @@ namespace Angene.Main
         {
             if (scene == null)
             {
-                Logger.Log("Attempted to add nil scene", LoggingTarget.Engine, LogLevel.Error);
+                Logger.LogError("Attempted to add nil scene", LoggingTarget.Engine);
                 return;
             }
 
@@ -366,7 +372,7 @@ namespace Angene.Main
             {
                 if (e == scene)
                 {
-                    Logger.Log("Attempted to add a scene that is already in the scene list", LoggingTarget.Engine, LogLevel.Warning);
+                    Logger.LogWarning("Attempted to add a scene that is already in the scene list", LoggingTarget.Engine);
                     return;
                 }
             }
@@ -392,7 +398,7 @@ namespace Angene.Main
 
             Scenes.Add(scene);
             scene.Initialize();
-            Logger.Log($"Scene '{scene.GetType().Name}' added to window", LoggingTarget.Engine, LogLevel.Debug);
+            Logger.LogDebug($"Scene '{scene.GetType().Name}' added to window", LoggingTarget.Engine);
         }
 
         /// <summary>
@@ -402,19 +408,19 @@ namespace Angene.Main
         {
             if (scene == null)
             {
-                Logger.Log("Attempted to remove null scene", LoggingTarget.Engine, LogLevel.Warning);
+                Logger.LogWarning("Attempted to remove null scene", LoggingTarget.Engine);
                 return;
             }
 
             int index = CheckSceneIndexOf(scene);
             if (index == -1)
             {
-                Logger.Log("The scene to be removed was not found in the current scene list", LoggingTarget.Engine, LogLevel.Warning);
+                Logger.LogWarning("The scene to be removed was not found in the current scene list", LoggingTarget.Engine);
                 return;
             } 
             else if (index == -2)
             {
-                Logger.Log($"The scene to be removed is a fundamental part of Angene and cannot be removed. (Attempted to remove '{scene.Name}'.)", LoggingTarget.Engine, LogLevel.Error);
+                Logger.LogError($"The scene to be removed is a fundamental part of Angene and cannot be removed. (Attempted to remove '{scene.Name}'.)", LoggingTarget.Engine);
                 return;
             }
 
@@ -426,7 +432,7 @@ namespace Angene.Main
                 PrimaryScene = Scenes.Count > 0 ? Scenes[0] : null;
             }
 
-            Logger.Log($"Scene '{scene.GetType().Name}' removed from window", LoggingTarget.Engine, LogLevel.Debug);
+            Logger.LogDebug($"Scene '{scene.GetType().Name}' removed from window", LoggingTarget.Engine);
         }
 
         /// <summary>
@@ -438,7 +444,7 @@ namespace Angene.Main
             if (_engineMode != mode)
             {
                 _engineMode = mode;
-                Logger.Log($"Engine mode changed to: {mode}", LoggingTarget.Engine, LogLevel.Important);
+                Logger.LogDebug($"Engine mode changed to: {mode}", LoggingTarget.Engine);
             }
         }
 
@@ -504,7 +510,7 @@ namespace Angene.Main
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log($"Failed to process input packet: {ex.Message}", LoggingTarget.Engine, LogLevel.Error);
+                    Logger.LogDebug($"Failed to process input packet: {ex.Message}", LoggingTarget.Engine);
                 }
             };
         }
@@ -531,7 +537,7 @@ namespace Angene.Main
         }
         public void Cleanup()
         {
-            Logger.Log("Cleaning up window resources", LoggingTarget.Engine, LogLevel.Important);
+            Logger.LogInfo("Cleaning up window resources", LoggingTarget.Engine);
 
             if (!is3D && graphicsContext != null)
             {
@@ -558,7 +564,7 @@ namespace Angene.Main
                 // use strings to shut up the compiler
                 if ((string)type == "ws" || (string)type == "websocket")
                 {
-                    Logger.Log("\r\n __    __   ______   __     ________ \r\n|  \\  |  \\ /      \\ |  \\   |        \\\r\n| $$  | $$|  $$$$$$\\| $$    \\$$$$$$$$\r\n| $$__| $$| $$__| $$| $$      | $$   \r\n| $$    $$| $$    $$| $$      | $$   \r\n| $$$$$$$$| $$$$$$$$| $$      | $$   \r\n| $$  | $$| $$  | $$| $$_____ | $$   \r\n| $$  | $$| $$  | $$| $$     \\| $$   \r\n \\$$   \\$$ \\$$   \\$$ \\$$$$$$$$ \\$$   ", LoggingTarget.Engine, LogLevel.Important);
+                    Logger.LogWarning("\r\n __    __   ______   __     ________ \r\n|  \\  |  \\ /      \\ |  \\   |        \\\r\n| $$  | $$|  $$$$$$\\| $$    \\$$$$$$$$\r\n| $$__| $$| $$__| $$| $$      | $$   \r\n| $$    $$| $$    $$| $$      | $$   \r\n| $$$$$$$$| $$$$$$$$| $$      | $$   \r\n| $$  | $$| $$  | $$| $$_____ | $$   \r\n| $$  | $$| $$  | $$| $$     \\| $$   \r\n \\$$   \\$$ \\$$   \\$$ \\$$$$$$$$ \\$$   ", LoggingTarget.Engine);
                     Logger.LogWarning("You have opted to start a websocket for window streaming. This is highly discouraged but you shall continue. Work with caution fellow developer.", LoggingTarget.Engine);
                     Logger.LogWarning("If the game developer does NOT allow this, the process will be terminated, commencing check.", LoggingTarget.Engine);
 
@@ -634,7 +640,7 @@ namespace Angene.Main
                     throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
 
                 User32.ShowWindow(hwnd, Consts.SW_SHOW);
-                Logger.Log($"Window({hwnd}) shown", LoggingTarget.Engine);
+                Logger.LogDebug($"Window({hwnd}) shown", LoggingTarget.Engine);
                 User32.UpdateWindow(hwnd);
                 return hwnd;
 
@@ -673,11 +679,7 @@ namespace Angene.Main
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(
-                            $"Exception in scene OnMessage: {ex.Message}",
-                            LoggingTarget.Engine,
-                            LogLevel.Error
-                        );
+                        Logger.LogError($"Exception in scene OnMessage: {ex.Message}", LoggingTarget.Engine);
                     }
                 }
                 finally

@@ -88,8 +88,8 @@ namespace Angene.Input
         {
             if (_script != null)
             {
-                Logger.Log("[MouseDetection] Already registered — skipping duplicate Register() call.",
-                    LoggingTarget.Engine, LogLevel.Warning);
+                Logger.LogWarning("[MouseDetection] Already registered — skipping duplicate Register() call.",
+                    LoggingTarget.Engine);
                 return;
             }
 
@@ -103,7 +103,7 @@ namespace Angene.Input
                 b.AddScript(_script);
             }
 
-            Logger.Log($"[MouseDetection] Added {Engine.Instance.OpenWindows.Count} new Entities", LoggingTarget.Engine, LogLevel.Debug);
+            Logger.LogDebug($"[MouseDetection] Added {Engine.Instance.OpenWindows.Count} new Entities", LoggingTarget.Engine);
         }
 
         /// <summary>
@@ -119,8 +119,8 @@ namespace Angene.Input
 
             if (_script != null)
             {
-                Logger.Log("[MouseDetection] Already registered — skipping duplicate Register() call.",
-                    LoggingTarget.Engine, LogLevel.Warning);
+                Logger.LogWarning("[MouseDetection] Already registered — skipping duplicate Register() call.",
+                    LoggingTarget.Engine);
                 return;
             }
 
@@ -128,8 +128,8 @@ namespace Angene.Input
             entity.AddScript(_script);
             Instances.Add(entity);
 
-            Logger.Log($"[MouseDetection] Registered on entity '{entity.name}'.",
-                LoggingTarget.Engine, LogLevel.Debug);
+            Logger.LogDebug($"[MouseDetection] Registered on entity '{entity.name}'.",
+                LoggingTarget.Engine);
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace Angene.Input
                 e.RemoveScript(_script);
             }
             _script = null;
-            Logger.Log("[MouseDetection] Unregistered.", LoggingTarget.Engine, LogLevel.Debug);
+            Logger.LogDebug("[MouseDetection] Unregistered.", LoggingTarget.Engine);
         }
 
         public static HashSet<Keys.IKeyCodeMouse> GetDownButtons => _script?.GetDownButtons() ?? throw new InvalidOperationException("MouseDetection not registered.");

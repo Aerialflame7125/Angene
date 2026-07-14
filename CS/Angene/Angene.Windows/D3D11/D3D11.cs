@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Angene.Windows
+namespace Angene.Windows.D3D11
 {
     /// <summary>
     /// P/Invoke declarations for Direct3D 11 and DXGI
@@ -260,5 +260,24 @@ namespace Angene.Windows
             return del(pSwapChain, SyncInterval, Flags);
         }
         private delegate int PresentDelegate(IntPtr pSwapChain, uint SyncInterval, uint Flags);
+
+        [ComImport]
+        [Guid("1841e5c8-16b0-448b-b895-c6a4c0c66005")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        public interface ID3D11DeviceChild
+        {
+            [PreserveSig]
+            void GetDevice(out IntPtr ppDevice);
+
+            [PreserveSig]
+            void GetPrivateData(ref Guid guid, ref uint pDataSize, IntPtr pData);
+
+            [PreserveSig]
+            void SetPrivateData(ref Guid guid, uint DataSize, IntPtr pData);
+
+            [PreserveSig]
+            void SetPrivateDataInterface(ref Guid guid, [MarshalAs(UnmanagedType.IUnknown)] object pData);
+        }
     }
+
 }

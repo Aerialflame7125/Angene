@@ -1,10 +1,11 @@
 ﻿using Angene.Common;
 using Angene.Windows;
+using Angene.Windows.D3D11;
 using Angene.Windows.Dxgi;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Security.Cryptography;
-using static Angene.Windows.D3D11;
+using static Angene.Windows.D3D11.D3D11;
 
 namespace Angene.Graphics.DX11
 {

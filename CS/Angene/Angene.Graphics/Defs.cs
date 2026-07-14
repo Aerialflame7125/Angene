@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Angene.Common;
+using System;
 
 namespace Angene.Graphics
 {
@@ -16,5 +13,6 @@ namespace Angene.Graphics
             public float XAtY0;
             public float Slope;
         }
+
     }
 }
