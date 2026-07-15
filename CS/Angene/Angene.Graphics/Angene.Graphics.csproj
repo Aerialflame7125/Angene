@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +14,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
     <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DX11\" />
   </ItemGroup>
 
 </Project>
