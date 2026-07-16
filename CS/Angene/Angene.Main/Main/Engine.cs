@@ -102,9 +102,7 @@ namespace Angene.Main
             _settingHandlerInstanced.SetSetting("Main.engineCallerLineNumber", sourceLineNumber);
             try
             {
-                IEnumerable<SlangShaderResources.IShader> shaderTypesIe = (IEnumerable<SlangShaderResources.IShader>)Assembly.GetCallingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null);
-                shaderTypes = shaderTypesIe.ToList();
-
+                var shaderTypes = Assembly.GetCallingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null).Select(t => (SlangShaderResources.IShader)Activator.CreateInstance(t)).ToList();
                 shaderCount = shaderTypes.Count();
             }
             catch(Exception e)
@@ -207,13 +205,8 @@ namespace Angene.Main
                 } else
                 {
                     _timeElapsed = 0;
-                    while (!_done)
-                    {
-                        r.DrawText(centerx, centery - 70, "Running...", 0x0F0);
-                        SlangShaderResources.IShader current = _shaderTypes[_shaderNum];
-
-
-                    }
+                    r.DrawText(centerx, centery - 70, "Running...", 0x0F0);
+                    SlangShaderResources.IShader current = _shaderTypes[_shaderNum];
                 }
                 r.DrawText(centerx, centery, $"Compiled {_shaderNum}/{_shaderCount} Shaders..", 0x0);
 

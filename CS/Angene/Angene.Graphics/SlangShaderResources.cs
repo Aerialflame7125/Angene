@@ -1,5 +1,6 @@
 ﻿using Angene.Common;
 using System.Runtime.InteropServices;
+using static Angene.Graphics.SlangShaderResources;
 
 namespace Angene.Graphics
 {
@@ -67,38 +68,38 @@ namespace Angene.Graphics
             void Bind();
             string OutputDebugInfo(bool log = true);
         }
-    
-    
-        public abstract class Dx11Shader : BaseShader
+
+    }
+    public class Dx11Shader : BaseShader, IShader
+    {
+        private readonly object _nativeComShader;
+        protected IntPtr _ID3D11DeviceContext;
+        protected IntPtr _nativeShaderPtr;
+
+        public IntPtr NativeShader => _nativeShaderPtr;
+
+        public ShaderOrigin Origin => ShaderOrigin.Dx11;
+
+        public Dx11Shader(string name, ShaderType type, object slangReflectionData, object nativeComShader, IntPtr deviceContext, IntPtr nativeShaderPtr)
+            : base(name, type, slangReflectionData)
         {
-            private readonly object _nativeComShader;
-            protected IntPtr _ID3D11DeviceContext;
-            protected IntPtr _ID3D11VertexShader;
-            protected IntPtr _ID3D11PixelShader;
+            _nativeComShader = nativeComShader;
+            _ID3D11DeviceContext = deviceContext;
+            _nativeShaderPtr = nativeShaderPtr;
+        }
 
-            public ShaderOrigin Origin => ShaderOrigin.Dx11;
-            
-            public Dx11Shader(string name, ShaderType type, object slangReflectionData, object nativeComShader, IntPtr DeviceContext, IntPtr VertexShader, IntPtr PixelShader) : base(name, type, slangReflectionData)
-            {
-                _nativeComShader = nativeComShader;
-                _ID3D11DeviceContext = DeviceContext;
-                _ID3D11PixelShader = PixelShader;
-                _ID3D11VertexShader = VertexShader;
-            }
+        public override void Bind()
+        {
+            // dx11 context using _nativeComShader
+        }
 
-            public override void Bind()
+        protected override void DestroyNativeShader()
+        {
+            if (_nativeComShader != null && Marshal.IsComObject(_nativeComShader))
             {
-                // dx11 context using _nativeComShader
-                
-            }
-
-            protected override void DestroyNativeShader()
-            {
-                if (_nativeComShader != null && System.Runtime.InteropServices.Marshal.IsComObject(_nativeComShader))
-                {
-                    Marshal.ReleaseComObject(_nativeComShader);
-                }
+                Marshal.ReleaseComObject(_nativeComShader);
             }
         }
     }
+
 }

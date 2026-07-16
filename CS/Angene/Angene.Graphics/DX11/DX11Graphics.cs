@@ -6,10 +6,11 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Security.Cryptography;
 using static Angene.Windows.D3D11.D3D11;
+using static Angene.Windows.D3D11.D3D11Interop;
 
 namespace Angene.Graphics.DX11
 {
-    public class DX11GraphicsContext : IGraphicsContext
+    public class DX11GraphicsContext : IDX11GraphicsContext, IGraphicsContext
     {
         private IntPtr _hwnd;
         private int _w, _h;
@@ -21,7 +22,7 @@ namespace Angene.Graphics.DX11
         private IntPtr _renderTargetView; // ID3D11RenderTargetView
         private IntPtr _depthStencilView; // ID3D11DepthStencilView
 
-        public nint Handle => throw new NotImplementedException();
+        public nint Handle => (nint)_device;
         public DX11GraphicsContext(IntPtr hwnd, int width, int height)
         {
             this._hwnd = hwnd;
@@ -35,6 +36,7 @@ namespace Angene.Graphics.DX11
                 CreateSwapChain();
                 CreateRenderTargetView();
                 CreateDepthStencilView();
+                OMSetRenderTargets(_context, 1, _renderTargetView, _depthStencilView);
                 SetViewport();
             }
             catch (Exception ex)
@@ -43,7 +45,71 @@ namespace Angene.Graphics.DX11
                 throw;
             }
         }
-        
+
+        private IntPtr _stagingTexture;
+
+        private void CreateStagingTexture()
+        {
+            ReleaseComObject(ref _stagingTexture);
+
+            var desc = new D3D11Interop.D3D11_TEXTURE2D_DESC
+            {
+                Width = (uint)_w,
+                Height = (uint)_h,
+                MipLevels = 1,
+                ArraySize = 1,
+                Format = DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM, // must match swap chain's back buffer format
+                SampleDesc = new DXGI_SAMPLE_DESC { Count = 1, Quality = 0 },
+                Usage = D3D11_USAGE.D3D11_USAGE_STAGING,
+                BindFlags = 0,
+                CPUAccessFlags = (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ,
+                MiscFlags = 0
+            };
+
+            int hr = D3D11.CreateTexture2D(_device, ref desc, IntPtr.Zero, out _stagingTexture);
+            if (hr < 0)
+                Logger.LogWarning($"[D3D11] Failed to create staging texture for readback (HRESULT {hr:X8})", LoggingTarget.Graphics);
+        }
+
+        public void Resize(int width, int height)
+        {
+            if (_swapChain == IntPtr.Zero || width <= 0 || height <= 0)
+                return;
+
+            _w = width;
+            _h = height;
+
+            D3D11.OMSetRenderTargets(_context, 0, IntPtr.Zero, IntPtr.Zero);
+
+            ReleaseComObject(ref _renderTargetView);
+            ReleaseComObject(ref _depthStencilView);
+
+            int hr = D3D11.ResizeSwapChainBuffers(
+                _swapChain,
+                2,
+                (uint)_w,
+                (uint)_h,
+                DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM,
+                0);
+
+            if (hr < 0)
+            {
+                Logger.LogCritical($"[D3D11] ResizeBuffers failed with HRESULT 0x{hr:X8}", LoggingTarget.Graphics,
+                    new Exceptions.GraphicsException("Failed to resize D3D11 swap chain buffers."), false);
+                return;
+            }
+
+            CreateRenderTargetView();
+
+            CreateDepthStencilView();
+
+            OMSetRenderTargets(_context, 1, _renderTargetView, _depthStencilView);
+            SetViewport();
+            CreateStagingTexture();
+
+            Logger.LogInfo($"[D3D11] Resized swap chain to {_w}x{_h}", LoggingTarget.Graphics);
+        }
+
         private void InitializeD3D11() // Initializer
         {
             D3D11.D3D_FEATURE_LEVEL[] LevelsToTry = new[] // different d3d levels to try in order of preference
@@ -71,7 +137,7 @@ namespace Angene.Graphics.DX11
             if (func < 0)
                 Logger.LogCritical($"[D3D11] Device creation FAILED with HResult '{func:X8}'", LoggingTarget.Graphics, new Exceptions.FailedToCreateGraphicsBackendException("Failed to create D3D11 Device."), false);
 
-            Logger.LogInfo($"[D3D11] Device creation finished, Featurelevel 0x{func:X8}", LoggingTarget.Engine);
+            Logger.LogInfo($"[D3D11] Device creation finished, Featurelevel '{outLevel}'", LoggingTarget.Engine);
         }
         private void CreateSwapChain()
         {
@@ -150,7 +216,7 @@ namespace Angene.Graphics.DX11
         }
         private void CreateDepthStencilView()
         {
-            D3D11.D3D11_TEXTURE2D_DESC depthDesc = new D3D11_TEXTURE2D_DESC
+            D3D11_TEXTURE2D_DESC depthDesc = new D3D11_TEXTURE2D_DESC
             {
                 Width = (uint)_w,
                 Height = (uint)_h,
@@ -159,7 +225,7 @@ namespace Angene.Graphics.DX11
                 Format = DXGI_FORMAT.DXGI_FORMAT_D24_UNORM_S8_UINT,
                 SampleDesc = new DXGI_SAMPLE_DESC { Count = 1, Quality = 0 },
                 Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
-                BindFlags = D3D11_BIND_FLAG.D3D11_BIND_DEPTH_STENCIL,
+                BindFlags = (uint)D3D11_BIND_FLAG.D3D11_BIND_DEPTH_STENCIL,
                 CPUAccessFlags = 0,
                 MiscFlags = 0
             };
@@ -203,8 +269,8 @@ namespace Angene.Graphics.DX11
             };
 
             SetViewports(_context, 1, ref viewport);
+            CreateStagingTexture();
         }
-
         public void Clear(uint color)
         {
             if (_context == IntPtr.Zero || _renderTargetView == IntPtr.Zero)
@@ -222,7 +288,6 @@ namespace Angene.Graphics.DX11
                 ClearDepthStencilView(_context, _depthStencilView, DxgiConstants.D3D11_CLEAR_DEPTH, 1.0f, 0);
             }
         }
-
         private static void ReleaseComObject(ref IntPtr obj)
         {
             if (obj != IntPtr.Zero)
@@ -241,7 +306,6 @@ namespace Angene.Graphics.DX11
                 }
             }
         }
-
         public void Present(nint windowHandle)
         {
             if (_swapChain == IntPtr.Zero)
@@ -253,13 +317,54 @@ namespace Angene.Graphics.DX11
                 Logger.LogWarning($"[D3D11] Present failed with HRESULT 0x{hr:X8}", LoggingTarget.Graphics);
             }
         }
-
         public byte[] GetRawPixels()
         {
-            // texture readback from render target needed here
-            return new byte[0];
-        }
+            if (_stagingTexture == IntPtr.Zero || _swapChain == IntPtr.Zero)
+                return new byte[0];
 
+            IntPtr backBuffer = IntPtr.Zero;
+            int hr = D3D11.GetSwapChainBackBuffer(_swapChain, 0, out backBuffer);
+            if (hr < 0 || backBuffer == IntPtr.Zero)
+            {
+                Logger.LogWarning("[D3D11] GetRawPixels: failed to acquire back buffer", LoggingTarget.Graphics);
+                return new byte[0];
+            }
+
+            try
+            {
+                D3D11.CopyResource(_context, _stagingTexture, backBuffer);
+
+                hr = D3D11.Map(_context, _stagingTexture, 0, D3D11.D3D11_MAP.D3D11_MAP_READ, 0, out D3D11_MAPPED_SUBRESOURCE mapped);
+                if (hr < 0)
+                {
+                    Logger.LogWarning($"[D3D11] GetRawPixels: Map failed (HRESULT {hr:X8})", LoggingTarget.Graphics);
+                    return new byte[0];
+                }
+
+                try
+                {
+                    int rowBytes = _w * 4; // BGRA32
+                    byte[] pixels = new byte[rowBytes * _h];
+
+                    // RowPitch can be larger than rowBytes due to GPU alignment padding — copy row by row.
+                    for (int y = 0; y < _h; y++)
+                    {
+                        IntPtr srcRow = IntPtr.Add(mapped.pData, y * (int)mapped.RowPitch);
+                        Marshal.Copy(srcRow, pixels, y * rowBytes, rowBytes);
+                    }
+
+                    return pixels;
+                }
+                finally
+                {
+                    D3D11.Unmap(_context, _stagingTexture, 0);
+                }
+            }
+            finally
+            {
+                Marshal.Release(backBuffer);
+            }
+        }
         public void Cleanup()
         {
             ReleaseComObject(ref _renderTargetView);
@@ -267,13 +372,103 @@ namespace Angene.Graphics.DX11
             ReleaseComObject(ref _swapChain);
             ReleaseComObject(ref _context);
             ReleaseComObject(ref _device);
+            ReleaseComObject(ref _stagingTexture);
 
             Logger.LogInfo("[D3D11] Cleaned up device context.", LoggingTarget.Engine);
         }
-
         public void Dispose()
         {
             Cleanup();
         }
+        public IntPtr CreateVertexBuffer(byte[] data, uint strideBytes)
+        {
+            var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                var desc = new D3D11.D3D11_BUFFER_DESC
+                {
+                    ByteWidth = (uint)data.Length,
+                    Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
+                    BindFlags = (uint)D3D11_BIND_FLAG.D3D11_BIND_VERTEX_BUFFER,
+                    CPUAccessFlags = 0,
+                    MiscFlags = 0,
+                    StructureByteStride = 0
+                };
+                var initData = new D3D11.D3D11_SUBRESOURCE_DATA { pSysMem = handle.AddrOfPinnedObject() };
+
+                int hr = D3D11.CreateBuffer(_device, ref desc, ref initData, out IntPtr buffer);
+                if (hr < 0)
+                    Logger.LogWarning($"[D3D11] CreateVertexBuffer failed (HRESULT {hr:X8})", LoggingTarget.Graphics);
+                return buffer;
+            }
+            finally
+            {
+                handle.Free();
+            }
+        }
+
+        public void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0)
+            => D3D11.IASetVertexBuffers(_context, 0, buffer, strideBytes, offset);
+
+        public void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0)
+            => D3D11.DrawIndexed(_context, indexCount, startIndex, baseVertex);
+        public IntPtr CreateIndexBuffer(uint[] indices)
+        {
+            var bytes = new byte[indices.Length * sizeof(uint)];
+            Buffer.BlockCopy(indices, 0, bytes, 0, bytes.Length);
+            var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            try
+            {
+                var desc = new D3D11.D3D11_BUFFER_DESC
+                {
+                    ByteWidth = (uint)bytes.Length,
+                    Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
+                    BindFlags = (uint)D3D11_BIND_FLAG.D3D11_BIND_INDEX_BUFFER,
+                    CPUAccessFlags = 0,
+                    MiscFlags = 0,
+                    StructureByteStride = 0
+                };
+                var initData = new D3D11.D3D11_SUBRESOURCE_DATA { pSysMem = handle.AddrOfPinnedObject() };
+
+                int hr = D3D11.CreateBuffer(_device, ref desc, ref initData, out IntPtr buffer);
+                if (hr < 0)
+                    Logger.LogWarning($"[D3D11] CreateIndexBuffer failed (HRESULT {hr:X8})", LoggingTarget.Graphics);
+                return buffer;
+            }
+            finally
+            {
+                handle.Free();
+            }
+        }
+
+        public void SetIndexBuffer(IntPtr buffer, uint offset = 0)
+            => D3D11.IASetIndexBuffer(_context, buffer, DXGI_FORMAT.DXGI_FORMAT_R32_UINT, offset);
+
+        public void SetInputLayout(IntPtr inputLayout)
+        {
+            D3D11.IASetInputLayout(_context, inputLayout);
+            D3D11.IASetPrimitiveTopology(_context, 4); // D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+        }
+
+        private IntPtr _currentVertexShader;
+        private IntPtr _currentPixelShader;
+
+        public void SetShader(SlangShaderResources.IShader vs, SlangShaderResources.IShader ps)
+        {
+            // Requires Dx11Shader to expose its native shader pointer — see note below.
+            if (vs is Dx11Shader dxVs)
+            {
+                _currentVertexShader = dxVs.NativeShader;
+                D3D11.VSSetShader(_context, _currentVertexShader);
+            }
+            if (ps is Dx11Shader dxPs)
+            {
+                _currentPixelShader = dxPs.NativeShader;
+                D3D11.PSSetShader(_context, _currentPixelShader);
+            }
+        }
+
+        public void Draw(uint vertexCount, uint startVertex = 0)
+            => D3D11.Draw(_context, vertexCount, startVertex);
     }
 }

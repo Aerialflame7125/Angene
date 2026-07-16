@@ -1464,6 +1464,11 @@ namespace Angene.Windows.D3D11
             {
                 return ((delegate* unmanaged[Stdcall]<ID3D11Device*, uint>)(lpVtbl[42]))((ID3D11Device*)Unsafe.AsPointer(ref this));
             }
+
+            public static implicit operator nint(ID3D11Device device)
+            {
+                return (nint)device;
+            }
         }
         public partial struct D3D11_BLEND_DESC
         {
@@ -1679,7 +1684,7 @@ namespace Angene.Windows.D3D11
         }
         public unsafe partial struct D3D11_MAPPED_SUBRESOURCE
         {
-            public void* pData;
+            public IntPtr pData;
 
             public uint RowPitch;
 

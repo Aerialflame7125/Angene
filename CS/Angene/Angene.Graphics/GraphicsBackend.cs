@@ -13,7 +13,20 @@ namespace Angene.Graphics
         void Clear(uint color);
         void Present(IntPtr windowHandle);
         void Cleanup();
+        void Resize(int width, int height);
         byte[] GetRawPixels();
+    }
+
+    public interface IDX11GraphicsContext : IGraphicsContext
+    {
+        IntPtr CreateVertexBuffer(byte[] data, uint strideBytes);
+        IntPtr CreateIndexBuffer(uint[] indices);
+        void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0);
+        void SetIndexBuffer(IntPtr buffer, uint offset = 0);
+        void SetInputLayout(IntPtr inputLayout);
+        void SetShader(SlangShaderResources.IShader vs, SlangShaderResources.IShader ps);
+        void Draw(uint vertexCount, uint startVertex = 0);
+        void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0);
     }
 
     // Windows GDI implementation
@@ -26,7 +39,6 @@ namespace Angene.Graphics
         private int width;
         private int height;
 
-        
         public IntPtr Handle => memDc;
         
         public GdiGraphicsContext(IntPtr hwnd, int w, int h)
@@ -42,6 +54,8 @@ namespace Angene.Graphics
             User32.ReleaseDC(hwnd, hdc);
         }
         
+        public void Resize(int w, int h) { }
+
         public void Clear(uint color)
         {
             IntPtr brush = Gdi32.CreateSolidBrush(color);
@@ -123,6 +137,8 @@ namespace Angene.Graphics
             // We're done with the screen DC reference
             User32.ReleaseDC(IntPtr.Zero, hdc);
         }
+
+        public void Resize(int w, int h) { }
 
         public void Clear(uint color)
         {
