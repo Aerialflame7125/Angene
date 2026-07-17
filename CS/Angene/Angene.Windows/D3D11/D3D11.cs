@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using static Angene.Windows.D3D11.D3D11Interop;
+using static Angene.Windows.Dxgi.DxgiEnums;
 using static Angene.Windows.Dxgi.DxgiInterfaces;
 
 namespace Angene.Windows.D3D11
@@ -21,13 +22,7 @@ namespace Angene.Windows.D3D11
         private const int VT_CreateInputLayout = 11;
         private const int VT_CreateVertexShader = 12;
         private const int VT_CreatePixelShader = 15;
-
-        private static TDelegate GetComMethod<TDelegate>(IntPtr comObject, int vtableIndex) where TDelegate : Delegate
-        {
-            var vtable = Marshal.ReadIntPtr(comObject);
-            var fn = Marshal.ReadIntPtr(vtable, vtableIndex * IntPtr.Size);
-            return Marshal.GetDelegateForFunctionPointer<TDelegate>(fn);
-        }
+        private const int VT_CreateRasterizerState = 22;
 
         // enums
         [StructLayout(LayoutKind.Sequential)]
@@ -96,37 +91,19 @@ namespace Angene.Windows.D3D11
             D3D11_BIND_DEPTH_STENCIL = 0x40,
             D3D11_BIND_UNORDERED_ACCESS = 0x80,
         }
-
-        public enum DXGI_FORMAT
+        [StructLayout(LayoutKind.Sequential)]
+        public struct D3D11_RASTERIZER_DESC
         {
-            DXGI_FORMAT_UNKNOWN = 0,
-            DXGI_FORMAT_R32G32B32A32_TYPELESS = 1,
-            DXGI_FORMAT_R32G32B32A32_FLOAT = 2,
-            DXGI_FORMAT_R8G8B8A8_UNORM = 28,
-            DXGI_FORMAT_R8G8B8A8_UNORM_SRGB = 29,
-            DXGI_FORMAT_R32_UINT = 42,
-            DXGI_FORMAT_B8G8R8A8_UNORM = 87,
-            DXGI_FORMAT_B8G8R8A8_UNORM_SRGB = 91,
-            DXGI_FORMAT_D24_UNORM_S8_UINT = 45,
-        }
-
-        public enum DXGI_USAGE
-        {
-            DXGI_USAGE_SHADER_INPUT = 0x00000001,
-            DXGI_USAGE_RENDER_TARGET_OUTPUT = 0x00000002,
-            DXGI_USAGE_BACK_BUFFER = 0x00000004,
-            DXGI_USAGE_SHARED = 0x00000008,
-            DXGI_USAGE_READ_ONLY = 0x00000010,
-            DXGI_USAGE_DISCARD_ON_PRESENT = 0x00000020,
-            DXGI_USAGE_UNORDERED_ACCESS = 0x00000040,
-        }
-
-        public enum DXGI_SWAP_EFFECT
-        {
-            DXGI_SWAP_EFFECT_DISCARD = 0,
-            DXGI_SWAP_EFFECT_SEQUENTIAL = 1,
-            DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL = 3,
-            DXGI_SWAP_EFFECT_FLIP_DISCARD = 4,
+            public uint FillMode;
+            public uint CullMode;
+            public int FrontCounterClockwise;
+            public int DepthBias;
+            public float DepthBiasClamp;
+            public float SlopeScaledDepthBias;
+            public int DepthClipEnable;
+            public int ScissorEnable;
+            public int MultisampleEnable;
+            public int AntialiasedLineEnable;
         }
 
         // structs
@@ -192,6 +169,38 @@ namespace Angene.Windows.D3D11
         }
 
         // functions
+        private delegate int CreateRasterizerStateDelegate(IntPtr pDevice, ref D3D11_RASTERIZER_DESC pDesc, out IntPtr ppState);
+        public static int CreateRasterizerState(IntPtr pDevice, ref D3D11_RASTERIZER_DESC desc, out IntPtr state)
+        {
+            var del = GetComMethod<CreateRasterizerStateDelegate>(pDevice, VT_CreateRasterizerState);
+            return del(pDevice, ref desc, out state);
+        }
+
+        public static void RSSetState(IntPtr pContext, IntPtr pState)
+        {
+            // ID3D11DeviceContext::RSSetState (43)
+            var vtable = Marshal.ReadIntPtr(pContext);
+            var func = Marshal.ReadIntPtr(vtable, 43 * IntPtr.Size);
+            var del = Marshal.GetDelegateForFunctionPointer<RSSetStateDelegate>(func);
+            del(pContext, pState);
+        }
+        private delegate void RSSetStateDelegate(IntPtr pContext, IntPtr pRasterizerState);
+
+        public static void VSSetConstantBuffers(IntPtr pContext, uint startSlot, IntPtr pBuffer)
+        {
+            // ID3D11DeviceContext::VSSetConstantBuffers (7)
+            var vtable = Marshal.ReadIntPtr(pContext);
+            var func = Marshal.ReadIntPtr(vtable, 7 * IntPtr.Size);
+            var del = Marshal.GetDelegateForFunctionPointer<VSSetConstantBuffersDelegate>(func);
+            del(pContext, startSlot, 1, ref pBuffer);
+        }
+        private delegate void VSSetConstantBuffersDelegate(IntPtr pContext, uint StartSlot, uint NumBuffers, ref IntPtr ppConstantBuffers);
+        private static TDelegate GetComMethod<TDelegate>(IntPtr comObject, int vtableIndex) where TDelegate : Delegate
+        {
+            var vtable = Marshal.ReadIntPtr(comObject);
+            var fn = Marshal.ReadIntPtr(vtable, vtableIndex * IntPtr.Size);
+            return Marshal.GetDelegateForFunctionPointer<TDelegate>(fn);
+        }
         public static void IASetVertexBuffers(IntPtr pContext, uint startSlot, IntPtr pBuffer, uint stride, uint offset)
         {
             // ID3D11DeviceContext::IASetVertexBuffers (18)
@@ -413,9 +422,9 @@ namespace Angene.Windows.D3D11
         private delegate int GetBufferDelegate(IntPtr pSwapChain, uint Buffer, ref Guid riid, out IntPtr ppSurface);
         public static int GetSwapChainBackBuffer(IntPtr pSwapChain, uint Buffer, out IntPtr ppSurface)
         {
-            // IDXGISwapChain::GetBuffer (7 — inherited from IDXGIDeviceSubObject/IDXGIObject chain; verify against your DxgiInterfaces.cs ordering)
+            // IDXGISwapChain::GetBuffer (9 — inherited from IDXGIDeviceSubObject/IDXGIObject chain)
             Guid riid = IID_ID3D11Texture2D;
-            var del = GetComMethod<GetBufferDelegate>(pSwapChain, 7);
+            var del = GetComMethod<GetBufferDelegate>(pSwapChain, 9);
             return del(pSwapChain, Buffer, ref riid, out ppSurface);
         }
         // methods with devicecontext w/ vtables

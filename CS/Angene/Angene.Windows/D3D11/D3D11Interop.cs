@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static Angene.Windows.D3D11.D3D11;
 using static Angene.Windows.D3D11.D3D11Interop;
+using static Angene.Windows.Dxgi.DxgiEnums;
 
 namespace Angene.Windows.D3D11
 {

@@ -7,6 +7,7 @@ using System.Runtime.InteropServices.Marshalling;
 using System.Security.Cryptography;
 using static Angene.Windows.D3D11.D3D11;
 using static Angene.Windows.D3D11.D3D11Interop;
+using static Angene.Windows.Dxgi.DxgiEnums;
 
 namespace Angene.Graphics.DX11
 {
@@ -70,7 +71,6 @@ namespace Angene.Graphics.DX11
             if (hr < 0)
                 Logger.LogWarning($"[D3D11] Failed to create staging texture for readback (HRESULT {hr:X8})", LoggingTarget.Graphics);
         }
-
         public void Resize(int width, int height)
         {
             if (_swapChain == IntPtr.Zero || width <= 0 || height <= 0)
@@ -109,7 +109,6 @@ namespace Angene.Graphics.DX11
 
             Logger.LogInfo($"[D3D11] Resized swap chain to {_w}x{_h}", LoggingTarget.Graphics);
         }
-
         private void InitializeD3D11() // Initializer
         {
             D3D11.D3D_FEATURE_LEVEL[] LevelsToTry = new[] // different d3d levels to try in order of preference
@@ -176,7 +175,10 @@ namespace Angene.Graphics.DX11
                 hresult = D3D11.CreateSwapChain(fact, _device, ref swapDesc, out _swapChain);
 
                 if (hresult < 0)
-                    Logger.LogCritical($"[D3D11] Failed to create SwapChain: 0x{hresult:X8}", LoggingTarget.Graphics, new Exceptions.FailedToCreateGraphicsBackendException("Failed to create D3D11 SwapChain"), false);
+                {
+                    Logger.LogCritical($"[D3D11] Failed to create SwapChain: 0x{hresult:X8}", LoggingTarget.Graphics, new Exceptions.FailedToCreateGraphicsBackendException("Failed to create D3D11 SwapChain"), true);
+                    return;
+                }
 
                 Logger.LogInfo("[D3D11] Created new SwapChain", LoggingTarget.Graphics);
             }
@@ -406,7 +408,73 @@ namespace Angene.Graphics.DX11
                 handle.Free();
             }
         }
+        public IntPtr CreateVertexShader(byte[] bytecode)
+        {
+            var handle = GCHandle.Alloc(bytecode, GCHandleType.Pinned);
+            try
+            {
+                int hr = D3D11.CreateVertexShader(_device, handle.AddrOfPinnedObject(), (nuint)bytecode.Length, out IntPtr shader);
+                if (hr < 0)
+                    Logger.LogWarning($"[D3D11] CreateVertexShader failed (HRESULT {hr:X8})", LoggingTarget.Graphics);
+                return shader;
+            }
+            finally { handle.Free(); }
+        }
+        public IntPtr CreatePixelShader(byte[] bytecode)
+        {
+            var handle = GCHandle.Alloc(bytecode, GCHandleType.Pinned);
+            try
+            {
+                int hr = D3D11.CreatePixelShader(_device, handle.AddrOfPinnedObject(), (nuint)bytecode.Length, out IntPtr shader);
+                if (hr < 0)
+                    Logger.LogWarning($"[D3D11] CreatePixelShader failed (HRESULT {hr:X8})", LoggingTarget.Graphics);
+                return shader;
+            }
+            finally { handle.Free(); }
+        }
+        public IntPtr CreateInputLayout(InputElement[] elements, byte[] vsBytecode)
+        {
+            int structSize = Marshal.SizeOf<D3D11.D3D11_INPUT_ELEMENT_DESC>();
+            IntPtr descArray = Marshal.AllocHGlobal(structSize * elements.Length);
+            var nameHandles = new List<IntPtr>();
+            var vsHandle = GCHandle.Alloc(vsBytecode, GCHandleType.Pinned);
 
+            try
+            {
+                for (int i = 0; i < elements.Length; i++)
+                {
+                    IntPtr namePtr = Marshal.StringToHGlobalAnsi(elements[i].SemanticName);
+                    nameHandles.Add(namePtr);
+
+                    var desc = new D3D11.D3D11_INPUT_ELEMENT_DESC
+                    {
+                        SemanticName = namePtr,
+                        SemanticIndex = elements[i].SemanticIndex,
+                        Format = elements[i].Format,
+                        InputSlot = 0,
+                        AlignedByteOffset = elements[i].ByteOffset,
+                        InputSlotClass = 0, // D3D11_INPUT_PER_VERTEX_DATA
+                        InstanceDataStepRate = 0
+                    };
+                    Marshal.StructureToPtr(desc, IntPtr.Add(descArray, i * structSize), false);
+                }
+
+                int hr = D3D11.CreateInputLayout(_device, descArray, (uint)elements.Length,
+                    vsHandle.AddrOfPinnedObject(), (nuint)vsBytecode.Length, out IntPtr layout);
+
+                if (hr < 0)
+                    Logger.LogWarning($"[D3D11] CreateInputLayout failed (HRESULT {hr:X8})", LoggingTarget.Graphics);
+
+                return layout;
+            }
+            finally
+            {
+                vsHandle.Free();
+                foreach (var h in nameHandles) Marshal.FreeHGlobal(h);
+                Marshal.FreeHGlobal(descArray);
+            }
+        }
+        
         public void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0)
             => D3D11.IASetVertexBuffers(_context, 0, buffer, strideBytes, offset);
 
@@ -470,5 +538,64 @@ namespace Angene.Graphics.DX11
 
         public void Draw(uint vertexCount, uint startVertex = 0)
             => D3D11.Draw(_context, vertexCount, startVertex);
+
+        public IntPtr CreateConstantBuffer(uint byteWidth)
+        {
+            // Constant buffers must be 16-byte aligned.
+            uint alignedSize = (byteWidth + 15) & ~15u;
+            byte[] zero = new byte[alignedSize]; // CreateBuffer always wants non-null initial data in our wrapper
+            var handle = GCHandle.Alloc(zero, GCHandleType.Pinned);
+            try
+            {
+                var desc = new D3D11.D3D11_BUFFER_DESC
+                {
+                    ByteWidth = alignedSize,
+                    Usage = D3D11_USAGE.D3D11_USAGE_DYNAMIC,
+                    BindFlags = (uint)D3D11_BIND_FLAG.D3D11_BIND_CONSTANT_BUFFER,
+                    CPUAccessFlags = (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_WRITE,
+                    MiscFlags = 0,
+                    StructureByteStride = 0
+                };
+                var initData = new D3D11.D3D11_SUBRESOURCE_DATA { pSysMem = handle.AddrOfPinnedObject() };
+
+                int hr = D3D11.CreateBuffer(_device, ref desc, ref initData, out IntPtr buffer);
+                if (hr < 0)
+                    Logger.LogWarning($"[D3D11] CreateConstantBuffer failed (HRESULT {hr:X8})", LoggingTarget.Graphics);
+                return buffer;
+            }
+            finally { handle.Free(); }
+        }
+
+        public void UpdateConstantBuffer(IntPtr buffer, byte[] data)
+        {
+            int hr = D3D11.Map(_context, buffer, 0, D3D11.D3D11_MAP.D3D11_MAP_WRITE_DISCARD, 0, out D3D11_MAPPED_SUBRESOURCE mapped);
+            if (hr < 0)
+            {
+                Logger.LogWarning($"[D3D11] UpdateConstantBuffer: Map failed (HRESULT {hr:X8})", LoggingTarget.Graphics);
+                return;
+            }
+            Marshal.Copy(data, 0, mapped.pData, data.Length);
+            D3D11.Unmap(_context, buffer, 0);
+        }
+
+        public void SetVertexShaderConstantBuffer(IntPtr buffer, uint slot = 0)
+            => D3D11.VSSetConstantBuffers(_context, slot, buffer);
+
+        public IntPtr CreateRasterizerState(bool cullNone)
+        {
+            var desc = new D3D11.D3D11_RASTERIZER_DESC
+            {
+                FillMode = 3, // D3D11_FILL_SOLID
+                CullMode = cullNone ? 1u : 3u, // NONE : BACK
+                FrontCounterClockwise = 0,
+                DepthClipEnable = 1,
+            };
+            int hr = D3D11.CreateRasterizerState(_device, ref desc, out IntPtr state);
+            if (hr < 0)
+                Logger.LogWarning($"[D3D11] CreateRasterizerState failed (HRESULT {hr:X8})", LoggingTarget.Graphics);
+            return state;
+        }
+
+        public void SetRasterizerState(IntPtr state) => D3D11.RSSetState(_context, state);
     }
 }

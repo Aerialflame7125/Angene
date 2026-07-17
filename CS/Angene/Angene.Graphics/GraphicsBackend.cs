@@ -1,8 +1,10 @@
 using Angene.Graphics.DX11;
 using Angene.Windows;
+using Angene.Windows.D3D11;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using static Angene.Windows.Dxgi.DxgiEnums;
 
 namespace Angene.Graphics
 {
@@ -17,16 +19,32 @@ namespace Angene.Graphics
         byte[] GetRawPixels();
     }
 
+    public struct InputElement
+    {
+        public string SemanticName;
+        public uint SemanticIndex;
+        public DXGI_FORMAT Format;
+        public uint ByteOffset;
+    }
+
     public interface IDX11GraphicsContext : IGraphicsContext
     {
         IntPtr CreateVertexBuffer(byte[] data, uint strideBytes);
         IntPtr CreateIndexBuffer(uint[] indices);
+        IntPtr CreateVertexShader(byte[] bytecode);
+        IntPtr CreatePixelShader(byte[] bytecode);
+        IntPtr CreateInputLayout(InputElement[] elements, byte[] vsBytecode);
         void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0);
         void SetIndexBuffer(IntPtr buffer, uint offset = 0);
         void SetInputLayout(IntPtr inputLayout);
         void SetShader(SlangShaderResources.IShader vs, SlangShaderResources.IShader ps);
         void Draw(uint vertexCount, uint startVertex = 0);
         void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0);
+        IntPtr CreateConstantBuffer(uint byteWidth);
+        void UpdateConstantBuffer(IntPtr buffer, byte[] data);
+        void SetVertexShaderConstantBuffer(IntPtr buffer, uint slot = 0);
+        IntPtr CreateRasterizerState(bool cullNone);
+        void SetRasterizerState(IntPtr state);
     }
 
     // Windows GDI implementation

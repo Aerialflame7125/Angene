@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene", "Angene.Main\Angen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Management", "Angene.Management\Angene.Management.csproj", "{C073B101-4E6F-9D69-6F1B-54D108C25B3D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.XR", "Angene.XR\Angene.XR.csproj", "{9DE722C4-6409-4702-8919-7C29E6F5FF00}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +64,10 @@ Global
 		{C073B101-4E6F-9D69-6F1B-54D108C25B3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C073B101-4E6F-9D69-6F1B-54D108C25B3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C073B101-4E6F-9D69-6F1B-54D108C25B3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DE722C4-6409-4702-8919-7C29E6F5FF00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DE722C4-6409-4702-8919-7C29E6F5FF00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DE722C4-6409-4702-8919-7C29E6F5FF00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DE722C4-6409-4702-8919-7C29E6F5FF00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

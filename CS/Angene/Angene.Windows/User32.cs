@@ -16,6 +16,10 @@ namespace Angene.Windows
         public static extern IntPtr GetDC(IntPtr hWnd);
         [DllImport("user32.dll")]
         public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+        [DllImport("user32.dll")]
+        public static extern IntPtr SetTimer(IntPtr hWnd, IntPtr nIDEvent, uint uElapse, IntPtr lpTimerFunc);
+        [DllImport("user32.dll")]
+        public static extern bool KillTimer(IntPtr hWnd, IntPtr nIDEvent);
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr CreateWindowExW(
             uint dwExStyle,

@@ -52,7 +52,7 @@ namespace Angene.Main
         private Settings? _settingHandlerInstanced;
         private LogConsoleWindow? _logConsole; // log window keepalive
         public List<Angene.Main.Window> OpenWindows = new List<Angene.Main.Window>();
-
+          
         public Settings SettingHandlerInstanced
         {
             get
@@ -129,7 +129,7 @@ namespace Angene.Main
 
                 Logger.LogDebug("Verbose log console initialized.", LoggingTarget.Engine);
             }
-            if (shaderTypes != null)
+            if (shaderTypes != null && shaderCount >= 1)
             {
                 Logger.LogImportant($"Found {shaderCount} Shaders. Halting startup and attempting compilation..", LoggingTarget.Graphics);
                 StartShaderCompilation(shaderTypes, shaderCount, false); // 2nd operator is to be optional later.
@@ -641,8 +641,50 @@ namespace Angene.Main
             return IntPtr.Zero;
         }
 
+        private const int RENDER_TIMER_ID = 1;
         private static IntPtr DefaultWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
         {
+            // Render throughout resize and moving
+            if (msg == (uint)WM.ENTERSIZEMOVE)
+            {
+                User32.SetTimer(hWnd, RENDER_TIMER_ID, 16, IntPtr.Zero); // ~60 FPS while dragging/resizing
+                return IntPtr.Zero;
+            }
+
+            if (msg == (uint)WM.EXITSIZEMOVE)
+            {
+                User32.KillTimer(hWnd, RENDER_TIMER_ID);
+                return IntPtr.Zero;
+            }
+
+            if (msg == (uint)WM.TIMER && (int)wParam == RENDER_TIMER_ID)
+            {
+                if (WindowMap.TryGetValue(hWnd, out var movingWin))
+                {
+                    try
+                    {
+                        foreach (var scene in movingWin.Scenes)
+                            scene?.Render();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError($"Exception rendering during move/resize: {ex.Message}", LoggingTarget.Engine);
+                    }
+                }
+                return IntPtr.Zero;
+            }
+
+            if (msg == (uint)WM.SIZE)
+            {
+                if (WindowMap.TryGetValue(hWnd, out var sizedWin))
+                {
+                    int newWidth = (int)(lParam.ToInt64() & 0xFFFF);
+                    int newHeight = (int)((lParam.ToInt64() >> 16) & 0xFFFF);
+                    if (newWidth > 0 && newHeight > 0)
+                        sizedWin.Graphics?.Resize(newWidth, newHeight);
+                }
+            }
+
             // Forward message to scenes if window found
             if (WindowMap.TryGetValue(hWnd, out var win) && win.PrimaryScene != null)
             {

@@ -96,8 +96,12 @@ namespace Angene.Graphics
         protected override void DestroyNativeShader()
         {
             if (_nativeComShader != null && Marshal.IsComObject(_nativeComShader))
-            {
                 Marshal.ReleaseComObject(_nativeComShader);
+
+            if (_nativeShaderPtr != IntPtr.Zero)
+            {
+                Marshal.Release(_nativeShaderPtr);
+                _nativeShaderPtr = IntPtr.Zero;
             }
         }
     }
