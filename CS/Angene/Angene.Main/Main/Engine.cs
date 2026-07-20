@@ -310,24 +310,7 @@ namespace Angene.Main
                 _ => throw new AngeneException($"Unknown stage for shader '{shader.Name}'")
             };
 
-            string path = System.IO.Path.GetTempFileName();
-            File.WriteAllText(path, shader.Code);
-            Logger.LogDebug($"File path '{path}'", LoggingTarget.Graphics);
-            string _newPath = path + $".{shader.Extension}";
-            File.Move(path, _newPath);
-            path = _newPath;
-            Logger.LogDebug($"New file path '{path}'", LoggingTarget.Graphics);
-
-            string[] args = new[]
-            {
-                "-target", "dxbc",
-                "-profile", "sm_5_0",
-                "-entry", shader.EntryPoint,
-                "-stage", stage,
-                path
-            };
-            byte[] code = Slangc.NET.SlangCompiler.Compile(args);
-            File.Delete(path);
+            byte[] code = Windows.Slang.NativeSlangMemoryCompiler.CompileShaderFromMemory(shader.Code, shader.EntryPoint, stage);
 
             unsafe
             {
