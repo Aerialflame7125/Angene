@@ -23,17 +23,35 @@ namespace Angene.Graphics.DX11
         private IntPtr _renderTargetView; // ID3D11RenderTargetView
         private IntPtr _depthStencilView; // ID3D11DepthStencilView
 
+        private IntPtr _existingDevice, _existingContext;
+        private bool _sharingDevice = false;
+        public IntPtr ContextHandle => _context;
+
         public nint Handle => (nint)_device;
-        public DX11GraphicsContext(IntPtr hwnd, int width, int height)
+
+        public DX11GraphicsContext(IntPtr hwnd, int width, int height, IntPtr existingDevice, IntPtr existingContext)
         {
             this._hwnd = hwnd;
             this._w = width;
             this._h = height;
+            _existingContext = (IntPtr)existingContext;
+            _existingDevice = (IntPtr)existingDevice;
 
             IntPtr Hdc = User32.GetDC(hwnd);
             try
             {
-                InitializeD3D11();
+                if (existingDevice != IntPtr.Zero && existingContext != IntPtr.Zero)
+                {
+                    _device = (IntPtr)existingDevice;
+                    _context = (IntPtr)existingContext;
+                    Marshal.AddRef(_device);
+                    Marshal.AddRef(_context);
+                    _sharingDevice = true;
+                }
+                else
+                {
+                    InitializeD3D11();
+                }
                 CreateSwapChain();
                 CreateRenderTargetView();
                 CreateDepthStencilView();
@@ -166,9 +184,9 @@ namespace Angene.Graphics.DX11
                     },
                     BufferUsage = DXGI_USAGE.DXGI_USAGE_RENDER_TARGET_OUTPUT,
                     BufferCount = 2,
+                    SwapEffect = DXGI_SWAP_EFFECT.DXGI_SWAP_EFFECT_FLIP_DISCARD,
                     OutputWindow = _hwnd,
                     Windowed = 1, // choice later,
-                    SwapEffect = DXGI_SWAP_EFFECT.DXGI_SWAP_EFFECT_DISCARD,
                     Flags = 0
                 };
 

@@ -63,9 +63,16 @@ namespace Angene.Graphics
 
         public interface IShader : IDisposable
         {
+            int id { get; }
+            /// <summary>
+            /// File extension (e.g: 'hlsl')
+            /// </summary>
+            string Extension { get; }
             string Name { get; }
-            string Path { get; set; }
-            string EntryPoint { get; set; }
+            string EntryPoint { get; }
+            string Code { get; }
+            byte[] byteCode { get; }
+            ShaderOrigin Origin { get; }
             ShaderType Type { get; }
             bool IsDisposed { get; }
             void Bind();
@@ -79,19 +86,29 @@ namespace Angene.Graphics
         protected IntPtr _ID3D11DeviceContext;
         protected IntPtr _nativeShaderPtr;
 
+        public int id { get; }
         public IntPtr NativeShader => _nativeShaderPtr;
+        public static ShaderOrigin Origin => ShaderOrigin.Dx11;
 
-        public ShaderOrigin Origin => ShaderOrigin.Dx11;
+        public string Code { get; }
+        /// <summary>
+        /// File extension (e.g: 'hlsl')
+        /// </summary>
+        public string Extension { get; }
+        public string EntryPoint { get; }
+        public byte[] byteCode { get; }
 
-        public string Path { get; set; }
-        public string EntryPoint { get; set; }
-
-        public Dx11Shader(string name, ShaderType type, object slangReflectionData, object nativeComShader, IntPtr deviceContext, IntPtr nativeShaderPtr)
+        public Dx11Shader(string name, ShaderType type, object slangReflectionData, object nativeComShader, 
+            IntPtr deviceContext, IntPtr nativeShaderPtr, int id,
+            byte[] byteCode = null, string code = null)
             : base(name, type, slangReflectionData)
         {
+            this.byteCode = byteCode;
+            Code = code;
             _nativeComShader = nativeComShader;
             _ID3D11DeviceContext = deviceContext;
             _nativeShaderPtr = nativeShaderPtr;
+            this.id = id;
         }
 
         public override void Bind()

@@ -1,3 +1,4 @@
+using Angene.Common;
 using Angene.Graphics.DX11;
 using Angene.Windows;
 using Angene.Windows.D3D11;
@@ -29,6 +30,7 @@ namespace Angene.Graphics
 
     public interface IDX11GraphicsContext : IGraphicsContext
     {
+        IntPtr ContextHandle { get; }
         IntPtr CreateVertexBuffer(byte[] data, uint strideBytes);
         IntPtr CreateIndexBuffer(uint[] indices);
         IntPtr CreateVertexShader(byte[] bytecode);
@@ -220,14 +222,14 @@ namespace Angene.Graphics
     // Factory for creating platform-specific graphics contexts
     public static class GraphicsContextFactory
     {
-        public static IGraphicsContext Create(IntPtr windowHandle, int width, int height, int renderMode)
+        public static IGraphicsContext Create(IntPtr windowHandle, int width, int height, int renderMode, IntPtr existingDevice = default, IntPtr existingContext = default)
         {
             if (renderMode == 0)
                 return new GdiGraphicsContext(windowHandle, width, height);
             if (renderMode == 1)
                 throw new Exceptions.FailedToCreateGraphicsBackendException("There currently is not an IGraphicsContext definition for OpenGL.");
             if (renderMode == 2)
-                return new DX11GraphicsContext(windowHandle, width, height);
+                return new DX11GraphicsContext(windowHandle, width, height, existingDevice, existingContext);
 
             Common.Logger.LogCritical(
                 "[GraphicsContextFactory] Failed to create IGraphicsContext, 'Graphics.RenderMode' is not a possible value.",
