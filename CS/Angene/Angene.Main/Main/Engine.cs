@@ -1,26 +1,30 @@
-﻿using System;
-using System.Net;
-using System.Text;
-using System.Linq;
-using Angene.Common;
-using Angene.Windows;
-using Angene.Globals;
+﻿using Angene.Common;
+using Angene.Common.Settings;
+using Angene.Essentials;
 using Angene.External;
+using Angene.Globals;
 using Angene.Graphics;
 using Angene.Platform;
-using System.Threading;
-using Angene.Essentials;
-using System.Reflection;
-using System.ComponentModel;
-using System.Net.WebSockets;
-using System.Threading.Tasks;
-using Angene.Common.Settings;
+using Angene.Windows;
+using Angene.Windows.D3D11;
 using Org.BouncyCastle.Asn1.Cmp;
+using System;
 using System.Collections.Generic;
-using System.Security.Permissions;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.WebSockets;
+using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
+using System.Security.Permissions;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Angene.Main
 {
@@ -51,7 +55,8 @@ namespace Angene.Main
 
         private Settings? _settingHandlerInstanced;
         private LogConsoleWindow? _logConsole; // log window keepalive
-        public List<Angene.Main.Window> OpenWindows = new List<Angene.Main.Window>();
+        public Dictionary<string, SlangShaderResources.IShader> ShaderCache { get; internal set; }
+        public List<Angene.Main.Window> OpenWindows { get; private set; } = new List<Angene.Main.Window>();
           
         public Settings SettingHandlerInstanced
         {
@@ -132,23 +137,39 @@ namespace Angene.Main
             if (shaderTypes != null && shaderCount >= 1)
             {
                 Logger.LogImportant($"Found {shaderCount} Shaders. Halting startup and attempting compilation..", LoggingTarget.Graphics);
-                StartShaderCompilation(shaderTypes, shaderCount, false); // 2nd operator is to be optional later.
+
+                // alright im going to fucking hate this
+                // To generate d3d shaders, low and behold, you *have* to initialize it.
+                // So lets initialize it here then dispose of it after it is done.
+                WindowConfig _w = new();
+                _w.Width = 100; _w.Height = 100;
+                _w.X = -10000; _w.Y = -10000;
+                _w.Style = WindowManagement.WindowStyle.PopupWindow;
+                _w.ShowOnCreate = true;
+                _w.Title = "D3D11 Dummy Window | Ignore.";
+                _w.renderMode = RenderType.D3D11;
+                Window _window = new(_w);
+                IDX11GraphicsContext _graphicscontext = _window.Graphics as IDX11GraphicsContext;
+                if (_graphicscontext == null)
+                    Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy D3D11 window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on D3D11 Window."), true);
+
+                // now start shader comp
+                StartShaderCompilation(shaderTypes, shaderCount, _graphicscontext.Handle, _window);
             }
         }
 
-        public void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int shaderCount, bool backgrounded = false)
+        private void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int _shaderCount, IntPtr _devicePtr, Window _compilationWindow)
         {
             // Create a new window for showing progress
-            WindowConfig _w = new WindowConfig();
+            WindowConfig _w = new();
             _w.Width = 640; _w.Height = 480;
             _w.Style = WindowManagement.WindowStyle.PopupWindow;
             _w.ShowOnCreate = true;
             _w.Title = "Angene Shader Compilation";
             _w.renderMode = RenderType.GDI;
-
             Window _WindowInstance = new Window(_w);
-
-            IScene scene = new ShaderCompilationScene(_shaderTypes, shaderCount);
+            
+            IScene scene = new ShaderCompilationScene(_shaderTypes, _shaderCount, _devicePtr, _compilationWindow, (IntPtr)_WindowInstance.Hwnd);
             _WindowInstance.SetScene(scene);
             scene.Initialize();
         }
@@ -166,14 +187,20 @@ namespace Angene.Main
         public int _shaderNum;
         public bool _started;
         public bool _done;
+        private IntPtr _devicePtr;
+        private Window _compilationWindow;
+        private IntPtr _hdc;
 
-        public ShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount)
+        public ShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, IntPtr hwnd)
         { 
             _shaderTypes = shaderTypes;
             _shaderCount = shaderCount;
             _timeElapsed = 0;
             _shaderNum = 0;
             _started = false;
+            _devicePtr = devicePtr;
+            _compilationWindow = compilationWindow;
+            _hdc = hwnd;
         }
 
         public void Initialize()
@@ -187,26 +214,36 @@ namespace Angene.Main
 
         public void Render()
         {
-            IntPtr hdc = User32.GetDC((IntPtr)Engine.Instance.OpenWindows[0].Hwnd);
-            if (hdc == IntPtr.Zero) return;
+            if (_hdc == IntPtr.Zero) return;
 
             try
             {
                 int centerx = 320;
                 int centery = 240;
-                using var r = new GdiRenderer(hdc);
+                using var r = new GdiRenderer(_hdc);
                 r.BeginFrame(640, 480);
                 r.Clear(0, 0.51f, 0.58f, 0.72f);
 
                 r.DrawText(centerx, centery - 100, "Please Wait..", 0x0);
-                if (!_started)
+                if (!_started && !_done)
                 {
                     r.DrawText(centerx, centery - 70, "Waiting for Initialization..", 0x00FF0000);
                 } else
                 {
-                    _timeElapsed = 0;
-                    r.DrawText(centerx, centery - 70, "Running...", 0x0F0);
-                    SlangShaderResources.IShader current = _shaderTypes[_shaderNum];
+                    if (_shaderNum < _shaderCount)
+                    {
+                        _timeElapsed = 0;
+                        r.DrawText(centerx, centery - 70, "Running...", 0x0F0);
+                        SlangShaderResources.IShader current = _shaderTypes[_shaderNum];
+                        CompileShader(current, _devicePtr);
+                        _shaderNum++;
+                    }
+                    else
+                    {
+                        _done = true;
+                        Engine.Instance.IsCompilingShaders = false;
+                        _compilationWindow.Cleanup();
+                    }
                 }
                 r.DrawText(centerx, centery, $"Compiled {_shaderNum}/{_shaderCount} Shaders..", 0x0);
 
@@ -214,7 +251,43 @@ namespace Angene.Main
             }
             finally
             {
-                User32.ReleaseDC((IntPtr)Engine.Instance.OpenWindows[0].Hwnd, hdc);
+                User32.ReleaseDC((IntPtr)Engine.Instance.OpenWindows[0].Hwnd, _hdc);
+            }
+        }
+
+        private void CompileShader(SlangShaderResources.IShader shader, IntPtr devicePtr)
+        {
+            string stage = shader.Type switch
+            {
+                SlangShaderResources.ShaderType.Vertex => "vertex",
+                SlangShaderResources.ShaderType.Pixel => "pixel",
+                SlangShaderResources.ShaderType.Compute => "compute",
+                _ => throw new AngeneException($"Unknown stage for shader '{shader.Name}'")
+            };
+
+            byte[] code = Slangc.NET.SlangCompiler.Compile(new[]
+            {
+                "-target", "dxbc",
+                "-profile", "sm_5_0",
+                "-entry", shader.EntryPoint,
+                "-stage", stage,
+                shader.Path
+            });
+
+            unsafe
+            {
+                fixed (byte* p = code)
+                {
+                    IntPtr nativeShader;
+                    int hr = shader.Type == SlangShaderResources.ShaderType.Vertex ? D3D11.CreateVertexShader(devicePtr, (IntPtr)p, (nuint)code.Length, out nativeShader) : D3D11.CreatePixelShader(devicePtr, (IntPtr)p, (nuint)code.Length, out nativeShader);
+
+                    if (hr < 0)
+                        throw new AngeneException($"Failed to compile shader '{shader.Name}', (HRESULT: {hr:X8})");
+
+                    var wrapped = new Dx11Shader(shader.Name, shader.Type, null, null, devicePtr, nativeShader);
+                    Engine.Instance.ShaderCache ??= new Dictionary<string, SlangShaderResources.IShader>();
+                    Engine.Instance.ShaderCache[shader.Name] = wrapped;
+                }
             }
         }
 

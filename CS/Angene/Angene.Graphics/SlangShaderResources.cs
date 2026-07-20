@@ -1,4 +1,5 @@
 ﻿using Angene.Common;
+using System.Diagnostics.Tracing;
 using System.Runtime.InteropServices;
 using static Angene.Graphics.SlangShaderResources;
 
@@ -63,6 +64,8 @@ namespace Angene.Graphics
         public interface IShader : IDisposable
         {
             string Name { get; }
+            string Path { get; set; }
+            string EntryPoint { get; set; }
             ShaderType Type { get; }
             bool IsDisposed { get; }
             void Bind();
@@ -79,6 +82,9 @@ namespace Angene.Graphics
         public IntPtr NativeShader => _nativeShaderPtr;
 
         public ShaderOrigin Origin => ShaderOrigin.Dx11;
+
+        public string Path { get; set; }
+        public string EntryPoint { get; set; }
 
         public Dx11Shader(string name, ShaderType type, object slangReflectionData, object nativeComShader, IntPtr deviceContext, IntPtr nativeShaderPtr)
             : base(name, type, slangReflectionData)
