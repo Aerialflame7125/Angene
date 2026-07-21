@@ -8,6 +8,7 @@
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 		<Configurations>Debug;Release;Publish</Configurations>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
 	<!-- FIXED: Append to DefineConstants instead of replacing -->
