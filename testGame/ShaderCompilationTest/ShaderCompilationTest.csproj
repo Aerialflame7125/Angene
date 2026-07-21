@@ -14,6 +14,7 @@
 
 		<!-- Copy dependencies to output -->
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
 	<!-- Platform-specific defines -->
@@ -23,41 +24,34 @@
 	<PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
 		<DefineConstants>LINUX</DefineConstants>
 	</PropertyGroup>
-
-  <ItemGroup>
-    <Reference Include="Angene">
-      <HintPath>..\..\Build\Angene.dll</HintPath>
-    </Reference>
-    <Reference Include="Angene.Audio">
-      <HintPath>..\..\Build\Angene.Audio.dll</HintPath>
-    </Reference>
-    <Reference Include="Angene.Common">
-      <HintPath>..\..\Build\Angene.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="Angene.Essentials">
-      <HintPath>..\..\Build\Angene.Essentials.dll</HintPath>
-    </Reference>
-    <Reference Include="Angene.Graphics">
-      <HintPath>..\..\Build\Angene.Graphics.dll</HintPath>
-    </Reference>
-    <Reference Include="Angene.Input">
-      <HintPath>..\..\Build\Angene.Input.dll</HintPath>
-    </Reference>
-    <Reference Include="Angene.Management">
-      <HintPath>..\..\Build\Angene.Management.dll</HintPath>
-    </Reference>
-    <Reference Include="Angene.Math">
-      <HintPath>..\..\Build\Angene.Math.dll</HintPath>
-    </Reference>
-    <Reference Include="Angene.Windows">
-      <HintPath>..\..\Build\Angene.Windows.dll</HintPath>
-    </Reference>
-    <Reference Include="DiscordRPC">
-      <HintPath>..\..\Build\DiscordRPC.dll</HintPath>
-    </Reference>
-    <Reference Include="Slangc.NET">
-      <HintPath>..\..\Build\Slangc.NET.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+	<ItemGroup>
+	  <Reference Include="Angene">
+	    <HintPath>..\..\Build\win-x64\Angene\Angene.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Audio">
+	    <HintPath>..\..\Build\win-x64\Angene\Angene.Audio.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Common">
+	    <HintPath>..\..\Build\win-x64\Angene\Angene.Common.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Essentials">
+	    <HintPath>..\..\Build\win-x64\Angene\Angene.Essentials.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Graphics">
+	    <HintPath>..\..\Build\win-x64\Angene\Angene.Graphics.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Input">
+	    <HintPath>..\..\Build\win-x64\Angene\Angene.Input.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Management">
+	    <HintPath>..\..\Build\win-x64\Angene\Angene.Management.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Math">
+	    <HintPath>..\..\Build\win-x64\Angene\Angene.Math.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Windows">
+	    <HintPath>..\..\Build\win-x64\Angene\Angene.Windows.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
 
 </Project>
