@@ -12,7 +12,8 @@ namespace Angene.Common
         public AngeneException(string message) : base(message) { }
         public AngeneException(string message, Exception inner) : base(message, inner) { }
     }
-    public enum LogLevel
+
+    internal enum LogLevel
     {
         Debug,
         Info,
@@ -46,7 +47,7 @@ namespace Angene.Common
         private static readonly object logLock = new();
         public bool _verbose = false;
 
-        public Action<object, object, object, object, object> OnLog { get; set; } = (_, _, _, _, _) => { };
+        public Action<object, object, object, object, object> OnLog { get; set; } = (_, _, _, _, _) => { }; // Cancer.
 
         public void Init(bool verbose = false)
         {

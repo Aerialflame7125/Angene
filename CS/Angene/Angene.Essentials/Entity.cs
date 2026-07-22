@@ -69,10 +69,9 @@ namespace Angene.Essentials
         {
             if (scriptInstance == null)
             {
-                Logger.Log(
+                Logger.LogError(
                     $"Attempted to add null script to entity '{name}'",
-                    LoggingTarget.Engine,
-                    LogLevel.Error
+                    LoggingTarget.Engine
                 );
                 return;
             }
@@ -80,10 +79,9 @@ namespace Angene.Essentials
             _scripts.Add(scriptInstance);
             Lifecycle.ScriptBinding.RegisterScript(this, scriptInstance);
 
-            Logger.Log(
+            Logger.LogDebug(
                 $"Script '{scriptInstance.GetType().Name}' added to entity '{name}'",
-                LoggingTarget.Engine,
-                LogLevel.Debug
+                LoggingTarget.Engine
             );
         }
 
@@ -95,10 +93,9 @@ namespace Angene.Essentials
         {
             if (_scripts.Remove(scriptInstance))
             {
-                Logger.Log(
+                Logger.LogDebug(
                     $"Script '{scriptInstance.GetType().Name}' removed from entity '{name}'",
-                    LoggingTarget.Engine,
-                    LogLevel.Debug
+                    LoggingTarget.Engine
                 );
             }
         }
@@ -170,10 +167,9 @@ namespace Angene.Essentials
             {
                 childEntities.Add(child);
                 child._parent = this;
-                Logger.Log(
+                Logger.LogDebug(
                     $"Entity '{child.name}' added as child of '{name}'",
-                    LoggingTarget.Engine,
-                    LogLevel.Debug
+                    LoggingTarget.Engine
                 );
             }
         }
@@ -189,10 +185,9 @@ namespace Angene.Essentials
             if (childEntities.Remove(child))
             {
                 child._parent = null;
-                Logger.Log(
+                Logger.LogDebug(
                     $"Entity '{child.name}' removed from parent '{name}'",
-                    LoggingTarget.Engine,
-                    LogLevel.Debug
+                    LoggingTarget.Engine
                 );
             }
         }

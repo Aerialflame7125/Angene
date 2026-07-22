@@ -14,6 +14,7 @@ namespace Angene.Windows
         CLOSE           = 0x0010,
         QUIT            = 0x0012,
         ERASEBKGND      = 0x0014,
+        TIMER           = 0x0113,
 
         KEYDOWN         = 0x0100,
         KEYUP           = 0x0101,

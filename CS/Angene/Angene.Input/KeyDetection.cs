@@ -18,7 +18,7 @@ namespace Angene.Input
         public void OnMessage(IntPtr msgPtr)
         {
             if (msgPtr == IntPtr.Zero) return;
-            var msg = Marshal.PtrToStructure<Win32.MSG>(msgPtr);
+            var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
 
             switch (msg.message)
             {
@@ -61,8 +61,8 @@ namespace Angene.Input
         {
             if (_script != null)
             {
-                Logger.Log("[KeyDetection] Already registered — skipping duplicate Register() call.",
-                    LoggingTarget.Engine, LogLevel.Warning);
+                Logger.LogWarning("[KeyDetection] Already registered — skipping duplicate Register() call.",
+                    LoggingTarget.Engine);
                 return;
             }
 
@@ -76,7 +76,7 @@ namespace Angene.Input
                 b.AddScript(_script);
             }
 
-            Logger.Log($"[KeyDetection] Added {Engine.Instance.OpenWindows.Count} new Entities", LoggingTarget.Engine, LogLevel.Debug);
+            Logger.LogDebug($"[KeyDetection] Added {Engine.Instance.OpenWindows.Count} new Entities", LoggingTarget.Engine);
         }
 
         /// <summary>
@@ -92,8 +92,8 @@ namespace Angene.Input
 
             if (_script != null)
             {
-                Logger.Log("[KeyDetection] Already registered — skipping duplicate Register() call.",
-                    LoggingTarget.Engine, LogLevel.Warning);
+                Logger.LogWarning("[KeyDetection] Already registered — skipping duplicate Register() call.",
+                    LoggingTarget.Engine);
                 return;
             }
 
@@ -101,8 +101,8 @@ namespace Angene.Input
             entity.AddScript(_script);
             Instances.Add(entity);
 
-            Logger.Log($"[KeyDetection] Registered on entity '{entity.name}'.",
-                LoggingTarget.Engine, LogLevel.Debug);
+            Logger.LogDebug($"[KeyDetection] Registered on entity '{entity.name}'.",
+                LoggingTarget.Engine);
         }
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace Angene.Input
                 e.RemoveScript(_script);
             }
             _script = null;
-            Logger.Log("[KeyDetection] Unregistered.", LoggingTarget.Engine, LogLevel.Debug);
+            Logger.LogDebug("[KeyDetection] Unregistered.", LoggingTarget.Engine);
         }
 
         public static HashSet<object> GetDownKeys => _script?.GetDownKeys() ?? throw new InvalidOperationException("KeyDetection not registered.");

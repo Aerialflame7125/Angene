@@ -1,6 +1,7 @@
 using Angene.Graphics.Angraphics;
 using Angene.Windows;
 using System.Runtime.InteropServices;
+using static Angene.Windows.Dxgi.DxgiEnums;
 
 namespace Angene.Graphics
 {
@@ -9,14 +10,43 @@ namespace Angene.Graphics
     {
         IntPtr Handle { get; }
         void Clear(uint color);
-        void DrawRectangle(int x, int y, int width, int height, uint color);
-        void DrawText(string text, int x, int y, uint color);
         void Present(IntPtr windowHandle);
         void Cleanup();
+        void Resize(int width, int height);
         byte[] GetRawPixels();
     }
+
+    public struct InputElement
+    {
+        public string SemanticName;
+        public uint SemanticIndex;
+        public DXGI_FORMAT Format;
+        public uint ByteOffset;
+    }
+
+    public interface IDX11GraphicsContext : IGraphicsContext
+    {
+        IntPtr ContextHandle { get; }
+        IntPtr CreateVertexBuffer(byte[] data, uint strideBytes);
+        IntPtr CreateIndexBuffer(uint[] indices);
+        IntPtr CreateVertexShader(byte[] bytecode);
+        IntPtr CreatePixelShader(byte[] bytecode);
+        IntPtr CreateInputLayout(InputElement[] elements, byte[] vsBytecode);
+        void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0);
+        void SetIndexBuffer(IntPtr buffer, uint offset = 0);
+        void SetInputLayout(IntPtr inputLayout);
+        void SetShader(SlangShaderResources.IShader vs, SlangShaderResources.IShader ps);
+        void Draw(uint vertexCount, uint startVertex = 0);
+        void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0);
+        IntPtr CreateConstantBuffer(uint byteWidth);
+        void UpdateConstantBuffer(IntPtr buffer, byte[] data);
+        void SetVertexShaderConstantBuffer(IntPtr buffer, uint slot = 0);
+        IntPtr CreateRasterizerState(bool cullNone);
+        void SetRasterizerState(IntPtr state);
+    }
+
     // Windows GDI implementation
-    public class GdiGraphicsContext : IGraphicsContext
+    public class GdiGraphicsContext : IGraphicsContext, IDisposable
     {
         private IntPtr windowHandle;
         private IntPtr memDc;
@@ -24,7 +54,7 @@ namespace Angene.Graphics
         private IntPtr oldBitmap;
         private int width;
         private int height;
-        
+
         public IntPtr Handle => memDc;
         
         public GdiGraphicsContext(IntPtr hwnd, int w, int h)
@@ -33,13 +63,15 @@ namespace Angene.Graphics
             width = w;
             height = h;
             
-            IntPtr hdc = Win32.GetDC(hwnd);
+            IntPtr hdc = User32.GetDC(hwnd);
             memDc = Gdi32.CreateCompatibleDC(hdc);
             bitmap = Gdi32.CreateCompatibleBitmap(hdc, w, h);
             oldBitmap = Gdi32.SelectObject(memDc, bitmap);
-            Win32.ReleaseDC(hwnd, hdc);
+            User32.ReleaseDC(hwnd, hdc);
         }
         
+        public void Resize(int w, int h) { }
+
         public void Clear(uint color)
         {
             IntPtr brush = Gdi32.CreateSolidBrush(color);
@@ -67,12 +99,19 @@ namespace Angene.Graphics
         
         public void Present(IntPtr hwnd)
         {
-            IntPtr hdc = Win32.GetDC(hwnd);
+            IntPtr hdc = User32.GetDC(hwnd);
             Gdi32.BitBlt(hdc, 0, 0, width, height, memDc, 0, 0, Gdi32.SRCCOPY);
-            Win32.ReleaseDC(hwnd, hdc);
+            User32.ReleaseDC(hwnd, hdc);
         }
-        
+
         public void Cleanup()
+        {
+            Dispose();
+        }
+
+        public byte[] GetRawPixels() { return null; }
+
+        public void Dispose()
         {
             if (oldBitmap != IntPtr.Zero)
                 Gdi32.SelectObject(memDc, oldBitmap);
@@ -81,7 +120,6 @@ namespace Angene.Graphics
             if (memDc != IntPtr.Zero)
                 Gdi32.DeleteDC(memDc);
         }
-        public byte[] GetRawPixels() { return null; }
     }
 
     public class WSGraphicsContext : IGraphicsContext
@@ -102,7 +140,7 @@ namespace Angene.Graphics
             height = h;
 
             // Get the Desktop DC as a reference (IntPtr.Zero is the screen)
-            IntPtr hdc = Win32.GetDC(IntPtr.Zero);
+            IntPtr hdc = User32.GetDC(IntPtr.Zero);
 
             // Create a Memory DC that isn't tied to any window
             memDc = Gdi32.CreateCompatibleDC(hdc);
@@ -114,8 +152,10 @@ namespace Angene.Graphics
             oldBitmap = Gdi32.SelectObject(memDc, bitmap);
 
             // We're done with the screen DC reference
-            Win32.ReleaseDC(IntPtr.Zero, hdc);
+            User32.ReleaseDC(IntPtr.Zero, hdc);
         }
+
+        public void Resize(int w, int h) { }
 
         public void Clear(uint color)
         {

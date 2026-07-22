@@ -56,7 +56,7 @@ namespace Angene.Graphics.OpenGL
         /// </summary>
         private void Initialize()
         {
-            _hdc = Win32.GetDC(_hwnd);
+            _hdc = User32.GetDC(_hwnd);
             if (_hdc == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to get device context");
@@ -349,7 +349,7 @@ namespace Angene.Graphics.OpenGL
 
             if (_hdc != IntPtr.Zero)
             {
-                Win32.ReleaseDC(_hwnd, _hdc);
+                User32.ReleaseDC(_hwnd, _hdc);
                 _hdc = IntPtr.Zero;
             }
 

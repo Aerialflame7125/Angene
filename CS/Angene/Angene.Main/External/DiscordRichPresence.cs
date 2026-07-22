@@ -73,11 +73,9 @@ namespace Angene.External
                 SkipIdenticalPresence = true
             };
 
-            client.OnReady += (_, __) =>
-                Logger.Log("Discord RPC ready.", LoggingTarget.Network, Common.LogLevel.Info);
+            client.OnReady += (_, __) => Logger.LogInfo("Discord RPC ready.", LoggingTarget.Network);
 
-            client.OnError += (_, e) =>
-                Logger.Log($"Discord RPC error: {e.Message}", LoggingTarget.Network, Common.LogLevel.Error);
+            client.OnError += (_, e) => Logger.LogError($"Discord RPC error: {e.Message}", LoggingTarget.Network);
 
             client.Initialize();
         }

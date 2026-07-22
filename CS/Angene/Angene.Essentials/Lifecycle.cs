@@ -70,11 +70,10 @@ namespace Angene.Essentials
 
             if (!hasAnyInterface)
             {
-                Logger.Log(
+                Logger.LogWarning(
                     $"Script '{Instance.GetType().Name}' implements no lifecycle interfaces. " +
                     "Consider implementing IAwake, IUpdate, IScreenPlay, etc.",
-                    LoggingTarget.Engine,
-                    LogLevel.Warning
+                    LoggingTarget.Engine
                 );
             }
         }
@@ -112,14 +111,14 @@ namespace Angene.Essentials
             {
                 if (scene == null)
                 {
-                    Logger.Log("Lifecycle.Tick called with null scene", LoggingTarget.Engine, LogLevel.Error);
+                    Logger.LogError("Lifecycle.Tick called with null scene", LoggingTarget.Engine);
                     return;
                 }
 
                 var entities = scene.GetEntities();
                 if (entities == null)
                 {
-                    Logger.Log($"Scene '{scene.GetType().Name}' returned null entities list", LoggingTarget.Engine, LogLevel.Warning);
+                    Logger.LogWarning($"Scene '{scene.GetType().Name}' returned null entities list", LoggingTarget.Engine);
                     return;
                 }
 
@@ -148,10 +147,9 @@ namespace Angene.Essentials
 
                     if (state.Destroyed)
                     {
-                        Logger.Log(
+                        Logger.LogWarning(
                             $"Attempted to Update destroyed entity '{entity.name}'",
-                            LoggingTarget.Engine,
-                            LogLevel.Warning
+                            LoggingTarget.Engine
                         );
                         continue;
                     }
@@ -184,7 +182,7 @@ namespace Angene.Essentials
             {
                 if (scene == null)
                 {
-                    Logger.Log("Lifecycle.Draw called with null scene", LoggingTarget.Engine, LogLevel.Error);
+                    Logger.LogError("Lifecycle.Draw called with null scene", LoggingTarget.Engine);
                     return;
                 }
 
@@ -211,10 +209,9 @@ namespace Angene.Essentials
             {
                 if (_entityStates.ContainsKey(entity))
                 {
-                    Logger.Log(
+                    Logger.LogWarning(
                         $"Entity '{entity.name}' already registered with lifecycle",
-                        LoggingTarget.Engine,
-                        LogLevel.Warning
+                        LoggingTarget.Engine
                     );
                     return;
                 }
@@ -248,20 +245,18 @@ namespace Angene.Essentials
             {
                 if (!_entityStates.TryGetValue(entity, out var state))
                 {
-                    Logger.Log(
+                    Logger.LogWarning(
                         $"Attempted to destroy unregistered entity '{entity.name}'",
-                        LoggingTarget.Engine,
-                        LogLevel.Warning
+                        LoggingTarget.Engine
                     );
                     return;
                 }
 
                 if (state.Destroyed)
                 {
-                    Logger.Log(
+                    Logger.LogWarning(
                         $"Attempted to remove '{entity.name}' which is already destroyed.",
-                        LoggingTarget.Engine,
-                        LogLevel.Warning
+                        LoggingTarget.Engine
                     );
                     return;
                 }
@@ -278,10 +273,9 @@ namespace Angene.Essentials
                 // Mark as destroyed
                 state.Destroyed = true;
 
-                Logger.Log(
+                Logger.LogDebug(
                     $"Entity '{entity.name}' destroyed and removed from lifecycle",
-                    LoggingTarget.Engine,
-                    LogLevel.Debug
+                    LoggingTarget.Engine
                 );
             }
 
@@ -293,20 +287,18 @@ namespace Angene.Essentials
             {
                 if (!_entityStates.TryGetValue(entity, out var state))
                 {
-                    Logger.Log(
+                    Logger.LogWarning(
                         $"Attempted to set enabled state on unregistered entity '{entity.name}'",
-                        LoggingTarget.Engine,
-                        LogLevel.Warning
+                        LoggingTarget.Engine
                     );
                     return;
                 }
 
                 if (state.Destroyed)
                 {
-                    Logger.Log(
+                    Logger.LogError(
                         $"Attempted to set enabled state on destroyed entity '{entity.name}'",
-                        LoggingTarget.Engine,
-                        LogLevel.Error
+                        LoggingTarget.Engine
                     );
                     return;
                 }
@@ -320,12 +312,12 @@ namespace Angene.Essentials
                 if (enabled)
                 {
                     ExecuteOnEnable(entity);
-                    Logger.Log($"Entity '{entity.name}' enabled", LoggingTarget.Engine, LogLevel.Debug);
+                    Logger.LogDebug($"Entity '{entity.name}' enabled", LoggingTarget.Engine);
                 }
                 else
                 {
                     ExecuteOnDisable(entity);
-                    Logger.Log($"Entity '{entity.name}' disabled", LoggingTarget.Engine, LogLevel.Debug);
+                    Logger.LogDebug($"Entity '{entity.name}' disabled", LoggingTarget.Engine);
                 }
             }
 
@@ -337,7 +329,7 @@ namespace Angene.Essentials
             {
                 if (scriptInstance == null)
                 {
-                    Logger.Log("Attempted to register null script instance", LoggingTarget.Engine, LogLevel.Error);
+                    Logger.LogError("Attempted to register null script instance", LoggingTarget.Engine);
                     return;
                 }
 
@@ -349,10 +341,9 @@ namespace Angene.Essentials
                 var binding = new Lifecycle(scriptInstance);
                 _entityScripts[entity].Add(binding);
 
-                Logger.Log(
+                Logger.LogDebug(
                     $"Script '{scriptInstance.GetType().Name}' registered to entity '{entity.name}'",
-                    LoggingTarget.Engine,
-                    LogLevel.Debug
+                    LoggingTarget.Engine
                 );
             }
 
@@ -377,7 +368,7 @@ namespace Angene.Essentials
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log($"Exception in destroy callback: {ex.Message}", LoggingTarget.Engine, LogLevel.Error);
+                        Logger.LogError($"Exception in destroy callback: {ex.Message}", LoggingTarget.Engine);
                     }
                 }
                 destroyEngineList.Clear();
@@ -398,10 +389,9 @@ namespace Angene.Essentials
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(
+                        Logger.LogError(
                             $"Exception in Awake() for script '{binding.Instance.GetType().Name}' on entity '{entity.name}': {ex.Message}",
-                            LoggingTarget.Engine,
-                            LogLevel.Error
+                            LoggingTarget.Engine
                         );
                     }
                 }
@@ -420,10 +410,9 @@ namespace Angene.Essentials
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(
+                        Logger.LogError(
                             $"Exception in OnEnable() for script '{binding.Instance.GetType().Name}' on entity '{entity.name}': {ex.Message}",
-                            LoggingTarget.Engine,
-                            LogLevel.Error
+                            LoggingTarget.Engine
                         );
                     }
                 }
@@ -442,10 +431,9 @@ namespace Angene.Essentials
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(
+                        Logger.LogError(
                             $"Exception in Start() for script '{binding.Instance.GetType().Name}' on entity '{entity.name}': {ex.Message}",
-                            LoggingTarget.Engine,
-                            LogLevel.Error
+                            LoggingTarget.Engine
                         );
                     }
                 }
@@ -464,10 +452,9 @@ namespace Angene.Essentials
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(
+                        Logger.LogError(
                             $"Exception in Update() for script '{binding.Instance.GetType().Name}' on entity '{entity.name}': {ex.Message}",
-                            LoggingTarget.Engine,
-                            LogLevel.Error
+                            LoggingTarget.Engine
                         );
                     }
                 }
@@ -486,10 +473,9 @@ namespace Angene.Essentials
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(
+                        Logger.LogError(
                             $"Exception in LateUpdate() for script '{binding.Instance.GetType().Name}' on entity '{entity.name}': {ex.Message}",
-                            LoggingTarget.Engine,
-                            LogLevel.Error
+                            LoggingTarget.Engine
                         );
                     }
                 }
@@ -508,10 +494,9 @@ namespace Angene.Essentials
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(
+                        Logger.LogError(
                             $"Exception in OnDraw() for script '{binding.Instance.GetType().Name}' on entity '{entity.name}': {ex.Message}",
-                            LoggingTarget.Engine,
-                            LogLevel.Error
+                            LoggingTarget.Engine
                         );
                     }
                 }
@@ -530,10 +515,9 @@ namespace Angene.Essentials
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(
+                        Logger.LogError(
                             $"Exception in OnDisable() for script '{binding.Instance.GetType().Name}' on entity '{entity.name}': {ex.Message}",
-                            LoggingTarget.Engine,
-                            LogLevel.Error
+                            LoggingTarget.Engine
                         );
                     }
                 }
@@ -552,10 +536,9 @@ namespace Angene.Essentials
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(
+                        Logger.LogError(
                             $"Exception in OnDestroy() for script '{binding.Instance.GetType().Name}' on entity '{entity.name}': {ex.Message}",
-                            LoggingTarget.Engine,
-                            LogLevel.Error
+                            LoggingTarget.Engine
                         );
                     }
                 }

@@ -1,15 +1,17 @@
 ﻿using Angene.Essentials;
 using Angene.Globals;
+using System.ComponentModel;
 
 namespace Angene.Management
 {
     public class ManagementScene : IScene
     {
+        public object Instance { get; internal set; }
+        public string Name => "ManagementScene";
+
+        public List<Entity> Entities { get; internal set; } = new List<Entity>();
+
         Entity defaultEnt;
-        public static string Name()
-        {
-            return "ManagementScene";
-        }
 
         List<Entity> Entities = new List<Entity>();
 
@@ -25,7 +27,7 @@ namespace Angene.Management
         {
             if (!Entities.Contains(entity))
             {
-                throw new Exception($"Attempted to add script to entity '{entity.name}' which does not exist in '{Name()}' Scene.");
+                throw new Exception($"Attempted to add script to entity '{entity.name}' which does not exist in '{Name}' Scene.");
             }
             entity.AddScript(script);
             return script;
@@ -39,7 +41,7 @@ namespace Angene.Management
                 return entity;
             } else
             {
-                throw new Exception($"Attempted to remove script from entity '{entity.name}' which does not exist in '{Name()}' Scene.");
+                throw new Exception($"Attempted to remove script from entity '{entity.name}' which does not exist in '{Name}' Scene.");
             }
         }
 

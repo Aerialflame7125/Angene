@@ -143,7 +143,7 @@ namespace Angene.Main
             WebSocket webSocket = wsContext.WebSocket;
 
             await WebSocketManager.AddClient(webSocket);
-            Logger.Log("Client connected to streamer.", LoggingTarget.Engine, LogLevel.Info);
+            Logger.LogInfo("Client connected to streamer.", LoggingTarget.Engine);
 
             try
             {
@@ -163,7 +163,7 @@ namespace Angene.Main
             }
             catch (Exception ex)
             {
-                Logger.Log($"WS Error: {ex.Message}", LoggingTarget.Engine, LogLevel.Error);
+                Logger.LogError($"WS Error: {ex.Message}", LoggingTarget.Engine);
             }
             finally
             {
