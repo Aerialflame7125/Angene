@@ -5143,8 +5143,8 @@ At least its better than placing it in 'LocalLow{Dev}{Game}Player.log' where NO 
 engine = Engine.Instance;
 engine.Init(true); // If true, opens a new log window
 
-Logger.Log("Hey i'm a debug log!", LoggingTarget.MainGame); // Logs to file, logLevel is optional as so:
-Logger.Log("Woah I'm an error, be scared.", LoggingTarget.Class, logLevel: LogLevel.Error);
+Logger.LogDebug("Hey i'm a debug log!", LoggingTarget.MainGame); // Logs to a file rather than the window
+Logger.LogError("Woah I'm an error, be scared.", LoggingTarget.Class);
 ```
 
 But there is even easier:
@@ -5313,7 +5313,7 @@ public class DemoScene : IScene
 {
   // The following 3 vars are not required, but are recommended.
   public object Instance {get; private set;} 
-  public List<Entity> entities {get; private set;}
+  public List<Entity> Entities {get; private set;} = new List<Entity>();
   public Window _window;
 
   public IRenderer3D? Renderer3D => null; // Required by spec, not needed if not rendering 3D.
@@ -5326,7 +5326,6 @@ public class DemoScene : IScene
 
   public void Initialize()
   {
-    entities = new List<Entity>();
     Logger.Log($"Running on {PlatformDetection.CurrentPlatform}", LoggingTarget.MainGame, LogLevel.Info);
     // ... do entity mumbo jumbo here i guess
   }
@@ -5349,7 +5348,7 @@ public class DemoScene : IScene
   }
 
   public void Render() { }
-  public List<Entity> GetEntities() => entities;
+  public List<Entity> GetEntities() => Entities;
   public void Cleanup() { }
 ```
 
@@ -5714,14 +5713,199 @@ _keyDetection.Register();
 ```
 IsKeyDown() returns a boolean based upon if the key given is down.
 
+## DX11
+Finally long awaited, and still here to ruin peoples lifes. Lets walk through this.
+
+```cs
+public class DX11ExampleScene : IScene
+{
+  public object Instance { get; private set; }
+  public List<Entity> Entities { get; private set; } = new List<Entity>();
+  public string Name => "DX11ExampleScene";
+
+  private readonly Window _window;
+  private IDX11GraphicsContext _gfx;
+
+  private IntPtr _vertexBuffer;
+  private IntPtr _inputLayout;
+  private SlangShaderResources.IShader _vertexShader;
+  private SlangShaderResources.IShader _pixelShader;
+
+  public DX11ExampleScene(Window window)
+  {
+    _window = window ?? throw new ArgumentNullException(nameof(window));
+  }
+  public void Initialize()
+  {
+    Instance = this;
+    _gfx = _window.Graphics as IDX11GraphicsContext;
+    if (_gfx == null)
+    {
+        Logger.LogCritical("Window is not using the D3D11 backend — use WindowConfig.Rendering3D(...).", LoggingTarget.Graphics, new AngeneException("Window is not using the D3D11 rendering backend."));
+        return;
+    }
+
+    // Interleaved position (float3) + color (float4) = 7 floats / 28 bytes per vertex
+    float[] vertices =
+    {
+        0.0f,  0.5f, 0.0f,   1f, 0f, 0f, 1f,
+        0.5f, -0.5f, 0.0f,   0f, 1f, 0f, 1f,
+        -0.5f, -0.5f, 0.0f,   0f, 0f, 1f, 1f,
+    };
+    byte[] vertexBytes = new byte[vertices.Length * sizeof(float)];
+    Buffer.BlockCopy(vertices, 0, vertexBytes, 0, vertexBytes.Length);
+
+    _vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
+
+    var elements = new[]
+    {
+        new InputElement { SemanticName = "POSITION", SemanticIndex = 0, Format = DXGI_FORMAT.DXGI_FORMAT_R32G32B32_FLOAT,    ByteOffset = 0  },
+        new InputElement { SemanticName = "COLOR",    SemanticIndex = 0, Format = DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT, ByteOffset = 12 },
+    };
+
+    if (_vertexShader.byteCode == null)
+        Logger.LogCritical("Vertex shader bytecode is null. Compilation did not succeed.", LoggingTarget.MainGame, new AngeneException("Bytecode is null."), true);
+
+    _inputLayout = _gfx.CreateInputLayout(elements, _vertexShader.byteCode);
+  }
+
+  public void OnMessage(IntPtr msgPtr) { }
+
+  public void Render()
+  {
+    if (_gfx == null || _vertexShader == null || _pixelShader == null) return;
+
+    _gfx.Clear(0xFF203040); // opaque dark navy, just a clear color.
+
+    _gfx.SetVertexBuffer(_vertexBuffer, strideBytes: 7 * sizeof(float));
+    _gfx.SetInputLayout(_inputLayout);
+    _gfx.SetShader(_vertexShader, _pixelShader); // Just an example of shaders, not provided in this exerpt.
+    _gfx.Draw(3);
+
+    _gfx.Present((IntPtr)_window.Hwnd);
+  }
+
+  public void Cleanup()
+  {
+      // Don't dispose shaders here, they are owned by Engine.Instance.
+      if (_vertexBuffer != IntPtr.Zero) Marshal.Release(_vertexBuffer);
+      if (_inputLayout != IntPtr.Zero) Marshal.Release(_inputLayout);
+  }
+}
+```
+I know, its a really long exerpt; it's a page taken out of ShaderCompileTestScene.
+It's a beautiful sight aint it? I plan to get this smaller as time goes on for rendering.
+
+# Dx11Shader classes
+Okay, it's the meat and bones of DirectX, stay with me here.
+I tried to get this to a point that even I can understand it, so please be patient with them.
+(I did not crash both of my GPUs twice while making this btw)
+```cs
+[Attributes.Precompile]
+public class TestVertexShader : SlangShaderResources.IShader
+{
+  public string Name => "TestVS";
+  public int id => 1;
+  public string Extension => "hlsl";
+  public string EntryPoint { get; set; } = "main";
+  public SlangShaderResources.ShaderType Type => SlangShaderResources.ShaderType.Vertex;
+  public bool compileToFile { get; } = true;
+  public bool IsDisposed { get; private set; }
+
+  SlangShaderResources.ShaderOrigin SlangShaderResources.IShader.Origin => SlangShaderResources.ShaderOrigin.Dx11;
+
+  public string Code => @"struct VSInput
+{
+    float3 Position : POSITION;
+    float4 Color    : COLOR;
+};
+
+struct VSOutput
+{
+    float4 Position : SV_POSITION;
+    float4 Color    : COLOR;
+};
+
+VSOutput main(VSInput input)
+{
+    VSOutput output;
+    output.Position = float4(input.Position, 1.0f);
+    output.Color = input.Color;
+    return output;
+}
+";
+
+  public byte[] byteCode => null;
+
+  public void Bind() { /* binding is handled by IDX11GraphicsContext.SetShader */ }
+
+  public string OutputDebugInfo(bool log = true)
+  {
+      string info = $"{{'Name':'{Name}','Type':'{Type}'}}";
+      if (log) Logger.LogDebug(info, LoggingTarget.Graphics);
+      return info;
+  }
+
+  public void Dispose() => IsDisposed = true;
+}
+
+[Attributes.Precompile]
+public class TestPixelShader : SlangShaderResources.IShader
+{
+  public string Name => "TestPS";
+  public int id => 2;
+  public string Extension => "hlsl";
+  public string Path { get; set; } = System.IO.Path.Combine(AppContext.BaseDirectory, "Shaders", "PixelShader.hlsl");
+  public string EntryPoint { get; set; } = "main";
+  public SlangShaderResources.ShaderType Type => SlangShaderResources.ShaderType.Pixel;
+  public bool compileToFile { get; } = false;
+  public bool IsDisposed { get; private set; }
+
+  public string Code => @"struct PSInput
+{
+    float4 Position : SV_POSITION;
+    float4 Color    : COLOR;
+};
+
+float4 main(PSInput input) : SV_TARGET
+{
+    return input.Color;
+}
+";
+
+  public byte[] byteCode => null;
+
+  SlangShaderResources.ShaderOrigin SlangShaderResources.IShader.Origin => SlangShaderResources.ShaderOrigin.Dx11;
+
+  public void Bind() { }
+
+  public string OutputDebugInfo(bool log = true)
+  {
+      string info = $"{{'Name':'{Name}','Type':'{Type}','Path':'{Path}'}}";
+      if (log) Logger.LogDebug(info, LoggingTarget.Graphics);
+      return info;
+  }
+
+  public void Dispose() => IsDisposed = true;
+}
+```
+This is an example of a Pixel shader and a Vertex shader. Notice some distinctions:
+1. They do not take after Dx11Shader and instead inherit a class called 'SlangShaderResources.IShader'
+2. They both have a [Attributes.Precompile] attribute. This is an attribute made specifically for shaders for compiling before the window is created.
+3. They both are hlsl. I didn't feel like anything else was necessary.
+4. compileToFile boolean. This boolean is checked at compile time to be caching files inside whichever matches your operating system. Refer to Engine.cs in Angene.Main.
+
+This sucked to get working, but Slang is the primary compiler that is responsible for compiling and the library is about 30 MB. I'm not happy about it either.
+The Slang interop is currently only on the windows platform, for I plan to get this added for Linux too. MacOS users can respectfully, not get this engine.
+
 # QnA
 
-  ## Have you [vibecoded](http://vibe-coded.urbanup.com/18530338) any part of this engine?
+## Have you [vibecoded](http://vibe-coded.urbanup.com/18530338) any part of this engine?
 
   Sadly, yes. There are major parts within this game engine that are vibe coded. Most of that is the partial lack of interest and lack of thinking that I would ever use it in the future.
 If you need to know which parts are vibe coded, I will list them here:
 
-  ### Angene.Math
+### Angene.Math
 
 * Angene.Math
 
@@ -5740,20 +5924,7 @@ If you need to know which parts are vibe coded, I will list them here:
 
   * Vectors
 
-    ### Angene.Essentials
-
-* Angene.Entity (Partial, logic that is listed carries from human implementation.)
-* Angene.IScene (Partial, original logic and implementations carry from Python and older versions. See commit history.)
-* Angene.Lifecycle
-* Angene.ScreenPlay (Partial, format follows deprecated python version for flexibility, logic roughly sketched by hand.)
-
-  ### Angene.Common
-
-* Globals
-
-  * IRenderer3D (Partial, literally just a header to differentiate renderer types.)
-
-    ### Angene.Audio
+### Angene.Audio
 
 * All of the above.
 
@@ -5761,34 +5932,20 @@ If you need to know which parts are vibe coded, I will list them here:
   * If you wish to fact check me, just remember that the audio libraries are all in CPP and C, requiring importing.
   * Another thing, Windows audio derives from older versions that still exist in newer systems (Windows 11) still completely being deprecated and dead code. Microslop has yet to remove these older versions, causing discrepancies in what library users should use.
 
-    ### Angene (main library)
+### Angene (main library)
 
 * Main
 
   * WS
   * PkgHandler
-* Platform
-
-  * X11Native
-  * Self-explanatory. Yet to remove it at the time of writing (2026,03,07), considering this is windows-first.
 * Crypto
 
   * Literally just a conversion wrapper. Too lazy to change all of the references, so why not make it yourself to shut the console up!
 
-    ### Angene.Graphics
-
-* Graphics
-
-  * All of the above
-
-    * Not going to rant about microsoft implementations, just that me personally, I have no idea (as of now) how graphics rendering works in the terms of creation, nor does the documentation really help me in the case of using C#.
-    * Although I do state all of the above, GDI is the only one that does not adhere to this. The implementation carries from Python, and is human written (for the most part, conversion was AI.)
-
-    ### Angene.Windows
+### Angene.Windows
 
 * Kernel32
 * Gdi32
-* Win32
 * Win32Messages
 * All of the listed libraries is vibe coded. This primarilly consists of Win32 messages and headers pertaining to specific windows implementations. Microsoft documentation is correct and actually helped a lot when writing python implementations, but I will refer you to the [definitions file](https://github.com/Aerialflame7125/Angene/blob/main/Python/Angene/Main/definitions.py) written in python, and you tell me if you want to implement that in C#.
 * Most of this is also at the hands of bad implementations, very generously providing a great help when it comes to conversions to other languages :thumbs_up: (sarcasm.)
