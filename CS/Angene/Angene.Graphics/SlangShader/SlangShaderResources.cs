@@ -1,14 +1,14 @@
 ﻿using Angene.Common;
 using System.Diagnostics.Tracing;
 using System.Runtime.InteropServices;
-using static Angene.Graphics.SlangShaderResources;
+using static Angene.Graphics.SlangShader.SlangShaderResources;
 
-namespace Angene.Graphics
+namespace Angene.Graphics.SlangShader
 {
     public class SlangShaderResources
     {
         public enum ShaderType { Vertex, Pixel, Compute, }
-        public enum ShaderOrigin { Dx11, Dx12, OpenGL }
+        public enum ShaderOrigin { Dx11, Dx12, OpenGL, Vulkan }
 
         public abstract class BaseShader : IDisposable // Shader layout for future shaders
         {
@@ -74,6 +74,7 @@ namespace Angene.Graphics
             byte[] byteCode { get; }
             ShaderOrigin Origin { get; }
             ShaderType Type { get; }
+            bool compileToFile { get; }
             bool IsDisposed { get; }
             void Bind();
             string OutputDebugInfo(bool log = true);
@@ -87,6 +88,7 @@ namespace Angene.Graphics
         protected IntPtr _nativeShaderPtr;
 
         public int id { get; }
+        public bool compileToFile { get; }
         public IntPtr NativeShader => _nativeShaderPtr;
         public static ShaderOrigin Origin => ShaderOrigin.Dx11;
 

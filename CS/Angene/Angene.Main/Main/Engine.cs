@@ -5,6 +5,7 @@ using Angene.External;
 using Angene.Globals;
 using Angene.Graphics;
 using Angene.Graphics.DX11;
+using Angene.Graphics.SlangShader;
 using Angene.Platform;
 using Angene.Windows;
 using Angene.Windows.D3D11;
@@ -280,7 +281,7 @@ namespace Angene.Main
                         r.DrawText(centerx, centery - 70, "Running...", 0x0F0);
                         Logger.LogDebug($"Shader num {_shaderNum}/{_shaderCount - 1} (_shaderTypes Max: {_shaderTypes.Count})", LoggingTarget.Graphics);
                         SlangShaderResources.IShader current = _shaderTypes[_shaderNum];
-                        CompileShader(current, _devicePtr);
+                        CompileShader(current, _devicePtr, current.compileToFile);
                         _shaderNum++;
                     }
                     else
@@ -300,7 +301,41 @@ namespace Angene.Main
             }
         }
 
-        private void CompileShader(SlangShaderResources.IShader shader, IntPtr devicePtr)
+        private static bool TryLoadVerifiedShaderFile(string path, out byte[] code)
+        {
+            code = null;
+            try
+            {
+                byte[] fileData = File.ReadAllBytes(path);
+                if (fileData.Length < 6) // 4 (length) + 1 (0xAF) + 1 (0xAA) minimum
+                    return false;
+
+                int length = BitConverter.ToInt32(fileData, 0);
+                if (length < 0 || fileData.Length != 4 + 1 + length + 1)
+                    return false; // size doesn't line up with the declared length -> corrupt/truncated
+
+                if (fileData[4] != 0xAF)
+                    return false; // start marker missing
+
+                if (fileData[4 + 1 + length] != 0xAA)
+                    return false; // end marker missing
+
+                code = new byte[length];
+                Buffer.BlockCopy(fileData, 5, code, 0, length);
+                return true;
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogDebug($"Failed to verify shader file '{path}': {ex.Message}", LoggingTarget.Graphics);
+                return false;
+            }
+        }
+
+        private void CompileShader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
         {
             string stage = shader.Type switch
             {
@@ -310,7 +345,31 @@ namespace Angene.Main
                 _ => throw new AngeneException($"Unknown stage for shader '{shader.Name}'")
             };
 
-            byte[] code = Windows.Slang.NativeSlangMemoryCompiler.CompileShaderFromMemory(shader.Code, shader.EntryPoint, stage);
+            string cachePath = Path.Combine(
+                Engine.Instance.SettingHandlerInstanced.GetSetting<string>("Graphics.ShaderDirectory"),
+                $"{shader.Name}-Angene-{shader.Type}-{shader.id}-{shader.Origin}.cso");
+
+            byte[] code = null;
+
+            if (CompileToFile && File.Exists(cachePath))
+            {
+                // Cached file exists — verify it before trusting it, instead of blindly loading it.
+                if (!TryLoadVerifiedShaderFile(cachePath, out code))
+                {
+                    Logger.LogDebug($"Cached shader file for '{shader.Name}' failed verification, recompiling.", LoggingTarget.Graphics);
+                    code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath);
+                }
+            }
+            else if (CompileToFile)
+            {
+                // No cache yet — compile and write the verified file for next time.
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath);
+            }
+            else
+            {
+                // Not using file caching at all.
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemory(shader.Code, shader.EntryPoint, stage);
+            }
 
             unsafe
             {

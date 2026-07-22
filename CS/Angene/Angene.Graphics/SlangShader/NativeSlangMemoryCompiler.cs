@@ -1,8 +1,11 @@
-﻿using Angene.Windows.Slang;
+﻿using Angene.Common.Settings;
+using Angene.Windows.Slang;
+using Org.BouncyCastle.Asn1.X509;
 using System.Runtime.InteropServices;
+using System.Security.Claims;
 using System.Text;
 
-namespace Angene.Windows.Slang
+namespace Angene.Graphics.SlangShader
 {
     public class NativeSlangMemoryCompiler
     {
@@ -74,16 +77,25 @@ namespace Angene.Windows.Slang
             }
         }
 
-        private unsafe static sbyte* FromStringToSbyte(string input)
+        // Helper to convert string to null-terminated UTF-8 byte array
+        public static byte[] ToNullTerminatedUtf8(string str)
         {
-            IntPtr Ptr0 = Marshal.StringToHGlobalAnsi(input);
-            try
+            if (str == null) return new byte[] { 0 };
+            byte[] bytes = Encoding.UTF8.GetBytes(str);
+            Array.Resize(ref bytes, bytes.Length + 1);
+            bytes[bytes.Length - 1] = 0;
+            return bytes;
+        }
+
+        // accepts sbyte and converts to t or smth
+        private unsafe delegate T NativeStringFunc<T>(sbyte* ptr);
+
+        private unsafe static T WithNativeString<T>(string input, NativeStringFunc<T> action)
+        {
+            byte[] bytes = ToNullTerminatedUtf8(input);
+            fixed (byte* pBytes = bytes)
             {
-                return (sbyte*)Ptr0.ToPointer();
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(Ptr0);
+                return action((sbyte*)pBytes);
             }
         }
 
@@ -118,7 +130,25 @@ namespace Angene.Windows.Slang
             return bytecode;
         }
 
-        public unsafe static byte[] CompileShaderFromMemory(string sourceCode, string entryPoint, string stage)
+        public static byte[] CompileShaderFromMemoryToFile(string sourceCode, string entryPoint, string stage, string outputPath)
+        {
+            // Initialize
+            byte[] code = CompileShaderFromMemory(sourceCode, entryPoint, stage);
+            byte[] intBytes = BitConverter.GetBytes(code.Length);
+            byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
+
+            // copy data
+            Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
+            fileData[intBytes.Length] = (byte)0xAF;
+            Buffer.BlockCopy(code, 0, fileData, intBytes.Length + 1, code.Length);
+            fileData[intBytes.Length + 1 + code.Length] = (byte)0xAA;
+
+            // write and return
+            File.WriteAllBytes(outputPath, fileData);
+            return code;
+        }
+
+        public unsafe static byte[] CompileShaderFromMemory(string sourceCode, string entryPoint, string stage, int trynum = 0)
         {
             sourceCode = sourceCode.Trim();
             entryPoint = entryPoint.Trim();
@@ -133,19 +163,18 @@ namespace Angene.Windows.Slang
 
             try
             {
-                // Add a translation unit with the source code
                 const int translationUnitIndex = 0;
                 string virtualPath = "memory_shader.slang";
 
-                // translation unit in this day and age??
-                int addUnitResult = Methods.spAddTranslationUnit(request, SlangSourceLanguage.SLANG_SOURCE_LANGUAGE_SLANG, FromStringToSbyte("shader"));
+                // 1. Add translation unit safely
+                int addUnitResult = WithNativeString("shader", pName =>
+                    Methods.spAddTranslationUnit(request, SlangSourceLanguage.SLANG_SOURCE_LANGUAGE_SLANG, pName));
+
                 if (addUnitResult != 0)
                     throw new Exception($"Failed to add translation unit. Code = {addUnitResult}");
 
-                // source to translation unit
                 Methods.spAddTranslationUnitSourceString(request, translationUnitIndex, virtualPath, sourceCode);
 
-                // String to SlangStage
                 SlangStage slangStage = stage.ToLower() switch
                 {
                     "vertex" => SlangStage.SLANG_STAGE_VERTEX,
@@ -157,29 +186,35 @@ namespace Angene.Windows.Slang
                     _ => throw new ArgumentException($"Unknown shader stage: {stage}")
                 };
 
-                // entry point
-                int addEntryResult = Methods.spAddEntryPoint(request, translationUnitIndex, FromStringToSbyte(entryPoint), slangStage);
+                // 2. Add entry point safely
+                int addEntryResult = WithNativeString(entryPoint, pEntryPoint =>
+                    Methods.spAddEntryPoint(request, translationUnitIndex, pEntryPoint, slangStage));
+
                 if (addEntryResult != 0)
                     throw new Exception($"Failed to add entry point '{entryPoint}'. Code = {addEntryResult}");
 
-                // comp target
                 Methods.spSetCodeGenTarget(request, SlangCompileTarget.SLANG_DXBC);
 
-                // Profile
+                // 3. Find profile safely
                 const int targetIndex = 0;
-                SlangProfileID profile = Methods.spFindProfile(_globalSession, FromStringToSbyte("sm_5_0"));
+
+                // Select specific profile based on stage for DirectX 11
+                string profileTarget = stage.ToLower() switch
+                {
+                    "vertex" => "vs_5_0",
+                    "pixel" or "fragment" => "ps_5_0",
+                    "compute" => "cs_5_0",
+                    "geometry" => "gs_5_0",
+                    "hull" or "tessellation control" => "hs_5_0",
+                    "domain" or "tessellation evaluation" => "ds_5_0",
+                    _ => "sm_5_0"
+                };
+
+                SlangProfileID profile = WithNativeString(profileTarget, pProfile => Methods.spFindProfile(_globalSession, pProfile));
 
                 if (profile == 0)
                 {
-                    profile = Methods.spFindProfile(_globalSession, FromStringToSbyte("ps_5_0"));
-                    if (profile == 0)
-                        profile = Methods.spFindProfile(_globalSession, FromStringToSbyte("vs_5_0"));
-
-                    if (profile == 0)
-                        profile = Methods.spFindProfile(_globalSession, FromStringToSbyte("5_0"));
-
-                    if (profile == 0)
-                        profile = Methods.spFindProfile(_globalSession, FromStringToSbyte("hlsl_5_0"));
+                    profile = WithNativeString("sm_5_0", pProfile => Methods.spFindProfile(_globalSession, pProfile));
                 }
 
                 if (profile != 0)
@@ -187,20 +222,24 @@ namespace Angene.Windows.Slang
                     Methods.spSetTargetProfile(request, targetIndex, profile);
                 }
 
-                // Compile
                 int hr = Methods.spCompile(request);
                 if (hr != 0)
                 {
-                    string diagnostics = GetSlangDiagnostics(request);
-                    throw new Exception($"Slang memory compilation failed. HRESULT = 0x{hr:X8}\n\nDiagnostics:\n{diagnostics}");
+                    if (hr == unchecked((int)0x80004005) && trynum < 3)
+                    {
+                        return CompileShaderFromMemory(sourceCode, entryPoint, stage, trynum + 1);
+                    }
+                    else
+                    {
+                        string diagnostics = GetSlangDiagnostics(request);
+                        throw new Exception($"Slang memory compilation failed. HRESULT = 0x{hr:X8}\n\nDiagnostics:\n{diagnostics}");
+                    }
                 }
 
-                // Get the compiled bytecode blob
                 ISlangBlob* codeBlob = null;
                 int getBlobResult = Methods.spGetEntryPointCodeBlob(request, 0, targetIndex, &codeBlob);
                 if (getBlobResult != 0)
                 {
-                    // alternative
                     getBlobResult = Methods.spGetTargetCodeBlob(request, targetIndex, &codeBlob);
                     if (getBlobResult != 0)
                         throw new Exception($"Failed to get compiled code blob. Code = {getBlobResult}");
@@ -210,7 +249,6 @@ namespace Angene.Windows.Slang
             }
             finally
             {
-                // request request go away come again another day
                 Methods.spDestroyCompileRequest(request);
             }
         }

@@ -2,6 +2,7 @@ using Angene.Common;
 using Angene.Essentials;
 using Angene.Graphics;
 using Angene.Graphics.DX11;
+using Angene.Graphics.SlangShader;
 using Angene.Main;
 using Angene.Windows.D3D11;
 using System;

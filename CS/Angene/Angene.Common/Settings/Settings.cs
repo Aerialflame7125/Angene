@@ -2,7 +2,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Angene.Common.Settings
 {
@@ -29,16 +28,34 @@ namespace Angene.Common.Settings
             Register("Main.getIsGameAllowedForWebsockets", false,
                 v => v is bool);
 
-            Register("Graphics.RenderMode", (char)'d'); // Direct render mode, no viewports allowed.
-            /* Graphics.RenderMode:
-             * Changes the rendermode between viewports and direct. What this means is listed below:
-             * Direct (d):
-             *   - Renders directly to the window, no alternate viewport system.
-             * Viewport (v):
-             *   - Renders with a viewport/camera and are able to create multiple viewports.
-             *   
-             * Default is 'd' for direct rendering. Viewport rendering needs to be set if applicable.
-            */
+            Register("Engine.RunningDirectory", null, v => v is string);
+            
+#if WINDOWS
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+            if (!Path.Exists(Path.Combine(localAppData, "Angene")))
+            {
+                Directory.CreateDirectory(Path.Combine(localAppData, "Angene"));
+                Directory.CreateDirectory(Path.Combine(localAppData, "Angene", "Shaders"));
+            }
+            Register("Graphics.ShaderDirectory", Path.Combine(localAppData, "Angene", "Shaders"), v => v is string);
+
+#elif LINUX
+            string homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string targetPath = Path.Combine(homeDirectory, ".var");
+            
+            if (!Path.Exists(targetPath))
+            {
+                Directory.CreateDirectory(targetPath);
+                Directory.CreateDirectory(Path.Combine(targetPath, "Angene"));
+                Directory.CreateDirectory(Path.Combine(targetPath, "Angene", "Shaders"));
+            }
+            targetPath = Path.Combine(targetPath, "Angene", "Shaders");
+
+            Register("Graphics.ShaderDirectory", targetPath);
+#else
+Logger.LogError("Could not recognize system build. Graphics.ShaderDirectory is invalidated.", LoggingTarget.Graphics);
+#endif
         }
 
         public void Register(string key, object? defaultValue, Func<object, bool>? validator = null)
@@ -78,6 +95,25 @@ namespace Angene.Common.Settings
         {
             var (ns, field) = ParseKey(key);
 
+            switch (key)
+            {
+                case "Main.Version":
+                    return false;
+                case "Engine.RunningDirectory":
+                    if (GetSetting<string?>("Engine.RunningDirectory") == null)
+                    {
+                        _store[ns][field] = value;
+                        OnSettingsChanged?.Invoke(key, value);
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                case "Graphics.ShaderDirectory":
+                    return false;
+            }
+
             // if unregistered, register then set key.
             if (!_store.TryGetValue(ns, out var nsDict) || !nsDict.ContainsKey(field))
                 Register(key, null);
@@ -86,7 +122,7 @@ namespace Angene.Common.Settings
             if (_validators.TryGetValue(key, out var validate) && !validate(value))
                 return false;
 
-            nsDict[field] = value;
+            _store[ns][field] = value;
             OnSettingsChanged?.Invoke(key, value);
             return true;
         }
@@ -112,7 +148,7 @@ namespace Angene.Common.Settings
                     if (!File.Exists(path))
                         File.Create(path).Close();
 
-                    jo[ns] = value as JToken;
+                    jo[ns] = JToken.FromObject(value);
                 }
                 string o = jo.ToString();
                 byte[] bytes = System.Text.Encoding.UTF8.GetBytes(o);
