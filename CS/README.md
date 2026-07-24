@@ -3,5081 +3,1147 @@
 # Angene
 
 (pronounced 'engine')
-Last updated 2026/07/22
+Last updated 2026/05/12
 
 The C# library/variant of Angene. If you want to skip the entire tree for the engine, skip to the [examples.](https://github.com/Aerialflame7125/Angene/blob/main/CS/README.md#Examples)
 
-## Angene.Main
-
-<details><summary><b>Angene.Crypto</b></summary>
-
-* **class AesGcm**
-  * `void Decrypt()`
-  * `void Encrypt()`
-  * `void Dispose()`
-
-</details>
-
-<details><summary><b>Angene.Examples</b></summary>
-
-* **class Example1_BasicCube**
-  * `void Initialize()`
-  * `void Update()`
-  * `void Render()`
-  * `void Cleanup()`
-* **class Example2_CustomShapes**
-  * `void Initialize()`
-  * `void Update()`
-  * `void Render()`
-  * `void Cleanup()`
-* **class Example3_ShapesAndCamera**
-  * `void Initialize()`
-  * `void Update()`
-  * `void Render()`
-  * `void Cleanup()`
-* **class Example4_ComplexScene**
-  * `void Initialize()`
-  * `void Update()`
-  * `void Render()`
-  * `void Cleanup()`
-
-</details>
-
-<details><summary><b>Angene.External</b></summary>
-
-* **class DiscordPresenceState**
-  * `string? State { get; set; }`
-  * `string? Details { get; set; }`
-  * `string? LargeImageKey { get; set; }`
-  * `string? LargeImageText { get; set; }`
-  * `string? SmallImageKey { get; set; }`
-  * `string? SmallImageText { get; set; }`
-  * `Button[]? Buttons { get; set; }`
-  * `void SetPresence()`
-  * `void Clear()`
-  * `void Dispose()`
-* **class DiscordRichPresence**
-
-</details>
-
-<details><summary><b>Angene.Main</b></summary>
-
-* **class Console**
-  * `void WriteLine()`
-  * `void ReadLine()`
-  * `void Write()`
-* **class Engine**
-  * `bool IsCompilingShaders`
-  * `IntPtr SharedD3D11Device { get; set; }`
-  * `IntPtr SharedD3D11Context { get; set; }`
-  * `Engine Instance { get; set; }`
-  * `void FlushPendingCloses()`
-  * `void Init()`
-  * `object Instance { get; set; }`
-  * `List<Entity> Entities { get; set; }`
-  * `string Name { get; set; }`
-  * `double _timeElapsed`
-  * `int _shaderNum`
-  * `bool _started`
-  * `bool _done`
-  * `void Initialize()`
-  * `void OnMessage()`
-  * `void Render()`
-  * `void Cleanup()`
-* **class Framebuffer**
-  * `int Width { get; set; }`
-  * `int Height { get; set; }`
-  * `IntPtr BufferPtr { get; set; }`
-  * `void Clear()`
-  * `void Dispose()`
-  * `List<WebSocket> ActiveClients`
-* **class LogConsoleWindow**
-  * `void AppendLine()`
-* **class ManifestEntry**
-  * `string Path { get; set; }`
-  * `long Offset { get; set; }`
-  * `long Length { get; set; }`
-  * `bool Compressed { get; set; }`
-  * `bool Encrypted { get; set; }`
-  * `string Nonce { get; set; }`
-  * `string Tag { get; set; }`
-* **class Package**
-  * `IReadOnlyList<ManifestEntry> Entries { get; set; }`
-  * `Package Open()`
-  * `void ExtractTo()`
-  * `Stream OpenStream()`
-  * `void Dispose()`
-  * `ManifestEntry[] Files { get; set; }`
-  * `DateTime Created { get; set; }`
-* **class WebStreamer**
-  * `void Start()`
-  * `void LateUpdate()`
-* **class Window**
-  * `object Hwnd { get; set; }`
-  * `List<IScene> Scenes { get; set; }`
-  * `IScene? PrimaryScene { get; set; }`
-  * `IScene ManagementScene { get; set; }`
-  * `int Width { get; set; }`
-  * `int Height { get; set; }`
-  * `IScreenPlay? _screenPlay`
-  * `void SetScene()`
-  * `void AddScene()`
-  * `void RemoveScene()`
-  * `void SetEngineMode()`
-  * `EngineMode GetEngineMode()`
-  * `bool ProcessMessages()`
-  * `void Cleanup()`
-  * `void Close()`
-* **struct PlatformMessage**
-  * `IntPtr hwnd`
-  * `uint message`
-  * `IntPtr wParam`
-  * `IntPtr lParam`
-  * `IGraphicsContext? Graphics { get; set; }`
-
-</details>
-
-<details><summary><b>Angene.Platform</b></summary>
-
-* **class PlatformDetection**
-  * `bool IsWindows { get; set; }`
-  * `bool IsLinux { get; set; }`
-  * `bool IsMacOS { get; set; }`
-* **class WindowConfig**
-  * `string Title { get; set; }`
-  * `int Width { get; set; }`
-  * `int Height { get; set; }`
-  * `int X { get; set; }`
-  * `int Y { get; set; }`
-  * `bool cTI { get; set; }`
-  * `string cTS { get; set; }`
-  * `string cTT { get; set; }`
-  * `RenderType renderMode`
-  * `bool ShowOnCreate { get; set; }`
-  * `WindowConfig Standard()`
-  * `WindowConfig TransparentOverlay()`
-  * `WindowConfig Borderless()`
-  * `WindowConfig Rendering3D()`
-
-</details>
-
-<details><summary><b>Angene.Protection</b></summary>
-
-* **class Integrity**
-  * `byte[] ComputeCurrentAssemblyHash()`
-  * `void AssertAssemblyHash()`
-
-</details>
-
-## Angene.Audio
-* **class AudioFile**
-  * `LoadType _loadType`
-* **class AudioManager**
-  * `bool IsPlaying { get; set; }`
-  * `bool IsPaused { get; set; }`
-  * `float Volume { get; set; }`
-  * `bool Looping { get; set; }`
-  * `void Play()`
-  * `void Stop()`
-  * `void Pause()`
-  * `void Resume()`
-  * `void SetVolume()`
-  * `void SetLooping()`
-  * `void Dispose()`
-* **enum LoadType**
-  * `byte[] GetAudioBytes()`
-  * `Stream GetAudioStream()`
-  * `void Dispose()`
-* **interface IAudioPlayer**
-
-</details>
-
-<details><summary><b>Angene.Audio.Common</b></summary>
-
-* **class AudioFactory**
-  * `IAudioPlayer Create()`
-
-</details>
-
-<details><summary><b>Angene.Audio.Windows</b></summary>
-
-* **struct WAVEHDR**
-  * `IntPtr lpData`
-  * `uint dwBufferLength`
-  * `uint dwBytesRecorded`
-  * `IntPtr dwUser`
-  * `uint dwFlags`
-  * `uint dwLoops`
-  * `IntPtr lpNext`
-  * `IntPtr reserved`
-* **struct WaveFormatEx**
-  * `ushort wFormatTag`
-  * `ushort nChannels`
-  * `uint nSamplesPerSec`
-  * `uint nAvgBytesPerSec`
-  * `ushort nBlockAlign`
-  * `ushort wBitsPerSample`
-  * `ushort cbSize`
-
-</details>
-
-## Angene.Common
-<details><summary><b>Angene.Common</b></summary>
-
-* **class AngeneException**
-* **class Attributes**
-* **class Logger**
-  * `Logger Instance`
-  * `StreamWriter? LogInstance`
-  * `bool _verbose`
-  * `void Init()`
-  * `void LogDebug()`
-  * `void LogInfo()`
-  * `void LogWarning()`
-  * `void LogError()`
-  * `void LogImportant()`
-  * `void LogCritical()`
-  * `void Shutdown()`
-* **class PrecompileAttribute**
-* **class TShader**
-* **class TShaderMetadata**
-  * `int Id`
-  * `string ShaderName`
-  * `TShaderType ShaderType`
-  * `string Source`
-  * `float ShaderRate`
-  * `float Shade`
-  * `bool CacheOnDevice`
-* **class Types**
-* **enum LoggingTarget**
-* **enum TShaderType**
-
-</details>
-
-<details><summary><b>Angene.Common.Settings</b></summary>
-
-* **class Settings**
-  * `void LoadDefaults()`
-  * `void Register()`
-  * `object? GetSetting()`
-  * `bool SetSetting()`
-  * `string saveKeys()`
-
-</details>
-
-<details><summary><b>Angene.Globals</b></summary>
-
-* **interface IRenderer**
-* **interface IRenderer3D**
-
-</details>
-
-## Angene.Essentials
-<details><summary><b>Angene.Essentials</b></summary>
-
-* **class Entity**
-  * `int Id { get; set; }`
-  * `float x`
-  * `float y`
-  * `float z`
-  * `string name`
-  * `List<Entity> childEntities { get; set; }`
-  * `void AddScript()`
-  * `void RemoveScript()`
-  * `IReadOnlyList<object> GetScripts()`
-  * `void SetEnabled()`
-  * `bool IsEnabled()`
-  * `void AddChild()`
-  * `void RemoveChild()`
-  * `bool IsParent()`
-  * `Entity? GetParent()`
-  * `void Remove()`
-  * `void Destroy()`
-  * `bool Equals()`
-  * `int GetHashCode()`
-  * `bool operator`
-* **class Lifecycle**
-  * `object Instance`
-  * `Action? Awake`
-  * `Action? OnEnable`
-  * `Action? Start`
-  * `Action<double>? Update`
-  * `Action<double>? LateUpdate`
-  * `Action? OnDraw`
-  * `Action? OnDisable`
-  * `Action? OnDestroy`
-  * `Action<IntPtr>? OnMessage`
-  * `Action? Render`
-  * `Action? Cleanup`
-  * `bool AwakeCalled`
-  * `bool Enabled`
-  * `bool StartCalled`
-  * `bool Destroyed`
-* **class ScriptBinding**
-  * `List<Action> destroyEngineList`
-  * `void Tick()`
-  * `void Draw()`
-  * `void HandleEntityCreated()`
-  * `void DestroyEntity()`
-  * `void SetEntityEnabled()`
-  * `void RegisterScript()`
-  * `void ShutdownEngine()`
-* **enum EngineMode**
-* **interface IScene**
-  * `List<Entity> GetEntities()`
-  * `void AddEntity()`
-  * `void RemoveEntity()`
-* **interface IScreenPlay**
-* **struct LifecycleInfo**
-  * `bool HasUpdate`
-  * `bool HasLateUpdate`
-  * `bool HasOnDraw`
-  * `bool HasStart`
-
-</details>
-
-## Angene.Graphics
-<details><summary><b>Angene.Graphics</b></summary>
-
-* **class Defs**
-* **class FailedToCreateGraphicsBackendException**
-* **class GdiGraphicsContext**
-  * `IntPtr Handle { get; set; }`
-  * `void Resize()`
-  * `void Clear()`
-  * `void DrawRectangle()`
-  * `void DrawText()`
-  * `void Present()`
-  * `void Cleanup()`
-  * `byte[] GetRawPixels()`
-  * `void Dispose()`
-* **class GdiRenderer**
-  * `void BeginFrame()`
-  * `void Clear()`
-  * `void DrawRect()`
-  * `void DrawText()`
-  * `void EndFrame()`
-  * `void Dispose()`
-* **class GraphicsContextFactory**
-  * `IGraphicsContext Create()`
-  * `IGraphicsContext CreateWS()`
-* **class GraphicsException**
-* **class WSGraphicsContext**
-  * `IntPtr Handle { get; set; }`
-  * `void Resize()`
-  * `void Clear()`
-  * `void DrawRectangle()`
-  * `void DrawText()`
-  * `void Cleanup()`
-  * `byte[] GetRawPixels()`
-  * `void Present()`
-* **enum RenderType**
-* **interface IDX11GraphicsContext**
-* **interface IGraphicsContext**
-* **struct Color**
-* **struct Edge**
-  * `float XAtY0`
-  * `float Slope`
-* **struct InputElement**
-  * `string SemanticName`
-  * `uint SemanticIndex`
-  * `DXGI_FORMAT Format`
-  * `uint ByteOffset`
-
-</details>
-
-<details><summary><b>Angene.Graphics.DX11</b></summary>
-
-* **class DX11GraphicsContext**
-  * `IntPtr ContextHandle { get; set; }`
-  * `nint Handle { get; set; }`
-  * `void Resize()`
-  * `void Clear()`
-  * `void Present()`
-  * `byte[] GetRawPixels()`
-  * `void Cleanup()`
-  * `void Dispose()`
-  * `IntPtr CreateVertexBuffer()`
-  * `IntPtr CreateVertexShader()`
-  * `IntPtr CreatePixelShader()`
-  * `IntPtr CreateInputLayout()`
-  * `void SetVertexBuffer()`
-  * `void DrawIndexed()`
-  * `IntPtr CreateIndexBuffer()`
-  * `void SetIndexBuffer()`
-  * `void SetInputLayout()`
-  * `void SetShader()`
-  * `void Draw()`
-  * `IntPtr CreateConstantBuffer()`
-  * `void UpdateConstantBuffer()`
-  * `void SetVertexShaderConstantBuffer()`
-  * `IntPtr CreateRasterizerState()`
-  * `void SetRasterizerState()`
-
-</details>
-
-<details><summary><b>Angene.Graphics.OpenGL</b></summary>
-
-* **class Camera3D**
-  * `float X { get; set; }`
-  * `float Y { get; set; }`
-  * `float Z { get; set; }`
-  * `float Pitch { get; set; }`
-  * `float Yaw { get; set; }`
-  * `float Roll { get; set; }`
-  * `void Apply()`
-  * `void MoveForward()`
-  * `void Strafe()`
-  * `void MoveVertical()`
-* **class OpenGlRenderer**
-  * `bool IsInitialized { get; set; }`
-  * `int Width { get; set; }`
-  * `int Height { get; set; }`
-  * `void Resize()`
-  * `void BeginFrame()`
-  * `void EndFrame()`
-  * `void SetClearColor()`
-  * `void Translate()`
-  * `void Rotate()`
-  * `void PushMatrix()`
-  * `void PopMatrix()`
-  * `void DrawCube()`
-  * `void BeginDraw()`
-  * `void EndDraw()`
-  * `void SetColor()`
-  * `void AddVertex()`
-  * `void Dispose()`
-* **class Shapes3D**
-  * `void DrawWireCube()`
-  * `void DrawSphere()`
-  * `void DrawPlane()`
-  * `void DrawPyramid()`
-  * `void DrawAxes()`
-  * `void DrawGrid()`
-* **enum PrimitiveType**
-
-</details>
-
-<details><summary><b>Angene.Graphics.SlangShader</b></summary>
-
-* **class BaseShader**
-  * `string Name { get; set; }`
-  * `bool IsDisposed { get; set; }`
-  * `ShaderType Type { get; set; }`
-  * `ShaderOrigin Origin { get; set; }`
-  * `string OutputDebugInfo()`
-  * `void Bind()`
-  * `void Dispose()`
-* **class Dx11Shader**
-  * `int id { get; set; }`
-  * `bool compileToFile { get; set; }`
-  * `IntPtr NativeShader { get; set; }`
-  * `ShaderOrigin Origin { get; set; }`
-  * `string Code { get; set; }`
-  * `string Extension { get; set; }`
-  * `string EntryPoint { get; set; }`
-  * `byte[] byteCode { get; set; }`
-  * `void Bind()`
-* **class NativeSlangMemoryCompiler**
-  * `byte[] ToNullTerminatedUtf8()`
-  * `byte[] CompileShaderFromMemoryToFile()`
-* **class SlangShaderResources**
-* **enum ShaderOrigin**
-* **enum ShaderType**
-* **interface IShader**
-
-</details>
-
-## Angene.Input
-<details><summary><b>Angene.Input</b></summary>
-
-* **class KeyDetection**
-  * `List<Entity> Instances`
-  * `void Register()`
-  * `bool IsKeyDown()`
-  * `void Deregister()`
-  * `HashSet<object> GetDownKeys { get; set; }`
-* **class MouseDetection**
-  * `List<Entity> Instances`
-  * `void Register()`
-  * `bool IsButtonDown()`
-  * `void Deregister()`
-  * `bool IsInWindow()`
-
-</details>
-
-<details><summary><b>Angene.Input.WinInput</b></summary>
-
-* **class Key**
-  * `object TryInt()`
-  * `object TryNInt()`
-  * `object TryByte()`
-* **enum IKeyCodeASCII**
-* **enum IKeyCodeArrow**
-* **enum IKeyCodeBrowser**
-* **enum IKeyCodeFunc**
-* **enum IKeyCodeGamePad**
-* **enum IKeyCodeMedia**
-* **enum IKeyCodeMod**
-* **enum IKeyCodeMouse**
-* **enum IKeyCodeNum**
-* **enum IKeyCodeNumPad**
-* **enum IKeyCodeOEM**
-* **enum IKeyCodeSpecial**
-* **struct Keys**
-
-</details>
-
-## Angene.Management
-<details><summary><b>Angene.Management</b></summary>
-
-* **class ManagementScene**
-  * `object Instance { get; set; }`
-  * `string Name { get; set; }`
-  * `List<Entity> Entities { get; set; }`
-  * `Entity AddEntity()`
-  * `Entity RemoveScript()`
-  * `Entity GetDefaultEntity()`
-  * `void Cleanup()`
-  * `List<Entity> GetEntities()`
-  * `void Initialize()`
-  * `void OnMessage()`
-  * `void Render()`
-
-</details>
-
-## Angene.Math
-<details><summary><b>Angene.Math</b></summary>
-
-* **class Rand**
-  * `void SetSeed()`
-  * `float Value { get; set; }`
-  * `float Range()`
-  * `int Range()`
-  * `bool Chance()`
-
-</details>
-
-<details><summary><b>Angene.Math.Defs</b></summary>
-
-* **interface IComputeBackend**
-* **interface IComputeJob<TInput**
-
-</details>
-
-<details><summary><b>Angene.Math.GPU</b></summary>
-
-* **class Math**
-  * `int GpuThreshold { get; set; }`
-  * `Vec2[] Add()`
-  * `Vec2[] Scale()`
-  * `Vec2[] Normalize()`
-  * `float[] Dot()`
-  * `float[] Length()`
-  * `Vec2[] Lerp()`
-  * `Vec3[] Add()`
-  * `Vec3[] Cross()`
-  * `Vec3[] Normalize()`
-  * `Vec2[] Transform()`
-  * `Matrix3x3[] Multiply()`
-  * `float[] Clamp()`
-  * `float[] Lerp()`
-  * `float[] Remap()`
-  * `float[] Sqrt()`
-  * `float[] Abs()`
-  * `float Sum()`
-  * `float Min()`
-  * `float Max()`
-  * `Vec2 Sum()`
-  * `Vec2 Average()`
-  * `void Dispose()`
-
-</details>
-
-<details><summary><b>Angene.Math.GraphicsMath</b></summary>
-
-* **class GraphicsMath**
-  * `IEnumerable<Point> GetPointsOnLine()`
-
-</details>
-
-<details><summary><b>Angene.Math.Interpolation</b></summary>
-
-* **class Ease**
-  * `float InQuad()`
-  * `float OutQuad()`
-  * `float InOutQuad()`
-  * `float InCubic()`
-  * `float OutCubic()`
-  * `float InOutCubic()`
-  * `float InBack()`
-  * `float InBounce()`
-  * `float InElastic()`
-  * `float OutBack()`
-  * `float OutBounce()`
-  * `float OutElastic()`
-* **class Mathf**
-  * `float PI`
-  * `float Deg2Rad`
-  * `float Rad2Deg`
-  * `float Clamp()`
-  * `float Clamp01()`
-  * `float Remap()`
-  * `float Lerp()`
-  * `float LerpUnclamped()`
-  * `float InverseLerp()`
-  * `float SmoothStep()`
-  * `float SmootherStep()`
-  * `float MoveTowards()`
-  * `float SmoothDamp()`
-  * `float DeltaAngle()`
-  * `float LerpAngle()`
-
-</details>
-
-<details><summary><b>Angene.Math.Vectors</b></summary>
-
-* **struct Matrix3x3**
-  * `Matrix3x3 Identity { get; set; }`
-  * `Matrix3x3 Translation()`
-  * `Matrix3x3 Rotation()`
-  * `Matrix3x3 Scale()`
-* **struct Point**
-* **struct Rect**
-  * `float X`
-  * `float Left { get; set; }`
-  * `float Right { get; set; }`
-  * `float Top { get; set; }`
-  * `float Bottom { get; set; }`
-  * `Vec2 Center { get; set; }`
-  * `bool Contains()`
-  * `bool Intersects()`
-  * `Rect Expand()`
-* **struct Vec2**
-  * `float X`
-  * `Vec2 Zero { get; set; }`
-  * `Vec2 One { get; set; }`
-  * `Vec2 Up { get; set; }`
-  * `Vec2 Down { get; set; }`
-  * `Vec2 Left { get; set; }`
-  * `Vec2 Right { get; set; }`
-  * `float Length { get; set; }`
-  * `float LengthSquared { get; set; }`
-  * `Vec2 Normalized { get; set; }`
-  * `float Dot()`
-  * `float Distance()`
-  * `Vec2 Lerp()`
-  * `Vec2 Reflect()`
-* **struct Vec3**
-  * `float X`
-  * `float Length { get; set; }`
-  * `Vec3 Normalized { get; set; }`
-  * `float Dot()`
-  * `Vec3 Cross()`
-  * `Vec3 Lerp()`
-
-</details>
-
-## Angene.Windows
-<details><summary><b>Angene.Windows</b></summary>
-
-* **class Consts**
-  * `uint WS_POPUP`
-  * `uint WS_EX_LAYERED`
-  * `uint WS_EX_TRANSPARENT`
-  * `uint WS_EX_TOPMOST`
-  * `int LWA_COLORKEY`
-  * `int LWA_ALPHA`
-  * `int GWL_EXSTYLE`
-  * `uint IMAGE_ICON`
-  * `uint LR_DEFAULTSIZE`
-  * `uint LR_LOADFROMFILE`
-  * `uint WM_SETICON`
-  * `int ICON_SMALL`
-  * `int ICON_BIG`
-  * `uint LR_DEFAULTCOLOR`
-  * `uint GR_GDIOBJECTS`
-  * `int PM_REMOVE`
-  * `int CW_USEDEFAULT`
-  * `int SW_SHOW`
-* **class Kernel32**
-* **class SWP**
-  * `uint NOSIZE`
-  * `uint NOMOVE`
-  * `uint NOZORDER`
-  * `uint NOACTIVATE`
-  * `uint SHOWWINDOW`
-* **class User32**
-* **class WS**
-  * `uint OVERLAPPED`
-  * `uint POPUP`
-  * `uint CHILD`
-  * `uint VISIBLE`
-  * `uint DISABLED`
-  * `uint CLIPSIBLINGS`
-  * `uint CLIPCHILDREN`
-  * `uint SYSMENU`
-  * `uint THICKFRAME`
-* **class WS_EX**
-  * `uint TOPMOST`
-  * `uint TOOLWINDOW`
-  * `uint APPWINDOW`
-  * `uint LAYERED`
-  * `uint NOACTIVATE`
-* **class WindowManagement**
-* **enum EM**
-* **enum WM**
-* **enum WindowStyle**
-* **enum WindowStyleEx**
-* **struct MSG**
-  * `IntPtr hwnd`
-  * `uint message`
-  * `IntPtr wParam`
-  * `IntPtr lParam`
-  * `uint time`
-  * `int pt_x`
-  * `int pt_y`
-* **struct PAINTSTRUCT**
-  * `IntPtr hdc`
-  * `bool fErase`
-  * `RECT rcPaint`
-  * `bool fRestore`
-  * `bool fIncUpdate`
-  * `byte[] rgbReserved`
-* **struct RECT**
-  * `int left`
-  * `int top`
-  * `int right`
-  * `int bottom`
-* **struct SIZE**
-  * `int cx`
-  * `int cy`
-* **struct TRACKMOUSEEVENT**
-  * `uint cbSize`
-  * `uint dwFlags`
-  * `IntPtr hwndTrack`
-  * `uint dwHoverTime`
-* **struct WNDCLASSEX**
-  * `uint cbSize`
-  * `uint style`
-  * `int cbClsExtra`
-  * `int cbWndExtra`
-  * `IntPtr hInstance`
-  * `IntPtr hIcon`
-  * `IntPtr hCursor`
-  * `IntPtr hbrBackground`
-  * `string lpszMenuName`
-  * `string lpszClassName`
-  * `IntPtr hIconSm`
-* **struct WindowTransparency**
-  * `bool Enabled`
-  * `byte Alpha`
-  * `bool ClickThrough`
-  * `WindowTransparency None { get; set; }`
-  * `WindowTransparency Opaque { get; set; }`
-  * `WindowTransparency SemiTransparent { get; set; }`
-  * `WindowTransparency FullyTransparent { get; set; }`
-
-</details>
-
-<details><summary><b>Angene.Windows.D3D11</b></summary>
-
-* **class D3D11**
-* **class D3D11Interop**
-* **enum D3D11_BIND_FLAG**
-* **enum D3D11_BLEND**
-* **enum D3D11_BLEND_OP**
-* **enum D3D11_COMPARISON_FUNC**
-* **enum D3D11_COUNTER**
-* **enum D3D11_COUNTER_TYPE**
-* **enum D3D11_CPU_ACCESS_FLAG**
-* **enum D3D11_CULL_MODE**
-* **enum D3D11_DEPTH_WRITE_MASK**
-* **enum D3D11_DEVICE_CONTEXT_TYPE**
-* **enum D3D11_DSV_DIMENSION**
-* **enum D3D11_FEATURE**
-* **enum D3D11_FILL_MODE**
-* **enum D3D11_FILTER**
-* **enum D3D11_INPUT_CLASSIFICATION**
-* **enum D3D11_MAP**
-* **enum D3D11_PRIMITIVE_TOPOLOGY**
-* **enum D3D11_QUERY**
-* **enum D3D11_RESOURCE_DIMENSION**
-* **enum D3D11_RTV_DIMENSION**
-* **enum D3D11_STENCIL_OP**
-* **enum D3D11_TEXTURE_ADDRESS_MODE**
-* **enum D3D11_UAV_DIMENSION**
-* **enum D3D11_USAGE**
-* **enum D3D_DRIVER_TYPE**
-* **enum D3D_FEATURE_LEVEL**
-* **enum D3D_SRV_DIMENSION**
-* **interface ID3D11DeviceChild**
-* **interface ID3D11DeviceContext**
-  * `void VSSetConstantBuffers()`
-  * `void PSGetShaderResources()`
-  * `void PSSetShader()`
-  * `void PSSetSamplers()`
-  * `void VSSetShader()`
-  * `void DrawIndexed()`
-  * `void Draw()`
-  * `void Map()`
-  * `void Unmap()`
-  * `void PSSetConstantBuffers()`
-  * `void IASetInputLayout()`
-  * `void IASetVertexBuffers()`
-  * `void IASetIndexBuffer()`
-  * `void DrawIndexedInstanced()`
-  * `void DrawInstanced()`
-  * `void GSSetConstantBuffers()`
-  * `void GSSetShader()`
-  * `void IASetPrimitiveTopology()`
-  * `void VSSetShaderResources()`
-  * `void VSSetSamplers()`
-  * `void Begin()`
-  * `void End()`
-  * `int GetData()`
-  * `void SetPredication()`
-  * `void GSSetShaderResources()`
-  * `void GSSetSamplers()`
-  * `void OMSetRenderTargets()`
-  * `void OMSetRenderTargetsAndUnorderedAccessViews()`
-  * `void OMSetBlendState()`
-  * `void OMGetDepthStencilState()`
-  * `void SOSetTargets()`
-  * `void DrawAuto()`
-  * `void DrawIndexedInstancedIndirect()`
-  * `void DrawInstancedIndirect()`
-  * `void Dispatch()`
-  * `void DispatchIndirect()`
-  * `void RSSetState()`
-  * `void RSSetViewports()`
-  * `void RSSetScissorRects()`
-  * `void CopySubresourceRegion()`
-  * `void CopyResource()`
-  * `void UpdateSubresource()`
-  * `void CopyStructureCount()`
-  * `void ClearRenderTargetView()`
-  * `void ClearUnorderedAccessViewUint()`
-  * `void ClearUnorderedAccessViewFloat()`
-  * `void ClearDepthStencilView()`
-  * `void GenerateMips()`
-  * `void SetResourceMinLOD()`
-  * `float GetResourceMinLOD()`
-  * `void ResolveSubresource()`
-  * `void ExecuteCommandList()`
-  * `void HSSetShaderResources()`
-  * `void HSSetShader()`
-  * `void HSSetSamplers()`
-  * `void HSSetConstantBuffers()`
-  * `void DSSetShaderResources()`
-  * `void DSSetShader()`
-  * `void DSSetSamplers()`
-  * `void DSSetConstantBuffers()`
-  * `void CSSetShaderResources()`
-  * `void CSSetUnorderedAccessViews()`
-  * `void CSSetShader()`
-  * `void CSSetSamplers()`
-  * `void CSSetConstantBuffers()`
-  * `void VSGetConstantBuffers()`
-  * `void PSSetShaderResources()`
-  * `void PSGetShader()`
-  * `void PSGetSamplers()`
-  * `void VSGetShader()`
-  * `void PSGetConstantBuffers()`
-  * `void IAGetInputLayout()`
-  * `void IAGetVertexBuffers()`
-  * `void IAGetIndexBuffer()`
-  * `void GSGetConstantBuffers()`
-  * `void GSGetShader()`
-  * `void IAGetPrimitiveTopology()`
-  * `void VSGetShaderResources()`
-  * `void VSGetSamplers()`
-  * `void GetPredication()`
-  * `void GSGetShaderResources()`
-  * `void GSGetSamplers()`
-  * `void OMGetRenderTargets()`
-  * `void OMGetRenderTargetsAndUnorderedAccessViews()`
-  * `void OMGetBlendState()`
-  * `void OMSetDepthStencilState()`
-  * `void SOGetTargets()`
-  * `void RSGetState()`
-  * `void RSGetViewports()`
-  * `void RSGetScissorRects()`
-  * `void HSGetShaderResources()`
-  * `void HSGetShader()`
-  * `void HSGetSamplers()`
-  * `void HSGetConstantBuffers()`
-  * `void DSGetShaderResources()`
-  * `void DSGetShader()`
-  * `void DSGetSamplers()`
-  * `void DSGetConstantBuffers()`
-  * `void CSGetShaderResources()`
-  * `void CSGetUnorderedAccessViews()`
-  * `void CSGetShader()`
-  * `void CSGetConstantBuffers()`
-  * `void CSGetSamplers()`
-  * `void ClearState()`
-  * `void Flush()`
-  * `uint GetContextFlags()`
-  * `int FinishCommandList()`
-  * `void GetDevice()`
-  * `void GetPrivateData()`
-  * `void SetPrivateData()`
-  * `void SetPrivateDataInterface()`
-* **struct D3D11_BLEND_DESC**
-  * `int AlphaToCoverageEnable`
-  * `int IndependentBlendEnable`
-  * `_RenderTarget_e__FixedBuffer RenderTarget`
-* **struct D3D11_BOX**
-  * `uint left`
-  * `uint top`
-  * `uint front`
-  * `uint right`
-  * `uint bottom`
-  * `uint back`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `void GetDevice()`
-  * `int GetPrivateData()`
-  * `int SetPrivateData()`
-  * `int SetPrivateDataInterface()`
-  * `void GetDesc()`
-  * `void GetResource()`
-  * `void GetType()`
-  * `void SetEvictionPriority()`
-  * `uint GetEvictionPriority()`
-  * `void GetClassLinkage()`
-  * `void GetInstanceName()`
-  * `void GetTypeName()`
-  * `uint GetDataSize()`
-  * `uint GetContextFlags()`
-  * `int GetClassInstance()`
-  * `int CreateClassInstance()`
-  * `int CreateBuffer()`
-  * `int CreateTexture1D()`
-  * `int CreateTexture2D()`
-  * `int CreateTexture3D()`
-  * `int CreateShaderResourceView()`
-  * `int CreateUnorderedAccessView()`
-  * `int CreateRenderTargetView()`
-  * `int CreateDepthStencilView()`
-  * `int CreateInputLayout()`
-  * `int CreateVertexShader()`
-  * `int CreateGeometryShader()`
-  * `int CreateGeometryShaderWithStreamOutput()`
-  * `int CreatePixelShader()`
-  * `int CreateHullShader()`
-  * `int CreateDomainShader()`
-  * `int CreateComputeShader()`
-  * `int CreateClassLinkage()`
-  * `int CreateBlendState()`
-  * `int CreateDepthStencilState()`
-  * `int CreateRasterizerState()`
-  * `int CreateSamplerState()`
-  * `int CreateQuery()`
-  * `int CreatePredicate()`
-  * `int CreateCounter()`
-  * `int CreateDeferredContext()`
-  * `int OpenSharedResource()`
-  * `int CheckFormatSupport()`
-  * `int CheckMultisampleQualityLevels()`
-  * `void CheckCounterInfo()`
-  * `int CheckCounter()`
-  * `int CheckFeatureSupport()`
-  * `D3D_FEATURE_LEVEL GetFeatureLevel()`
-  * `uint GetCreationFlags()`
-  * `int GetDeviceRemovedReason()`
-  * `void GetImmediateContext()`
-  * `int SetExceptionMode()`
-  * `uint GetExceptionMode()`
-* **struct D3D11_BUFFEREX_SRV**
-  * `uint FirstElement`
-  * `uint NumElements`
-  * `uint Flags`
-* **struct D3D11_BUFFER_DESC**
-  * `uint ByteWidth`
-  * `D3D11_USAGE Usage`
-  * `uint BindFlags`
-  * `uint CPUAccessFlags`
-  * `uint MiscFlags`
-  * `uint StructureByteStride`
-* **struct D3D11_BUFFER_RTV**
-  * `_Anonymous1_e__Union Anonymous1`
-  * `_Anonymous2_e__Union Anonymous2`
-* **struct D3D11_BUFFER_SRV**
-  * `_Anonymous1_e__Union Anonymous1`
-  * `_Anonymous2_e__Union Anonymous2`
-* **struct D3D11_BUFFER_UAV**
-  * `uint FirstElement`
-  * `uint NumElements`
-  * `uint Flags`
-  * `uint SysMemPitch`
-  * `uint SysMemSlicePitch`
-  * `uint Stream`
-  * `uint SemanticIndex`
-  * `byte StartComponent`
-  * `byte ComponentCount`
-  * `byte OutputSlot`
-* **struct D3D11_CLASS_INSTANCE_DESC**
-  * `uint InstanceId`
-  * `uint InstanceIndex`
-  * `uint TypeId`
-  * `uint ConstantBuffer`
-  * `uint BaseConstantBufferOffset`
-  * `uint BaseTexture`
-  * `uint BaseSampler`
-  * `int Created`
-* **struct D3D11_COUNTER_DESC**
-  * `D3D11_COUNTER Counter`
-  * `uint MiscFlags`
-* **struct D3D11_COUNTER_INFO**
-  * `D3D11_COUNTER LastDeviceDependentCounter`
-  * `uint NumSimultaneousCounters`
-  * `byte NumDetectableParallelUnits`
-* **struct D3D11_DEPTH_STENCILOP_DESC**
-  * `D3D11_STENCIL_OP StencilFailOp`
-  * `D3D11_STENCIL_OP StencilDepthFailOp`
-  * `D3D11_STENCIL_OP StencilPassOp`
-  * `D3D11_COMPARISON_FUNC StencilFunc`
-* **struct D3D11_DEPTH_STENCIL_DESC**
-* **struct D3D11_DEPTH_STENCIL_VIEW_DESC**
-  * `DXGI_FORMAT Format`
-  * `D3D11_DSV_DIMENSION ViewDimension`
-  * `uint Flags`
-  * `_Anonymous_e__Union Anonymous`
-* **struct D3D11_INPUT_ELEMENT_DESC**
-  * `IntPtr SemanticName`
-  * `uint SemanticIndex`
-  * `DXGI_FORMAT Format`
-  * `uint InputSlot`
-  * `uint AlignedByteOffset`
-  * `uint InputSlotClass`
-  * `uint InstanceDataStepRate`
-* **struct D3D11_QUERY_DESC**
-  * `D3D11_QUERY Query`
-  * `uint MiscFlags`
-  * `uint SemanticIndex`
-  * `DXGI_FORMAT Format`
-  * `uint InputSlot`
-  * `uint AlignedByteOffset`
-  * `D3D11_INPUT_CLASSIFICATION InputSlotClass`
-  * `uint InstanceDataStepRate`
-  * `IntPtr pData`
-  * `uint RowPitch`
-  * `uint DepthPitch`
-* **struct D3D11_RASTERIZER_DESC**
-  * `uint FillMode`
-  * `uint CullMode`
-  * `int FrontCounterClockwise`
-  * `int DepthBias`
-  * `float DepthBiasClamp`
-  * `float SlopeScaledDepthBias`
-  * `int DepthClipEnable`
-  * `int ScissorEnable`
-  * `int MultisampleEnable`
-  * `int AntialiasedLineEnable`
-  * `D3D11_FILL_MODE FillMode`
-  * `D3D11_CULL_MODE CullMode`
-* **struct D3D11_RENDER_TARGET_BLEND_DESC**
-  * `int BlendEnable`
-  * `D3D11_BLEND SrcBlend`
-  * `D3D11_BLEND DestBlend`
-  * `D3D11_BLEND_OP BlendOp`
-  * `D3D11_BLEND SrcBlendAlpha`
-  * `D3D11_BLEND DestBlendAlpha`
-  * `D3D11_BLEND_OP BlendOpAlpha`
-  * `byte RenderTargetWriteMask`
-* **struct D3D11_RENDER_TARGET_VIEW_DESC**
-  * `DXGI_FORMAT Format`
-  * `D3D11_RTV_DIMENSION ViewDimension`
-  * `_Anonymous_e__Union Anonymous`
-* **struct D3D11_SAMPLER_DESC**
-  * `D3D11_FILTER Filter`
-  * `D3D11_TEXTURE_ADDRESS_MODE AddressU`
-  * `D3D11_TEXTURE_ADDRESS_MODE AddressV`
-  * `D3D11_TEXTURE_ADDRESS_MODE AddressW`
-  * `float MipLODBias`
-  * `uint MaxAnisotropy`
-  * `D3D11_COMPARISON_FUNC ComparisonFunc`
-  * `_BorderColor_e__FixedBuffer BorderColor`
-  * `float MinLOD`
-  * `float MaxLOD`
-* **struct D3D11_SHADER_RESOURCE_VIEW_DESC**
-  * `DXGI_FORMAT Format`
-  * `D3D_SRV_DIMENSION ViewDimension`
-  * `_Anonymous_e__Union Anonymous`
-* **struct D3D11_SUBRESOURCE_DATA**
-  * `IntPtr pSysMem`
-  * `uint SysMemPitch`
-  * `uint SysMemSlicePitch`
-* **struct D3D11_TEX1D_ARRAY_DSV**
-  * `uint MipSlice`
-  * `uint FirstArraySlice`
-  * `uint ArraySize`
-* **struct D3D11_TEX1D_ARRAY_RTV**
-  * `uint MipSlice`
-  * `uint FirstArraySlice`
-  * `uint ArraySize`
-* **struct D3D11_TEX1D_ARRAY_SRV**
-  * `uint MostDetailedMip`
-  * `uint MipLevels`
-  * `uint FirstArraySlice`
-  * `uint ArraySize`
-* **struct D3D11_TEX1D_ARRAY_UAV**
-  * `uint MipSlice`
-  * `uint FirstArraySlice`
-  * `uint ArraySize`
-* **struct D3D11_TEX1D_DSV**
-  * `uint MipSlice`
-* **struct D3D11_TEX1D_RTV**
-  * `uint MipSlice`
-* **struct D3D11_TEX1D_SRV**
-  * `uint MostDetailedMip`
-  * `uint MipLevels`
-* **struct D3D11_TEX1D_UAV**
-  * `uint MipSlice`
-* **struct D3D11_TEX2DMS_ARRAY_DSV**
-  * `uint FirstArraySlice`
-  * `uint ArraySize`
-* **struct D3D11_TEX2DMS_ARRAY_RTV**
-  * `uint FirstArraySlice`
-  * `uint ArraySize`
-* **struct D3D11_TEX2DMS_ARRAY_SRV**
-  * `uint FirstArraySlice`
-  * `uint ArraySize`
-* **struct D3D11_TEX2DMS_DSV**
-  * `uint UnusedField_NothingToDefine`
-* **struct D3D11_TEX2DMS_RTV**
-  * `uint UnusedField_NothingToDefine`
-* **struct D3D11_TEX2DMS_SRV**
-  * `uint UnusedField_NothingToDefine`
-* **struct D3D11_TEX2D_ARRAY_DSV**
-  * `uint MipSlice`
-  * `uint FirstArraySlice`
-  * `uint ArraySize`
-* **struct D3D11_TEX2D_ARRAY_RTV**
-  * `uint MipSlice`
-  * `uint FirstArraySlice`
-  * `uint ArraySize`
-* **struct D3D11_TEX2D_ARRAY_SRV**
-  * `uint MostDetailedMip`
-  * `uint MipLevels`
-  * `uint FirstArraySlice`
-  * `uint ArraySize`
-* **struct D3D11_TEX2D_ARRAY_UAV**
-  * `uint MipSlice`
-  * `uint FirstArraySlice`
-  * `uint ArraySize`
-* **struct D3D11_TEX2D_DSV**
-  * `uint MipSlice`
-* **struct D3D11_TEX2D_RTV**
-  * `uint MipSlice`
-* **struct D3D11_TEX2D_SRV**
-  * `uint MostDetailedMip`
-  * `uint MipLevels`
-* **struct D3D11_TEX2D_UAV**
-  * `uint MipSlice`
-* **struct D3D11_TEX3D_RTV**
-  * `uint MipSlice`
-  * `uint FirstWSlice`
-  * `uint WSize`
-* **struct D3D11_TEX3D_SRV**
-  * `uint MostDetailedMip`
-  * `uint MipLevels`
-* **struct D3D11_TEX3D_UAV**
-  * `uint MipSlice`
-  * `uint FirstWSlice`
-  * `uint WSize`
-* **struct D3D11_TEXCUBE_ARRAY_SRV**
-  * `uint MostDetailedMip`
-  * `uint MipLevels`
-  * `uint First2DArrayFace`
-  * `uint NumCubes`
-* **struct D3D11_TEXCUBE_SRV**
-  * `uint MostDetailedMip`
-  * `uint MipLevels`
-* **struct D3D11_TEXTURE1D_DESC**
-  * `uint Width`
-  * `uint MipLevels`
-  * `uint ArraySize`
-  * `DXGI_FORMAT Format`
-  * `D3D11_USAGE Usage`
-  * `uint BindFlags`
-  * `uint CPUAccessFlags`
-  * `uint MiscFlags`
-* **struct D3D11_TEXTURE2D_DESC**
-  * `uint Width`
-  * `uint Height`
-  * `uint MipLevels`
-  * `uint ArraySize`
-  * `DXGI_FORMAT Format`
-  * `DXGI_SAMPLE_DESC SampleDesc`
-  * `D3D11_USAGE Usage`
-  * `uint BindFlags`
-  * `uint CPUAccessFlags`
-  * `uint MiscFlags`
-* **struct D3D11_TEXTURE3D_DESC**
-  * `uint Width`
-  * `uint Height`
-  * `uint Depth`
-  * `uint MipLevels`
-  * `DXGI_FORMAT Format`
-  * `D3D11_USAGE Usage`
-  * `uint BindFlags`
-  * `uint CPUAccessFlags`
-  * `uint MiscFlags`
-* **struct D3D11_UNORDERED_ACCESS_VIEW_DESC**
-  * `DXGI_FORMAT Format`
-  * `D3D11_UAV_DIMENSION ViewDimension`
-  * `_Anonymous_e__Union Anonymous`
-* **struct D3D11_VIEWPORT**
-  * `float TopLeftX`
-  * `float TopLeftY`
-  * `float Width`
-  * `float Height`
-  * `float MinDepth`
-  * `float MaxDepth`
-  * `int CreateRasterizerState()`
-  * `void RSSetState()`
-  * `void VSSetConstantBuffers()`
-  * `void IASetVertexBuffers()`
-  * `void IASetIndexBuffer()`
-  * `void IASetInputLayout()`
-  * `void IASetPrimitiveTopology()`
-  * `void VSSetShader()`
-  * `void PSSetShader()`
-  * `void Draw()`
-  * `void DrawIndexed()`
-  * `int CreateInputLayout()`
-  * `int CreateBuffer()`
-  * `int CreateVertexShader()`
-  * `int CreatePixelShader()`
-  * `int Map()`
-  * `void Unmap()`
-  * `void CopyResource()`
-  * `int ResizeSwapChainBuffers()`
-  * `void OMSetRenderTargets()`
-  * `int CreateDXGIFactory()`
-  * `int CreateSwapChain()`
-  * `int CreateRenderTargetView()`
-  * `int CreateTexture2D()`
-  * `int CreateDepthStencilView()`
-  * `int GetSwapChainBackBuffer()`
-  * `void SetViewports()`
-  * `void ClearRenderTargetView()`
-  * `void ClearDepthStencilView()`
-  * `int PresentSwapChain()`
-* **struct DXGI_MODE_DESC**
-  * `uint Width`
-  * `uint Height`
-  * `uint RefreshRate_Numerator`
-  * `uint RefreshRate_Denominator`
-  * `DXGI_FORMAT Format`
-  * `uint ScanlineOrdering`
-  * `uint Scaling`
-* **struct DXGI_SAMPLE_DESC**
-  * `uint Count`
-  * `uint Quality`
-* **struct DXGI_SWAP_CHAIN_DESC**
-  * `DXGI_MODE_DESC BufferDesc`
-  * `DXGI_SAMPLE_DESC SampleDesc`
-  * `DXGI_USAGE BufferUsage`
-  * `uint BufferCount`
-  * `IntPtr OutputWindow`
-  * `int Windowed`
-  * `DXGI_SWAP_EFFECT SwapEffect`
-  * `uint Flags`
-* **struct _Anonymous1_e__Union**
-  * `uint FirstElement`
-  * `uint ElementOffset`
-* **struct _Anonymous2_e__Union**
-  * `uint NumElements`
-  * `uint ElementWidth`
-* **struct _Anonymous_e__Union**
-  * `D3D11_TEX1D_DSV Texture1D`
-  * `D3D11_TEX1D_ARRAY_DSV Texture1DArray`
-  * `D3D11_TEX2D_DSV Texture2D`
-  * `D3D11_TEX2D_ARRAY_DSV Texture2DArray`
-  * `D3D11_TEX2DMS_DSV Texture2DMS`
-  * `D3D11_TEX2DMS_ARRAY_DSV Texture2DMSArray`
-  * `D3D11_BUFFER_RTV Buffer`
-  * `D3D11_TEX1D_RTV Texture1D`
-  * `D3D11_TEX1D_ARRAY_RTV Texture1DArray`
-  * `D3D11_TEX2D_RTV Texture2D`
-  * `D3D11_TEX2D_ARRAY_RTV Texture2DArray`
-  * `D3D11_TEX2DMS_RTV Texture2DMS`
-  * `D3D11_TEX2DMS_ARRAY_RTV Texture2DMSArray`
-  * `D3D11_TEX3D_RTV Texture3D`
-  * `D3D11_BUFFER_SRV Buffer`
-  * `D3D11_TEX1D_SRV Texture1D`
-  * `D3D11_TEX1D_ARRAY_SRV Texture1DArray`
-  * `D3D11_TEX2D_SRV Texture2D`
-  * `D3D11_TEX2D_ARRAY_SRV Texture2DArray`
-  * `D3D11_TEX2DMS_SRV Texture2DMS`
-  * `D3D11_TEX2DMS_ARRAY_SRV Texture2DMSArray`
-  * `D3D11_TEX3D_SRV Texture3D`
-  * `D3D11_TEXCUBE_SRV TextureCube`
-  * `D3D11_TEXCUBE_ARRAY_SRV TextureCubeArray`
-  * `D3D11_BUFFEREX_SRV BufferEx`
-  * `D3D11_BUFFER_UAV Buffer`
-  * `D3D11_TEX1D_UAV Texture1D`
-  * `D3D11_TEX1D_ARRAY_UAV Texture1DArray`
-  * `D3D11_TEX2D_UAV Texture2D`
-  * `D3D11_TEX2D_ARRAY_UAV Texture2DArray`
-  * `D3D11_TEX3D_UAV Texture3D`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `void GetDevice()`
-  * `int GetPrivateData()`
-  * `int SetPrivateData()`
-  * `int SetPrivateDataInterface()`
-  * `void GetType()`
-  * `void SetEvictionPriority()`
-  * `uint GetEvictionPriority()`
-  * `void GetDesc()`
-  * `uint GetDataSize()`
-* **struct _BorderColor_e__FixedBuffer**
-  * `float e0`
-* **struct _RenderTarget_e__FixedBuffer**
-  * `D3D11_RENDER_TARGET_BLEND_DESC e0`
-
-</details>
-
-<details><summary><b>Angene.Windows.Dxgi</b></summary>
-
-* **class DxgiConstants**
-  * `uint S_OK`
-  * `Guid DXGI_DEBUG_ALL`
-  * `Guid DXGI_DEBUG_DX`
-  * `Guid DXGI_DEBUG_DXGI`
-  * `Guid DXGI_DEBUG_APP`
-  * `uint D3D11_CLEAR_DEPTH`
-* **class DxgiEnums**
-* **class DxgiInterfaces**
-* **class DxgiStructs**
-* **enum D3D12_CONSERVATIVE_RASTERIZATION_TIER**
-* **enum D3D12_CROSS_NODE_SHARING_TIER**
-* **enum D3D12_RESOURCE_BINDING_TIER**
-* **enum D3D12_RESOURCE_HEAP_TIER**
-* **enum D3D12_SHADER_MIN_PRECISION_SUPPORT**
-* **enum D3D12_TILED_RESOURCES_TIER**
-* **enum DXGI_ADAPTER_FLAG**
-* **enum DXGI_ADAPTER_FLAG3**
-* **enum DXGI_ALPHA_MODE**
-* **enum DXGI_COLOR_SPACE_TYPE**
-* **enum DXGI_COMPUTE_PREEMPTION_GRANULARITY**
-* **enum DXGI_DEBUG_RLO_FLAGS**
-* **enum DXGI_FEATURE**
-* **enum DXGI_FORMAT**
-* **enum DXGI_FRAME_PRESENTATION_MODE**
-* **enum DXGI_GPU_PREFERENCE**
-* **enum DXGI_GRAPHICS_PREEMPTION_GRANULARITY**
-* **enum DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAGS**
-* **enum DXGI_HDR_METADATA_TYPE**
-* **enum DXGI_INFO_QUEUE_MESSAGE_CATEGORY**
-* **enum DXGI_INFO_QUEUE_MESSAGE_SEVERITY**
-* **enum DXGI_MEMORY_SEGMENT_GROUP**
-* **enum DXGI_MODE_ROTATION**
-* **enum DXGI_MODE_SCALING**
-* **enum DXGI_MODE_SCANLINE_ORDER**
-* **enum DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAGS**
-* **enum DXGI_OUTDUPL_POINTER_SHAPE_TYPE**
-* **enum DXGI_OVERLAY_COLOR_SPACE_SUPPORT_FLAG**
-* **enum DXGI_OVERLAY_SUPPORT_FLAG**
-* **enum DXGI_RESIDENCY**
-* **enum DXGI_SCALING**
-* **enum DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG**
-* **enum DXGI_SWAP_CHAIN_FLAG**
-* **enum DXGI_SWAP_EFFECT**
-* **enum DXGI_USAGE**
-* **enum _DXGI_OFFER_RESOURCE_FLAGS**
-* **enum _DXGI_OFFER_RESOURCE_PRIORITY**
-* **enum _DXGI_RECLAIM_RESOURCE_RESULTS**
-* **interface IDXGIAdapter**
-* **interface IDXGIAdapter1**
-* **interface IDXGIAdapter2**
-* **interface IDXGIAdapter3**
-* **interface IDXGIAdapter4**
-* **interface IDXGIDebug**
-* **interface IDXGIDebug1**
-* **interface IDXGIDecodeSwapChain**
-* **interface IDXGIDevice**
-* **interface IDXGIDevice1**
-* **interface IDXGIDevice2**
-* **interface IDXGIDevice3**
-* **interface IDXGIDevice4**
-* **interface IDXGIDeviceSubObject**
-* **interface IDXGIDisplayControl**
-* **interface IDXGIFactory**
-* **interface IDXGIFactory1**
-* **interface IDXGIFactory2**
-* **interface IDXGIFactory3**
-* **interface IDXGIFactory4**
-* **interface IDXGIFactory5**
-* **interface IDXGIFactory6**
-* **interface IDXGIFactory7**
-* **interface IDXGIFactoryMedia**
-* **interface IDXGIInfoQueue**
-* **interface IDXGIKeyedMutex**
-* **interface IDXGIObject**
-* **interface IDXGIOutput**
-* **interface IDXGIOutput1**
-* **interface IDXGIOutput2**
-* **interface IDXGIOutput3**
-* **interface IDXGIOutput4**
-* **interface IDXGIOutput5**
-* **interface IDXGIOutput6**
-* **interface IDXGIOutputDuplication**
-* **interface IDXGIResource**
-* **interface IDXGIResource1**
-* **interface IDXGISurface**
-* **interface IDXGISurface1**
-* **interface IDXGISurface2**
-* **interface IDXGISwapChain**
-* **interface IDXGISwapChain1**
-* **interface IDXGISwapChain2**
-* **interface IDXGISwapChain3**
-* **interface IDXGISwapChain4**
-* **interface IDXGISwapChainMedia**
-* **struct D3D12_FEATURE_DATA_D3D12_OPTIONS**
-  * `bool DoublePrecisionFloatShaderOps`
-  * `bool OutputMergerLogicOp`
-  * `D3D12_SHADER_MIN_PRECISION_SUPPORT MinPrecisionSupport`
-  * `D3D12_TILED_RESOURCES_TIER TiledResourcesTier`
-  * `D3D12_RESOURCE_BINDING_TIER ResourceBindingTier`
-  * `bool PSSpecifiedStencilRefSupported`
-  * `bool TypedUAVLoadAdditionalFormats`
-  * `bool ROVsSupported`
-  * `D3D12_CONSERVATIVE_RASTERIZATION_TIER ConservativeRasterizationTier`
-  * `uint MaxGPUVirtualAddressBitsPerResource`
-  * `bool StandardSwizzle64KBSupported`
-  * `D3D12_CROSS_NODE_SHARING_TIER CrossNodeSharingTier`
-  * `bool CrossAdapterRowMajorTextureSupported`
-  * `bool VPAndRTArrayIndexFromAnyShaderFeedingRasterizerSupportedWithoutGSEmulation`
-  * `D3D12_RESOURCE_HEAP_TIER ResourceHeapTier`
-* **struct D3DCOLORVALUE**
-  * `float r`
-  * `float g`
-  * `float b`
-  * `float a`
-* **struct DXGI_ADAPTER_DESC**
-  * `string Description`
-  * `uint VendorId`
-  * `uint DeviceId`
-  * `uint SubSysId`
-  * `uint Revision`
-  * `nuint DedicatedVideoMemory`
-  * `nuint DedicatedSystemMemory`
-  * `nuint SharedSystemMemory`
-  * `LUID AdapterLuid`
-* **struct DXGI_ADAPTER_DESC1**
-  * `string Description`
-  * `uint VendorId`
-  * `uint DeviceId`
-  * `uint SubSysId`
-  * `uint Revision`
-  * `nuint DedicatedVideoMemory`
-  * `nuint DedicatedSystemMemory`
-  * `nuint SharedSystemMemory`
-  * `LUID AdapterLuid`
-  * `uint Flags`
-* **struct DXGI_ADAPTER_DESC2**
-  * `string Description`
-  * `uint VendorId`
-  * `uint DeviceId`
-  * `uint SubSysId`
-  * `uint Revision`
-  * `nuint DedicatedVideoMemory`
-  * `nuint DedicatedSystemMemory`
-  * `nuint SharedSystemMemory`
-  * `LUID AdapterLuid`
-  * `uint Flags`
-  * `DXGI_GRAPHICS_PREEMPTION_GRANULARITY GraphicsPreemptionGramularity`
-  * `DXGI_COMPUTE_PREEMPTION_GRANULARITY ComputePreemptionGramularity`
-* **struct DXGI_ADAPTER_DESC3**
-  * `string Description`
-  * `uint VendorId`
-  * `uint DeviceId`
-  * `uint SubSysId`
-  * `uint Revision`
-  * `nuint DedicatedVideoMemory`
-  * `nuint DedicatedSystemMemory`
-  * `nuint SharedSystemMemory`
-  * `LUID AdapterLuid`
-  * `DXGI_ADAPTER_FLAG3 Flags`
-  * `DXGI_GRAPHICS_PREEMPTION_GRANULARITY GraphicsPreemptionGramularity`
-  * `DXGI_COMPUTE_PREEMPTION_GRANULARITY ComputePreemptionGramularity`
-* **struct DXGI_DECODE_SWAP_CHAIN_DESC**
-  * `uint Flags`
-* **struct DXGI_DISPLAY_COLOR_SPACE**
-* **struct DXGI_FRAME_STATISTICS**
-  * `uint PresentCount`
-  * `uint PresentRefreshCount`
-  * `uint SyncRefreshCount`
-  * `LARGE_INTEGER SyncQPCTime`
-  * `LARGE_INTEGER SyncGPUTime`
-* **struct DXGI_FRAME_STATISTICS_MEDIA**
-  * `uint PresentCount`
-  * `uint PresentRefreshCount`
-  * `uint SyncRefreshCount`
-  * `LARGE_INTEGER SyncQPCTime`
-  * `LARGE_INTEGER SyncGPUTime`
-  * `DXGI_FRAME_PRESENTATION_MODE CompositionMode`
-  * `uint ApprovedPresentDuration`
-* **struct DXGI_GAMMA_CONTROL**
-  * `DXGI_RGB Scale`
-  * `DXGI_RGB Offset`
-* **struct DXGI_GAMMA_CONTROL_CAPABILITIES**
-  * `bool ScaleAndOffsetSupported`
-  * `float MaxConvertedValue`
-  * `float MinConvertedValue`
-  * `uint NumGammaControlPoints`
-* **struct DXGI_HDE_METADATA_HDR10**
-  * `uint MaxMasteringLuminance`
-  * `uint MinMasteringLuminance`
-  * `UInt16 MaxContentLightLevel`
-  * `UInt16 MaxFrameAverageLightLevel`
-* **struct DXGI_INFO_QUEUE_FILTER**
-  * `DXGI_INFO_QUEUE_FILTER_DESC AllowList`
-  * `DXGI_INFO_QUEUE_FILTER_DESC DenyList`
-* **struct DXGI_INFO_QUEUE_FILTER_DESC**
-  * `uint NumCategories`
-  * `IntPtr pCategoryList`
-  * `uint NumSeverities`
-  * `IntPtr pSeverityList`
-  * `uint NumIDs`
-  * `IntPtr pIDList`
-* **struct DXGI_INFO_QUEUE_MESSAGE**
-  * `DXGI_DEBUG_ID Producer`
-  * `DXGI_INFO_QUEUE_MESSAGE_CATEGORY Category`
-  * `DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity`
-  * `uint ID`
-  * `IntPtr pDescription`
-  * `nuint DescriptionByteLength`
-* **struct DXGI_JPEG_AC_HUFFMAN_TABLE**
-* **struct DXGI_JPEG_DC_HUFFMAN_TABLE**
-* **struct DXGI_JPEG_QUANTIZATION_TABLE**
-* **struct DXGI_MAPPED_RECT**
-  * `int Pitch`
-  * `IntPtr pBits`
-* **struct DXGI_MATRIX_3X2_F**
-  * `float _11`
-  * `float _12`
-  * `float _21`
-  * `float _22`
-  * `float _31`
-  * `float _32`
-* **struct DXGI_MODE_DESC**
-  * `uint Width`
-  * `uint Height`
-  * `DXGI_RATIONAL RefreshRate`
-  * `DXGI_FORMAT Format`
-  * `DXGI_MODE_SCANLINE_ORDER ScanlineOrdering`
-  * `DXGI_MODE_SCALING Scaling`
-* **struct DXGI_MODE_DESC1**
-  * `uint Width`
-  * `uint Height`
-  * `DXGI_RATIONAL RefreshRate`
-  * `DXGI_FORMAT Format`
-  * `DXGI_MODE_SCANLINE_ORDER ScanlineOrdering`
-  * `DXGI_MODE_SCALING Scaling`
-  * `bool Stereo`
-* **struct DXGI_OUTDUPL_DESC**
-  * `DXGI_MODE_DESC ModeDesc`
-  * `DXGI_MODE_ROTATION Rotation`
-  * `bool DesktopImageInSystemMemory`
-* **struct DXGI_OUTDUPL_FRAME_INFO**
-  * `LARGE_INTEGER LastPresentTime`
-  * `LARGE_INTEGER LastMouseUpdateTime`
-  * `uint AccumulatedFrames`
-  * `bool RectsCoalesced`
-  * `bool ProtectedContentMaskedOut`
-  * `DXGI_OUTDUPL_POINTER_POSITION PointerPosition`
-  * `uint TotalMetadataBufferSize`
-  * `uint PointerShapeBufferSize`
-* **struct DXGI_OUTDUPL_MOVE_RECT**
-  * `POINT SourcePoint`
-  * `RECT DestinationRect`
-* **struct DXGI_OUTDUPL_POINTER_POSITION**
-  * `POINT Position`
-  * `bool Visible`
-* **struct DXGI_OUTDUPL_POINTER_SHAPE_INFO**
-  * `uint Type`
-  * `uint Width`
-  * `uint Height`
-  * `uint Pitch`
-  * `POINT HotSpot`
-* **struct DXGI_OUTPUT_DESC**
-  * `RECT DesktopCoordinates`
-  * `bool AttachedToDesktop`
-  * `DXGI_MODE_ROTATION Rotation`
-  * `IntPtr Monitor`
-* **struct DXGI_OUTPUT_DESC1**
-  * `RECT DesktopCoordinates`
-  * `bool AttachedToDesktop`
-  * `DXGI_MODE_ROTATION Rotation`
-  * `IntPtr Monitor`
-  * `uint BitsPerColor`
-  * `DXGI_COLOR_SPACE_TYPE ColorSpace`
-  * `float MinLuminance`
-  * `float MaxLuminance`
-  * `float MaxFullFrameLuminance`
-* **struct DXGI_PRESENT_PARAMETERS**
-  * `uint DirtyRectsCount`
-  * `RECT pDirtyRects`
-  * `RECT pScrollRect`
-  * `POINT pScrollOffset`
-* **struct DXGI_QUERY_VIDEO_MEMORY_INFO**
-  * `UInt64 Budget`
-  * `UInt64 CurrentUsage`
-  * `UInt64 AvailableForReservation`
-  * `UInt64 CurrentReservation`
-* **struct DXGI_RATIONAL**
-  * `uint Numerator`
-  * `uint Denominator`
-* **struct DXGI_RGB**
-  * `float Red`
-  * `float Green`
-  * `float Blue`
-* **struct DXGI_RGBA**
-  * `float r`
-  * `float g`
-  * `float b`
-  * `float a`
-* **struct DXGI_SAMPLE_DESC**
-  * `uint Count`
-  * `uint Quality`
-* **struct DXGI_SHARED_RESOURCE**
-  * `IntPtr Handle`
-* **struct DXGI_SURFACE_DESC**
-  * `uint Width`
-  * `uint Height`
-  * `DXGI_FORMAT Format`
-  * `DXGI_SAMPLE_DESC SampleDesc`
-* **struct DXGI_SWAP_CHAIN_DESC**
-  * `DXGI_MODE_DESC BufferDesc`
-  * `DXGI_SAMPLE_DESC SampleDesc`
-  * `DXGI_USAGE BufferUsage`
-  * `uint BufferCount`
-  * `IntPtr OutputWindow`
-  * `bool Windowed`
-  * `DXGI_SWAP_EFFECT SwapEffect`
-  * `uint Flags`
-* **struct DXGI_SWAP_CHAIN_DESC1**
-  * `uint Width`
-  * `uint Height`
-  * `DXGI_FORMAT Format`
-  * `bool Stereo`
-  * `DXGI_SAMPLE_DESC SampleDesc`
-  * `DXGI_USAGE BufferUsage`
-  * `uint BufferCount`
-  * `DXGI_SCALING Scaling`
-  * `DXGI_SWAP_EFFECT SwapEffect`
-  * `DXGI_ALPHA_MODE AlphaMode`
-  * `DXGI_SWAP_CHAIN_FLAG Flags`
-* **struct DXGI_SWAP_CHAIN_FULLSCREEN_DESC**
-  * `DXGI_RATIONAL RefreshRate`
-  * `DXGI_MODE_SCANLINE_ORDER ScanlineOrdering`
-  * `DXGI_MODE_SCALING Scaling`
-  * `bool Windowed`
-* **struct LARGE_INTEGER**
-* **struct LUID**
-  * `uint LowPart`
-  * `int HighPart`
-* **struct POINT**
-  * `int X`
-  * `int Y`
-* **struct _SECURITY_ATTRIBUTES**
-  * `uint nLength`
-  * `IntPtr lpSecurityDescriptor`
-  * `bool bInheritHandle`
-
-</details>
-
-<details><summary><b>Angene.Windows.Graphics</b></summary>
-
-* **class DxgiFunctions**
-
-</details>
-
-<details><summary><b>Angene.Windows.Slang</b></summary>
-
-* **enum BindingType**
-  * `nuint getSize()`
-  * `nuint getStride()`
-  * `int getAlignment()`
-  * `uint getFieldCount()`
-  * `long findFieldIndexByName()`
-  * `bool isArray()`
-  * `nuint getElementCount()`
-  * `nuint getTotalArrayElementCount()`
-  * `nuint getElementStride()`
-  * `ParameterCategory getParameterCategory()`
-  * `uint getCategoryCount()`
-  * `ParameterCategory getCategoryByIndex()`
-  * `uint getRowCount()`
-  * `uint getColumnCount()`
-  * `SlangResourceShape getResourceShape()`
-  * `SlangResourceAccess getResourceAccess()`
-  * `SlangMatrixLayoutMode getMatrixLayoutMode()`
-  * `int getGenericParamIndex()`
-  * `long getBindingRangeCount()`
-  * `BindingType getBindingRangeType()`
-  * `bool isBindingRangeSpecializable()`
-  * `long getBindingRangeBindingCount()`
-  * `long getFieldBindingRangeOffset()`
-  * `long getExplicitCounterBindingRangeOffset()`
-  * `SlangImageFormat getBindingRangeImageFormat()`
-  * `long getBindingRangeDescriptorSetIndex()`
-  * `long getBindingRangeFirstDescriptorRangeIndex()`
-  * `long getBindingRangeDescriptorRangeCount()`
-  * `long getDescriptorSetCount()`
-  * `long getDescriptorSetSpaceOffset()`
-  * `long getDescriptorSetDescriptorRangeCount()`
-  * `long getDescriptorSetDescriptorRangeIndexOffset()`
-  * `long getDescriptorSetDescriptorRangeDescriptorCount()`
-  * `BindingType getDescriptorSetDescriptorRangeType()`
-  * `ParameterCategory getDescriptorSetDescriptorRangeCategory()`
-  * `long getSubObjectRangeCount()`
-  * `long getSubObjectRangeBindingRangeIndex()`
-  * `long getSubObjectRangeSpaceOffset()`
-* **enum BuiltinModuleName**
-  * `SlangUUID getTypeGuid()`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `int queryInterface()`
-  * `uint addRef()`
-  * `uint release()`
-  * `int createSession()`
-  * `SlangProfileID findProfile()`
-  * `void setDownstreamCompilerPath()`
-  * `void setDownstreamCompilerPrelude()`
-  * `void getDownstreamCompilerPrelude()`
-  * `int setDefaultDownstreamCompiler()`
-  * `SlangPassThrough getDefaultDownstreamCompiler()`
-  * `void setLanguagePrelude()`
-  * `void getLanguagePrelude()`
-  * `int createCompileRequest()`
-  * `void addBuiltins()`
-  * `void setSharedLibraryLoader()`
-  * `int checkCompileTargetSupport()`
-  * `int checkPassThroughSupport()`
-  * `int compileCoreModule()`
-  * `int loadCoreModule()`
-  * `int saveCoreModule()`
-  * `SlangCapabilityID findCapability()`
-  * `void setDownstreamCompilerForTransition()`
-  * `SlangPassThrough getDownstreamCompilerForTransition()`
-  * `void getCompilerElapsedTime()`
-  * `int setSPIRVCoreGrammar()`
-  * `int parseCommandLineArguments()`
-  * `int getSessionDescDigest()`
-  * `int compileBuiltinModule()`
-  * `int loadBuiltinModule()`
-  * `int saveBuiltinModule()`
-  * `nuint structureSize`
-  * `SlangCompileTarget format`
-  * `SlangProfileID profile`
-  * `uint flags`
-  * `SlangFloatingPointMode floatingPointMode`
-  * `SlangLineDirectiveMode lineDirectiveMode`
-  * `byte forceGLSLScalarBufferLayout`
-  * `uint compilerOptionEntryCount`
-  * `long targetCount`
-  * `SlangMatrixLayoutMode defaultMatrixLayoutMode`
-  * `long searchPathCount`
-  * `long preprocessorMacroCount`
-  * `byte enableEffectAnnotations`
-  * `byte allowGLSLSyntax`
-  * `byte skipSPIRVValidation`
-* **enum CompilerOptionName**
-* **enum CompilerOptionValueKind**
-  * `CompilerOptionValueKind kind`
-  * `int intValue0`
-  * `int intValue1`
-* **enum ContainerType**
-  * `long line`
-  * `long column`
-  * `SlangUUID getTypeGuid()`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `int queryInterface()`
-  * `uint addRef()`
-  * `uint release()`
-  * `int createCompositeComponentType()`
-  * `int getTypeRTTIMangledName()`
-  * `int getTypeConformanceWitnessMangledName()`
-  * `int getTypeConformanceWitnessSequentialID()`
-  * `int createCompileRequest()`
-  * `int createTypeConformanceComponentType()`
-  * `long getLoadedModuleCount()`
-  * `bool isBinaryModuleUpToDate()`
-  * `int getDynamicObjectRTTIBytes()`
-  * `int loadModuleInfoFromIRBlob()`
-  * `int getDeclSourceLocation()`
-  * `int isParameterLocationUsed()`
-  * `bool usesBindlessResourceHeap()`
-* **enum CoverageBranchArmKind**
-  * `nuint structSize`
-  * `uint line`
-  * `uint counterIndex`
-  * `CoverageEntryKind kind`
-  * `CoverageCounterMode counterMode`
-  * `uint startColumn`
-  * `uint endLine`
-  * `uint endColumn`
-  * `uint branchSiteID`
-  * `uint branchArmID`
-  * `CoverageBranchArmKind branchArmKind`
-* **enum CoverageCounterMode**
-* **enum CoverageEntryKind**
-* **enum Enum**
-* **enum ID**
-  * `uint getUserAttributeCount()`
-  * `bool hasDefaultValue()`
-  * `int getDefaultValueInt()`
-  * `int getDefaultValueFloat()`
-  * `ParameterCategory getCategory()`
-  * `uint getCategoryCount()`
-  * `ParameterCategory getCategoryByIndex()`
-  * `nuint getOffset()`
-  * `uint getBindingIndex()`
-  * `uint getBindingSpace()`
-  * `nuint getBindingSpace()`
-  * `SlangImageFormat getImageFormat()`
-  * `nuint getSemanticIndex()`
-  * `SlangStage getStage()`
-  * `uint getParameterCount()`
-  * `bool isOverloaded()`
-  * `uint getOverloadCount()`
-  * `uint getTypeParameterCount()`
-  * `uint getValueParameterCount()`
-  * `uint getTypeParameterConstraintCount()`
-  * `SlangDeclKind getInnerKind()`
-  * `long getConcreteIntVal()`
-  * `void getComputeThreadGroupSize()`
-  * `void getComputeWaveSize()`
-  * `bool usesAnySampleRateInput()`
-  * `bool hasDefaultConstantBuffer()`
-  * `uint getIndex()`
-  * `uint getConstraintCount()`
-* **enum Kind**
-  * `uint count`
-  * `uint index`
-  * `void Increment()`
-  * `bool NotEquals()`
-* **enum LayoutRules**
-  * `uint getParameterCount()`
-  * `uint getTypeParameterCount()`
-  * `ulong getEntryPointCount()`
-  * `ulong getGlobalConstantBufferBinding()`
-  * `nuint getGlobalConstantBufferSize()`
-  * `bool isSubType()`
-  * `ulong getHashedStringCount()`
-  * `int toJson()`
-  * `long getBindlessSpaceIndex()`
-  * `uint getChildrenCount()`
-* **enum OSPathKind**
-* **enum OperandDataType**
-  * `uint _bitfield`
-  * `uint offset`
-  * `OperandDataType getType()`
-  * `uint opcodeExtension`
-  * `uint operandCount`
-* **enum ParameterCategory**
-* **enum PathKind**
-  * `SlangUUID getTypeGuid()`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `int queryInterface()`
-  * `uint addRef()`
-  * `uint release()`
-  * `int loadFile()`
-  * `int getFileUniqueIdentity()`
-  * `int calcCombinedPath()`
-  * `int getPathType()`
-  * `int getPath()`
-  * `void clearCache()`
-  * `int enumeratePathContents()`
-  * `OSPathKind getOSPathKind()`
-  * `int saveFile()`
-  * `int saveFileBlob()`
-  * `int remove()`
-  * `int createDirectory()`
-* **enum ScalarType**
-* **enum SlangArchiveType**
-* **enum SlangBindableResourceType**
-* **enum SlangBindingType**
-* **enum SlangCapabilityID**
-* **enum SlangCompileTarget**
-* **enum SlangContainerFormat**
-* **enum SlangCooperativeMatrixUse**
-* **enum SlangCooperativeVectorMatrixLayout**
-* **enum SlangDebugInfoFormat**
-* **enum SlangDebugInfoLevel**
-* **enum SlangDeclKind**
-* **enum SlangDiagnosticColor**
-* **enum SlangEmitCPUMethod**
-* **enum SlangEmitSpirvMethod**
-* **enum SlangFloatingPointMode**
-* **enum SlangFpDenormalMode**
-* **enum SlangImageFormat**
-  * `SlangUUID getTypeGuid()`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `int queryInterface()`
-  * `uint addRef()`
-  * `uint release()`
-  * `void setFileSystem()`
-  * `void setCompileFlags()`
-  * `uint getCompileFlags()`
-  * `void setDumpIntermediates()`
-  * `void setDumpIntermediatePrefix()`
-  * `void setLineDirectiveMode()`
-  * `void setCodeGenTarget()`
-  * `int addCodeGenTarget()`
-  * `void setTargetProfile()`
-  * `void setTargetFlags()`
-  * `void setTargetFloatingPointMode()`
-  * `void setTargetMatrixLayoutMode()`
-  * `void setMatrixLayoutMode()`
-  * `void setDebugInfoLevel()`
-  * `void setOptimizationLevel()`
-  * `void setOutputContainerFormat()`
-  * `void setPassThrough()`
-  * `void setDiagnosticCallback()`
-  * `void setWriter()`
-  * `void addSearchPath()`
-  * `void addPreprocessorDefine()`
-  * `int processCommandLineArguments()`
-  * `int addTranslationUnit()`
-  * `void setDefaultModuleName()`
-  * `void addTranslationUnitPreprocessorDefine()`
-  * `void addTranslationUnitSourceFile()`
-  * `void addTranslationUnitSourceString()`
-  * `int addLibraryReference()`
-  * `void addTranslationUnitSourceStringSpan()`
-  * `void addTranslationUnitSourceBlob()`
-  * `int addEntryPoint()`
-  * `int addEntryPointEx()`
-  * `int setGlobalGenericArgs()`
-  * `int setTypeNameForGlobalExistentialTypeParam()`
-  * `int setTypeNameForEntryPointExistentialTypeParam()`
-  * `void setAllowGLSLInput()`
-  * `int compile()`
-  * `int getDiagnosticOutputBlob()`
-  * `int getDependencyFileCount()`
-  * `int getTranslationUnitCount()`
-  * `int getEntryPointCodeBlob()`
-  * `int getEntryPointHostCallable()`
-  * `int getTargetCodeBlob()`
-  * `int getTargetHostCallable()`
-  * `int getContainerCode()`
-  * `int loadRepro()`
-  * `int saveRepro()`
-  * `int enableReproCapture()`
-  * `int getProgram()`
-  * `int getEntryPoint()`
-  * `int getModule()`
-  * `int getSession()`
-  * `void setCommandLineCompilerMode()`
-  * `int addTargetCapability()`
-  * `int getProgramWithEntryPoints()`
-  * `int isParameterLocationUsed()`
-  * `void setTargetLineDirectiveMode()`
-  * `void setTargetForceGLSLScalarBufferLayout()`
-  * `void overrideDiagnosticSeverity()`
-  * `int getDiagnosticFlags()`
-  * `void setDiagnosticFlags()`
-  * `void setDebugInfoFormat()`
-  * `void setEnableEffectAnnotations()`
-  * `void setReportDownstreamTime()`
-  * `void setReportPerfBenchmark()`
-  * `void setSkipSPIRVValidation()`
-  * `void setTargetUseMinimumSlangOptimization()`
-  * `void setIgnoreCapabilityCheck()`
-  * `int getCompileTimeProfile()`
-  * `void setTargetGenerateWholeProgram()`
-  * `void setTargetForceDXLayout()`
-  * `void setTargetEmbedDownstreamIR()`
-  * `void setTargetForceCLayout()`
-* **enum SlangLanguageVersion**
-* **enum SlangLayoutRules**
-* **enum SlangLineDirectiveMode**
-* **enum SlangMatrixLayoutMode**
-* **enum SlangModifierID**
-* **enum SlangOptimizationLevel**
-* **enum SlangParameterCategory**
-* **enum SlangPassThrough**
-* **enum SlangPathType**
-* **enum SlangProfileID**
-* **enum SlangReflectionGenericArgType**
-* **enum SlangResourceAccess**
-* **enum SlangResourceShape**
-* **enum SlangScalarType**
-* **enum SlangScope**
-* **enum SlangSeverity**
-* **enum SlangSourceLanguage**
-* **enum SlangStage**
-* **enum SlangTypeKind**
-* **enum SlangWriterChannel**
-* **enum SlangWriterMode**
-  * `SlangUUID getTypeGuid()`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `int queryInterface()`
-  * `uint addRef()`
-  * `uint release()`
-  * `int endAppendBuffer()`
-  * `int write()`
-  * `void flush()`
-  * `bool isConsole()`
-  * `int setMode()`
-  * `nuint getEntryCount()`
-  * `int getEntryTimeMS()`
-  * `uint getEntryInvocationTimes()`
-* **enum SyntheticResourceAccess**
-  * `nuint structSize`
-  * `uint id`
-  * `BindingType bindingType`
-  * `uint arraySize`
-  * `SyntheticResourceScope scope`
-  * `SyntheticResourceAccess access`
-  * `int entryPointIndex`
-  * `int space`
-  * `int binding`
-  * `int uniformOffset`
-  * `int uniformStride`
-  * `SlangUUID getTypeGuid()`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `int queryInterface()`
-  * `uint addRef()`
-  * `uint release()`
-  * `uint getResourceCount()`
-  * `int getResourceInfo()`
-  * `int findResourceIndexByID()`
-* **enum SyntheticResourceScope**
-* **struct BufferReflection**
-  * `long intVal`
-  * `byte boolVal`
-  * `uint getArgumentCount()`
-  * `int getArgumentValueInt()`
-  * `int getArgumentValueFloat()`
-  * `uint getFieldCount()`
-  * `bool isArray()`
-  * `nuint getElementCount()`
-  * `nuint getTotalArrayElementCount()`
-  * `uint getRowCount()`
-  * `uint getColumnCount()`
-  * `SlangResourceShape getResourceShape()`
-  * `SlangResourceAccess getResourceAccess()`
-  * `int getFullName()`
-  * `uint getUserAttributeCount()`
-* **struct ByteCodeFuncInfo**
-  * `uint parameterCount`
-  * `uint returnValueSize`
-* **struct ByteCodeRunnerDesc**
-  * `nuint structSize`
-  * `SlangUUID getTypeGuid()`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `int queryInterface()`
-  * `uint addRef()`
-  * `uint release()`
-  * `int loadModule()`
-  * `int selectFunctionByIndex()`
-  * `int findFunctionByName()`
-  * `int getFunctionInfo()`
-  * `int execute()`
-  * `void getErrorString()`
-  * `void setExtInstHandlerUserData()`
-  * `int registerExtCall()`
-  * `int setPrintCallback()`
-  * `int SLANG_DIAGNOSTIC_FLAG_VERBOSE_PATHS`
-  * `int SLANG_DIAGNOSTIC_FLAG_TREAT_WARNINGS_AS_ERRORS`
-  * `int SLANG_COMPILE_FLAG_NO_MANGLING`
-  * `int SLANG_COMPILE_FLAG_NO_CODEGEN`
-  * `int SLANG_COMPILE_FLAG_OBFUSCATE`
-  * `int SLANG_COMPILE_FLAG_NO_CHECKING`
-  * `int SLANG_COMPILE_FLAG_SPLIT_MIXED_TYPES`
-  * `int SLANG_TARGET_FLAG_PARAMETER_BLOCKS_USE_REGISTER_SPACES`
-  * `int SLANG_TARGET_FLAG_GENERATE_WHOLE_PROGRAM`
-  * `int SLANG_TARGET_FLAG_DUMP_IR`
-  * `int SLANG_TARGET_FLAG_GENERATE_SPIRV_DIRECTLY`
-  * `uint kDefaultTargetFlags`
-  * `int? spProcessCommandLineArguments()`
-  * `void spAddTranslationUnitSourceString()`
-  * `int kSessionFlags_None`
-  * `uint kInvalidCoverageCounterIndex`
-  * `void shutdown()`
-  * `bool Equals()`
-  * `bool NotEquals()`
-* **struct CompileCoreModuleFlag**
-* **struct CompilerOptionEntry**
-  * `CompilerOptionName name`
-  * `CompilerOptionValue value`
-* **struct CooperativeMatrixCombination**
-  * `uint m`
-  * `uint n`
-  * `uint k`
-  * `SlangScalarType componentTypeA`
-  * `SlangScalarType componentTypeB`
-  * `SlangScalarType componentTypeC`
-  * `SlangScalarType componentTypeResult`
-  * `byte saturate`
-  * `SlangScope scope`
-* **struct CooperativeMatrixType**
-  * `SlangScalarType componentType`
-  * `SlangScope scope`
-  * `uint rowCount`
-  * `uint columnCount`
-  * `SlangCooperativeMatrixUse use`
-* **struct CooperativeVectorCombination**
-  * `SlangScalarType inputType`
-  * `SlangScalarType inputInterpretation`
-  * `uint inputPackingFactor`
-  * `SlangScalarType matrixInterpretation`
-  * `SlangScalarType biasInterpretation`
-  * `SlangScalarType resultType`
-  * `byte transpose`
-  * `SlangUUID getTypeGuid()`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `int queryInterface()`
-  * `uint addRef()`
-  * `uint release()`
-  * `ulong getCooperativeMatrixTypeCount()`
-  * `int getCooperativeMatrixTypeByIndex()`
-  * `ulong getCooperativeMatrixCombinationCount()`
-  * `int getCooperativeMatrixCombinationByIndex()`
-  * `ulong getCooperativeVectorTypeCount()`
-  * `int getCooperativeVectorTypeByIndex()`
-  * `ulong getCooperativeVectorCombinationCount()`
-  * `int getCooperativeVectorCombinationByIndex()`
-  * `uint getItemCount()`
-  * `int getItemData()`
-  * `int getMetadata()`
-  * `long getSpecializationParamCount()`
-  * `int getEntryPointCode()`
-  * `int getResultAsFileSystem()`
-  * `void getEntryPointHash()`
-  * `int specialize()`
-  * `int link()`
-  * `int getEntryPointHostCallable()`
-  * `int renameEntryPoint()`
-  * `int linkWithOptions()`
-  * `int getTargetCode()`
-  * `int getTargetMetadata()`
-  * `int getEntryPointMetadata()`
-  * `int getTargetCompileResult()`
-  * `int getEntryPointCompileResult()`
-  * `int getTargetHostCallable()`
-  * `int findEntryPointByName()`
-  * `int getDefinedEntryPointCount()`
-  * `int getDefinedEntryPoint()`
-  * `int serialize()`
-  * `int writeToFile()`
-  * `int findAndCheckEntryPoint()`
-  * `int getDependencyFileCount()`
-  * `int disassemble()`
-  * `int precompileForTarget()`
-  * `int getPrecompiledTargetCode()`
-  * `long getModuleDependencyCount()`
-  * `int getModuleDependency()`
-  * `_Anonymous_e__Union Anonymous`
-  * `SpecializationArg fromType()`
-  * `SpecializationArg fromExpr()`
-* **struct CooperativeVectorTypeUsageInfo**
-  * `SlangScalarType componentType`
-  * `uint maxSize`
-  * `byte usedForTrainingOp`
-* **struct CoverageBufferInfo**
-  * `nuint structSize`
-  * `int space`
-  * `int binding`
-  * `uint elementByteWidth`
-  * `SlangUUID getTypeGuid()`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `int queryInterface()`
-  * `uint addRef()`
-  * `uint release()`
-  * `uint getCounterCount()`
-  * `int getEntryInfo()`
-  * `int getBufferInfo()`
-  * `uint getEntryCount()`
-* **struct Modifier**
-* **struct SlangEntryPoint**
-* **struct SlangEntryPointLayout**
-* **struct SlangGlobalSessionDesc**
-  * `uint structureSize`
-  * `uint apiVersion`
-  * `uint minLanguageVersion`
-  * `byte enableGLSL`
-  * `_reserved_e__FixedBuffer reserved`
-* **struct SlangProgramLayout**
-* **struct SlangReflectionDecl**
-* **struct SlangReflectionFunction**
-* **struct SlangReflectionGeneric**
-  * `long intVal`
-  * `byte boolVal`
-* **struct SlangReflectionModifier**
-* **struct SlangReflectionType**
-* **struct SlangReflectionTypeLayout**
-* **struct SlangReflectionTypeParameter**
-* **struct SlangReflectionUserAttribute**
-* **struct SlangReflectionVariable**
-* **struct SlangReflectionVariableLayout**
-* **struct SlangUUID**
-  * `uint data1`
-  * `ushort data2`
-  * `ushort data3`
-  * `_data4_e__FixedBuffer data4`
-* **struct _chars_e__FixedBuffer**
-  * `sbyte e0`
-  * `Span<sbyte> AsSpan()`
-  * `SlangUUID getTypeGuid()`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `int queryInterface()`
-  * `uint addRef()`
-  * `uint release()`
-  * `int loadFile()`
-  * `int loadSharedLibrary()`
-* **struct _data4_e__FixedBuffer**
-  * `byte e0`
-  * `SlangUUID getTypeGuid()`
-  * `int QueryInterface()`
-  * `uint AddRef()`
-  * `uint Release()`
-  * `int queryInterface()`
-  * `uint addRef()`
-  * `uint release()`
-  * `nuint getBufferSize()`
-  * `_chars_e__FixedBuffer chars`
-* **struct _reserved_e__FixedBuffer**
-  * `uint e0`
-
-</details>
-
-## Angene.XR (Not done at time of writing: 2026/07/22)
-<details><summary><b>Angene.External.OpenXR</b></summary>
-
-* **enum VkDeviceQueueCreateFlags**
-  * `XrStructureType type`
-  * `ulong systemId`
-  * `uint width`
-  * `uint height`
-  * `int minFilter`
-  * `int magFilter`
-  * `int mipmapMode`
-  * `int wrapModeS`
-  * `int wrapModeT`
-  * `int swizzleRed`
-  * `int swizzleGreen`
-  * `int swizzleBlue`
-  * `int swizzleAlpha`
-  * `float maxAnisotropy`
-  * `XrColor4f borderColor`
-  * `uint additionalCreateFlags`
-  * `uint additionalUsageFlags`
-  * `ulong XR_SPACE_VELOCITY_LINEAR_VALID_BIT`
-  * `ulong XR_SPACE_VELOCITY_ANGULAR_VALID_BIT`
-  * `ulong XR_SPACE_LOCATION_ORIENTATION_VALID_BIT`
-  * `ulong XR_SPACE_LOCATION_POSITION_VALID_BIT`
-  * `ulong XR_SPACE_LOCATION_ORIENTATION_TRACKED_BIT`
-  * `ulong XR_SPACE_LOCATION_POSITION_TRACKED_BIT`
-  * `ulong XR_SWAPCHAIN_CREATE_PROTECTED_CONTENT_BIT`
-  * `ulong XR_SWAPCHAIN_CREATE_STATIC_IMAGE_BIT`
-  * `ulong XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT`
-  * `ulong XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT`
-  * `ulong XR_SWAPCHAIN_USAGE_UNORDERED_ACCESS_BIT`
-  * `ulong XR_SWAPCHAIN_USAGE_TRANSFER_SRC_BIT`
-  * `ulong XR_SWAPCHAIN_USAGE_TRANSFER_DST_BIT`
-  * `ulong XR_SWAPCHAIN_USAGE_SAMPLED_BIT`
-  * `ulong XR_SWAPCHAIN_USAGE_MUTABLE_FORMAT_BIT`
-  * `ulong XR_SWAPCHAIN_USAGE_INPUT_ATTACHMENT_BIT_MND`
-  * `ulong XR_SWAPCHAIN_USAGE_INPUT_ATTACHMENT_BIT_KHR`
-  * `ulong XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT`
-  * `ulong XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT`
-  * `ulong XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT`
-  * `ulong XR_COMPOSITION_LAYER_INVERTED_ALPHA_BIT_EXT`
-  * `ulong XR_VIEW_STATE_ORIENTATION_VALID_BIT`
-  * `ulong XR_VIEW_STATE_POSITION_VALID_BIT`
-  * `ulong XR_VIEW_STATE_ORIENTATION_TRACKED_BIT`
-  * `ulong XR_VIEW_STATE_POSITION_TRACKED_BIT`
-  * `ulong XR_INPUT_SOURCE_LOCALIZED_NAME_USER_PATH_BIT`
-  * `ulong XR_INPUT_SOURCE_LOCALIZED_NAME_INTERACTION_PROFILE_BIT`
-  * `ulong XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT`
-  * `ulong XR_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT`
-  * `ulong XR_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT`
-  * `ulong XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT`
-  * `ulong XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT`
-  * `ulong XR_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT`
-  * `ulong XR_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT`
-  * `ulong XR_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT`
-  * `ulong XR_DEBUG_UTILS_MESSAGE_TYPE_CONFORMANCE_BIT_EXT`
-  * `ulong XR_OVERLAY_MAIN_SESSION_ENABLED_COMPOSITION_LAYER_INFO_DEPTH_BIT_EXTX`
-  * `ulong XR_COMPOSITION_LAYER_IMAGE_LAYOUT_VERTICAL_FLIP_BIT_FB`
-  * `ulong XR_COMPOSITION_LAYER_SECURE_CONTENT_EXCLUDE_LAYER_BIT_FB`
-  * `ulong XR_COMPOSITION_LAYER_SECURE_CONTENT_REPLACE_LAYER_BIT_FB`
-  * `ulong XR_HAND_TRACKING_AIM_COMPUTED_BIT_FB`
-  * `ulong XR_HAND_TRACKING_AIM_VALID_BIT_FB`
-  * `ulong XR_HAND_TRACKING_AIM_INDEX_PINCHING_BIT_FB`
-  * `ulong XR_HAND_TRACKING_AIM_MIDDLE_PINCHING_BIT_FB`
-  * `ulong XR_HAND_TRACKING_AIM_RING_PINCHING_BIT_FB`
-  * `ulong XR_HAND_TRACKING_AIM_LITTLE_PINCHING_BIT_FB`
-  * `ulong XR_HAND_TRACKING_AIM_SYSTEM_GESTURE_BIT_FB`
-  * `ulong XR_HAND_TRACKING_AIM_DOMINANT_HAND_BIT_FB`
-  * `ulong XR_HAND_TRACKING_AIM_MENU_PRESSED_BIT_FB`
-  * `ulong XR_SWAPCHAIN_CREATE_FOVEATION_SCALED_BIN_BIT_FB`
-  * `ulong XR_SWAPCHAIN_CREATE_FOVEATION_FRAGMENT_DENSITY_MAP_BIT_FB`
-  * `ulong XR_KEYBOARD_TRACKING_EXISTS_BIT_FB`
-  * `ulong XR_KEYBOARD_TRACKING_LOCAL_BIT_FB`
-  * `ulong XR_KEYBOARD_TRACKING_REMOTE_BIT_FB`
-  * `ulong XR_KEYBOARD_TRACKING_CONNECTED_BIT_FB`
-  * `ulong XR_KEYBOARD_TRACKING_QUERY_LOCAL_BIT_FB`
-  * `ulong XR_KEYBOARD_TRACKING_QUERY_REMOTE_BIT_FB`
-  * `ulong XR_TRIANGLE_MESH_MUTABLE_BIT_FB`
-  * `ulong XR_PASSTHROUGH_CAPABILITY_BIT_FB`
-  * `ulong XR_PASSTHROUGH_CAPABILITY_COLOR_BIT_FB`
-  * `ulong XR_PASSTHROUGH_CAPABILITY_LAYER_DEPTH_BIT_FB`
-  * `ulong XR_PASSTHROUGH_IS_RUNNING_AT_CREATION_BIT_FB`
-  * `ulong XR_PASSTHROUGH_LAYER_DEPTH_BIT_FB`
-  * `ulong XR_PASSTHROUGH_STATE_CHANGED_REINIT_REQUIRED_BIT_FB`
-  * `ulong XR_PASSTHROUGH_STATE_CHANGED_NON_RECOVERABLE_ERROR_BIT_FB`
-  * `ulong XR_PASSTHROUGH_STATE_CHANGED_RECOVERABLE_ERROR_BIT_FB`
-  * `ulong XR_PASSTHROUGH_STATE_CHANGED_RESTORED_ERROR_BIT_FB`
-  * `ulong XR_RENDER_MODEL_SUPPORTS_GLTF_2_0_SUBSET_1_BIT_FB`
-  * `ulong XR_RENDER_MODEL_SUPPORTS_GLTF_2_0_SUBSET_2_BIT_FB`
-  * `ulong XR_FRAME_END_INFO_PROTECTED_BIT_ML`
-  * `ulong XR_FRAME_END_INFO_VIGNETTE_BIT_ML`
-  * `ulong XR_GLOBAL_DIMMER_FRAME_END_INFO_ENABLED_BIT_ML`
-  * `ulong XR_LOCALIZATION_MAP_ERROR_UNKNOWN_BIT_ML`
-  * `ulong XR_LOCALIZATION_MAP_ERROR_OUT_OF_MAPPED_AREA_BIT_ML`
-  * `ulong XR_LOCALIZATION_MAP_ERROR_LOW_FEATURE_COUNT_BIT_ML`
-  * `ulong XR_LOCALIZATION_MAP_ERROR_EXCESSIVE_MOTION_BIT_ML`
-  * `ulong XR_LOCALIZATION_MAP_ERROR_LOW_LIGHT_BIT_ML`
-  * `ulong XR_LOCALIZATION_MAP_ERROR_HEADPOSE_BIT_ML`
-  * `ulong XR_COMPOSITION_LAYER_SPACE_WARP_INFO_FRAME_SKIP_BIT_FB`
-  * `ulong XR_SEMANTIC_LABELS_SUPPORT_MULTIPLE_SEMANTIC_LABELS_BIT_FB`
-  * `ulong XR_SEMANTIC_LABELS_SUPPORT_ACCEPT_DESK_TO_TABLE_MIGRATION_BIT_FB`
-  * `ulong XR_SEMANTIC_LABELS_SUPPORT_ACCEPT_INVISIBLE_WALL_FACE_BIT_FB`
-  * `ulong XR_DIGITAL_LENS_CONTROL_PROCESSING_DISABLE_BIT_ALMALENCE`
-  * `ulong XR_FOVEATION_EYE_TRACKED_STATE_VALID_BIT_META`
-  * `ulong XR_COMPOSITION_LAYER_SETTINGS_NORMAL_SUPER_SAMPLING_BIT_FB`
-  * `ulong XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SUPER_SAMPLING_BIT_FB`
-  * `ulong XR_COMPOSITION_LAYER_SETTINGS_NORMAL_SHARPENING_BIT_FB`
-  * `ulong XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB`
-  * `ulong XR_COMPOSITION_LAYER_SETTINGS_AUTO_LAYER_FILTER_BIT_META`
-  * `ulong XR_FRAME_SYNTHESIS_INFO_USE_2D_MOTION_VECTOR_BIT_EXT`
-  * `ulong XR_FRAME_SYNTHESIS_INFO_REQUEST_RELAXED_FRAME_INTERVAL_BIT_EXT`
-  * `ulong XR_PASSTHROUGH_PREFERENCE_DEFAULT_TO_ACTIVE_BIT_META`
-  * `ulong XR_VIRTUAL_KEYBOARD_INPUT_STATE_PRESSED_BIT_META`
-  * `ulong XR_EXTERNAL_CAMERA_STATUS_CONNECTED_BIT_OCULUS`
-  * `ulong XR_EXTERNAL_CAMERA_STATUS_CALIBRATING_BIT_OCULUS`
-  * `ulong XR_EXTERNAL_CAMERA_STATUS_CALIBRATION_FAILED_BIT_OCULUS`
-  * `ulong XR_EXTERNAL_CAMERA_STATUS_CALIBRATED_BIT_OCULUS`
-  * `ulong XR_EXTERNAL_CAMERA_STATUS_CAPTURING_BIT_OCULUS`
-  * `ulong XR_PERFORMANCE_METRICS_COUNTER_ANY_VALUE_VALID_BIT_META`
-  * `ulong XR_PERFORMANCE_METRICS_COUNTER_UINT_VALUE_VALID_BIT_META`
-  * `ulong XR_PERFORMANCE_METRICS_COUNTER_FLOAT_VALUE_VALID_BIT_META`
-  * `ulong XR_FOVEATION_DYNAMIC_LEVEL_ENABLED_BIT_HTC`
-  * `ulong XR_FOVEATION_DYNAMIC_CLEAR_FOV_ENABLED_BIT_HTC`
-  * `ulong XR_FOVEATION_DYNAMIC_FOCAL_CENTER_OFFSET_ENABLED_BIT_HTC`
-  * `ulong XR_SPATIAL_MESH_CONFIG_SEMANTIC_BIT_BD`
-  * `ulong XR_SPATIAL_MESH_CONFIG_ALIGN_SEMANTIC_WITH_VERTEX_BIT_BD`
-  * `ulong XR_SPACE_ACCELERATION_LINEAR_VALID_BIT_BD`
-  * `ulong XR_SPACE_ACCELERATION_ANGULAR_VALID_BIT_BD`
-  * `ulong XR_SOUND_OBSTACLE_ENABLED_BIT_BD`
-  * `ulong XR_SOUND_OBSTACLE_POSE_BIT_BD`
-  * `ulong XR_SOUND_OBSTACLE_MESH_BIT_BD`
-  * `ulong XR_SOUND_OBSTACLE_MATERIALS_BIT_BD`
-  * `ulong XR_SOUND_OBJECT_ENABLED_BIT_BD`
-  * `ulong XR_SOUND_OBJECT_POSE_BIT_BD`
-  * `ulong XR_SOUND_OBJECT_DIRECTIVITY_BIT_BD`
-  * `ulong XR_SOUND_OBJECT_SHAPE_BIT_BD`
-  * `ulong XR_SOUND_OBJECT_MAIN_VOLUME_BIT_BD`
-  * `ulong XR_SOUND_OBJECT_REFLECTION_GAIN_BIT_BD`
-  * `ulong XR_SOUND_OBJECT_ENABLE_DOPPLER_BIT_BD`
-  * `ulong XR_SOUND_OBJECT_DIRECT_SOUND_ATTENUATION_BIT_BD`
-  * `ulong XR_SOUND_OBJECT_INDIRECT_SOUND_ATTENUATION_BIT_BD`
-  * `ulong XR_SOUND_FIELD_ENABLED_BIT_BD`
-  * `ulong XR_SOUND_FIELD_ORIENTATION_BIT_BD`
-  * `ulong XR_SOUND_FIELD_MAIN_VOLUME_BIT_BD`
-  * `ulong XR_SOUND_FIELD_LFE_GAIN_BIT_BD`
-  * `ulong XR_PLANE_DETECTION_CAPABILITY_PLANE_DETECTION_BIT_EXT`
-  * `ulong XR_PLANE_DETECTION_CAPABILITY_PLANE_HOLES_BIT_EXT`
-  * `ulong XR_PLANE_DETECTION_CAPABILITY_SEMANTIC_CEILING_BIT_EXT`
-  * `ulong XR_PLANE_DETECTION_CAPABILITY_SEMANTIC_FLOOR_BIT_EXT`
-  * `ulong XR_PLANE_DETECTION_CAPABILITY_SEMANTIC_WALL_BIT_EXT`
-  * `ulong XR_PLANE_DETECTION_CAPABILITY_SEMANTIC_PLATFORM_BIT_EXT`
-  * `ulong XR_PLANE_DETECTION_CAPABILITY_ORIENTATION_BIT_EXT`
-  * `ulong XR_PLANE_DETECTOR_ENABLE_CONTOUR_BIT_EXT`
-  * `ulong XR_PERFORMANCE_METRICS_COUNTER_ANY_VALUE_VALID_BIT_ANDROID`
-  * `ulong XR_PERFORMANCE_METRICS_COUNTER_UINT_VALUE_VALID_BIT_ANDROID`
-  * `ulong XR_PERFORMANCE_METRICS_COUNTER_FLOAT_VALUE_VALID_BIT_ANDROID`
-  * `ulong XR_WORLD_MESH_DETECTOR_POINT_CLOUD_BIT_ML`
-  * `ulong XR_WORLD_MESH_DETECTOR_COMPUTE_NORMALS_BIT_ML`
-  * `ulong XR_WORLD_MESH_DETECTOR_COMPUTE_CONFIDENCE_BIT_ML`
-  * `ulong XR_WORLD_MESH_DETECTOR_PLANARIZE_BIT_ML`
-  * `ulong XR_WORLD_MESH_DETECTOR_REMOVE_MESH_SKIRT_BIT_ML`
-  * `ulong XR_WORLD_MESH_DETECTOR_INDEX_ORDER_CW_BIT_ML`
-  * `ulong XR_FACIAL_EXPRESSION_BLEND_SHAPE_PROPERTIES_VALID_BIT_ML`
-  * `ulong XR_FACIAL_EXPRESSION_BLEND_SHAPE_PROPERTIES_TRACKED_BIT_ML`
-  * `ulong XR_GEOSPATIAL_POSE_ORIENTATION_VALID_BIT_ANDROID`
-  * `ulong XR_GEOSPATIAL_POSE_POSITION_VALID_BIT_ANDROID`
-  * `ulong XR_BATTERY_STATE_DISPLAY_STATE_VALID_BIT_EXT`
-  * `ulong XR_BATTERY_STATE_DISPLAY_STATE_CHARGING_BIT_EXT`
-  * `ulong XR_BATTERY_STATE_DISPLAY_STATE_PLUGGED_IN_BIT_EXT`
-  * `ulong XR_BATTERY_STATE_DISPLAY_STATE_NO_BATTERY_BIT_EXT`
-  * `int OPENXR_H_`
-  * `int XR_VERSION_1_0`
-  * `ulong XR_CURRENT_API_VERSION`
-  * `ulong XR_API_VERSION_1_0`
-  * `int XR_MIN_COMPOSITION_LAYERS_SUPPORTED`
-  * `int XR_NULL_SYSTEM_ID`
-  * `int XR_NULL_PATH`
-  * `int XR_NO_DURATION`
-  * `long XR_INFINITE_DURATION`
-  * `int XR_MIN_HAPTIC_DURATION`
-  * `int XR_FREQUENCY_UNSPECIFIED`
-  * `ulong XR_MAX_EVENT_DATA_SIZE`
-  * `int XR_EXTENSION_ENUM_BASE`
-  * `int XR_EXTENSION_ENUM_STRIDE`
-  * `int XR_TRUE`
-  * `int XR_FALSE`
-  * `int XR_MAX_EXTENSION_NAME_SIZE`
-  * `int XR_MAX_API_LAYER_NAME_SIZE`
-  * `int XR_MAX_API_LAYER_DESCRIPTION_SIZE`
-  * `int XR_MAX_SYSTEM_NAME_SIZE`
-  * `int XR_MAX_APPLICATION_NAME_SIZE`
-  * `int XR_MAX_ENGINE_NAME_SIZE`
-  * `int XR_MAX_RUNTIME_NAME_SIZE`
-  * `int XR_MAX_PATH_LENGTH`
-  * `int XR_MAX_STRUCTURE_NAME_SIZE`
-  * `int XR_MAX_RESULT_STRING_SIZE`
-  * `int XR_MAX_ACTION_SET_NAME_SIZE`
-  * `int XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE`
-  * `int XR_MAX_ACTION_NAME_SIZE`
-  * `int XR_MAX_LOCALIZED_ACTION_NAME_SIZE`
-  * `int XR_VERSION_1_1`
-  * `ulong XR_API_VERSION_1_1`
-  * `int XR_UUID_SIZE`
-  * `int XR_KHR_composition_layer_cube`
-  * `int XR_KHR_composition_layer_cube_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_COMPOSITION_LAYER_CUBE_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_composition_layer_depth`
-  * `int XR_KHR_composition_layer_depth_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_COMPOSITION_LAYER_DEPTH_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_composition_layer_cylinder`
-  * `int XR_KHR_composition_layer_cylinder_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_COMPOSITION_LAYER_CYLINDER_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_composition_layer_equirect`
-  * `int XR_KHR_composition_layer_equirect_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_COMPOSITION_LAYER_EQUIRECT_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_visibility_mask`
-  * `int XR_KHR_visibility_mask_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_VISIBILITY_MASK_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_composition_layer_color_scale_bias`
-  * `int XR_KHR_composition_layer_color_scale_bias_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_COMPOSITION_LAYER_COLOR_SCALE_BIAS_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_loader_init`
-  * `int XR_KHR_loader_init_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_LOADER_INIT_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_composition_layer_equirect2`
-  * `int XR_KHR_composition_layer_equirect2_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_COMPOSITION_LAYER_EQUIRECT2_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_binding_modification`
-  * `int XR_KHR_binding_modification_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_BINDING_MODIFICATION_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_extended_struct_name_lengths`
-  * `int XR_KHR_extended_struct_name_lengths_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_EXTENDED_STRUCT_NAME_LENGTHS_EXTENSION_NAME { get; set; }`
-  * `int XR_MAX_STRUCTURE_NAME_SIZE_EXTENDED_KHR`
-  * `int XR_KHR_swapchain_usage_input_attachment_bit`
-  * `int XR_KHR_swapchain_usage_input_attachment_bit_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_SWAPCHAIN_USAGE_INPUT_ATTACHMENT_BIT_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_locate_spaces`
-  * `int XR_KHR_locate_spaces_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_LOCATE_SPACES_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_maintenance1`
-  * `int XR_KHR_maintenance1_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_MAINTENANCE1_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_generic_controller`
-  * `int XR_KHR_generic_controller_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_GENERIC_CONTROLLER_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_performance_settings`
-  * `int XR_EXT_performance_settings_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_thermal_query`
-  * `int XR_EXT_thermal_query_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_THERMAL_QUERY_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_debug_utils`
-  * `int XR_EXT_debug_utils_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_DEBUG_UTILS_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_eye_gaze_interaction`
-  * `int XR_EXT_eye_gaze_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_EYE_GAZE_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_EXTX_overlay`
-  * `int XR_EXTX_overlay_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXTX_OVERLAY_EXTENSION_NAME { get; set; }`
-  * `int XR_VARJO_quad_views`
-  * `int XR_VARJO_quad_views_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_VARJO_QUAD_VIEWS_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_unbounded_reference_space`
-  * `int XR_MSFT_unbounded_reference_space_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_UNBOUNDED_REFERENCE_SPACE_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_spatial_anchor`
-  * `int XR_MSFT_spatial_anchor_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_SPATIAL_ANCHOR_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_composition_layer_image_layout`
-  * `int XR_FB_composition_layer_image_layout_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_COMPOSITION_LAYER_IMAGE_LAYOUT_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_composition_layer_alpha_blend`
-  * `int XR_FB_composition_layer_alpha_blend_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_COMPOSITION_LAYER_ALPHA_BLEND_EXTENSION_NAME { get; set; }`
-  * `int XR_MND_headless`
-  * `int XR_MND_headless_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MND_HEADLESS_EXTENSION_NAME { get; set; }`
-  * `int XR_OCULUS_android_session_state_enable`
-  * `int XR_OCULUS_android_session_state_enable_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_OCULUS_ANDROID_SESSION_STATE_ENABLE_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_view_configuration_depth_range`
-  * `int XR_EXT_view_configuration_depth_range_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_VIEW_CONFIGURATION_DEPTH_RANGE_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_conformance_automation`
-  * `int XR_EXT_conformance_automation_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_CONFORMANCE_AUTOMATION_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_spatial_graph_bridge`
-  * `int XR_GUID_SIZE_MSFT`
-  * `int XR_MSFT_spatial_graph_bridge_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_SPATIAL_GRAPH_BRIDGE_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_hand_interaction`
-  * `int XR_MSFT_hand_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_HAND_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_hand_tracking`
-  * `int XR_HAND_JOINT_COUNT_EXT`
-  * `int XR_EXT_hand_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_HAND_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_hand_tracking_mesh`
-  * `int XR_MSFT_hand_tracking_mesh_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_HAND_TRACKING_MESH_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_secondary_view_configuration`
-  * `int XR_MSFT_secondary_view_configuration_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_SECONDARY_VIEW_CONFIGURATION_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_first_person_observer`
-  * `int XR_MSFT_first_person_observer_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_FIRST_PERSON_OBSERVER_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_controller_model`
-  * `int XR_NULL_CONTROLLER_MODEL_KEY_MSFT`
-  * `int XR_MAX_CONTROLLER_MODEL_NODE_NAME_SIZE_MSFT`
-  * `int XR_MSFT_controller_model_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_CONTROLLER_MODEL_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_win32_appcontainer_compatible`
-  * `int XR_EXT_win32_appcontainer_compatible_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_WIN32_APPCONTAINER_COMPATIBLE_EXTENSION_NAME { get; set; }`
-  * `int XR_EPIC_view_configuration_fov`
-  * `int XR_EPIC_view_configuration_fov_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EPIC_VIEW_CONFIGURATION_FOV_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_composition_layer_reprojection`
-  * `int XR_MSFT_composition_layer_reprojection_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_COMPOSITION_LAYER_REPROJECTION_EXTENSION_NAME { get; set; }`
-  * `int XR_HUAWEI_controller_interaction`
-  * `int XR_HUAWEI_controller_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_HUAWEI_CONTROLLER_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_swapchain_update_state`
-  * `int XR_FB_swapchain_update_state_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_composition_layer_secure_content`
-  * `int XR_FB_composition_layer_secure_content_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_COMPOSITION_LAYER_SECURE_CONTENT_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_body_tracking`
-  * `int XR_FB_body_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_BODY_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_dpad_binding`
-  * `int XR_EXT_dpad_binding_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_DPAD_BINDING_EXTENSION_NAME { get; set; }`
-  * `int XR_VALVE_analog_threshold`
-  * `int XR_VALVE_analog_threshold_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_VALVE_ANALOG_THRESHOLD_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_hand_joints_motion_range`
-  * `int XR_EXT_hand_joints_motion_range_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_HAND_JOINTS_MOTION_RANGE_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_samsung_odyssey_controller`
-  * `int XR_EXT_samsung_odyssey_controller_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_SAMSUNG_ODYSSEY_CONTROLLER_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_hp_mixed_reality_controller`
-  * `int XR_EXT_hp_mixed_reality_controller_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_HP_MIXED_REALITY_CONTROLLER_EXTENSION_NAME { get; set; }`
-  * `int XR_MND_swapchain_usage_input_attachment_bit`
-  * `int XR_MND_swapchain_usage_input_attachment_bit_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MND_SWAPCHAIN_USAGE_INPUT_ATTACHMENT_BIT_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_scene_understanding`
-  * `int XR_MSFT_scene_understanding_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_SCENE_UNDERSTANDING_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_scene_understanding_serialization`
-  * `int XR_MSFT_scene_understanding_serialization_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_SCENE_UNDERSTANDING_SERIALIZATION_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_display_refresh_rate`
-  * `int XR_FB_display_refresh_rate_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME { get; set; }`
-  * `int XR_HTC_vive_cosmos_controller_interaction`
-  * `int XR_HTC_vive_cosmos_controller_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_HTC_VIVE_COSMOS_CONTROLLER_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_HTCX_vive_tracker_interaction`
-  * `int XR_HTCX_vive_tracker_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_HTCX_VIVE_TRACKER_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_HTC_facial_tracking`
-  * `int XR_FACIAL_EXPRESSION_EYE_COUNT_HTC`
-  * `int XR_FACIAL_EXPRESSION_LIP_COUNT_HTC`
-  * `int XR_HTC_facial_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_HTC_FACIAL_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_HTC_vive_focus3_controller_interaction`
-  * `int XR_HTC_vive_focus3_controller_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_HTC_VIVE_FOCUS3_CONTROLLER_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_HTC_hand_interaction`
-  * `int XR_HTC_hand_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_HTC_HAND_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_HTC_vive_wrist_tracker_interaction`
-  * `int XR_HTC_vive_wrist_tracker_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_HTC_VIVE_WRIST_TRACKER_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_color_space`
-  * `int XR_FB_color_space_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_COLOR_SPACE_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_hand_tracking_mesh`
-  * `int XR_FB_hand_tracking_mesh_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_HAND_TRACKING_MESH_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_hand_tracking_aim`
-  * `int XR_FB_hand_tracking_aim_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_hand_tracking_capsules`
-  * `int XR_HAND_TRACKING_CAPSULE_POINT_COUNT_FB`
-  * `int XR_HAND_TRACKING_CAPSULE_COUNT_FB`
-  * `int XR_FB_hand_tracking_capsules_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_HAND_TRACKING_CAPSULES_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_HAND_TRACKING_CAPSULE_POINT_COUNT`
-  * `int XR_FB_HAND_TRACKING_CAPSULE_COUNT`
-  * `int XR_FB_spatial_entity`
-  * `int XR_FB_spatial_entity_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SPATIAL_ENTITY_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_foveation`
-  * `int XR_FB_foveation_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_FOVEATION_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_foveation_configuration`
-  * `int XR_FB_foveation_configuration_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_FOVEATION_CONFIGURATION_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_keyboard_tracking`
-  * `int XR_MAX_KEYBOARD_TRACKING_NAME_SIZE_FB`
-  * `int XR_FB_keyboard_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_KEYBOARD_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_triangle_mesh`
-  * `int XR_FB_triangle_mesh_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_TRIANGLE_MESH_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_passthrough`
-  * `int XR_PASSTHROUGH_COLOR_MAP_MONO_SIZE_FB`
-  * `int XR_FB_passthrough_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_PASSTHROUGH_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_render_model`
-  * `int XR_NULL_RENDER_MODEL_KEY_FB`
-  * `int XR_MAX_RENDER_MODEL_NAME_SIZE_FB`
-  * `int XR_FB_render_model_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_RENDER_MODEL_EXTENSION_NAME { get; set; }`
-  * `int XR_VARJO_foveated_rendering`
-  * `int XR_VARJO_foveated_rendering_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_VARJO_FOVEATED_RENDERING_EXTENSION_NAME { get; set; }`
-  * `int XR_VARJO_composition_layer_depth_test`
-  * `int XR_VARJO_composition_layer_depth_test_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_VARJO_COMPOSITION_LAYER_DEPTH_TEST_EXTENSION_NAME { get; set; }`
-  * `int XR_VARJO_environment_depth_estimation`
-  * `int XR_VARJO_environment_depth_estimation_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_VARJO_ENVIRONMENT_DEPTH_ESTIMATION_EXTENSION_NAME { get; set; }`
-  * `int XR_VARJO_marker_tracking`
-  * `int XR_VARJO_marker_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_VARJO_MARKER_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_VARJO_view_offset`
-  * `int XR_VARJO_view_offset_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_VARJO_VIEW_OFFSET_EXTENSION_NAME { get; set; }`
-  * `int XR_VARJO_xr4_controller_interaction`
-  * `int XR_VARJO_xr4_controller_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_VARJO_XR4_CONTROLLER_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_ml2_controller_interaction`
-  * `int XR_ML_ml2_controller_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_ML2_CONTROLLER_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_frame_end_info`
-  * `int XR_ML_frame_end_info_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_FRAME_END_INFO_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_global_dimmer`
-  * `int XR_ML_global_dimmer_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_GLOBAL_DIMMER_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_marker_understanding`
-  * `int XR_ML_marker_understanding_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_MARKER_UNDERSTANDING_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_localization_map`
-  * `int XR_MAX_LOCALIZATION_MAP_NAME_LENGTH_ML`
-  * `int XR_ML_localization_map_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_LOCALIZATION_MAP_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_spatial_anchors`
-  * `int XR_ML_spatial_anchors_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_SPATIAL_ANCHORS_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_spatial_anchors_storage`
-  * `int XR_ML_spatial_anchors_storage_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_SPATIAL_ANCHORS_STORAGE_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_spatial_anchor_persistence`
-  * `int XR_MAX_SPATIAL_ANCHOR_NAME_SIZE_MSFT`
-  * `int XR_MSFT_spatial_anchor_persistence_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_SPATIAL_ANCHOR_PERSISTENCE_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_scene_marker`
-  * `int XR_MSFT_scene_marker_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_SCENE_MARKER_EXTENSION_NAME { get; set; }`
-  * `int XR_ULTRALEAP_hand_tracking_forearm`
-  * `int XR_HAND_FOREARM_JOINT_COUNT_ULTRALEAP`
-  * `int XR_ULTRALEAP_hand_tracking_forearm_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ULTRALEAP_HAND_TRACKING_FOREARM_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_spatial_entity_query`
-  * `int XR_FB_spatial_entity_query_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SPATIAL_ENTITY_QUERY_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_spatial_entity_storage`
-  * `int XR_FB_spatial_entity_storage_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SPATIAL_ENTITY_STORAGE_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_touch_controller_pro`
-  * `int XR_FB_touch_controller_pro_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_TOUCH_CONTROLLER_PRO_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_spatial_entity_sharing`
-  * `int XR_FB_spatial_entity_sharing_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SPATIAL_ENTITY_SHARING_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_space_warp`
-  * `int XR_FB_space_warp_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SPACE_WARP_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_haptic_amplitude_envelope`
-  * `uint XR_MAX_HAPTIC_AMPLITUDE_ENVELOPE_SAMPLES_FB`
-  * `int XR_FB_haptic_amplitude_envelope_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_HAPTIC_AMPLITUDE_ENVELOPE_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_scene`
-  * `int XR_FB_scene_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SCENE_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_palm_pose`
-  * `int XR_EXT_palm_pose_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_PALM_POSE_EXTENSION_NAME { get; set; }`
-  * `int XR_ALMALENCE_digital_lens_control`
-  * `int XR_ALMALENCE_digital_lens_control_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ALMALENCE_DIGITAL_LENS_CONTROL_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_scene_capture`
-  * `int XR_FB_scene_capture_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SCENE_CAPTURE_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_spatial_entity_container`
-  * `int XR_FB_spatial_entity_container_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SPATIAL_ENTITY_CONTAINER_EXTENSION_NAME { get; set; }`
-  * `int XR_META_foveation_eye_tracked`
-  * `int XR_FOVEATION_CENTER_SIZE_META`
-  * `int XR_META_foveation_eye_tracked_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_FOVEATION_EYE_TRACKED_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_face_tracking`
-  * `XrFaceExpressionSetFB XR_FACE_EXPRESSSION_SET_DEFAULT_FB`
-  * `int XR_FB_face_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_FACE_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_eye_tracking_social`
-  * `int XR_FB_eye_tracking_social_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_passthrough_keyboard_hands`
-  * `int XR_FB_passthrough_keyboard_hands_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_PASSTHROUGH_KEYBOARD_HANDS_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_composition_layer_settings`
-  * `int XR_FB_composition_layer_settings_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_touch_controller_proximity`
-  * `int XR_FB_touch_controller_proximity_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_TOUCH_CONTROLLER_PROXIMITY_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_haptic_pcm`
-  * `int XR_MAX_HAPTIC_PCM_BUFFER_SIZE_FB`
-  * `int XR_FB_haptic_pcm_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_HAPTIC_PCM_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_frame_synthesis`
-  * `int XR_EXT_frame_synthesis_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_FRAME_SYNTHESIS_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_composition_layer_depth_test`
-  * `int XR_FB_composition_layer_depth_test_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_COMPOSITION_LAYER_DEPTH_TEST_EXTENSION_NAME { get; set; }`
-  * `int XR_META_local_dimming`
-  * `int XR_META_local_dimming_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_LOCAL_DIMMING_EXTENSION_NAME { get; set; }`
-  * `int XR_META_passthrough_preferences`
-  * `int XR_META_passthrough_preferences_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_PASSTHROUGH_PREFERENCES_EXTENSION_NAME { get; set; }`
-  * `int XR_META_virtual_keyboard`
-  * `int XR_MAX_VIRTUAL_KEYBOARD_COMMIT_TEXT_SIZE_META`
-  * `int XR_META_virtual_keyboard_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_VIRTUAL_KEYBOARD_EXTENSION_NAME { get; set; }`
-  * `int XR_OCULUS_external_camera`
-  * `int XR_MAX_EXTERNAL_CAMERA_NAME_SIZE_OCULUS`
-  * `int XR_OCULUS_external_camera_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_OCULUS_EXTERNAL_CAMERA_EXTENSION_NAME { get; set; }`
-  * `int XR_META_performance_metrics`
-  * `int XR_META_performance_metrics_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_PERFORMANCE_METRICS_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_spatial_entity_storage_batch`
-  * `int XR_FB_spatial_entity_storage_batch_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SPATIAL_ENTITY_STORAGE_BATCH_EXTENSION_NAME { get; set; }`
-  * `int XR_META_detached_controllers`
-  * `int XR_META_detached_controllers_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_DETACHED_CONTROLLERS_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_spatial_entity_user`
-  * `int XR_FB_spatial_entity_user_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SPATIAL_ENTITY_USER_EXTENSION_NAME { get; set; }`
-  * `int XR_META_headset_id`
-  * `int XR_META_headset_id_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_HEADSET_ID_EXTENSION_NAME { get; set; }`
-  * `int XR_META_spatial_entity_discovery`
-  * `int XR_META_spatial_entity_discovery_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_SPATIAL_ENTITY_DISCOVERY_EXTENSION_NAME { get; set; }`
-  * `int XR_META_hand_tracking_microgestures`
-  * `int XR_META_hand_tracking_microgestures_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_HAND_TRACKING_MICROGESTURES_EXTENSION_NAME { get; set; }`
-  * `int XR_META_recommended_layer_resolution`
-  * `int XR_META_recommended_layer_resolution_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_RECOMMENDED_LAYER_RESOLUTION_EXTENSION_NAME { get; set; }`
-  * `int XR_META_spatial_entity_persistence`
-  * `int XR_META_spatial_entity_persistence_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_SPATIAL_ENTITY_PERSISTENCE_EXTENSION_NAME { get; set; }`
-  * `int XR_META_passthrough_color_lut`
-  * `int XR_META_passthrough_color_lut_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_PASSTHROUGH_COLOR_LUT_EXTENSION_NAME { get; set; }`
-  * `int XR_META_spatial_entity_mesh`
-  * `int XR_META_spatial_entity_mesh_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_SPATIAL_ENTITY_MESH_EXTENSION_NAME { get; set; }`
-  * `int XR_META_automatic_layer_filter`
-  * `int XR_META_automatic_layer_filter_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_AUTOMATIC_LAYER_FILTER_EXTENSION_NAME { get; set; }`
-  * `int XR_META_body_tracking_full_body`
-  * `int XR_META_body_tracking_full_body_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_BODY_TRACKING_FULL_BODY_EXTENSION_NAME { get; set; }`
-  * `int XR_META_touch_controller_plus`
-  * `int XR_META_touch_controller_plus_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_TOUCH_CONTROLLER_PLUS_EXTENSION_NAME { get; set; }`
-  * `int XR_META_passthrough_layer_resumed_event`
-  * `int XR_META_passthrough_layer_resumed_event_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_PASSTHROUGH_LAYER_RESUMED_EVENT_EXTENSION_NAME { get; set; }`
-  * `int XR_META_body_tracking_calibration`
-  * `int XR_META_body_tracking_calibration_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_BODY_TRACKING_CALIBRATION_EXTENSION_NAME { get; set; }`
-  * `int XR_META_body_tracking_fidelity`
-  * `int XR_META_body_tracking_fidelity_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_BODY_TRACKING_FIDELITY_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_face_tracking2`
-  * `int XR_FB_face_tracking2_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_FACE_TRACKING2_EXTENSION_NAME { get; set; }`
-  * `int XR_META_spatial_entity_sharing`
-  * `int XR_META_spatial_entity_sharing_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_SPATIAL_ENTITY_SHARING_EXTENSION_NAME { get; set; }`
-  * `int XR_MAX_SPACES_PER_SHARE_REQUEST_META`
-  * `int XR_META_environment_depth`
-  * `int XR_META_environment_depth_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_ENVIRONMENT_DEPTH_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_uuid`
-  * `int XR_EXT_uuid_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_UUID_EXTENSION_NAME { get; set; }`
-  * `int XR_UUID_SIZE_EXT`
-  * `int XR_EXT_render_model`
-  * `int XR_MAX_RENDER_MODEL_ASSET_NODE_NAME_SIZE_EXT`
-  * `int XR_EXT_render_model_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_RENDER_MODEL_EXTENSION_NAME { get; set; }`
-  * `int XR_NULL_RENDER_MODEL_ID_EXT`
-  * `int XR_EXT_interaction_render_model`
-  * `int XR_EXT_interaction_render_model_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_INTERACTION_RENDER_MODEL_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_hand_interaction`
-  * `int XR_EXT_hand_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_HAND_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_QCOM_tracking_optimization_settings`
-  * `int XR_QCOM_tracking_optimization_settings_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_QCOM_TRACKING_OPTIMIZATION_SETTINGS_EXTENSION_NAME { get; set; }`
-  * `int XR_QCOM_hand_tracking_gesture`
-  * `int XR_QCOM_hand_tracking_gesture_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_QCOM_HAND_TRACKING_GESTURE_EXTENSION_NAME { get; set; }`
-  * `int XR_HTC_passthrough`
-  * `int XR_HTC_passthrough_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_HTC_PASSTHROUGH_EXTENSION_NAME { get; set; }`
-  * `int XR_HTC_foveation`
-  * `int XR_HTC_foveation_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_HTC_FOVEATION_EXTENSION_NAME { get; set; }`
-  * `int XR_HTC_anchor`
-  * `int XR_MAX_SPATIAL_ANCHOR_NAME_SIZE_HTC`
-  * `int XR_HTC_anchor_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_HTC_ANCHOR_EXTENSION_NAME { get; set; }`
-  * `int XR_HTC_body_tracking`
-  * `int XR_BODY_JOINT_COUNT_HTC`
-  * `int XR_HTC_body_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_HTC_BODY_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_active_action_set_priority`
-  * `int XR_EXT_active_action_set_priority_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_ACTIVE_ACTION_SET_PRIORITY_EXTENSION_NAME { get; set; }`
-  * `int XR_MNDX_force_feedback_curl`
-  * `int XR_MNDX_force_feedback_curl_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MNDX_FORCE_FEEDBACK_CURL_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_controller_interaction`
-  * `int XR_BD_controller_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_CONTROLLER_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_body_tracking`
-  * `int XR_BODY_JOINT_COUNT_BD`
-  * `int XR_BODY_JOINT_WITHOUT_ARM_COUNT_BD`
-  * `int XR_BD_body_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_BODY_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_facial_simulation`
-  * `int XR_FACE_EXPRESSION_COUNT_BD`
-  * `int XR_LIP_EXPRESSION_COUNT_BD`
-  * `int XR_BD_facial_simulation_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_FACIAL_SIMULATION_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_spatial_sensing`
-  * `int XR_BD_spatial_sensing_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_SPATIAL_SENSING_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_spatial_anchor`
-  * `int XR_BD_spatial_anchor_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_SPATIAL_ANCHOR_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_spatial_anchor_sharing`
-  * `int XR_BD_spatial_anchor_sharing_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_SPATIAL_ANCHOR_SHARING_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_spatial_scene`
-  * `int XR_BD_spatial_scene_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_SPATIAL_SCENE_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_spatial_mesh`
-  * `int XR_BD_spatial_mesh_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_SPATIAL_MESH_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_future_progress`
-  * `int XR_BD_future_progress_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_FUTURE_PROGRESS_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_body_tracking_auxiliary_metrics`
-  * `int XR_BD_body_tracking_auxiliary_metrics_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_BODY_TRACKING_AUXILIARY_METRICS_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_spatial_plane`
-  * `int XR_BD_spatial_plane_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_SPATIAL_PLANE_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_ultra_controller_interaction`
-  * `int XR_BD_ultra_controller_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_ULTRA_CONTROLLER_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_spatial_audio_rendering`
-  * `int XR_BD_spatial_audio_rendering_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_SPATIAL_AUDIO_RENDERING_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_local_floor`
-  * `int XR_EXT_local_floor_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_LOCAL_FLOOR_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_hand_tracking_data_source`
-  * `int XR_EXT_hand_tracking_data_source_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_HAND_TRACKING_DATA_SOURCE_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_plane_detection`
-  * `int XR_EXT_plane_detection_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_PLANE_DETECTION_EXTENSION_NAME { get; set; }`
-  * `int XR_OPPO_controller_interaction`
-  * `int XR_OPPO_controller_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_OPPO_CONTROLLER_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_trackables`
-  * `int XR_NULL_TRACKABLE_ANDROID`
-  * `int XR_ANDROID_trackables_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_TRACKABLES_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_eye_tracking`
-  * `int XR_EYE_MAX_ANDROID`
-  * `int XR_ANDROID_eye_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_EYE_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_device_anchor_persistence`
-  * `int XR_ANDROID_device_anchor_persistence_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_DEVICE_ANCHOR_PERSISTENCE_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_face_tracking`
-  * `int XR_ANDROID_face_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_FACE_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_FACE_PARAMETER_COUNT_ANDROID`
-  * `int XR_FACE_REGION_CONFIDENCE_COUNT_ANDROID`
-  * `int XR_ANDROID_passthrough_camera_state`
-  * `int XR_ANDROID_passthrough_camera_state_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_PASSTHROUGH_CAMERA_STATE_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_recommended_resolution`
-  * `int XR_ANDROID_recommended_resolution_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_RECOMMENDED_RESOLUTION_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_composition_layer_passthrough_mesh`
-  * `int XR_ANDROID_composition_layer_passthrough_mesh_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_COMPOSITION_LAYER_PASSTHROUGH_MESH_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_raycast`
-  * `int XR_ANDROID_raycast_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_RAYCAST_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_performance_metrics`
-  * `int XR_ANDROID_performance_metrics_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_PERFORMANCE_METRICS_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_trackables_object`
-  * `int XR_ANDROID_trackables_object_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_TRACKABLES_OBJECT_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_unbounded_reference_space`
-  * `int XR_ANDROID_unbounded_reference_space_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_UNBOUNDED_REFERENCE_SPACE_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_future`
-  * `int XR_EXT_future_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_FUTURE_EXTENSION_NAME { get; set; }`
-  * `int XR_NULL_FUTURE_EXT`
-  * `int XR_EXT_user_presence`
-  * `int XR_EXT_user_presence_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_USER_PRESENCE_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_user_calibration`
-  * `int XR_ML_user_calibration_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_USER_CALIBRATION_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_system_notifications`
-  * `int XR_ML_system_notifications_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_SYSTEM_NOTIFICATIONS_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_world_mesh_detection`
-  * `int XR_ML_world_mesh_detection_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_WORLD_MESH_DETECTION_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_facial_expression`
-  * `int XR_ML_facial_expression_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_FACIAL_EXPRESSION_EXTENSION_NAME { get; set; }`
-  * `int XR_ML_view_configuration_depth_range_change`
-  * `int XR_ML_view_configuration_depth_range_change_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ML_VIEW_CONFIGURATION_DEPTH_RANGE_CHANGE_EXTENSION_NAME { get; set; }`
-  * `int XR_YVR_controller_interaction`
-  * `int XR_YVR_controller_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_YVR_CONTROLLER_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_META_boundary_visibility`
-  * `int XR_META_boundary_visibility_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_BOUNDARY_VISIBILITY_EXTENSION_NAME { get; set; }`
-  * `int XR_META_simultaneous_hands_and_controllers`
-  * `int XR_META_simultaneous_hands_and_controllers_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_SIMULTANEOUS_HANDS_AND_CONTROLLERS_EXTENSION_NAME { get; set; }`
-  * `int XR_META_face_tracking_visemes`
-  * `int XR_FACE_TRACKING_VISEME_COUNT_META`
-  * `int XR_META_face_tracking_visemes_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_FACE_TRACKING_VISEMES_EXTENSION_NAME { get; set; }`
-  * `int XR_META_spatial_entity_semantic_label`
-  * `int XR_META_spatial_entity_semantic_label_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_SPATIAL_ENTITY_SEMANTIC_LABEL_EXTENSION_NAME { get; set; }`
-  * `int XR_META_spatial_entity_room_mesh`
-  * `int XR_META_spatial_entity_room_mesh_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_SPATIAL_ENTITY_ROOM_MESH_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_composition_layer_inverted_alpha`
-  * `int XR_EXT_composition_layer_inverted_alpha_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_COMPOSITION_LAYER_INVERTED_ALPHA_EXTENSION_NAME { get; set; }`
-  * `int XR_META_colocation_discovery`
-  * `int XR_MAX_COLOCATION_DISCOVERY_BUFFER_SIZE_META`
-  * `int XR_META_colocation_discovery_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_COLOCATION_DISCOVERY_EXTENSION_NAME { get; set; }`
-  * `int XR_META_spatial_entity_group_sharing`
-  * `int XR_META_spatial_entity_group_sharing_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_SPATIAL_ENTITY_GROUP_SHARING_EXTENSION_NAME { get; set; }`
-  * `int XR_META_environment_raycast`
-  * `int XR_META_environment_raycast_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_ENVIRONMENT_RAYCAST_EXTENSION_NAME { get; set; }`
-  * `int XR_META_tile_properties_hint`
-  * `int XR_META_tile_properties_hint_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_TILE_PROPERTIES_HINT_EXTENSION_NAME { get; set; }`
-  * `int XR_META_hand_tracking_unextrapolated_poses`
-  * `int XR_META_hand_tracking_unextrapolated_poses_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_HAND_TRACKING_UNEXTRAPOLATED_POSES_EXTENSION_NAME { get; set; }`
-  * `int XR_META_hand_tracking_frequency_hint`
-  * `int XR_META_hand_tracking_frequency_hint_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_HAND_TRACKING_FREQUENCY_HINT_EXTENSION_NAME { get; set; }`
-  * `int XR_META_hand_tracking_wide_motion_mode2`
-  * `int XR_META_hand_tracking_wide_motion_mode2_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_HAND_TRACKING_WIDE_MOTION_MODE2_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_light_estimation`
-  * `int XR_ANDROID_light_estimation_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_LIGHT_ESTIMATION_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_mouse_interaction`
-  * `int XR_ANDROID_mouse_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_MOUSE_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_trackables_marker`
-  * `int XR_ANDROID_trackables_marker_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_TRACKABLES_MARKER_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_trackables_qr_code`
-  * `int XR_ANDROID_trackables_qr_code_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_TRACKABLES_QR_CODE_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_trackables_image`
-  * `int XR_ANDROID_trackables_image_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_TRACKABLES_IMAGE_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_scene_meshing`
-  * `int XR_ANDROID_scene_meshing_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_SCENE_MESHING_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_spatial_entity`
-  * `int XR_NULL_SPATIAL_ENTITY_ID_EXT`
-  * `int XR_NULL_SPATIAL_BUFFER_ID_EXT`
-  * `int XR_EXT_spatial_entity_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_SPATIAL_ENTITY_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_spatial_plane_tracking`
-  * `int XR_EXT_spatial_plane_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_SPATIAL_PLANE_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_stationary_reference_space`
-  * `int XR_EXT_stationary_reference_space_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_STATIONARY_REFERENCE_SPACE_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_spatial_marker_tracking`
-  * `int XR_EXT_spatial_marker_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_SPATIAL_MARKER_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_LOGITECH_mx_ink_stylus_interaction`
-  * `int XR_LOGITECH_mx_ink_stylus_interaction_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_LOGITECH_MX_INK_STYLUS_INTERACTION_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_dynamic_object_tracking`
-  * `int XR_BD_dynamic_object_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_DYNAMIC_OBJECT_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_dynamic_object_keyboard`
-  * `int XR_BD_dynamic_object_keyboard_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_DYNAMIC_OBJECT_KEYBOARD_EXTENSION_NAME { get; set; }`
-  * `int XR_BD_dynamic_object_mouse`
-  * `int XR_BD_dynamic_object_mouse_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_BD_DYNAMIC_OBJECT_MOUSE_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_spatial_discovery_bounds`
-  * `int XR_ANDROID_spatial_discovery_bounds_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_SPATIAL_DISCOVERY_BOUNDS_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_spatial_anchor`
-  * `int XR_EXT_spatial_anchor_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_SPATIAL_ANCHOR_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_spatial_persistence`
-  * `int XR_EXT_spatial_persistence_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_SPATIAL_PERSISTENCE_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_haptic_parametric`
-  * `int XR_HAPTIC_PARAMETRIC_MAX_POINTS_TRANSIENTS_EXT`
-  * `int XR_HAPTIC_PARAMETRIC_VIBRATION_EXTEND_DURATION_EXT`
-  * `int XR_HAPTIC_PARAMETRIC_FREQUENCY_MIN_HZ_EXT`
-  * `int XR_HAPTIC_PARAMETRIC_FREQUENCY_MAX_HZ_EXT`
-  * `int XR_EXT_haptic_parametric_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_HAPTIC_PARAMETRIC_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_spatial_persistence_operations`
-  * `int XR_EXT_spatial_persistence_operations_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_SPATIAL_PERSISTENCE_OPERATIONS_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_spatial_object_tracking`
-  * `int XR_ANDROID_spatial_object_tracking_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_SPATIAL_OBJECT_TRACKING_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_spatial_discovery_raycast`
-  * `int XR_ANDROID_spatial_discovery_raycast_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_SPATIAL_DISCOVERY_RAYCAST_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_google_cloud_auth`
-  * `int XR_ANDROID_google_cloud_auth_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_GOOGLE_CLOUD_AUTH_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_geospatial`
-  * `int XR_ANDROID_geospatial_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_GEOSPATIAL_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_spatial_entity_bound_anchor`
-  * `int XR_ANDROID_spatial_entity_bound_anchor_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_SPATIAL_ENTITY_BOUND_ANCHOR_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_spatial_component_subsumed_by`
-  * `int XR_ANDROID_spatial_component_subsumed_by_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_SPATIAL_COMPONENT_SUBSUMED_BY_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_spatial_anchor_space`
-  * `int XR_ANDROID_spatial_anchor_space_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_SPATIAL_ANCHOR_SPACE_EXTENSION_NAME { get; set; }`
-  * `int XR_ANDROID_geospatial_anchor`
-  * `int XR_ANDROID_geospatial_anchor_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_ANDROID_GEOSPATIAL_ANCHOR_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_interaction_profile_battery_state_display`
-  * `int XR_EXT_interaction_profile_battery_state_display_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_INTERACTION_PROFILE_BATTERY_STATE_DISPLAY_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_loader_init_properties`
-  * `int XR_EXT_loader_init_properties_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_LOADER_INIT_PROPERTIES_EXTENSION_NAME { get; set; }`
-  * `int XR_EXT_view_configuration_views_change`
-  * `int XR_EXT_view_configuration_views_change_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_EXT_VIEW_CONFIGURATION_VIEWS_CHANGE_EXTENSION_NAME { get; set; }`
-  * `int OPENXR_PLATFORM_H_`
-  * `int XR_KHR_vulkan_swapchain_format_list`
-  * `int XR_KHR_vulkan_swapchain_format_list_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_VULKAN_SWAPCHAIN_FORMAT_LIST_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_opengl_enable`
-  * `int XR_KHR_opengl_enable_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_OPENGL_ENABLE_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_vulkan_enable`
-  * `int XR_KHR_vulkan_enable_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_VULKAN_ENABLE_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_D3D11_enable`
-  * `int XR_KHR_D3D11_enable_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_D3D11_ENABLE_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_D3D12_enable`
-  * `int XR_KHR_D3D12_enable_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_D3D12_ENABLE_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_win32_convert_performance_counter_time`
-  * `int XR_KHR_win32_convert_performance_counter_time_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_WIN32_CONVERT_PERFORMANCE_COUNTER_TIME_EXTENSION_NAME { get; set; }`
-  * `int XR_KHR_vulkan_enable2`
-  * `int XR_KHR_vulkan_enable2_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_perception_anchor_interop`
-  * `int XR_MSFT_perception_anchor_interop_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_PERCEPTION_ANCHOR_INTEROP_EXTENSION_NAME { get; set; }`
-  * `int XR_MSFT_holographic_window_attachment`
-  * `int XR_MSFT_holographic_window_attachment_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_MSFT_HOLOGRAPHIC_WINDOW_ATTACHMENT_EXTENSION_NAME { get; set; }`
-  * `int XR_OCULUS_audio_device_guid`
-  * `int XR_OCULUS_audio_device_guid_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_OCULUS_AUDIO_DEVICE_GUID_EXTENSION_NAME { get; set; }`
-  * `int XR_MAX_AUDIO_DEVICE_STR_SIZE_OCULUS`
-  * `int XR_FB_foveation_vulkan`
-  * `int XR_FB_foveation_vulkan_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_FOVEATION_VULKAN_EXTENSION_NAME { get; set; }`
-  * `int XR_FB_swapchain_update_state_vulkan`
-  * `int XR_FB_swapchain_update_state_vulkan_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_FB_SWAPCHAIN_UPDATE_STATE_VULKAN_EXTENSION_NAME { get; set; }`
-  * `int XR_META_vulkan_swapchain_create_info`
-  * `int XR_META_vulkan_swapchain_create_info_SPEC_VERSION`
-  * `ReadOnlySpan<byte> XR_META_VULKAN_SWAPCHAIN_CREATE_INFO_EXTENSION_NAME { get; set; }`
-* **enum VkStructureType**
-* **enum XrActionType**
-* **enum XrAnchorPersistStateANDROID**
-  * `XrStructureType type`
-  * `XrUuid anchorId`
-  * `uint supportsAnchorPersistence`
-* **enum XrAudioBufferChannelLayoutBD**
-* **enum XrAudioSampleRateBD**
-* **enum XrBlendFactorFB**
-  * `XrStructureType type`
-  * `XrBlendFactorFB srcFactorColor`
-  * `XrBlendFactorFB dstFactorColor`
-  * `XrBlendFactorFB srcFactorAlpha`
-  * `XrBlendFactorFB dstFactorAlpha`
-  * `float recommendedNearZ`
-  * `float minNearZ`
-  * `float recommendedFarZ`
-  * `float maxFarZ`
-* **enum XrBodyJointBD**
-* **enum XrBodyJointConfidenceHTC**
-  * `XrStructureType type`
-  * `uint supportsBodyTracking`
-  * `XrBodyJointSetHTC bodyJointSet`
-  * `long time`
-* **enum XrBodyJointFB**
-* **enum XrBodyJointHTC**
-* **enum XrBodyJointSetBD**
-  * `XrStructureType type`
-  * `uint supportsBodyTracking`
-  * `XrBodyJointSetBD jointSet`
-  * `long time`
-* **enum XrBodyJointSetFB**
-* **enum XrBodyJointSetHTC**
-* **enum XrBodyTrackingCalibrationStateMETA**
-  * `XrStructureType type`
-  * `XrBodyTrackingCalibrationStateMETA status`
-  * `float bodyHeight`
-  * `uint supportsHeightOverride`
-* **enum XrBodyTrackingFidelityMETA**
-  * `XrStructureType type`
-  * `uint supportsBodyTrackingFidelity`
-  * `XrBodyTrackingFidelityMETA fidelity`
-* **enum XrBodyTrackingMessageBD**
-  * `XrStructureType type`
-  * `uint postureCount`
-* **enum XrBodyTrackingPostureBD**
-* **enum XrBodyTrackingStatusBD**
-* **enum XrBoundaryVisibilityMETA**
-  * `XrStructureType type`
-  * `uint supportsBoundaryVisibility`
-  * `XrBoundaryVisibilityMETA boundaryVisibility`
-  * `uint supportsSimultaneousHandsAndControllers`
-* **enum XrColorSpaceFB**
-  * `XrStructureType type`
-  * `XrColorSpaceFB colorSpace`
-* **enum XrCompareOpFB**
-  * `XrStructureType type`
-  * `uint depthMask`
-  * `XrCompareOpFB compareOp`
-* **enum XrDynamicObjectTypeBD**
-  * `XrStructureType type`
-  * `uint supportsDynamicObjectTracking`
-  * `uint trackingTypeCount`
-  * `XrDynamicObjectTypeBD objectType`
-  * `XrDynamicObjectDataBD data`
-  * `uint typeCount`
-  * `uint supportsDynamicObjectKeyboard`
-  * `uint supportsDynamicObjectMouse`
-  * `long time`
-  * `XrSpheref sphere`
-  * `XrBoxf box`
-  * `XrFrustumf frustum`
-  * `XrSpatialCapabilityEXT capability`
-  * `uint enabledComponentCount`
-  * `uint locationCount`
-  * `XrPosef pose`
-* **enum XrEnvironmentBlendMode**
-* **enum XrEnvironmentRaycastFilterTypeMETA**
-* **enum XrEnvironmentRaycastHitStatusMETA**
-  * `XrStructureType type`
-  * `uint supportsEnvironmentRaycast`
-  * `XrResult futureResult`
-  * `long time`
-  * `XrVector3f origin`
-  * `XrVector3f direction`
-  * `uint filterCount`
-  * `XrEnvironmentRaycastHitStatusMETA status`
-  * `XrPosef pose`
-  * `float maxDistance`
-* **enum XrExternalCameraAttachedToDeviceOCULUS**
-* **enum XrEyeCalibrationStatusML**
-  * `XrStructureType type`
-  * `XrHeadsetFitStatusML status`
-  * `long time`
-  * `XrEyeCalibrationStatusML status`
-  * `uint enabled`
-  * `uint suppressNotifications`
-* **enum XrEyeExpressionHTC**
-* **enum XrEyeIndexANDROID**
-* **enum XrEyePositionFB**
-* **enum XrEyeStateANDROID**
-* **enum XrEyeTrackingModeANDROID**
-  * `XrStructureType type`
-  * `uint supportsEyeTracking`
-* **enum XrEyeVisibility**
-* **enum XrFaceConfidence2FB**
-  * `XrStructureType type`
-  * `uint supportsVisualFaceTracking`
-  * `uint supportsAudioFaceTracking`
-  * `XrFaceExpressionSet2FB faceExpressionSet`
-  * `uint requestedDataSourceCount`
-  * `long time`
-  * `uint weightCount`
-  * `uint confidenceCount`
-  * `uint isValid`
-  * `uint isEyeFollowingBlendshapesValid`
-  * `XrFaceTrackingDataSource2FB dataSource`
-  * `uint supportsSpatialEntitySharing`
-  * `uint spaceCount`
-  * `ulong requestId`
-  * `XrResult result`
-  * `ulong createFlags`
-  * `uint width`
-  * `uint height`
-  * `long displayTime`
-  * `XrFovf fov`
-  * `XrPosef pose`
-  * `uint swapchainIndex`
-  * `float nearZ`
-  * `float farZ`
-  * `_views_e__FixedBuffer views`
-* **enum XrFaceConfidenceFB**
-  * `XrStructureType type`
-  * `uint supportsFaceTracking`
-  * `XrFaceExpressionSetFB faceExpressionSet`
-  * `long time`
-* **enum XrFaceConfidenceRegionsANDROID**
-  * `XrStructureType type`
-  * `long time`
-  * `uint parametersCapacityInput`
-  * `uint parametersCountOutput`
-  * `XrFaceTrackingStateANDROID faceTrackingState`
-  * `long sampleTime`
-  * `uint isValid`
-  * `uint regionConfidencesCapacityInput`
-  * `uint regionConfidencesCountOutput`
-  * `uint supportsFaceTracking`
-* **enum XrFaceExpression2FB**
-* **enum XrFaceExpressionBD**
-* **enum XrFaceExpressionFB**
-* **enum XrFaceExpressionSet2FB**
-* **enum XrFaceExpressionSetFB**
-* **enum XrFaceParameterIndicesANDROID**
-* **enum XrFaceTrackingDataSource2FB**
-* **enum XrFaceTrackingStateANDROID**
-* **enum XrFaceTrackingVisemeMETA**
-  * `XrStructureType type`
-  * `uint isValid`
-  * `_visemes_e__FixedBuffer visemes`
-* **enum XrFacialBlendShapeML**
-  * `XrStructureType type`
-  * `uint supportsFacialExpression`
-  * `uint requestedCount`
-  * `XrFacialBlendShapeML requestedFacialBlendShape`
-  * `float weight`
-  * `ulong flags`
-  * `long time`
-* **enum XrFacialSimulationModeBD**
-* **enum XrFacialTrackingTypeHTC**
-  * `XrStructureType type`
-  * `uint supportEyeFacialTracking`
-  * `uint supportLipFacialTracking`
-  * `uint isActive`
-  * `long sampleTime`
-  * `uint expressionCount`
-  * `XrFacialTrackingTypeHTC facialTrackingType`
-* **enum XrForceFeedbackCurlLocationMNDX**
-  * `XrStructureType type`
-  * `uint supportsForceFeedbackCurl`
-* **enum XrFormFactor**
-* **enum XrFoveationDynamicFB**
-  * `XrStructureType type`
-  * `XrFoveationLevelFB level`
-  * `float verticalOffset`
-  * `XrFoveationDynamicFB dynamic`
-  * `uint supportsKeyboardTracking`
-* **enum XrFoveationLevelFB**
-* **enum XrFoveationLevelHTC**
-  * `XrStructureType type`
-  * `XrFoveationModeHTC mode`
-  * `uint subImageCount`
-* **enum XrFoveationModeHTC**
-* **enum XrFullBodyJointMETA**
-  * `XrStructureType type`
-  * `uint supportsFullBodyTracking`
-  * `IntPtr layer`
-* **enum XrFutureStateEXT**
-  * `XrStructureType type`
-  * `XrResult futureResult`
-  * `XrFutureStateEXT state`
-  * `uint isUserPresent`
-  * `uint supportsUserPresence`
-* **enum XrGeospatialTrackerStateANDROID**
-* **enum XrGoogleCloudAuthErrorANDROID**
-  * `XrStructureType type`
-  * `XrGoogleCloudAuthErrorANDROID error`
-* **enum XrHandEXT**
-* **enum XrHandForearmJointULTRALEAP**
-* **enum XrHandGestureTypeQCOM**
-* **enum XrHandJointEXT**
-* **enum XrHandJointSetEXT**
-  * `XrStructureType type`
-  * `uint supportsHandTracking`
-  * `XrHandEXT hand`
-  * `XrHandJointSetEXT handJointSet`
-  * `long time`
-* **enum XrHandJointsMotionRangeEXT**
-  * `XrStructureType type`
-  * `XrHandJointsMotionRangeEXT handJointsMotionRange`
-* **enum XrHandPoseTypeMSFT**
-  * `XrStructureType type`
-  * `uint supportsHandTrackingMesh`
-  * `uint maxHandMeshIndexCount`
-  * `uint maxHandMeshVertexCount`
-  * `XrHandPoseTypeMSFT handPoseType`
-  * `XrPosef poseInHandMeshSpace`
-  * `long time`
-  * `uint indexBufferKey`
-  * `uint indexCapacityInput`
-  * `uint indexCountOutput`
-* **enum XrHandTrackingDataSourceEXT**
-  * `XrStructureType type`
-  * `uint requestedDataSourceCount`
-  * `uint isActive`
-  * `XrHandTrackingDataSourceEXT dataSource`
-* **enum XrHandTrackingFrequencyHintMETA**
-* **enum XrHapticParametricStreamFrameTypeEXT**
-  * `XrStructureType type`
-  * `long idealFrameSubmissionRate`
-  * `long minimumFirstFrameDuration`
-  * `float minFrequencyHz`
-  * `float maxFrequencyHz`
-* **enum XrHeadsetFitStatusML**
-* **enum XrLightEstimateStateANDROID**
-* **enum XrLipExpressionBD**
-  * `XrStructureType type`
-  * `uint supportsFaceTracking`
-  * `XrFacialSimulationModeBD mode`
-  * `long time`
-  * `uint faceExpressionWeightCount`
-  * `uint isUpperFaceDataValid`
-  * `uint isLowerFaceDataValid`
-  * `uint lipsyncExpressionWeightCount`
-* **enum XrLipExpressionHTC**
-* **enum XrLocalDimmingModeMETA**
-  * `XrStructureType type`
-  * `XrLocalDimmingModeMETA localDimmingMode`
-  * `ulong flags`
-* **enum XrLocalizationMapConfidenceML**
-  * `XrStructureType type`
-  * `_name_e__FixedBuffer name`
-  * `XrUuid mapUuid`
-  * `XrLocalizationMapTypeML mapType`
-* **enum XrLocalizationMapStateML**
-* **enum XrLocalizationMapTypeML**
-* **enum XrMarkerAprilTagDictML**
-* **enum XrMarkerArucoDictML**
-* **enum XrMarkerDetectorCameraML**
-* **enum XrMarkerDetectorCornerRefineMethodML**
-* **enum XrMarkerDetectorFpsML**
-* **enum XrMarkerDetectorFullAnalysisIntervalML**
-* **enum XrMarkerDetectorProfileML**
-* **enum XrMarkerDetectorResolutionML**
-* **enum XrMarkerDetectorStatusML**
-  * `XrStructureType type`
-  * `uint supportsMarkerUnderstanding`
-  * `XrMarkerDetectorProfileML profile`
-  * `XrMarkerTypeML markerType`
-  * `XrMarkerArucoDictML arucoDict`
-  * `float markerLength`
-  * `XrMarkerAprilTagDictML aprilTagDict`
-  * `XrMarkerDetectorFpsML fpsHint`
-  * `XrMarkerDetectorResolutionML resolutionHint`
-  * `XrMarkerDetectorCameraML cameraHint`
-  * `XrMarkerDetectorCornerRefineMethodML cornerRefineMethod`
-  * `uint useEdgeRefinement`
-  * `XrMarkerDetectorFullAnalysisIntervalML fullAnalysisIntervalHint`
-  * `XrMarkerDetectorStatusML state`
-  * `IntPtr markerDetector`
-  * `ulong marker`
-  * `XrPosef poseInMarkerSpace`
-* **enum XrMarkerTypeML**
-* **enum XrMeshComputeLodMSFT**
-* **enum XrObjectLabelANDROID**
-  * `XrStructureType type`
-  * `XrTrackingStateANDROID trackingState`
-  * `XrPosef centerPose`
-  * `XrExtent3Df extents`
-  * `XrObjectLabelANDROID objectLabel`
-  * `long lastUpdatedTime`
-  * `uint labelCount`
-* **enum XrObjectType**
-  * `XrStructureType type`
-  * `_layerName_e__FixedBuffer layerName`
-  * `ulong specVersion`
-  * `uint layerVersion`
-  * `_description_e__FixedBuffer description`
-* **enum XrPassthroughCameraStateANDROID**
-  * `XrStructureType type`
-  * `uint supportsPassthroughCameraState`
-* **enum XrPassthroughColorLutChannelsMETA**
-  * `uint bufferSize`
-  * `XrStructureType type`
-  * `XrPassthroughColorLutChannelsMETA channels`
-  * `uint resolution`
-  * `XrPassthroughColorLutDataMETA data`
-  * `ulong colorLut`
-  * `float weight`
-  * `ulong sourceColorLut`
-  * `ulong targetColorLut`
-  * `uint maxColorLutResolution`
-  * `uint vertexCapacityInput`
-  * `uint vertexCountOutput`
-  * `uint indexCapacityInput`
-  * `uint indexCountOutput`
-* **enum XrPassthroughFormHTC**
-  * `XrStructureType type`
-  * `XrPassthroughFormHTC form`
-  * `float alpha`
-  * `uint vertexCount`
-  * `uint indexCount`
-  * `long time`
-  * `XrPosef pose`
-  * `XrVector3f scale`
-  * `ulong layerFlags`
-  * `IntPtr passthrough`
-  * `XrPassthroughColorHTC color`
-* **enum XrPassthroughLayerPurposeFB**
-  * `XrStructureType type`
-  * `uint supportsPassthrough`
-  * `ulong capabilities`
-  * `ulong flags`
-  * `IntPtr passthrough`
-  * `XrPassthroughLayerPurposeFB purpose`
-  * `IntPtr layerHandle`
-  * `IntPtr layer`
-  * `IntPtr mesh`
-  * `XrPosef pose`
-  * `XrVector3f scale`
-  * `long time`
-  * `float textureOpacityFactor`
-  * `XrColor4f edgeColor`
-  * `_textureColorMap_e__FixedBuffer textureColorMap`
-* **enum XrPerfSettingsDomainEXT**
-* **enum XrPerfSettingsLevelEXT**
-* **enum XrPerfSettingsNotificationLevelEXT**
-  * `XrStructureType type`
-  * `XrPerfSettingsDomainEXT domain`
-  * `XrPerfSettingsSubDomainEXT subDomain`
-  * `XrPerfSettingsNotificationLevelEXT fromLevel`
-  * `XrPerfSettingsNotificationLevelEXT toLevel`
-  * `XrObjectType objectType`
-  * `ulong objectHandle`
-  * `uint objectCount`
-  * `uint sessionLabelCount`
-  * `ulong messageSeverities`
-  * `ulong messageTypes`
-  * `uint supportsEyeGazeInteraction`
-  * `long time`
-  * `ulong createFlags`
-  * `uint sessionLayersPlacement`
-  * `uint visible`
-  * `ulong flags`
-  * `XrPosef pose`
-  * `IntPtr anchor`
-  * `XrPosef poseInAnchorSpace`
-* **enum XrPerfSettingsSubDomainEXT**
-* **enum XrPerformanceMetricsCounterUnitANDROID**
-  * `XrStructureType type`
-  * `uint enabled`
-  * `ulong counterFlags`
-  * `XrPerformanceMetricsCounterUnitANDROID counterUnit`
-  * `uint uintValue`
-  * `float floatValue`
-* **enum XrPerformanceMetricsCounterUnitMETA**
-  * `XrStructureType type`
-  * `uint enabled`
-  * `ulong counterFlags`
-  * `XrPerformanceMetricsCounterUnitMETA counterUnit`
-  * `uint uintValue`
-  * `float floatValue`
-  * `uint spaceCount`
-  * `XrSpaceStorageLocationFB location`
-  * `ulong requestId`
-  * `XrResult result`
-  * `ulong userId`
-  * `XrUuid id`
-  * `uint supportsSpaceDiscovery`
-  * `uint filterCount`
-  * `uint uuidCount`
-  * `XrSpaceComponentTypeFB componentType`
-  * `XrUuid uuid`
-  * `uint resultCapacityInput`
-  * `uint resultCountOutput`
-  * `XrExtent2Di recommendedImageDimensions`
-  * `uint isValid`
-  * `long predictedDisplayTime`
-  * `uint supportsSpacePersistence`
-* **enum XrPersistenceLocationBD**
-  * `XrStructureType type`
-  * `uint supportsSpatialAnchor`
-  * `XrPosef pose`
-  * `long time`
-  * `XrResult futureResult`
-  * `XrUuid uuid`
-  * `XrPersistenceLocationBD location`
-  * `uint supportsSpatialAnchorSharing`
-  * `uint supportsSpatialScene`
-* **enum XrPlaneDetectionStateEXT**
-  * `XrStructureType type`
-  * `ulong supportedFeatures`
-  * `ulong flags`
-  * `long time`
-  * `uint orientationCount`
-  * `uint semanticTypeCount`
-  * `uint maxPlanes`
-  * `float minArea`
-  * `XrPosef boundingBoxPose`
-  * `XrExtent3Df boundingBoxExtent`
-  * `ulong planeId`
-  * `ulong locationFlags`
-  * `XrPosef pose`
-  * `XrExtent2Df extents`
-  * `XrPlaneDetectorOrientationEXT orientation`
-  * `XrPlaneDetectorSemanticTypeEXT semanticType`
-  * `uint polygonBufferCount`
-  * `uint planeLocationCapacityInput`
-  * `uint planeLocationCountOutput`
-  * `uint vertexCapacityInput`
-  * `uint vertexCountOutput`
-* **enum XrPlaneDetectorOrientationEXT**
-* **enum XrPlaneDetectorSemanticTypeEXT**
-* **enum XrPlaneLabelANDROID**
-  * `XrStructureType type`
-  * `XrTrackableTypeANDROID trackableType`
-  * `ulong trackable`
-  * `long time`
-  * `XrTrackingStateANDROID trackingState`
-  * `XrPosef centerPose`
-  * `XrExtent2Df extents`
-  * `XrPlaneTypeANDROID planeType`
-  * `XrPlaneLabelANDROID planeLabel`
-  * `ulong subsumedByPlane`
-  * `long lastUpdatedTime`
-  * `uint vertexCapacityInput`
-  * `XrPosef pose`
-  * `uint supportsAnchor`
-  * `uint maxAnchors`
-* **enum XrPlaneOrientationBD**
-  * `XrStructureType type`
-  * `uint supportsSpatialPlane`
-  * `XrPlaneOrientationBD orientation`
-  * `uint orientationCount`
-* **enum XrPlaneTypeANDROID**
-* **enum XrQrCodeTrackingModeANDROID**
-  * `XrStructureType type`
-  * `uint supportsQrCodeTracking`
-  * `uint supportsQrCodeSizeEstimation`
-  * `ushort maxQrCodeCount`
-  * `XrQrCodeTrackingModeANDROID trackingMode`
-  * `float qrCodeEdgeSize`
-  * `XrTrackingStateANDROID trackingState`
-  * `long lastUpdatedTime`
-  * `XrPosef centerPose`
-  * `XrExtent2Df extents`
-  * `uint bufferCapacityInput`
-  * `uint bufferCountOutput`
-* **enum XrReferenceSpaceType**
-* **enum XrReprojectionModeMSFT**
-  * `XrStructureType type`
-  * `XrReprojectionModeMSFT reprojectionMode`
-  * `XrVector3f position`
-  * `XrVector3f normal`
-  * `XrVector3f velocity`
-  * `ulong flags`
-* **enum XrResult**
-* **enum XrSceneComponentTypeMSFT**
-* **enum XrSceneComputeConsistencyMSFT**
-* **enum XrSceneComputeFeatureMSFT**
-* **enum XrSceneComputeStateMSFT**
-* **enum XrSceneMarkerQRCodeSymbolTypeMSFT**
-* **enum XrSceneMarkerTypeMSFT**
-* **enum XrSceneMeshSemanticLabelANDROID**
-  * `XrStructureType type`
-  * `uint supportsSceneMeshing`
-  * `XrSceneMeshSemanticLabelSetANDROID semanticLabelSet`
-  * `uint enableNormals`
-  * `long time`
-  * `XrBoxf boundingBox`
-  * `IntPtr snapshot`
-  * `XrSceneMeshTrackingStateANDROID trackingState`
-  * `XrUuid submeshId`
-  * `long lastUpdatedTime`
-  * `XrPosef submeshPoseInBaseSpace`
-  * `XrExtent3Df bounds`
-  * `uint vertexCapacityInput`
-  * `uint vertexCountOutput`
-  * `uint indexCapacityInput`
-  * `uint indexCountOutput`
-* **enum XrSceneMeshSemanticLabelSetANDROID**
-* **enum XrSceneMeshTrackingStateANDROID**
-* **enum XrSceneObjectTypeMSFT**
-* **enum XrScenePlaneAlignmentTypeMSFT**
-* **enum XrSemanticLabelBD**
-* **enum XrSemanticLabelMETA**
-* **enum XrSenseDataProviderStateBD**
-  * `XrStructureType type`
-  * `uint supportsSpatialSensing`
-  * `ulong entityId`
-  * `XrSpatialEntityComponentTypeBD componentType`
-  * `XrSpaceLocation location`
-  * `uint labelCapacityInput`
-  * `uint labelCountOutput`
-  * `XrRect2Df boundingBox2D`
-  * `uint vertexCapacityInput`
-  * `uint vertexCountOutput`
-  * `XrBoxf boundingBox3D`
-  * `uint indexCapacityInput`
-  * `uint indexCountOutput`
-  * `XrSpheref sphere`
-  * `XrSenseDataProviderTypeBD providerType`
-  * `XrSenseDataProviderStateBD newState`
-  * `XrResult futureResult`
-  * `IntPtr snapshot`
-  * `long lastUpdateTime`
-  * `XrUuid uuid`
-  * `uint stateCapacityInput`
-  * `uint stateCountOutput`
-  * `uint uuidCount`
-  * `uint labelCount`
-  * `XrPosef poseInAnchorSpace`
-* **enum XrSenseDataProviderTypeBD**
-* **enum XrSessionState**
-* **enum XrSoundFieldChannelMaskAmbixBD**
-* **enum XrSoundFieldChannelMaskFumaBD**
-* **enum XrSoundFieldChannelMaskSurroundBD**
-* **enum XrSoundObjectDistanceAttenuationTypeBD**
-* **enum XrSoundObstacleMaterialTypeBD**
-  * `XrStructureType type`
-  * `uint framesPerBuffer`
-  * `XrAudioSampleRateBD sampleRate`
-  * `XrAudioBufferChannelLayoutBD channelLayout`
-  * `uint bufferChannels`
-  * `uint bufferLength`
-  * `float alpha`
-  * `float order`
-  * `float radius`
-* **enum XrSpaceComponentTypeFB**
-  * `XrStructureType type`
-  * `uint supportsSpatialEntity`
-  * `XrPosef poseInSpace`
-  * `long time`
-  * `XrSpaceComponentTypeFB componentType`
-  * `uint enabled`
-  * `long timeout`
-  * `uint changePending`
-  * `ulong requestId`
-  * `XrResult result`
-  * `XrUuid uuid`
-  * `ulong flags`
-* **enum XrSpacePersistenceModeFB**
-  * `XrStructureType type`
-  * `XrSpaceStorageLocationFB location`
-  * `XrSpacePersistenceModeFB persistenceMode`
-  * `ulong requestId`
-  * `XrResult result`
-  * `XrUuid uuid`
-  * `uint spaceCount`
-  * `uint userCount`
-* **enum XrSpaceQueryActionFB**
-* **enum XrSpaceStorageLocationFB**
-  * `XrStructureType type`
-  * `XrSpaceQueryActionFB queryAction`
-  * `uint maxResultCount`
-  * `long timeout`
-  * `XrSpaceStorageLocationFB location`
-  * `uint uuidCount`
-  * `XrSpaceComponentTypeFB componentType`
-  * `XrUuid uuid`
-  * `uint resultCapacityInput`
-  * `uint resultCountOutput`
-  * `ulong requestId`
-  * `XrResult result`
-* **enum XrSpatialAnchorConfidenceML**
-  * `XrStructureType type`
-  * `XrPosef poseInBaseSpace`
-  * `long time`
-  * `XrResult futureResult`
-  * `uint spaceCount`
-  * `XrSpatialAnchorConfidenceML confidence`
-  * `XrVector3f center`
-  * `float radius`
-  * `uint uuidCapacityInput`
-  * `uint uuidCountOutput`
-  * `IntPtr storage`
-  * `uint uuidCount`
-  * `uint anchorCount`
-  * `ulong expiration`
-* **enum XrSpatialBufferTypeEXT**
-  * `XrStructureType type`
-  * `uint componentTypeCapacityInput`
-  * `uint componentTypeCountOutput`
-  * `XrSpatialCapabilityEXT capability`
-  * `uint enabledComponentCount`
-  * `uint capabilityConfigCount`
-  * `XrResult futureResult`
-  * `IntPtr spatialContext`
-  * `uint componentTypeCount`
-  * `long time`
-  * `IntPtr snapshot`
-  * `uint entityIdCapacityInput`
-  * `uint entityIdCountOutput`
-  * `uint entityStateCapacityInput`
-  * `uint entityStateCountOutput`
-* **enum XrSpatialCapabilityEXT**
-* **enum XrSpatialCapabilityFeatureEXT**
-* **enum XrSpatialComponentTypeEXT**
-* **enum XrSpatialEntityComponentTypeBD**
-* **enum XrSpatialEntityTrackingStateEXT**
-* **enum XrSpatialGraphNodeTypeMSFT**
-  * `XrStructureType type`
-  * `XrSpatialGraphNodeTypeMSFT nodeType`
-  * `_nodeId_e__FixedBuffer nodeId`
-  * `XrPosef pose`
-* **enum XrSpatialMarkerAprilTagDictEXT**
-  * `XrStructureType type`
-  * `XrSpatialCapabilityEXT capability`
-  * `uint enabledComponentCount`
-  * `XrSpatialMarkerArucoDictEXT arUcoDict`
-  * `XrSpatialMarkerAprilTagDictEXT aprilDict`
-  * `float markerSideLength`
-  * `uint optimizeForStaticMarker`
-* **enum XrSpatialMarkerArucoDictEXT**
-* **enum XrSpatialMeshLodBD**
-  * `XrStructureType type`
-  * `uint supportsSpatialMesh`
-  * `ulong configFlags`
-  * `XrSpatialMeshLodBD lod`
-  * `uint isSupported`
-  * `uint progressPercentage`
-* **enum XrSpatialObjectSemanticLabelANDROID**
-  * `XrStructureType type`
-  * `XrSpatialCapabilityEXT capability`
-  * `uint enabledComponentCount`
-  * `uint activeSemanticLabelCount`
-  * `uint semanticLabelCount`
-* **enum XrSpatialPersistenceContextResultEXT**
-* **enum XrSpatialPersistenceScopeEXT**
-* **enum XrSpatialPersistenceStateEXT**
-  * `XrStructureType type`
-  * `XrSpatialPersistenceScopeEXT scope`
-  * `XrResult futureResult`
-  * `XrSpatialPersistenceContextResultEXT createResult`
-  * `uint persistenceContextCount`
-  * `IntPtr Handle { get; set; }`
-  * `bool IsNull { get; set; }`
-  * `XrSpatialPersistenceContextEXT Null { get; set; }`
-  * `bool Equals()`
-  * `int GetHashCode()`
-  * `bool operator`
-  * `string ToString()`
-  * `uint persistedUuidCount`
-* **enum XrSpatialPlaneAlignmentEXT**
-* **enum XrSpatialPlaneSemanticLabelEXT**
-  * `XrStructureType type`
-  * `XrSpatialCapabilityEXT capability`
-  * `uint enabledComponentCount`
-  * `uint planeAlignmentCount`
-  * `uint meshCount`
-* **enum XrSphericalHarmonicsKindANDROID**
-  * `XrStructureType type`
-  * `uint supportsLightEstimation`
-  * `long time`
-  * `XrLightEstimateStateANDROID state`
-  * `long lastUpdatedTime`
-  * `XrVector3f intensity`
-  * `XrVector3f direction`
-  * `XrVector3f colorCorrection`
-  * `XrSphericalHarmonicsKindANDROID kind`
-  * `_coefficients_e__FixedBuffer coefficients`
-* **enum XrStructureType**
-* **enum XrSurfaceAnchorTypeANDROID**
-  * `XrStructureType type`
-  * `uint maxSurfaceAnchorCount`
-  * `uint shouldTrackPlanes`
-  * `XrGeospatialPoseANDROID geospatialPose`
-  * `XrSurfaceAnchorTypeANDROID surfaceAnchorType`
-  * `XrQuaternionf eastUpSouthOrientation`
-  * `double latitude`
-  * `double longitude`
-  * `double altitudeRelativeToSurface`
-  * `XrResult futureResult`
-  * `ulong anchorEntityId`
-  * `ulong stateFlags`
-  * `float batteryLevel`
-  * `uint propertyValueCount`
-  * `ulong systemId`
-  * `XrViewConfigurationType viewConfigurationType`
-  * `uint viewFormatCount`
-  * `uint image`
-  * `ulong minApiVersionSupported`
-  * `ulong maxApiVersionSupported`
-  * `uint queueFamilyIndex`
-  * `uint queueIndex`
-  * `LUID adapterLuid`
-  * `int minFeatureLevel`
-  * `ulong createFlags`
-* **enum XrTrackableImageFormatANDROID**
-  * `XrStructureType type`
-  * `uint supportsImageTracking`
-  * `uint supportsPhysicalSizeEstimation`
-  * `uint maxTrackedImageCount`
-  * `uint maxLoadedImageCount`
-  * `XrTrackableImageTrackingModeANDROID trackingMode`
-  * `float physicalWidth`
-  * `uint imageWidth`
-  * `uint imageHeight`
-  * `XrTrackableImageFormatANDROID format`
-  * `uint bufferSize`
-  * `uint entryCount`
-  * `XrResult futureResult`
-* **enum XrTrackableImageTrackingModeANDROID**
-* **enum XrTrackableMarkerDictionaryANDROID**
-  * `XrStructureType type`
-  * `uint supportsMarkerTracking`
-  * `uint supportsMarkerSizeEstimation`
-  * `ushort maxMarkerCount`
-* **enum XrTrackableMarkerTrackingModeANDROID**
-* **enum XrTrackableTypeANDROID**
-* **enum XrTrackingOptimizationSettingsDomainQCOM**
-* **enum XrTrackingOptimizationSettingsHintQCOM**
-* **enum XrTrackingStateANDROID**
-* **enum XrVPSAvailabilityANDROID**
-* **enum XrViewConfigurationType**
-* **enum XrVirtualKeyboardInputSourceMETA**
-  * `XrStructureType type`
-  * `uint supportsVirtualKeyboard`
-  * `XrVirtualKeyboardLocationTypeMETA locationType`
-  * `XrPosef poseInSpace`
-  * `float scale`
-  * `uint visible`
-  * `int animationIndex`
-  * `float fraction`
-  * `uint stateCapacityInput`
-  * `uint stateCountOutput`
-  * `uint textureWidth`
-  * `uint textureHeight`
-  * `uint bufferCapacityInput`
-  * `uint bufferCountOutput`
-  * `XrVirtualKeyboardInputSourceMETA inputSource`
-  * `XrPosef inputPoseInSpace`
-  * `ulong inputState`
-  * `_text_e__FixedBuffer text`
-* **enum XrVirtualKeyboardLocationTypeMETA**
-* **enum XrVisibilityMaskTypeKHR**
-  * `XrStructureType type`
-  * `uint vertexCapacityInput`
-  * `uint vertexCountOutput`
-  * `uint indexCapacityInput`
-  * `uint indexCountOutput`
-  * `XrViewConfigurationType viewConfigurationType`
-  * `uint viewIndex`
-  * `XrColor4f colorScale`
-  * `XrColor4f colorBias`
-  * `ulong layerFlags`
-  * `XrEyeVisibility eyeVisibility`
-  * `XrSwapchainSubImage subImage`
-  * `XrPosef pose`
-  * `float radius`
-  * `float centralHorizontalAngle`
-  * `float upperVerticalAngle`
-  * `float lowerVerticalAngle`
-  * `uint bindingModificationCount`
-* **enum XrWindingOrderANDROID**
-  * `XrStructureType type`
-  * `uint vertexCapacity`
-  * `uint indexCapacity`
-  * `XrWindingOrderANDROID windingOrder`
-  * `uint vertexCount`
-  * `uint indexCount`
-  * `ulong layerFlags`
-  * `XrPosef pose`
-  * `XrVector3f scale`
-  * `float opacity`
-  * `IntPtr layer`
-  * `uint supportsPassthroughLayer`
-  * `uint maxMeshIndexCount`
-  * `uint maxMeshVertexCount`
-  * `uint maxResults`
-  * `uint trackerCount`
-  * `XrVector3f origin`
-  * `XrVector3f trajectory`
-  * `long time`
-* **enum XrWindingOrderFB**
-  * `XrStructureType type`
-  * `ulong flags`
-  * `XrWindingOrderFB windingOrder`
-  * `uint vertexCount`
-  * `uint triangleCount`
-* **enum XrWorldMeshBlockResultML**
-  * `XrStructureType type`
-  * `XrUuid uuid`
-  * `XrPosef meshBoundingBoxCenter`
-  * `XrExtent3Df meshBoundingBoxExtents`
-  * `long lastUpdateTime`
-  * `XrWorldMeshBlockStatusML status`
-  * `long time`
-  * `XrPosef boundingBoxCenter`
-  * `XrExtent3Df boundingBoxExtents`
-  * `XrResult futureResult`
-  * `long timestamp`
-  * `uint meshBlockStateCapacityInput`
-  * `uint meshBlockStateCountOutput`
-  * `uint maxBlockCount`
-  * `uint size`
-  * `uint bufferSize`
-  * `XrWorldMeshDetectorLodML lod`
-  * `ulong flags`
-  * `float fillHoleLength`
-  * `float disconnectedComponentArea`
-  * `uint blockCount`
-  * `XrWorldMeshBlockResultML blockResult`
-  * `uint indexCount`
-  * `uint vertexCount`
-  * `uint normalCount`
-  * `uint confidenceCount`
-  * `long meshSpaceLocateTime`
-* **enum XrWorldMeshBlockStatusML**
-* **enum XrWorldMeshDetectorLodML**
-* **struct D3D11_BOX**
-  * `int left`
-  * `int top`
-  * `int front`
-  * `int right`
-  * `int bottom`
-  * `int back`
-* **struct VkInstanceCreateInfo**
-  * `VkStructureType sType`
-  * `IntPtr pNext`
-  * `uint flags`
-  * `IntPtr pApplicationInfo`
-  * `uint enabledLayerCount`
-  * `IntPtr ppEnabledLayerNames`
-  * `uint enabledExtensionCount`
-  * `IntPtr ppEnabledExtensionNames`
-  * `XrStructureType type`
-  * `ulong systemId`
-  * `ulong createFlags`
-  * `uint queueCreateInfoCount`
-  * `VkBool32 robustBufferAccess`
-  * `VkBool32 fullDrawIndexUint32`
-  * `VkBool32 imageCubeArray`
-  * `VkBool32 independentBlend`
-  * `VkBool32 geometryShader`
-  * `VkBool32 tessellationShader`
-  * `VkBool32 sampleRateShading`
-  * `VkBool32 dualSrcBlend`
-  * `VkBool32 logicOp`
-  * `VkBool32 multiDrawIndirect`
-  * `VkBool32 drawIndirectFirstInstance`
-  * `VkBool32 depthClamp`
-  * `VkBool32 depthBiasClamp`
-  * `VkBool32 fillModeNonSolid`
-  * `VkBool32 depthBounds`
-  * `VkBool32 wideLines`
-  * `VkBool32 largePoints`
-  * `VkBool32 alphaToOne`
-  * `VkBool32 multiViewport`
-  * `VkBool32 samplerAnisotropy`
-  * `VkBool32 textureCompressionETC2`
-  * `VkBool32 textureCompressionASTC_LDR`
-  * `VkBool32 textureCompressionBC`
-  * `VkBool32 occlusionQueryPrecise`
-  * `VkBool32 pipelineStatisticsQuery`
-  * `VkBool32 vertexPipelineStoresAndAtomics`
-  * `VkBool32 fragmentStoresAndAtomics`
-  * `VkBool32 shaderTessellationAndGeometryPointSize`
-  * `VkBool32 shaderImageGatherExtended`
-  * `VkBool32 shaderStorageImageExtendedFormats`
-  * `VkBool32 shaderStorageImageMultisample`
-  * `VkBool32 shaderStorageImageReadWithoutFormat`
-  * `VkBool32 shaderStorageImageWriteWithoutFormat`
-  * `VkBool32 shaderUniformBufferArrayDynamicIndexing`
-  * `VkBool32 shaderSampledImageArrayDynamicIndexing`
-  * `VkBool32 shaderStorageBufferArrayDynamicIndexing`
-  * `VkBool32 shaderStorageImageArrayDynamicIndexing`
-  * `VkBool32 shaderClipDistance`
-  * `VkBool32 shaderCullDistance`
-  * `VkBool32 shaderFloat64`
-  * `VkBool32 shaderInt64`
-  * `VkBool32 shaderInt16`
-  * `VkBool32 shaderResourceResidency`
-  * `VkBool32 shaderResourceMinLod`
-  * `VkBool32 sparseBinding`
-  * `VkBool32 sparseResidencyBuffer`
-  * `VkBool32 sparseResidencyImage2D`
-  * `VkBool32 sparseResidencyImage3D`
-  * `VkBool32 sparseResidency2Samples`
-  * `VkBool32 sparseResidency4Samples`
-  * `VkBool32 sparseResidency8Samples`
-  * `VkBool32 sparseResidency16Samples`
-  * `VkBool32 sparseResidencyAliased`
-  * `VkBool32 variableMultisampleRate`
-  * `VkBool32 inheritedQueries`
-  * `VkDeviceQueueCreateFlags flags`
-  * `uint queueFamilyIndex`
-  * `uint queueCount`
-* **struct XrActionSet_T**
-  * `IntPtr Handle`
-* **struct XrAction_T**
-  * `IntPtr Handle`
-  * `XrAction_T Null`
-  * `bool operator`
-  * `bool Equals()`
-  * `int GetHashCode()`
-* **struct XrAnchorBD_T**
-  * `IntPtr Handle`
-  * `ulong Handle`
-  * `bool IsNull { get; set; }`
-* **struct XrApplicationInfo**
-  * `_applicationName_e__FixedBuffer applicationName`
-  * `uint applicationVersion`
-  * `_engineName_e__FixedBuffer engineName`
-  * `uint engineVersion`
-  * `ulong apiVersion`
-* **struct XrAttenuationCurvePointBD**
-  * `float distance`
-  * `float gain`
-  * `XrStructureType type`
-  * `uint curvePointCount`
-  * `XrSoundObjectDistanceAttenuationTypeBD distanceAttenuationType`
-  * `float minAttenuationRange`
-  * `float maxAttenuationRange`
-  * `float referenceDistance`
-  * `float rolloffFactor`
-  * `uint enabled`
-  * `XrPosef pose`
-  * `float mainVolume`
-  * `float reflectionGain`
-  * `uint enableDoppler`
-  * `XrQuaternionf orientation`
-  * `float lfeGain`
-  * `XrSoundFieldChannelMaskSurroundBD channelMask`
-  * `XrSoundFieldChannelMaskAmbixBD channelMask`
-  * `XrSoundFieldChannelMaskFumaBD channelMask`
-  * `uint vertexCount`
-  * `uint indexCount`
-  * `uint materialCount`
-  * `ulong Value { get; set; }`
-  * `bool IsNull { get; set; }`
-  * `XrSoundObstacleMaterialBD_T Null { get; set; }`
-  * `bool Equals()`
-  * `int GetHashCode()`
-  * `string ToString()`
-  * `bool operator`
-  * `XrSoundObstacleMaterialTypeBD materialType`
-  * `uint bandCount`
-* **struct XrBodyJointAccelerationBD**
-  * `ulong accelerationFlags`
-  * `XrVector3f linearAcceleration`
-  * `XrVector3f angularAcceleration`
-  * `XrStructureType type`
-  * `uint accelerationCount`
-  * `XrBodyTrackingStatusBD status`
-  * `XrBodyTrackingMessageBD message`
-* **struct XrBodyJointLocationBD**
-  * `ulong locationFlags`
-  * `XrPosef pose`
-  * `XrStructureType type`
-  * `uint allJointPosesTracked`
-  * `uint jointLocationCount`
-* **struct XrBodyJointLocationFB**
-  * `ulong locationFlags`
-  * `XrPosef pose`
-  * `XrStructureType type`
-  * `uint supportsBodyTracking`
-  * `XrBodyJointSetFB bodyJointSet`
-* **struct XrBodyJointLocationHTC**
-  * `ulong locationFlags`
-  * `XrPosef pose`
-  * `XrStructureType type`
-  * `ulong combinedLocationFlags`
-  * `XrBodyJointConfidenceHTC confidenceLevel`
-  * `uint jointLocationCount`
-  * `uint skeletonGenerationId`
-* **struct XrBodyJointVelocityBD**
-  * `ulong velocityFlags`
-  * `XrVector3f linearVelocity`
-  * `XrVector3f angularVelocity`
-  * `XrStructureType type`
-  * `uint velocityCount`
-* **struct XrBodySkeletonJointFB**
-  * `int joint`
-  * `int parentJoint`
-  * `XrPosef pose`
-  * `XrStructureType type`
-  * `uint jointCount`
-  * `long time`
-  * `uint isActive`
-  * `float confidence`
-  * `uint skeletonChangedCount`
-  * `ulong binding`
-  * `float forceThreshold`
-  * `float forceThresholdReleased`
-  * `float centerRegion`
-  * `float wedgeAngle`
-  * `uint isSticky`
-  * `float onThreshold`
-  * `float offThreshold`
-* **struct XrBodySkeletonJointHTC**
-  * `XrPosef pose`
-  * `XrStructureType type`
-  * `uint jointCount`
-  * `uint priorityOverride`
-  * `uint actionSetPriorityCount`
-* **struct XrBoxf**
-  * `XrPosef center`
-  * `XrExtent3Df extents`
-* **struct XrColor3f**
-  * `float r`
-  * `float g`
-  * `float b`
-* **struct XrColor4f**
-  * `float r`
-  * `float g`
-  * `float b`
-  * `float a`
-* **struct XrExtent2Df**
-  * `float width`
-  * `float height`
-  * `XrStructureType type`
-  * `ulong subactionPath`
-  * `XrPosef poseInActionSpace`
-  * `ulong locationFlags`
-  * `XrPosef pose`
-  * `XrViewConfigurationType viewConfigurationType`
-  * `uint fovMutable`
-  * `uint recommendedImageRectWidth`
-  * `uint maxImageRectWidth`
-  * `uint recommendedImageRectHeight`
-  * `uint maxImageRectHeight`
-  * `uint recommendedSwapchainSampleCount`
-  * `uint maxSwapchainSampleCount`
-  * `ulong createFlags`
-  * `ulong usageFlags`
-  * `long format`
-  * `uint sampleCount`
-  * `uint width`
-  * `uint height`
-  * `uint faceCount`
-  * `uint arraySize`
-  * `uint mipCount`
-  * `long timeout`
-  * `XrViewConfigurationType primaryViewConfigurationType`
-  * `long predictedDisplayTime`
-  * `long predictedDisplayPeriod`
-  * `uint shouldRender`
-  * `ulong layerFlags`
-  * `long displayTime`
-  * `XrEnvironmentBlendMode environmentBlendMode`
-  * `uint layerCount`
-  * `ulong viewStateFlags`
-* **struct XrExtent2Di**
-  * `int width`
-  * `int height`
-* **struct XrExtent3Df**
-  * `float width`
-  * `float height`
-  * `float depth`
-* **struct XrExtent3DiMETA**
-  * `int width`
-  * `int height`
-  * `int depth`
-  * `XrStructureType type`
-  * `XrExtent3DiMETA tileDimensions`
-  * `XrExtent2Di apronDimensions`
-  * `XrOffset2Di origin`
-  * `uint propertiesCount`
-  * `long captureTime`
-* **struct XrExternalCameraExtrinsicsOCULUS**
-  * `long lastChangeTime`
-  * `ulong cameraStatusFlags`
-  * `XrExternalCameraAttachedToDeviceOCULUS attachedToDevice`
-  * `XrPosef relativePose`
-  * `XrStructureType type`
-  * `_name_e__FixedBuffer name`
-  * `XrExternalCameraIntrinsicsOCULUS intrinsics`
-  * `XrExternalCameraExtrinsicsOCULUS extrinsics`
-* **struct XrExternalCameraIntrinsicsOCULUS**
-  * `long lastChangeTime`
-  * `XrFovf fov`
-  * `float virtualNearPlaneDistance`
-  * `float virtualFarPlaneDistance`
-  * `XrExtent2Di imageSensorPixelResolution`
-* **struct XrEyeANDROID**
-  * `XrEyeStateANDROID eyeState`
-  * `XrPosef eyePose`
-  * `XrStructureType type`
-  * `_eyes_e__FixedBuffer eyes`
-  * `XrEyeTrackingModeANDROID mode`
-* **struct XrEyeGazeFB**
-  * `uint isValid`
-  * `XrPosef gazePose`
-  * `float gazeConfidence`
-  * `XrStructureType type`
-  * `long time`
-  * `uint supportsEyeTracking`
-  * `_gaze_e__FixedBuffer gaze`
-* **struct XrFaceExpressionStatusFB**
-  * `uint isValid`
-  * `uint isEyeFollowingBlendshapesValid`
-  * `XrStructureType type`
-  * `uint weightCount`
-  * `uint confidenceCount`
-  * `XrFaceExpressionStatusFB status`
-  * `long time`
-* **struct XrForceFeedbackCurlApplyLocationMNDX**
-  * `XrForceFeedbackCurlLocationMNDX location`
-  * `float value`
-  * `XrStructureType type`
-  * `uint locationCount`
-* **struct XrFoveationConfigurationHTC**
-  * `XrFoveationLevelHTC level`
-  * `float clearFovDegree`
-  * `XrVector2f focalCenterOffset`
-  * `XrStructureType type`
-  * `ulong dynamicFlags`
-  * `uint configCount`
-  * `uint supportsAnchor`
-* **struct XrFoveationProfileFB_T**
-  * `IntPtr Handle`
-* **struct XrFovf**
-  * `float angleLeft`
-  * `float angleRight`
-  * `float angleUp`
-  * `float angleDown`
-  * `XrStructureType type`
-  * `XrPosef pose`
-  * `XrFovf fov`
-  * `_actionSetName_e__FixedBuffer actionSetName`
-  * `_localizedActionSetName_e__FixedBuffer localizedActionSetName`
-  * `uint priority`
-* **struct XrFrustumf**
-  * `XrPosef pose`
-  * `XrFovf fov`
-  * `float nearZ`
-  * `float farZ`
-* **struct XrGeospatialPoseANDROID**
-  * `XrQuaternionf eastUpSouthOrientation`
-  * `double latitude`
-  * `double longitude`
-  * `double altitude`
-  * `XrStructureType type`
-  * `uint supportsGeospatial`
-  * `XrGeospatialTrackerStateANDROID state`
-  * `XrResult initializationResult`
-  * `long time`
-* **struct XrGeospatialTrackerANDROID_T**
-  * `IntPtr Handle`
-  * `XrStructureType type`
-  * `long time`
-  * `XrPosef pose`
-  * `ulong poseFlags`
-  * `XrGeospatialPoseANDROID geospatialPose`
-  * `double horizontalAccuracy`
-  * `double verticalAccuracy`
-  * `double orientationYawAccuracy`
-  * `XrResult futureResult`
-  * `XrVPSAvailabilityANDROID availability`
-  * `ulong parentId`
-  * `uint subsumedUniqueIdCount`
-  * `ulong anchorEntityId`
-* **struct XrHandCapsuleFB**
-  * `_points_e__FixedBuffer points`
-  * `float radius`
-  * `XrHandJointEXT joint`
-* **struct XrHandGestureQCOM**
-  * `XrHandGestureTypeQCOM gesture`
-  * `float gestureRatio`
-  * `float flipRatio`
-* **struct XrHandJointLocationEXT**
-  * `ulong locationFlags`
-  * `XrPosef pose`
-  * `float radius`
-* **struct XrHandJointVelocityEXT**
-  * `ulong velocityFlags`
-  * `XrVector3f linearVelocity`
-  * `XrVector3f angularVelocity`
-  * `XrStructureType type`
-  * `uint isActive`
-  * `uint jointCount`
-* **struct XrHandMeshVertexMSFT**
-  * `XrVector3f position`
-  * `XrVector3f normal`
-  * `long vertexUpdateTime`
-  * `uint vertexCapacityInput`
-  * `uint vertexCountOutput`
-  * `XrStructureType type`
-  * `uint isActive`
-  * `uint indexBufferChanged`
-  * `uint vertexBufferChanged`
-  * `XrHandMeshIndexBufferMSFT indexBuffer`
-  * `XrHandMeshVertexBufferMSFT vertexBuffer`
-  * `XrHandPoseTypeMSFT handPoseType`
-  * `uint viewConfigurationCount`
-  * `XrViewConfigurationType viewConfigurationType`
-  * `uint active`
-  * `XrEnvironmentBlendMode environmentBlendMode`
-  * `uint layerCount`
-  * `ulong modelKey`
-  * `_parentNodeName_e__FixedBuffer parentNodeName`
-  * `_nodeName_e__FixedBuffer nodeName`
-* **struct XrHapticParametricPointEXT**
-  * `long time`
-  * `float value`
-* **struct XrHapticParametricTransientEXT**
-  * `long time`
-  * `float amplitude`
-  * `float frequency`
-  * `XrStructureType type`
-  * `uint amplitudePointCount`
-  * `uint frequencyPointCount`
-  * `uint transientCount`
-  * `float minFrequencyHz`
-  * `float maxFrequencyHz`
-  * `XrHapticParametricStreamFrameTypeEXT streamFrameType`
-  * `uint supportsParametricHaptics`
-  * `IntPtr spatialContext`
-  * `ulong spatialEntityId`
-  * `XrResult futureResult`
-  * `XrSpatialPersistenceContextResultEXT persistResult`
-  * `XrUuid persistUuid`
-  * `XrSpatialPersistenceContextResultEXT unpersistResult`
-* **struct XrKeyboardTrackingDescriptionFB**
-  * `ulong trackedKeyboardId`
-  * `XrVector3f size`
-  * `ulong flags`
-  * `_name_e__FixedBuffer name`
-* **struct XrOffset2Df**
-  * `float x`
-  * `float y`
-* **struct XrOffset2Di**
-  * `int x`
-  * `int y`
-* **struct XrOffset3DfFB**
-  * `float x`
-  * `float y`
-  * `float z`
-* **struct XrPosef**
-  * `XrQuaternionf orientation`
-  * `XrVector3f position`
-  * `XrStructureType type`
-  * `XrReferenceSpaceType referenceSpaceType`
-  * `XrPosef poseInReferenceSpace`
-* **struct XrQuaternionf**
-  * `float x`
-  * `float y`
-  * `float z`
-  * `float w`
-* **struct XrRaycastHitResultANDROID**
-  * `XrTrackableTypeANDROID type`
-  * `ulong trackable`
-  * `XrPosef pose`
-  * `XrStructureType type`
-  * `uint resultsCapacityInput`
-  * `uint resultsCountOutput`
-* **struct XrRect2Df**
-  * `XrOffset2Df offset`
-  * `XrExtent2Df extent`
-* **struct XrRect2Di**
-  * `XrOffset2Di offset`
-  * `XrExtent2Di extent`
-  * `IntPtr swapchain`
-  * `XrRect2Di imageRect`
-  * `uint imageArrayIndex`
-  * `XrStructureType type`
-  * `XrPosef pose`
-  * `XrFovf fov`
-  * `XrSwapchainSubImage subImage`
-  * `ulong layerFlags`
-  * `uint viewCount`
-  * `XrEyeVisibility eyeVisibility`
-  * `XrExtent2Df size`
-  * `uint lostEventCount`
-  * `long lossTime`
-  * `XrSessionState state`
-  * `long time`
-  * `XrReferenceSpaceType referenceSpaceType`
-  * `long changeTime`
-  * `uint poseValid`
-  * `XrPosef poseInPreviousSpace`
-  * `long duration`
-  * `float frequency`
-  * `float amplitude`
-* **struct XrRect3DfFB**
-  * `XrOffset3DfFB offset`
-  * `XrExtent3Df extent`
-  * `XrStructureType type`
-  * `uint bufferCapacityInput`
-  * `uint bufferCountOutput`
-  * `XrUuid floorUuid`
-  * `XrUuid ceilingUuid`
-  * `uint wallUuidCapacityInput`
-  * `uint wallUuidCountOutput`
-  * `uint vertexCapacityInput`
-  * `uint vertexCountOutput`
-  * `ulong flags`
-  * `ulong requestId`
-  * `XrResult result`
-  * `uint requestByteCount`
-  * `uint uuidCapacityInput`
-  * `uint uuidCountOutput`
-  * `_foveationCenter_e__FixedBuffer foveationCenter`
-* **struct XrRenderModelAssetNodePropertiesEXT**
-  * `_uniqueName_e__FixedBuffer uniqueName`
-* **struct XrRenderModelNodeStateEXT**
-  * `XrPosef nodePose`
-  * `uint isVisible`
-  * `XrStructureType type`
-  * `uint nodeStateCount`
-  * `XrUuid cacheId`
-  * `uint bufferCapacityInput`
-  * `uint bufferCountOutput`
-* **struct XrRoomMeshFaceMETA**
-  * `XrUuid uuid`
-  * `XrUuid parentUuid`
-  * `XrSemanticLabelMETA semanticLabel`
-  * `XrStructureType type`
-  * `uint indexCapacityInput`
-  * `uint indexCountOutput`
-  * `uint recognizedSemanticLabelCount`
-  * `uint vertexCapacityInput`
-  * `uint vertexCountOutput`
-  * `uint faceCapacityInput`
-  * `uint faceCountOutput`
-  * `uint bufferSize`
-  * `ulong advertisementRequestId`
-  * `XrResult result`
-  * `XrUuid advertisementUuid`
-  * `ulong requestId`
-  * `ulong discoveryRequestId`
-  * `_buffer_e__FixedBuffer buffer`
-* **struct XrSceneComponentLocationMSFT**
-  * `ulong flags`
-  * `XrPosef pose`
-  * `XrStructureType type`
-  * `uint locationCount`
-  * `long time`
-  * `uint componentIdCount`
-* **struct XrSceneComponentMSFT**
-  * `XrSceneComponentTypeMSFT componentType`
-  * `XrUuidMSFT id`
-  * `XrUuidMSFT parentId`
-  * `long updateTime`
-  * `XrStructureType type`
-  * `uint componentCapacityInput`
-  * `uint componentCountOutput`
-* **struct XrSceneFrustumBoundMSFT**
-  * `XrPosef pose`
-  * `XrFovf fov`
-  * `float farDistance`
-  * `long time`
-  * `uint sphereCount`
-  * `uint boxCount`
-  * `uint frustumCount`
-  * `XrStructureType type`
-  * `uint requestedFeatureCount`
-  * `XrSceneComputeConsistencyMSFT consistency`
-  * `XrSceneBoundsMSFT bounds`
-  * `XrMeshComputeLodMSFT lod`
-* **struct XrSceneMarkerMSFT**
-  * `XrSceneMarkerTypeMSFT markerType`
-  * `long lastSeenTime`
-  * `XrOffset2Df center`
-  * `XrExtent2Df size`
-  * `XrStructureType type`
-  * `uint sceneMarkerCapacityInput`
-  * `uint markerTypeCount`
-* **struct XrSceneMarkerQRCodeMSFT**
-  * `XrSceneMarkerQRCodeSymbolTypeMSFT symbolType`
-  * `byte version`
-  * `XrStructureType type`
-  * `uint qrCodeCapacityInput`
-* **struct XrSceneMeshMSFT**
-  * `ulong meshBufferId`
-  * `uint supportsIndicesUint16`
-  * `XrStructureType type`
-  * `uint sceneMeshCount`
-  * `uint vertexCapacityInput`
-  * `uint vertexCountOutput`
-  * `uint indexCapacityInput`
-  * `uint indexCountOutput`
-  * `XrUuidMSFT sceneFragmentId`
-  * `uint bufferSize`
-  * `uint fragmentCount`
-  * `float fromDisplayRefreshRate`
-  * `float toDisplayRefreshRate`
-  * `ulong persistentPath`
-  * `ulong rolePath`
-* **struct XrSceneObjectMSFT**
-  * `XrSceneObjectTypeMSFT objectType`
-  * `XrStructureType type`
-  * `uint sceneObjectCount`
-  * `XrUuidMSFT parentId`
-  * `uint objectTypeCount`
-* **struct XrSceneOrientedBoxBoundMSFT**
-  * `XrPosef pose`
-  * `XrVector3f extents`
-* **struct XrScenePlaneMSFT**
-  * `XrScenePlaneAlignmentTypeMSFT alignment`
-  * `XrExtent2Df size`
-  * `ulong meshBufferId`
-  * `uint supportsIndicesUint16`
-  * `XrStructureType type`
-  * `uint scenePlaneCount`
-  * `uint alignmentCount`
-* **struct XrSceneSphereBoundMSFT**
-  * `XrVector3f center`
-  * `float radius`
-* **struct XrSenseDataProviderBD_T**
-  * `XrSenseDataProviderBD Null`
-  * `bool Equals()`
-  * `int GetHashCode()`
-  * `bool operator`
-  * `string ToString()`
-* **struct XrSession_T**
-  * `IntPtr Handle`
-* **struct XrSpaceLocationData**
-  * `ulong locationFlags`
-  * `XrPosef pose`
-  * `XrStructureType type`
-  * `uint locationCount`
-* **struct XrSpaceUserFB_T**
-  * `ulong NativeHandle { get; set; }`
-  * `bool IsNull { get; set; }`
-  * `XrSpaceUserFB_T Null { get; set; }`
-  * `bool Equals()`
-  * `int GetHashCode()`
-  * `bool operator`
-  * `XrStructureType type`
-  * `ulong requestId`
-  * `XrResult result`
-  * `ulong layerFlags`
-  * `XrSwapchainSubImage motionVectorSubImage`
-  * `XrPosef appSpaceDeltaPose`
-  * `XrSwapchainSubImage depthSubImage`
-  * `float minDepth`
-  * `float maxDepth`
-  * `float nearZ`
-  * `float farZ`
-  * `uint recommendedMotionVectorImageRectWidth`
-  * `uint recommendedMotionVectorImageRectHeight`
-  * `long duration`
-  * `uint amplitudeCount`
-* **struct XrSpaceVelocityData**
-  * `ulong velocityFlags`
-  * `XrVector3f linearVelocity`
-  * `XrVector3f angularVelocity`
-  * `XrStructureType type`
-  * `uint velocityCount`
-  * `ulong layerFlags`
-  * `XrEyeVisibility eyeVisibility`
-  * `IntPtr swapchain`
-  * `uint imageArrayIndex`
-  * `XrQuaternionf orientation`
-  * `XrSwapchainSubImage subImage`
-  * `float minDepth`
-  * `float maxDepth`
-  * `float nearZ`
-  * `float farZ`
-  * `XrPosef pose`
-  * `float radius`
-  * `float centralAngle`
-  * `float aspectRatio`
-  * `XrVector2f scale`
-  * `XrVector2f bias`
-* **struct XrSpace_T**
-  * `IntPtr Handle`
-  * `bool IsNull { get; set; }`
-* **struct XrSpatialAnchorCompletionResultML**
-  * `XrUuid uuid`
-  * `XrResult result`
-  * `XrStructureType type`
-  * `uint resultCount`
-* **struct XrSpatialAnchorNameHTC**
-  * `_name_e__FixedBuffer name`
-* **struct XrSpatialAnchorPersistenceNameMSFT**
-  * `_name_e__FixedBuffer name`
-* **struct XrSpatialBounded2DDataEXT**
-  * `XrPosef center`
-  * `XrExtent2Df extents`
-  * `XrStructureType type`
-  * `uint boundCount`
-  * `uint parentCount`
-* **struct XrSpatialBufferEXT**
-  * `ulong bufferId`
-  * `XrSpatialBufferTypeEXT bufferType`
-  * `XrStructureType type`
-* **struct XrSpatialEntityEXT_T**
-  * `IntPtr Handle`
-  * `bool IsNull { get; set; }`
-  * `XrSpatialEntityEXT_T Null { get; set; }`
-  * `XrStructureType type`
-  * `IntPtr spatialContext`
-  * `XrSpatialEntityTrackingStateEXT trackingState`
-* **struct XrSpatialMarkerDataEXT**
-  * `XrSpatialCapabilityEXT capability`
-  * `uint markerId`
-  * `XrSpatialBufferEXT data`
-  * `XrStructureType type`
-  * `uint markerCount`
-* **struct XrSpatialMeshDataEXT**
-  * `XrPosef origin`
-  * `XrSpatialBufferEXT vertexBuffer`
-  * `XrSpatialBufferEXT indexBuffer`
-  * `XrStructureType type`
-  * `uint meshCount`
-  * `ulong entityId`
-  * `uint entityCount`
-  * `uint componentTypeCount`
-  * `long time`
-* **struct XrSpatialPersistenceDataEXT**
-  * `XrUuid persistUuid`
-  * `XrSpatialPersistenceStateEXT persistState`
-  * `XrStructureType type`
-  * `uint persistDataCount`
-* **struct XrSpatialPolygon2DDataEXT**
-  * `XrPosef origin`
-  * `XrSpatialBufferEXT vertexBuffer`
-  * `XrStructureType type`
-  * `uint polygonCount`
-  * `uint semanticLabelCount`
-  * `XrUuid generationId`
-* **struct XrSpatialRaycastResultDataANDROID**
-  * `XrPosef hitPose`
-  * `float distanceSquared`
-  * `XrStructureType type`
-  * `XrSpatialCapabilityEXT capability`
-  * `uint enabledComponentCount`
-  * `long time`
-  * `XrVector3f origin`
-  * `XrVector3f direction`
-  * `float maxDistance`
-  * `uint raycastResultCount`
-  * `uint componentTypeCount`
-* **struct XrSpheref**
-  * `XrPosef center`
-  * `float radius`
-* **struct XrSystemGraphicsProperties**
-  * `uint maxSwapchainImageHeight`
-  * `uint maxSwapchainImageWidth`
-  * `uint maxLayerCount`
-* **struct XrSystemTrackingProperties**
-  * `uint orientationTracking`
-  * `uint positionTracking`
-  * `XrStructureType type`
-  * `ulong systemId`
-  * `uint vendorId`
-  * `_systemName_e__FixedBuffer systemName`
-  * `XrSystemGraphicsProperties graphicsProperties`
-  * `XrSystemTrackingProperties trackingProperties`
-* **struct XrTrackableImageDatabaseANDROID_T**
-  * `ulong Handle`
-  * `XrTrackableImageDatabaseANDROID_T Null`
-  * `bool IsNull { get; set; }`
-  * `XrStructureType type`
-  * `uint databaseCount`
-  * `XrTrackingStateANDROID trackingState`
-  * `long lastUpdatedTime`
-  * `uint databaseEntryIndex`
-  * `XrPosef centerPose`
-  * `XrExtent2Df extents`
-  * `long time`
-* **struct XrTrackableMarkerDatabaseEntryANDROID**
-  * `int id`
-  * `float edgeSize`
-  * `XrTrackableMarkerDictionaryANDROID dictionary`
-  * `uint entryCount`
-  * `XrStructureType type`
-  * `XrTrackableMarkerTrackingModeANDROID trackingMode`
-  * `uint databaseCount`
-  * `XrTrackingStateANDROID trackingState`
-  * `long lastUpdatedTime`
-  * `int markerId`
-  * `XrPosef centerPose`
-  * `XrExtent2Df extents`
-* **struct XrTrackableTrackerANDROID_T**
-  * `IntPtr Handle`
-* **struct XrUuid**
-  * `_data_e__FixedBuffer data`
-* **struct XrUuidMSFT**
-  * `_bytes_e__FixedBuffer bytes`
-* **struct XrVector2f**
-  * `float x`
-  * `float y`
-  * `XrStructureType type`
-  * `XrVector2f currentState`
-  * `uint changedSinceLastSync`
-  * `long lastChangeTime`
-  * `uint isActive`
-  * `ulong subactionPath`
-  * `uint countActiveActionSets`
-  * `ulong sourcePath`
-  * `ulong whichComponents`
-* **struct XrVector3f**
-  * `float x`
-  * `float y`
-  * `float z`
-  * `XrStructureType type`
-  * `ulong velocityFlags`
-  * `XrVector3f linearVelocity`
-  * `XrVector3f angularVelocity`
-* **struct XrVector4f**
-  * `float x`
-  * `float y`
-  * `float z`
-  * `float w`
-* **struct XrVector4sFB**
-  * `short x`
-  * `short y`
-  * `short z`
-  * `short w`
-  * `XrStructureType type`
-  * `uint jointCapacityInput`
-  * `uint jointCountOutput`
-  * `uint vertexCapacityInput`
-  * `uint vertexCountOutput`
-  * `uint indexCapacityInput`
-  * `uint indexCountOutput`
-  * `float sensorOutput`
-  * `float currentOutput`
-  * `uint overrideHandScale`
-  * `float overrideValueInput`
-  * `ulong status`
-  * `XrPosef aimPose`
-  * `float pinchStrengthIndex`
-  * `float pinchStrengthMiddle`
-  * `float pinchStrengthRing`
-  * `float pinchStrengthLittle`
-* **struct _actionName_e__FixedBuffer**
-  * `sbyte e0`
-* **struct _actionSetName_e__FixedBuffer**
-  * `sbyte e0`
-* **struct _applicationName_e__FixedBuffer**
-  * `sbyte e0`
-* **struct _buffer_e__FixedBuffer**
-  * `byte e0`
-  * `XrStructureType type`
-  * `ulong discoveryRequestId`
-  * `XrResult result`
-  * `ulong requestId`
-  * `uint supportsColocationDiscovery`
-  * `uint supportsSpatialEntityGroupSharing`
-  * `uint groupCount`
-  * `XrUuid groupUuid`
-* **struct _bytes_e__FixedBuffer**
-  * `byte e0`
-  * `XrStructureType type`
-* **struct _capsules_e__FixedBuffer**
-  * `XrHandCapsuleFB e0`
-* **struct _coefficients_e__FixedBuffer**
-  * `float e0_0`
-* **struct _data_e__FixedBuffer**
-  * `byte e0`
-  * `XrStructureType type`
-  * `long time`
-  * `uint spaceCount`
-* **struct _description_e__FixedBuffer**
-  * `sbyte e0`
-  * `XrStructureType type`
-  * `_extensionName_e__FixedBuffer extensionName`
-  * `uint extensionVersion`
-* **struct _engineName_e__FixedBuffer**
-  * `sbyte e0`
-  * `XrStructureType type`
-  * `ulong createFlags`
-  * `XrApplicationInfo applicationInfo`
-  * `uint enabledApiLayerCount`
-  * `uint enabledExtensionCount`
-  * `ulong runtimeVersion`
-  * `_runtimeName_e__FixedBuffer runtimeName`
-* **struct _extensionName_e__FixedBuffer**
-  * `sbyte e0`
-* **struct _eyes_e__FixedBuffer**
-  * `XrEyeANDROID e0`
-  * `XrStructureType type`
-  * `long time`
-* **struct _foveationCenter_e__FixedBuffer**
-  * `XrVector2f e0`
-  * `XrStructureType type`
-  * `uint supportsFoveationEyeTracked`
-* **struct _gaze_e__FixedBuffer**
-  * `XrEyeGazeFB e0`
-  * `XrStructureType type`
-  * `float leftHandIntensity`
-  * `float rightHandIntensity`
-  * `ulong layerFlags`
-  * `uint bufferSize`
-  * `float sampleRate`
-  * `uint append`
-  * `XrSwapchainSubImage motionVectorSubImage`
-  * `XrVector4f motionVectorScale`
-  * `XrVector4f motionVectorOffset`
-  * `XrPosef appSpaceDeltaPose`
-  * `XrSwapchainSubImage depthSubImage`
-  * `float minDepth`
-  * `float maxDepth`
-  * `float nearZ`
-  * `float farZ`
-  * `uint recommendedMotionVectorImageRectWidth`
-  * `uint recommendedMotionVectorImageRectHeight`
-* **struct _layerName_e__FixedBuffer**
-  * `sbyte e0`
-* **struct _localizedActionName_e__FixedBuffer**
-  * `sbyte e0`
-  * `ulong binding`
-  * `XrStructureType type`
-  * `ulong interactionProfile`
-  * `uint countSuggestedBindings`
-  * `uint countActionSets`
-  * `ulong subactionPath`
-  * `uint currentState`
-  * `uint changedSinceLastSync`
-  * `long lastChangeTime`
-  * `uint isActive`
-  * `float currentState`
-* **struct _localizedActionSetName_e__FixedBuffer**
-  * `sbyte e0`
-  * `XrStructureType type`
-  * `_actionName_e__FixedBuffer actionName`
-  * `XrActionType actionType`
-  * `uint countSubactionPaths`
-  * `_localizedActionName_e__FixedBuffer localizedActionName`
-* **struct _modelName_e__FixedBuffer**
-  * `sbyte e0`
-  * `XrStructureType type`
-  * `uint bufferCapacityInput`
-  * `uint bufferCountOutput`
-  * `ulong modelKey`
-  * `uint supportsRenderModelLoading`
-  * `ulong flags`
-  * `uint foveatedRenderingActive`
-  * `uint supportsFoveatedRendering`
-  * `float depthTestRangeNearZ`
-  * `float depthTestRangeFarZ`
-  * `uint supportsMarkerTracking`
-  * `ulong markerId`
-  * `uint isActive`
-  * `uint isPredicted`
-  * `long time`
-  * `XrPosef poseInMarkerSpace`
-  * `float focusDistance`
-  * `float dimmerValue`
-* **struct _name_e__FixedBuffer**
-  * `sbyte e0`
-  * `XrStructureType type`
-  * `ulong trackedKeyboardId`
-  * `ulong flags`
-  * `XrLocalizationMapStateML state`
-  * `XrLocalizationMapML map`
-  * `XrLocalizationMapConfidenceML confidence`
-  * `ulong errorFlags`
-  * `XrUuid mapUuid`
-  * `uint size`
-  * `uint enabled`
-  * `XrSpatialAnchorPersistenceNameMSFT spatialAnchorPersistenceName`
-  * `IntPtr spatialAnchor`
-  * `IntPtr spatialAnchorStore`
-  * `XrPosef poseInSpace`
-  * `XrSpatialAnchorNameHTC name`
-* **struct _nodeId_e__FixedBuffer**
-  * `byte e0`
-  * `XrStructureType type`
-  * `XrPosef poseInSpace`
-  * `long time`
-  * `_nodeId_e__FixedBuffer nodeId`
-  * `XrPosef poseInNodeSpace`
-* **struct _nodeName_e__FixedBuffer**
-  * `sbyte e0`
-  * `XrStructureType type`
-  * `uint nodeCapacityInput`
-  * `uint nodeCountOutput`
-  * `XrPosef nodePose`
-  * `XrFovf recommendedFov`
-  * `XrFovf maxMutableFov`
-* **struct _parentNodeName_e__FixedBuffer**
-  * `sbyte e0`
-* **struct _points_e__FixedBuffer**
-  * `XrVector3f e0`
-  * `XrStructureType type`
-  * `_capsules_e__FixedBuffer capsules`
-* **struct _runtimeName_e__FixedBuffer**
-  * `sbyte e0`
-  * `XrStructureType type`
-  * `_varying_e__FixedBuffer varying`
-* **struct _systemName_e__FixedBuffer**
-  * `sbyte e0`
-  * `XrStructureType type`
-  * `ulong createFlags`
-  * `ulong systemId`
-* **struct _text_e__FixedBuffer**
-  * `sbyte e0`
-  * `XrStructureType type`
-* **struct _textureColorMap_e__FixedBuffer**
-  * `XrColor4f e0`
-  * `XrStructureType type`
-  * `_textureColorMap_e__FixedBuffer textureColorMap`
-  * `byte e0`
-  * `float brightness`
-  * `float contrast`
-  * `float saturation`
-  * `ulong flags`
-  * `ulong path`
-  * `uint vendorId`
-  * `_modelName_e__FixedBuffer modelName`
-  * `ulong modelKey`
-  * `uint modelVersion`
-* **struct _uniqueName_e__FixedBuffer**
-  * `sbyte e0`
-  * `XrStructureType type`
-  * `uint nodePropertyCount`
-  * `uint topLevelUserPathCount`
-* **struct _varying_e__FixedBuffer**
-  * `byte e0`
-  * `XrStructureType type`
-  * `XrFormFactor formFactor`
-* **struct _views_e__FixedBuffer**
-  * `XrEnvironmentDepthImageViewMETA e0`
-  * `XrStructureType type`
-  * `long captureTime`
-  * `uint enabled`
-  * `uint supportsEnvironmentDepth`
-  * `uint supportsHandRemoval`
-  * `ulong renderModelId`
-  * `uint gltfExtensionCount`
-  * `XrUuid cacheId`
-  * `uint animatableNodeCount`
-  * `IntPtr renderModel`
-  * `long displayTime`
-* **struct _visemes_e__FixedBuffer**
-  * `float e0`
-  * `XrStructureType type`
-  * `uint supportsVisemes`
-
-</details>
-
+## Angene
+
+* Angene.Engine
+
+  * (Settings) Engine.SettingHandlerInstanced() # Returns the settings instance, do NOT INSTANTIATE NEW SETTINGS AFTER INIT
+  * List<Angene.Main.Window> OpenWindows # List of currently open windows for manipulation or reference to their instance.
+  * Engine.Console # Ambiguous references to cause compiler errors. Used to prevent the developer from calling wrong functions. :omegalul:
+
+    * Console.WriteLine(string)
+    * Console.ReadLine(string)
+    * Console.Write(string)
+  * Engine.Window(WindowConfig)
+
+    * Window.SetScene(IScene) # Removes all other scenes (besides essential), sets primary scene.
+    * Window.AddScene(IScene) # Adds a new scene to loaded scenes
+    * Window.RemoveScene(IScene) # Removes scene from loaded scenes array
+    * Window.SetEngineMode(EngineMode) # Sets engine mode. 'EngineMode.Play', 'EngineMode.Edit'. (Added for engine flexibility for the actual GUI editor coming up!)
+    * Window.Cleanup() # Cleans up window resources
+    * Window.ProcessMessages() # Already called by lifecycle (Refer to Angene.Essentials.Lifecycle), processes message meaning and distributes to scenes.
+  * Engine.Init(Bool verbose) # Verbose call refers to log window
+  * Engine.Instance
+* Angene.External
+
+  * External.DiscordRichPresence
+
+    * (partial class) DiscordRichPresence
+
+      * DiscordRichPresence(clientId) # New RPC Instance
+      * SetPresence(RichPresence) # Sets new RPC
+      * Clear() # Clears RPC
+      * schedule() # Schedules Cts token debounce
+      * Dispose() # Clears client
+* Angene.PkgHandler
+
+  * Package
+
+    * IReadOnlyList<ManifestEntry> Entries => _manifest.Files;
+
+    private Package(FileStream fs, Manifest manifest, byte[] key,
+bool manifestEncrypted, bool manifestCompressed, byte[] manifestNonce, long manifestOffset)
+{
+_fs = fs;
+_manifest = manifest;
+_key = key;
+_manifestEncrypted = manifestEncrypted;
+_manifestCompressed = manifestCompressed;
+_manifestNonce = manifestNonce;
+_manifestOffset = manifestOffset;
+}
+
+    * Package Open(string path, byte[] key = null)
+{
+var fs = File.OpenRead(path);
+var magic = br.ReadBytes(8);
+var magicStr = Encoding.ASCII.GetString(magic);
+var version = br.ReadUInt32();
+var manifestLength = br.ReadInt64();
+var manifestFlags = br.ReadByte();
+bool manifestEncrypted = (manifestFlags & 0x01) != 0;
+bool manifestCompressed = (manifestFlags & 0x02) != 0;
+byte[] manifestNonce = null;
+long manifestOffset = fs.Position;
+var manifestBytes = new byte[manifestLength];
+int toRead = (int)manifestLength;
+int totalRead = 0;
+return new Package(fs, manifest, key, manifestEncrypted, manifestCompressed, manifestNonce, manifestOffset);
+}
+    * void ExtractTo(string relativePath, string outPath)
+    * Stream OpenStream(ManifestEntry entry)
+
+    private class Manifest
+{
+- ManifestEntry[] Files { get; set; }
+- DateTime Created { get; set; }
+}
+
+    * class ManifestEntry
+{
+
+      * string Path { get; set; }
+      * long Offset { get; set; }
+      * long Length { get; set; }
+      * bool Compressed { get; set; }
+      * bool Encrypted { get; set; }
+      * string Nonce { get; set; }
+      * string Tag { get; set; }
+}
+}
+* Angene.Platform
+
+  * WindowConfig
+
+    * string Title { get; set; } = "Angene Window";
+    * int Width { get; set; } = 800;
+    * int Height { get; set; } = 600;
+    * int X { get; set; } = Win32.CW_USEDEFAULT;
+    * int Y { get; set; } = Win32.CW_USEDEFAULT;
+    * bool cTI { internal get; set; } = false;
+    * string cTS { internal get; set; } = "";
+    * string cTT { internal get; set; } = "";
+    * Win32.WindowStyle Style { get; set; } = Win32.WindowStyle.OverlappedWindow;
+    * Win32.WindowStyleEx StyleEx { get; set; } = Win32.WindowStyleEx.None;
+    * Win32.WindowTransparency Transparency { get; set; } = Win32.WindowTransparency.None;
+    * bool Use3D { get; set; } = false;
+    * bool ShowOnCreate { get; set; } = true;
+    * bool AlwaysOnTop
+{
+get => StyleEx.HasFlag(Win32.WindowStyleEx.Topmost);
+set
+{
+if (value)
+StyleEx |= Win32.WindowStyleEx.Topmost;
+else
+StyleEx &= ~Win32.WindowStyleEx.Topmost;
+}
+}
+    * WindowConfig Standard(string title, int width, int height)
+{
+return new WindowConfig
+{
+Title = title,
+Width = width,
+Height = height,
+Style = Win32.WindowStyle.OverlappedWindow,
+StyleEx = Win32.WindowStyleEx.None,
+Transparency = Win32.WindowTransparency.None,
+Use3D = false
+};
+}
+    * WindowConfig TransparentOverlay(string title, int width, int height, bool clickThrough = true)
+{
+return new WindowConfig
+{
+Title = title,
+Width = width,
+Height = height,
+X = 0,
+Y = 0,
+Style = Win32.WindowStyle.Popup,
+StyleEx = Win32.WindowStyleEx.Layered | Win32.WindowStyleEx.Topmost |
+(clickThrough ? Win32.WindowStyleEx.Transparent : Win32.WindowStyleEx.None),
+Transparency = new Win32.WindowTransparency
+{
+Enabled = true,
+Alpha = 255,  
+ClickThrough = clickThrough
+},
+Use3D = false
+};
+}
+    * WindowConfig Borderless(string title, int width, int height)
+{
+return new WindowConfig
+{
+Title = title,
+Width = width,
+Height = height,
+Style = Win32.WindowStyle.Popup,
+StyleEx = Win32.WindowStyleEx.None,
+Transparency = Win32.WindowTransparency.None,
+Use3D = false
+};
+}
+    * WindowConfig Rendering3D(string title, int width, int height)
+{
+return new WindowConfig
+{
+Title = title,
+Width = width,
+Height = height,
+Style = Win32.WindowStyle.OverlappedWindow,
+StyleEx = Win32.WindowStyleEx.None,
+Transparency = Win32.WindowTransparency.None,
+Use3D = true
+};
+}
+
+  ## Angene.Essentials
+
+  * Essentials.Entity : IEquatable<Entity> # The ENTIRE FUCKING ENTITY
+
+    * static int Id # Entity ID
+    * int x # X axis
+    * int y # Y axis
+    * int z # Z axis
+    * string name # Name of *this* object
+    * List<Entity> childEntities # Child entities of *this* entity
+    * Entity(int, int, string) # Entity object, child of scene
+
+      * Id # Entity ID
+      * x # X axis
+      * y # Y axis
+      * z = 0 # Z axis (Not implemented, but placeholder and not required.)
+      * name # name of object
+      * _scripts # All script objects (List<object>)
+      * childEntities # All child entities (List<Entity>)
+      * _parent # Parent object
+      * _enabled # If enabled
+    * T AddScript<T>() where T : new() # Add a script component to lifecycle system
+    * AddScript(object) # Adds a new script *instance* to hierarchy
+    * RemoveScript(object) # Remove a script, does **NOT TRIGGER LIFECYCLE CALLBACKS**
+    * IReadOnlyList<Object> GetScripts() # Get all scripts attached to this entity
+    * T GetScriptByType<T>() # Gets script from list by type (Cannot return null, returns default(T))
+    * T? GetScript<T>() where T : class # Gets script from list by specific type (Can return null)
+    * SetEnabled(bool) # Sets *this* entity enabled
+    * bool IsEnabled() # Check if enabled
+    * AddChild(Entity) # Adds new child to hierarchy
+    * RemoveChild(Entity) # Removes entity child from hierarchy
+    * bool IsParent(Entity) # Check if entity is parent of this entity
+    * Entity? GetParent() # Gets entity parent
+    * Destroy() # Destroys entity and all associated children
+    * bool Equals(Entity?) # Grabs if entity is equal to *this* entity
+    * bool Equals(object?) # Grabs if object is equal to entity
+    * int GetHashCode() # Grabs entity id
+  * Essentials.IScene
+
+    * interface IScene
+
+      * Initialize() # Initializes scene, required
+      * List<Entity> GetEntities() # Grabs entities from scene, required
+      * OnMessage(IntPtr) # Calls on every message, required
+      * Render() # Calls before OnDraw, but on drawing, required.
+      * Cleanup() # Reference to clean up, required
+      * IRenderer3D? Renderer3D { get; } # 3D renderer reference, can be null, required.
+  * Essentials.Lifecycle # The entire FUCKING LIFECYCLE
+
+    * enum EngineMode
+
+      * Edit # Editing
+      * Play # Playing
+      * Paused # Paused
+    * sealed class Lifecycle
+
+      * object Instance # Binding to Instance
+      * Action? Awake # Binding to Awake
+      * Action? OnEnable # Binding to OnEnable
+      * Action? Start # Binding to Start
+      * Action<double>? Update # Binding to Update
+      * Action<double>? LateUpdate # Binding to LateUpdate
+      * Action? OnDraw # Binding to OnDraw
+      * Action? OnDisable # Binding to OnDisable
+      * Action? OnDestroy # Binding to OnDistroy
+      * Action<IntPtr>? OnMessage # Binding to OnMessage
+      * Action? Render # Binding to Render
+      * Action? Cleanup # Binding to Cleanup
+      * ScriptBinding(object) # Script instancing with binds to lifecycle
+      * struct LifecycleInfo
+
+        * bool HasUpdate # If Update() is defined
+        * bool HasLateUpdate # If LateUpdate() is defined
+        * bool HasOnDraw # If OnDraw() is defined
+        * bool HasStart # If Start() is defined
+      * ScriptBinding
+
+        * Tick(IScene, double, EngineMode) # Defines a tick, on every tick call Update
+        * Draw(IScene, EngineMode) # Draws object to scene
+        * HandleEntityCreated(Entity) # On entity created
+        * Destroy(Entity) # On entity destroyed
+        * Remove(Entity) # Synonym of Destroy()
+        * SetEntityEnabled(Entity, bool) # To set an entity as enabled
+        * RegisterScript(Entity, object) # Registering a script upon the lifecycle
+        * ShutdownEngine() # Shuts down the engine *correctly*.
+  * Essentials.ScreenPlay # Scripts
+
+    * interface IScreenPlay (Set up a script with ': IScreenPlay')
+
+      * Start() # When script initializes
+      * Cleanup() # Cleans up
+      * Render() # Calls before OnDraw, but on drawing.
+      * Update(double) # Calls on every frame
+      * LateUpdate(double) # Calls *after* every frame
+      * OnMessage(IntPtr) # Calls on every message
+      * OnDraw() # Calls after Render, but after drawing.
+
+  ## Angene.Common
+
+  * Common.Logger
+
+    * enum LogLevel # Logging levels
+
+      * Debug
+      * Info
+      * Warning
+      * Error
+      * Critical
+      * Important
+    * enum LoggingTarget # Logging targets for logs
+
+      * Network
+      * Engine
+      * MainConstructor
+      * Method
+      * Class
+      * Definition
+      * Call
+      * MainGame
+      * MasterScene
+      * SlaveScene
+      * Package
+    * Logger
+
+      * readonly Logger Instance # Logger instance
+      * StreamWriter? LogInstance # Log instance streamwriter, writes to log file.
+      * bool _verbose # Verbose setting
+      * Action<object, object, object, object, object> OnLog { get; set; } # Action per log
+      * Init(bool) # Initializes logger, bool defines if new window is created.
+      * Log(string, LoggingTarget, LogLevel, Exception, int) # Logs
+      * LogDebug(string, LoggingTarget) # Log debug
+      * LogInfo(string, LoggingTarget) # Log info
+      * LogWarning(string, LoggingTarget) # Log warning
+      * LogError(string, LoggingTarget) # Log error
+      * LogCritical(string, LoggingTarget, Exception) # Log critical
+      * Shutdown() # Shuts down logger
+  * Common.Settings
+
+    * List<string> namespaces # Namespaces for settings
+    * Dictionary<string, object> consoleSettings # Console settings (Does literally nothing)
+    * Action<string, object>[] OnSettingsChanged # Action that happens when setting changed.
+    * Settings() # Literally calls LoadDefaults() when instantiated.
+    * LoadDefaults() # Loads setting defaults
+    * object GetSetting(string) # Gets a setting, returns an object from setting value
+    * SetSetting(string, object) # Sets a setting, returns nothing.
+  * Common.Globals
+
+    * IRenderer : IDisposable # GDI Renderer
+
+      * BeginFrame(int, int) # Begins frame
+      * Clear(float, float, float, float) # Clears screen
+      * DrawRect(float, float, float, float, uint) # Draws a rect using GDI
+      * DrawText(float, float, string, uint) # Draws text using GDI
+      * EndFrame() # Ends frame
+    * IRenderer3D # 3D renderer
+
+      * Cleanup()
+
+  ## Angene.Audio
+
+  * AudioFile
+
+    * LoadType _loadType;
+    * enum LoadType
+  {
+  loadOnInstantiate = 0,
+  loadOnGet = 1,
+  streamed = 2,
+  loadOnGetThenDestroy = 3
+  };
+    * AudioFile(string packagePath, string path, LoadType loadType, byte[] key = null)
+    * byte[] GetAudioBytes()
+    * Stream GetAudioStream()
+    * void Dispose()
+  * AudioManager
+
+    * bool IsPlaying
+    * bool IsPaused
+    * float Volume
+    * bool Looping
+    * AudioManager(AudioFile file, bool playOnLoad = true,
+  bool loop = false, float volume = 1f)
+    * void Play()
+    * void Stop()
+    * void Pause()
+    * void Resume()
+    * void SetVolume(float v)
+    * void SetLooping(bool loop)
+    * void Dispose()
+  * interface IAudioPlayer : IDisposable
+
+    * bool IsPlaying { get; }
+    * bool IsPaused { get; }
+    * float Volume { get; }
+    * bool Looping { get; }
+    * void Play();
+    * void Stop();
+    * void Pause();
+    * void Resume();
+    * void SetVolume(float volume);   // 0.0 - 1.0
+    * void SetLooping(bool loop);
+  * Common
+
+    * AudioFactory
+
+      * IAudioPlayer Create(AudioFile) # Checks loadtype if is streamed, else provides full audio bytes
+
+  ## Angene.Graphics
+
+  * GraphicsBackend
+
+    * interface IGraphicsContext
+  {
+  IntPtr Handle { get; }
+  void Clear(uint color);
+  void DrawRectangle(int x, int y, int width, int height, uint color);
+  void DrawText(string text, int x, int y, uint color);
+  void Present(IntPtr windowHandle);
+  void Cleanup();
+  byte[] GetRawPixels();
+  }
+    * class GdiGraphicsContext : IGraphicsContext
+
+      * IntPtr Handle => memDc;
+      * GdiGraphicsContext(IntPtr hwnd, int w, int h)
+      * void Clear(uint color)
+      * void DrawRectangle(int x, int y, int w, int h, uint color)
+      * void DrawText(string text, int x, int y, uint color)
+      * void Present(IntPtr hwnd)
+      * byte[] GetRawPixels() { return null; }
+    * class WSGraphicsContext : IGraphicsContext
+
+      * IntPtr Handle => memDc;
+      * WSGraphicsContext(string hwnd, int w, int h)
+      * void Clear(uint color)
+      * void DrawRectangle(int x, int y, int w, int h, uint color)
+      * void DrawText(string text, int x, int y, uint color)
+      * byte[] GetRawPixels()
+    * class GraphicsContextFactory
+
+      * IGraphicsContext Create(IntPtr windowHandle, int width, int height)
+
+  ## Angene.Windows
+
+  * Angene.Windows.Gdi32
+
+    * SRCCOPY = 0x00CC0020;
+    * CreateCompatibleDC(IntPtr hdc);
+    * CreateCompatibleBitmap(IntPtr hdc, int nWidth, int nHeight);
+    * SelectObject(IntPtr hdc, IntPtr hObject);
+    * DeleteObject(IntPtr hObject);
+    * DeleteDC(IntPtr hdc);
+    * BitBlt(
+  IntPtr hdcDest,
+  int nXDest,
+  int nYDest,
+  int nWidth,
+  int nHeight,
+  IntPtr hdcSrc,
+  int nXSrc,
+  int nYSrc,
+  uint dwRop);
+    * CreateSolidBrush(uint crColor);
+    * GetStockObject(int fnObject);
+    * Rectangle(IntPtr hdc, int left, int top, int right, int bottom);
+    * SetBkMode(IntPtr hdc, int mode);
+    * SetTextColor(IntPtr hdc, uint color);
+    * TextOutW(IntPtr hdc, int nXStart, int nYStart, string lpString, int cchString);
+    * BITMAPINFOHEADER
+  {
+  uint biSize;
+  int biWidth;
+  int biHeight;
+  ushort biPlanes;
+  ushort biBitCount;
+  uint biCompression;
+  uint biSizeImage;
+  int biXPelsPerMeter;
+  int biYPelsPerMeter;
+  uint biClrUsed;
+  uint biClrImportant;
+  }
+    * BITMAPINFO
+  {
+  BITMAPINFOHEADER bmiHeader;
+  uint bmiColors; // Just enough for the header
+  }
+    * GetDIBits(IntPtr hdc, IntPtr hbmp, uint uStartScan, uint cScanLines, [Out] byte[] lpvBits, ref BITMAPINFO lpbi, uint uUsage);
+  * Angene.Windows.Win32
+
+    * enum WindowStyle : uint
+  {
+  Overlapped = 0x00000000,
+  Popup = 0x80000000,
+  Child = 0x40000000,
+  Minimize = 0x20000000,
+  Visible = 0x10000000,
+  Disabled = 0x08000000,
+  ClipSiblings = 0x04000000,
+  ClipChildren = 0x02000000,
+  Maximize = 0x01000000,
+  Caption = 0x00C00000,
+  Border = 0x00800000,
+  DialogFrame = 0x00400000,
+  VScroll = 0x00200000,
+  HScroll = 0x00100000,
+  SysMenu = 0x00080000,
+  ThickFrame = 0x00040000,
+  Group = 0x00020000,
+  TabStop = 0x00010000,
+  MinimizeBox = 0x00020000,
+  MaximizeBox = 0x00010000,
+
+      OverlappedWindow = Overlapped | Caption | SysMenu | ThickFrame | MinimizeBox | MaximizeBox,
+  PopupWindow = Popup | Border | SysMenu
+  }
+
+    * enum WindowStyleEx : uint
+  {
+  None = 0x00000000,
+  DlgModalFrame = 0x00000001,
+  NoParentNotify = 0x00000004,
+  Topmost = 0x00000008,
+  AcceptFiles = 0x00000010,
+  Transparent = 0x00000020,
+  MdiChild = 0x00000040,
+  ToolWindow = 0x00000080,
+  WindowEdge = 0x00000100,
+  ClientEdge = 0x00000200,
+  ContextHelp = 0x00000400,
+  Right = 0x00001000,
+  Left = 0x00000000,
+  RtlReading = 0x00002000,
+  LtrReading = 0x00000000,
+  LeftScrollBar = 0x00004000,
+  RightScrollBar = 0x00000000,
+  ControlParent = 0x00010000,
+  StaticEdge = 0x00020000,
+  AppWindow = 0x00040000,
+  Layered = 0x00080000,
+  NoInheritLayout = 0x00100000,
+  NoRedirectionBitmap = 0x00200000,
+  LayoutRtl = 0x00400000,
+  Composited = 0x02000000,
+  NoActivate = 0x08000000,
+
+      OverlappedWindow = WindowEdge | ClientEdge,
+  PaletteWindow = WindowEdge | ToolWindow | Topmost
+  }
+
+    * struct WindowTransparency
+  {
+
+      * bool Enabled;
+      * byte Alpha;
+      * bool ClickThrough;
+      * WindowTransparency None => new WindowTransparency { Enabled = false, Alpha = 255, ClickThrough = false };
+      * WindowTransparency Opaque => new WindowTransparency { Enabled = true, Alpha = 255, ClickThrough = false };
+      * WindowTransparency SemiTransparent => new WindowTransparency { Enabled = true, Alpha = 128, ClickThrough = false };
+      * WindowTransparency FullyTransparent => new WindowTransparency { Enabled = true, Alpha = 0, ClickThrough = true };
+  }
+    * const uint GR_GDIOBJECTS = 0;
+    * const int PM_REMOVE = 0x0001;
+    * const uint WM_CLOSE = 0x0010;
+    * const uint WM_DESTROY = 0x0002;
+    * const uint WM_ERASEBKGND = 0x0014;
+    * const uint WM_QUIT = 0x0012;
+    * const uint WM_OVERLAPPEDWINDOW = 0x00CF0000;
+    * const int CW_USEDEFAULT = unchecked((int)0x80000000);
+    * const int SW_SHOW = 5;
+    * delegate IntPtr WndProcDelegate(
+  IntPtr hWnd,
+  uint msg,
+  IntPtr wParam,
+  IntPtr lParam
+  );
+    * const uint IMAGE_ICON = 1;
+    * const uint LR_DEFAULTSIZE = 0x00000040;
+    * const uint LR_LOADFROMFILE = 0x00000010;
+    * const uint WM_SETICON = 0x0080;
+    * const int ICON_SMALL = 0;
+    * const int ICON_BIG = 1;
+    * IntPtr LoadImage(
+  IntPtr hInst,
+  string lpszName,
+  uint uType,
+  int cxDesired,
+  int cyDesired,
+  uint fuLoad
+  );
+    * IntPtr SendMessage(
+  IntPtr hWnd,
+  uint Msg,
+  IntPtr wParam,
+  IntPtr lParam
+  );
+    * IntPtr CreateIconFromResourceEx(
+  IntPtr presbits,
+  uint dwResSize,
+  bool fIcon,
+  uint dwVer,
+  int cxDesired,
+  int cyDesired,
+  uint Flags
+  );
+    * const uint LR_DEFAULTCOLOR = 0x00000000;
+    * bool DestroyIcon(IntPtr hIcon);
+    * struct WNDCLASSEX
+  {
+
+      * uint cbSize;
+      * uint style;
+      * WndProcDelegate lpfnWndProc;
+      * int cbClsExtra;
+      * int cbWndExtra;
+      * IntPtr hInstance;
+      * IntPtr hIcon;
+      * IntPtr hCursor;
+      * IntPtr hbrBackground;
+      * string lpszMenuName;
+      * string lpszClassName;
+      * IntPtr hIconSm;
+  }
+    * struct MSG
+  {
+
+      * IntPtr hwnd;
+      * uint message;
+      * IntPtr wParam;
+      * IntPtr lParam;
+      * uint time;
+      * int pt_x;
+      * int pt_y;
+  }
+    * uint GetGuiResources(IntPtr hProcess, uint uiFlags);
+    * IntPtr GetDC(IntPtr hWnd);
+    * int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+    * IntPtr CreateWindowExW(
+  uint dwExStyle,
+  string lpClassName,
+  string lpWindowName,
+  uint dwStyle,
+  int X,
+  int Y,
+  int nWidth,
+  int nHeight,
+  IntPtr hWndParent,
+  IntPtr hMenu,
+  IntPtr hInstance,
+  IntPtr lpParam
+  );
+    * bool PeekMessageW(
+  out MSG lpMsg,
+  IntPtr hWnd,
+  uint wMsgFilterMin,
+  uint wMsgFilterMax,
+  int wRemoveMsg
+  );
+    * bool TranslateMessage(ref MSG lpMsg);
+    * IntPtr DispatchMessageW(ref MSG lpMsg);
+    * IntPtr DefWindowProcW(
+  IntPtr hWnd,
+  uint message,
+  IntPtr wParam,
+  IntPtr lParam
+  );
+    * IntPtr BeginPaint(IntPtr hWnd, out PAINTSTRUCT lpPaint);
+    * bool EndPaint(IntPtr hWnd, ref PAINTSTRUCT lpPaint);
+    * bool DestroyWindow(IntPtr hWnd);
+    * void PostQuitMessage(int nExitCode);
+    * IntPtr LoadCursorW(IntPtr hInstance, IntPtr lpCursorName);
+    * ushort RegisterClassExW(ref WNDCLASSEX lpwcx);
+    * bool InvalidateRect(IntPtr hWnd, IntPtr lpRect, bool bErase);
+    * bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    * bool UpdateWindow(IntPtr hWnd);
+    * struct PAINTSTRUCT
+  {
+
+      * IntPtr hdc;
+      * bool fErase;
+      * RECT rcPaint;
+      * bool fRestore;
+      * bool fIncUpdate;
+      * byte[] rgbReserved;
+  }
+    * struct RECT
+  {
+
+      * int left;
+      * int top;
+      * int right;
+      * int bottom;
+  }
+    * const uint WS_POPUP = 0x80000000;
+    * const uint WS_EX_LAYERED = 0x00080000;
+    * const uint WS_EX_TRANSPARENT = 0x00000020;
+    * const uint WS_EX_TOPMOST = 0x00000008;
+    * const int LWA_COLORKEY = 0x1;
+    * const int LWA_ALPHA = 0x2;
+    * const int GWL_EXSTYLE = -20;
+    * bool SetLayeredWindowAttributes(
+  IntPtr hwnd,
+  uint crKey,
+  byte bAlpha,
+  uint dwFlags
+  );
+    * int GetWindowLong(IntPtr hWnd, int nIndex);
+    * int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+  * Angene.Windows.Win32Messages (WM, EM, not a global namespace.)
+
+    * enum WM : uint
+  {
+  NULL            = 0x0000,
+  CREATE          = 0x0001,
+  DESTROY         = 0x0002,
+  MOVE            = 0x0003,
+  SIZE            = 0x0005,
+  SETFOCUS        = 0x0007,
+  KILLFOCUS       = 0x0008,
+  PAINT           = 0x000F,
+  CLOSE           = 0x0010,
+  QUIT            = 0x0012,
+  ERASEBKGND      = 0x0014,
+
+      KEYDOWN         = 0x0100,
+  KEYUP           = 0x0101,
+  CHAR            = 0x0102,
+
+      MOUSEMOVE       = 0x0200,
+  LBUTTONDOWN     = 0x0201,
+  LBUTTONUP       = 0x0202,
+  RBUTTONDOWN     = 0x0204,
+  RBUTTONUP       = 0x0205,
+  MOUSEWHEEL      = 0x020A,
+
+      ENTERSIZEMOVE   = 0x0231,
+  EXITSIZEMOVE    = 0x0232,
+  }
+
+    * enum EM : uint
+  {
+  GETSEL          = 0x00B0,
+  SETSEL          = 0x00B1,
+  GETRECT         = 0x00B2,
+  SETRECT         = 0x00B3,
+  REPLACESEL      = 0x00C2,
+  GETLINE         = 0x00C4,
+  }
+    * class WS
+  {
+
+      * const uint OVERLAPPED       = 0x00000000;
+      * const uint POPUP            = 0x80000000;
+      * const uint CHILD            = 0x40000000;
+      * const uint VISIBLE          = 0x10000000;
+      * const uint DISABLED         = 0x08000000;
+      * const uint CLIPSIBLINGS     = 0x04000000;
+      * const uint CLIPCHILDREN     = 0x02000000;
+      * const uint SYSMENU          = 0x00080000;
+      * const uint THICKFRAME       = 0x00040000;
+  }
+    * class WS_EX
+  {
+
+      * const uint TOPMOST           = 0x00000008;
+      * const uint TOOLWINDOW        = 0x00000080;
+      * const uint APPWINDOW         = 0x00040000;
+      * const uint LAYERED           = 0x00080000;
+      * const uint NOACTIVATE        = 0x08000000;
+  }
+    * class SWP
+  {
+
+      * const uint NOSIZE        = 0x0001;
+      * const uint NOMOVE        = 0x0002;
+      * const uint NOZORDER      = 0x0004;
+      * const uint NOACTIVATE    = 0x0010;
+      * const uint SHOWWINDOW    = 0x0040;
+  }
+
+  ## Angene.Math
+
+  * Defs
+
+    * interface IComputeBackend : IDisposable
+  {
+  IComputeJob<TIn, TOut> CreateJob<TIn, TOut>(string shaderSource, int maxElements)
+  where TIn : unmanaged
+  where TOut : unmanaged;
+
+      void Flush();
+
+      }
+
+    * interface IComputeJob<TInput, TOutput> : IDisposable
+  where TInput : unmanaged
+  where TOutput : unmanaged
+  {
+  void Upload(TInput[] data);
+  void Dispatch();
+  TOutput[] Collect();   // Blocks until done — GPU readback
+  bool IsComplete { get; }
+  }
+  * GPU
+
+    * Math
+
+      * int GpuThreshold { get; set; } = 512; // below this, falls back to CPU
+      * Math(IComputeBackend backend)
+      * Vec2[] Add(Vec2[] a, Vec2[] b)
+      * Vec2[] Scale(Vec2[] vectors, float scalar)
+      * Vec2[] Normalize(Vec2[] vectors)
+      * float[] Dot(Vec2[] a, Vec2[] b)
+      * float[] Length(Vec2[] vectors)
+      * Vec2[] Lerp(Vec2[] a, Vec2[] b, float t)
+      * Vec2[] Lerp(Vec2[] a, Vec2[] b, float[] t)
+      * Vec3[] Add(Vec3[] a, Vec3[] b)
+      * Vec3[] Cross(Vec3[] a, Vec3[] b)
+      * Vec3[] Normalize(Vec3[] vectors)
+      * float[] Dot(Vec3[] a, Vec3[] b)
+      * Vec2[] Transform(Matrix3x3 matrix, Vec2[] points)
+      * Matrix3x3[] Multiply(Matrix3x3[] a, Matrix3x3[] b)
+      * float[] Clamp(float[] values, float min, float max)
+      * float[] Lerp(float[] a, float[] b, float t)
+      * float[] Remap(float[] values, float inMin, float inMax, float outMin, float outMax)
+      * float[] Sqrt(float[] values)
+      * float[] Abs(float[] values)
+      * float Sum(float[] values)
+      * float Min(float[] values)
+      * float Max(float[] values)
+      * Vec2 Sum(Vec2[] vectors)
+      * Vec2 Average(Vec2[] vectors)
+  * Interpolation
+
+    * const float PI = MathF.PI;
+    * const float Deg2Rad = MathF.PI / 180f;
+    * const float Rad2Deg = 180f / MathF.PI;
+    * static float Clamp(float v, float min, float max)
+    * static float Clamp01(float v)
+    * static float Remap(float v, float inMin, float inMax, float outMin, float outMax)
+    * static float Lerp(float a, float b, float t)
+    * static float LerpUnclamped(float a, float b, float t)
+    * static float InverseLerp(float a, float b, float v)
+    * static float SmoothStep(float a, float b, float t)
+    * static float SmootherStep(float a, float b, float t)
+    * static float MoveTowards(float current, float target, float maxDelta)
+    * static float SmoothDamp(float current, float target, ref float velocity,
+  float smoothTime, double dt)
+    * static float DeltaAngle(float from, float to)
+    * static float LerpAngle(float a, float b, float t)
+    * static class Ease
+  {
+
+      * static float InQuad(float t)
+      * static float OutQuad(float t)
+      * static float InOutQuad(float t)
+      * static float InCubic(float t)
+      * static float OutCubic(float t)
+      * static float InOutCubic(float t)
+      * static float InBack(float t)
+      * static float InBounce(float t)
+      * static float InElastic(float t)
+      * static float OutBack(float t)
+      * static float OutBounce(float t)
+      * static float OutElastic(float t)
+  }
+  * Vectors
+
+    * struct Vec2(float x = 0, float y = 0)
+  {
+
+      * float X = x, Y = y;
+      * static Vec2 Zero
+      * static Vec2 One
+      * static Vec2 Up
+      * static Vec2 Down
+      * static Vec2 Left
+      * static Vec2 Right
+      * float Length
+      * float LengthSquared
+      * Vec2 Normalized
+      * static float Dot(Vec2 a, Vec2 b)
+      * static float Distance(Vec2 a, Vec2 b)
+      * static Vec2 Lerp(Vec2 a, Vec2 b, float t)
+      * static Vec2 Reflect(Vec2 v, Vec2 normal)
+      * static Vec2 operator +(Vec2 a, Vec2 b)
+      * static Vec2 operator -(Vec2 a, Vec2 b)
+      * static Vec2 operator *(Vec2 v, float s)
+      * static Vec2 operator *(float s, Vec2 v)
+      * static Vec2 operator /(Vec2 v, float s)
+  }
+    * struct Vec3(float x = 0, float y = 0, float z = 0)
+  {
+
+      * float X = x, Y = y, Z = z;
+      * float Length
+      * Vec3 Normalized
+      * static float Dot(Vec3 a, Vec3 b)
+      * static Vec3 Cross(Vec3 a, Vec3 b)
+      * static Vec3 Lerp(Vec3 a, Vec3 b, float t)
+      * static Vec3 operator +(Vec3 a, Vec3 b)
+      * static Vec3 operator -(Vec3 a, Vec3 b)
+      * static Vec3 operator *(Vec3 v, float s)
+      * static Vec3 operator /(Vec3 v, float s)
+  }
+    * struct Rect(float x = 0, float y = 0, float width = 0, float height = 0)
+  {
+
+      * float X = x, Y = y, Width = width, Height = height;
+      * float Left
+      * float Right
+      * float Top
+      * float Bottom
+      * Vec2 Center
+      * bool Contains(Vec2 point)
+      * bool Intersects(Rect other)
+      * Rect Expand(float amount)
+  }
+    * struct Matrix3x3
+  {
+
+      * float M00, M01, M02;
+      * float M10, M11, M12;
+      * float M20, M21, M22;
+      * static Matrix3x3 Identity
+      * static Matrix3x3 Translation(float tx, float ty)
+      * static Matrix3x3 Rotation(float radians)
+      * static Matrix3x3 Scale(float sx, float sy)
+      * static Matrix3x3 operator *(Matrix3x3 a, Matrix3x3 b)
+      * static Vec2 operator *(Matrix3x3 m, Vec2 v)
+  }
+  * Rand
+
+    * static void SetSeed(int seed)
+    * static float Value
+    * static float Range(float min, float max)
+    * static int Range(int min, int max)
+    * static Vec2 InsideUnitCircle
+  {
+  get
+  {
+  Vec2 v;
+  do { v = new Vec2(Range(-1f, 1f), Range(-1f, 1f)); }
+  while (v.LengthSquared > 1f);
+  return v;
+  }
+  }
+    * static Vec2 OnUnitCircle
+  {
+  get
+  {
+  float angle = Range(0f, Mathf.PI * 2f);
+  return new Vec2(MathF.Cos(angle), MathF.Sin(angle));
+  }
+  }
+    * static bool Chance(float probability)
+    * static T Pick<T>(IList<T> items)
+    * static void Shuffle<T>(IList<T> items)
+
+  ## Angene.Input
+    * KeyDetection
+      - List<Entity> Instances # Collection of all entities that have KeyDetection instances on them.
+
+      - void Register() # Takes default ManagementScene object entities of all open windows and registers a new KeyDetection Entity on them. NOTICE: This method is not recommended for performance. It WILL iterate through all open windows and ManagementScene objects.
+
+      - void Register(Entity entity) # Takes in entity that the user specifies and registers a new KeyDetection object on it.
+
+      - void Register(ManagementScene managementScene) # Registers KeyDetection on the default entity of the provided management scene. Please refer to KeyDetection.cs for more info.
+
+      - static bool IsKeyDown(object key) # Checks if the specified key is currently held down. Requires KeyDetection to be registered first.
+
+      - void Deregister() # Nullifies script instance, deregistering it from lifetime.
+
+      - static HashSet<object> GetDownKeys # Returns a list of down keys
+    * WinInput.Keys
+      - class Key
+        - static object TryInt(int n)
+
+        - static object TryNInt(nint n)
+
+        - static object TryByte(byte keyCode)
+      - struct Keys
+        - enum IKeyCodeASCII : byte
+            a = 0x41,
+            b = 0x42,
+            c = 0x43,
+            d = 0x44,
+            e = 0x45,
+            f = 0x46,
+            g = 0x47,
+            h = 0x48,
+            i = 0x49,
+            j = 0x4A,
+            k = 0x4B,
+            l = 0x4C,
+            m = 0x4D,
+            n = 0x4E,
+            o = 0x4F,
+            p = 0x50,
+            q = 0x51,
+            r = 0x52,
+            s = 0x53,
+            t = 0x54,
+            u = 0x55,
+            v = 0x56,
+            w = 0x57,
+            x = 0x58,
+            y = 0x59,
+            z = 0x5A,
+        - enum IKeyCodeNum : byte
+            d0 = 0x30,
+            d1 = 0x31,
+            d2 = 0x32,
+            d3 = 0x33,
+            d4 = 0x34,
+            d5 = 0x35,
+            d6 = 0x36,
+            d7 = 0x37,
+            d8 = 0x38,
+            d9 = 0x39,
+        - enum IKeyCodeFunc : byte
+            f1 = 0x70,
+            f2 = 0x71,
+            f3 = 0x72,
+            f4 = 0x73,
+            f5 = 0x74,
+            f6 = 0x75,
+            f7 = 0x76,
+            f8 = 0x77,
+            f9 = 0x78,
+            f10 = 0x79,
+            f11 = 0x7A,
+            f12 = 0x7B,
+            f13 = 0x7C,
+            f14 = 0x7D,
+            f15 = 0x7E,
+            f16 = 0x7F,
+            f17 = 0x80,
+            f18 = 0x81,
+            f19 = 0x82,
+            f20 = 0x83,
+            f21 = 0x84,
+            f22 = 0x85,
+            f23 = 0x86,
+            f24 = 0x87,
+        - enum IKeyCodeMod : byte
+            Shift = 0x10,
+            LShift = 0xA0,
+            RShift = 0xA1,
+            Ctrl = 0x11,
+            LCtrl = 0xA2,
+            RCtrl = 0xA3,
+            Alt = 0x12,
+            LAlt = 0xA4,
+            RAlt = 0xA5,
+            End = 0x23,
+            Escape = 0x1B,
+            LWin = 0x5B,
+            RWin = 0x5C,
+            Space = 0x20,
+        - enum IKeyCodeSpecial : byte
+            None = 0,
+            Cancel = 0x03,
+            Apps = 0x5D,
+            Help = 0x2F,
+            Home = 0x24,
+            Zoom = 0xFB,
+            CrSel = 0xF3,
+            ExSel = 0xF4,
+            PA1 = 0xFD,
+            IMEConvert = 0x1C,
+            IMENonconvert = 0x1D,
+            IMEAccept = 0x1E,
+            IMEModeChange = 0x1F,
+            ProcessKey = 0xE5,
+            Packet = 0xE7,
+            Attn = 0xF6,
+            EraseEof = 0xF5,
+        - enum IKeyCodeArrow : byte
+            Left = 0x25,
+            Up = 0x26,
+            Right = 0x27,
+            Down = 0x28,
+        - enum IKeyCodeNumPad : byte
+            NumLock = 0x90,
+            Divide = 0x6F,
+            Multiply = 0x6A,
+            Subtract = 0x6D,
+            Add = 0x6B,
+            Decimal = 0x6E,
+            np0 = 0x60,
+            np1 = 0x61,
+            np2 = 0x62,
+            np3 = 0x63,
+            np4 = 0x64,
+            np5 = 0x65,
+            np6 = 0x66,
+            np7 = 0x67,
+            np8 = 0x68,
+            np9 = 0x69,
+        - enum IKeyCodeGamePad : byte
+            a = 0xC3,
+            b = 0xC4,
+            x = 0xC5,
+            y = 0xC6,
+            leftShoulder = 0xC7,
+            rightShoulder = 0xC8,
+            leftThumb = 0xC9,
+            rightThumb = 0xCA,
+            dpadUp = 0xCB,
+            dpadDown = 0xCC,
+            dpadLeft = 0xCD,
+            dpadRight = 0xCE,
+            menu = 0xCF,
+            view = 0xD0,
+            lThumbUp = 0xD1,
+            lThumbDown = 0xD2,
+            lThumbRight = 0xD3,
+            lThumbLeft = 0xD4,
+            rThumbUp = 0xD5,
+            rThumbDown = 0xD6,
+            rThumbRight = 0xD7,
+            rThumbLeft = 0xD8,
+        - enum IKeyCodeMouse : byte
+            LMouse = 0x01,
+            RMouse = 0x02,
+            XButton1 = 0x05,
+            XButton2 = 0x06,
+        - enum IKeyCodeOEM : byte // Keys labeled as OEM
+            OEM1 = 0xBA,
+            OEM2 = 0xBF,
+            OEM3 = 0xC0,
+            OEM4 = 0xDB,
+            OEM5 = 0xDC,
+            OEM6 = 0xDD,
+            OEM7 = 0xDE,
+            OEM8 = 0xDF,
+            OEM102 = 0xE2,
+            OEMPlus = 0xBB,
+            OEMComma = 0xBC,
+            OEMMinus = 0xBD,
+            OEMPeriod = 0xBE,
+            OEMClear = 0xFE,
+        - enum IKeyCodeBrowser : byte
+            BrowserBack = 0xA6,
+            BrowserForward = 0xA7,
+            BrowserRefresh = 0xA8,
+            BrowserStop = 0xA9,
+            BrowserSearch = 0xAA,
+            BrowserFavorites = 0xAB,
+            BrowserHome = 0xAC,
+        - enum IKeyCodeMedia : byte
+            Play = 0xFA,
+            VolumeMute = 0xAD,
+            VolumeDown = 0xAE,
+            VolumeUp = 0xAF,
+            MediaNextTrack = 0xB0,
+            MediaPrevTrack = 0xB1,
+            MediaStop = 0xB2,
+            MediaPlayPause = 0xB3,
 
 # Examples
 
@@ -5143,8 +1209,8 @@ At least its better than placing it in 'LocalLow{Dev}{Game}Player.log' where NO 
 engine = Engine.Instance;
 engine.Init(true); // If true, opens a new log window
 
-Logger.LogDebug("Hey i'm a debug log!", LoggingTarget.MainGame); // Logs to a file rather than the window
-Logger.LogError("Woah I'm an error, be scared.", LoggingTarget.Class);
+Logger.Log("Hey i'm a debug log!", LoggingTarget.MainGame); // Logs to file, logLevel is optional as so:
+Logger.Log("Woah I'm an error, be scared.", LoggingTarget.Class, logLevel: LogLevel.Error);
 ```
 
 But there is even easier:
@@ -5313,7 +1379,7 @@ public class DemoScene : IScene
 {
   // The following 3 vars are not required, but are recommended.
   public object Instance {get; private set;} 
-  public List<Entity> Entities {get; private set;} = new List<Entity>();
+  public List<Entity> entities {get; private set;}
   public Window _window;
 
   public IRenderer3D? Renderer3D => null; // Required by spec, not needed if not rendering 3D.
@@ -5326,6 +1392,7 @@ public class DemoScene : IScene
 
   public void Initialize()
   {
+    entities = new List<Entity>();
     Logger.Log($"Running on {PlatformDetection.CurrentPlatform}", LoggingTarget.MainGame, LogLevel.Info);
     // ... do entity mumbo jumbo here i guess
   }
@@ -5348,7 +1415,7 @@ public class DemoScene : IScene
   }
 
   public void Render() { }
-  public List<Entity> GetEntities() => Entities;
+  public List<Entity> GetEntities() => entities;
   public void Cleanup() { }
 ```
 
@@ -5713,199 +1780,14 @@ _keyDetection.Register();
 ```
 IsKeyDown() returns a boolean based upon if the key given is down.
 
-## DX11
-Finally long awaited, and still here to ruin peoples lifes. Lets walk through this.
-
-```cs
-public class DX11ExampleScene : IScene
-{
-  public object Instance { get; private set; }
-  public List<Entity> Entities { get; private set; } = new List<Entity>();
-  public string Name => "DX11ExampleScene";
-
-  private readonly Window _window;
-  private IDX11GraphicsContext _gfx;
-
-  private IntPtr _vertexBuffer;
-  private IntPtr _inputLayout;
-  private SlangShaderResources.IShader _vertexShader;
-  private SlangShaderResources.IShader _pixelShader;
-
-  public DX11ExampleScene(Window window)
-  {
-    _window = window ?? throw new ArgumentNullException(nameof(window));
-  }
-  public void Initialize()
-  {
-    Instance = this;
-    _gfx = _window.Graphics as IDX11GraphicsContext;
-    if (_gfx == null)
-    {
-        Logger.LogCritical("Window is not using the D3D11 backend — use WindowConfig.Rendering3D(...).", LoggingTarget.Graphics, new AngeneException("Window is not using the D3D11 rendering backend."));
-        return;
-    }
-
-    // Interleaved position (float3) + color (float4) = 7 floats / 28 bytes per vertex
-    float[] vertices =
-    {
-        0.0f,  0.5f, 0.0f,   1f, 0f, 0f, 1f,
-        0.5f, -0.5f, 0.0f,   0f, 1f, 0f, 1f,
-        -0.5f, -0.5f, 0.0f,   0f, 0f, 1f, 1f,
-    };
-    byte[] vertexBytes = new byte[vertices.Length * sizeof(float)];
-    Buffer.BlockCopy(vertices, 0, vertexBytes, 0, vertexBytes.Length);
-
-    _vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
-
-    var elements = new[]
-    {
-        new InputElement { SemanticName = "POSITION", SemanticIndex = 0, Format = DXGI_FORMAT.DXGI_FORMAT_R32G32B32_FLOAT,    ByteOffset = 0  },
-        new InputElement { SemanticName = "COLOR",    SemanticIndex = 0, Format = DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT, ByteOffset = 12 },
-    };
-
-    if (_vertexShader.byteCode == null)
-        Logger.LogCritical("Vertex shader bytecode is null. Compilation did not succeed.", LoggingTarget.MainGame, new AngeneException("Bytecode is null."), true);
-
-    _inputLayout = _gfx.CreateInputLayout(elements, _vertexShader.byteCode);
-  }
-
-  public void OnMessage(IntPtr msgPtr) { }
-
-  public void Render()
-  {
-    if (_gfx == null || _vertexShader == null || _pixelShader == null) return;
-
-    _gfx.Clear(0xFF203040); // opaque dark navy, just a clear color.
-
-    _gfx.SetVertexBuffer(_vertexBuffer, strideBytes: 7 * sizeof(float));
-    _gfx.SetInputLayout(_inputLayout);
-    _gfx.SetShader(_vertexShader, _pixelShader); // Just an example of shaders, not provided in this exerpt.
-    _gfx.Draw(3);
-
-    _gfx.Present((IntPtr)_window.Hwnd);
-  }
-
-  public void Cleanup()
-  {
-      // Don't dispose shaders here, they are owned by Engine.Instance.
-      if (_vertexBuffer != IntPtr.Zero) Marshal.Release(_vertexBuffer);
-      if (_inputLayout != IntPtr.Zero) Marshal.Release(_inputLayout);
-  }
-}
-```
-I know, its a really long exerpt; it's a page taken out of ShaderCompileTestScene.
-It's a beautiful sight aint it? I plan to get this smaller as time goes on for rendering.
-
-# Dx11Shader classes
-Okay, it's the meat and bones of DirectX, stay with me here.
-I tried to get this to a point that even I can understand it, so please be patient with them.
-(I did not crash both of my GPUs twice while making this btw)
-```cs
-[Attributes.Precompile]
-public class TestVertexShader : SlangShaderResources.IShader
-{
-  public string Name => "TestVS";
-  public int id => 1;
-  public string Extension => "hlsl";
-  public string EntryPoint { get; set; } = "main";
-  public SlangShaderResources.ShaderType Type => SlangShaderResources.ShaderType.Vertex;
-  public bool compileToFile { get; } = true;
-  public bool IsDisposed { get; private set; }
-
-  SlangShaderResources.ShaderOrigin SlangShaderResources.IShader.Origin => SlangShaderResources.ShaderOrigin.Dx11;
-
-  public string Code => @"struct VSInput
-{
-    float3 Position : POSITION;
-    float4 Color    : COLOR;
-};
-
-struct VSOutput
-{
-    float4 Position : SV_POSITION;
-    float4 Color    : COLOR;
-};
-
-VSOutput main(VSInput input)
-{
-    VSOutput output;
-    output.Position = float4(input.Position, 1.0f);
-    output.Color = input.Color;
-    return output;
-}
-";
-
-  public byte[] byteCode => null;
-
-  public void Bind() { /* binding is handled by IDX11GraphicsContext.SetShader */ }
-
-  public string OutputDebugInfo(bool log = true)
-  {
-      string info = $"{{'Name':'{Name}','Type':'{Type}'}}";
-      if (log) Logger.LogDebug(info, LoggingTarget.Graphics);
-      return info;
-  }
-
-  public void Dispose() => IsDisposed = true;
-}
-
-[Attributes.Precompile]
-public class TestPixelShader : SlangShaderResources.IShader
-{
-  public string Name => "TestPS";
-  public int id => 2;
-  public string Extension => "hlsl";
-  public string Path { get; set; } = System.IO.Path.Combine(AppContext.BaseDirectory, "Shaders", "PixelShader.hlsl");
-  public string EntryPoint { get; set; } = "main";
-  public SlangShaderResources.ShaderType Type => SlangShaderResources.ShaderType.Pixel;
-  public bool compileToFile { get; } = false;
-  public bool IsDisposed { get; private set; }
-
-  public string Code => @"struct PSInput
-{
-    float4 Position : SV_POSITION;
-    float4 Color    : COLOR;
-};
-
-float4 main(PSInput input) : SV_TARGET
-{
-    return input.Color;
-}
-";
-
-  public byte[] byteCode => null;
-
-  SlangShaderResources.ShaderOrigin SlangShaderResources.IShader.Origin => SlangShaderResources.ShaderOrigin.Dx11;
-
-  public void Bind() { }
-
-  public string OutputDebugInfo(bool log = true)
-  {
-      string info = $"{{'Name':'{Name}','Type':'{Type}','Path':'{Path}'}}";
-      if (log) Logger.LogDebug(info, LoggingTarget.Graphics);
-      return info;
-  }
-
-  public void Dispose() => IsDisposed = true;
-}
-```
-This is an example of a Pixel shader and a Vertex shader. Notice some distinctions:
-1. They do not take after Dx11Shader and instead inherit a class called 'SlangShaderResources.IShader'
-2. They both have a [Attributes.Precompile] attribute. This is an attribute made specifically for shaders for compiling before the window is created.
-3. They both are hlsl. I didn't feel like anything else was necessary.
-4. compileToFile boolean. This boolean is checked at compile time to be caching files inside whichever matches your operating system. Refer to Engine.cs in Angene.Main.
-
-This sucked to get working, but Slang is the primary compiler that is responsible for compiling and the library is about 30 MB. I'm not happy about it either.
-The Slang interop is currently only on the windows platform, for I plan to get this added for Linux too. MacOS users can respectfully, not get this engine.
-
 # QnA
 
-## Have you [vibecoded](http://vibe-coded.urbanup.com/18530338) any part of this engine?
+  ## Have you [vibecoded](http://vibe-coded.urbanup.com/18530338) any part of this engine?
 
   Sadly, yes. There are major parts within this game engine that are vibe coded. Most of that is the partial lack of interest and lack of thinking that I would ever use it in the future.
 If you need to know which parts are vibe coded, I will list them here:
 
-### Angene.Math
+  ### Angene.Math
 
 * Angene.Math
 
@@ -5924,7 +1806,20 @@ If you need to know which parts are vibe coded, I will list them here:
 
   * Vectors
 
-### Angene.Audio
+    ### Angene.Essentials
+
+* Angene.Entity (Partial, logic that is listed carries from human implementation.)
+* Angene.IScene (Partial, original logic and implementations carry from Python and older versions. See commit history.)
+* Angene.Lifecycle
+* Angene.ScreenPlay (Partial, format follows deprecated python version for flexibility, logic roughly sketched by hand.)
+
+  ### Angene.Common
+
+* Globals
+
+  * IRenderer3D (Partial, literally just a header to differentiate renderer types.)
+
+    ### Angene.Audio
 
 * All of the above.
 
@@ -5932,20 +1827,34 @@ If you need to know which parts are vibe coded, I will list them here:
   * If you wish to fact check me, just remember that the audio libraries are all in CPP and C, requiring importing.
   * Another thing, Windows audio derives from older versions that still exist in newer systems (Windows 11) still completely being deprecated and dead code. Microslop has yet to remove these older versions, causing discrepancies in what library users should use.
 
-### Angene (main library)
+    ### Angene (main library)
 
 * Main
 
   * WS
   * PkgHandler
+* Platform
+
+  * X11Native
+  * Self-explanatory. Yet to remove it at the time of writing (2026,03,07), considering this is windows-first.
 * Crypto
 
   * Literally just a conversion wrapper. Too lazy to change all of the references, so why not make it yourself to shut the console up!
 
-### Angene.Windows
+    ### Angene.Graphics
+
+* Graphics
+
+  * All of the above
+
+    * Not going to rant about microsoft implementations, just that me personally, I have no idea (as of now) how graphics rendering works in the terms of creation, nor does the documentation really help me in the case of using C#.
+    * Although I do state all of the above, GDI is the only one that does not adhere to this. The implementation carries from Python, and is human written (for the most part, conversion was AI.)
+
+    ### Angene.Windows
 
 * Kernel32
 * Gdi32
+* Win32
 * Win32Messages
 * All of the listed libraries is vibe coded. This primarilly consists of Win32 messages and headers pertaining to specific windows implementations. Microsoft documentation is correct and actually helped a lot when writing python implementations, but I will refer you to the [definitions file](https://github.com/Aerialflame7125/Angene/blob/main/Python/Angene/Main/definitions.py) written in python, and you tell me if you want to implement that in C#.
 * Most of this is also at the hands of bad implementations, very generously providing a great help when it comes to conversions to other languages :thumbs_up: (sarcasm.)

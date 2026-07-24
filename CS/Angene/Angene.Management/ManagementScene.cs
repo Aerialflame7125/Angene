@@ -13,8 +13,6 @@ namespace Angene.Management
 
         Entity defaultEnt;
 
-        List<Entity> Entities = new List<Entity>();
-
         public ManagementScene(string Token) => Entities.Add(new Entity(-100, -100, Token));
 
         public Entity AddEntity(Entity entity)

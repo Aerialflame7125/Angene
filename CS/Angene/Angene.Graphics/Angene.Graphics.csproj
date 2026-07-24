@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
-    <ProjectReference Include="..\Angene.Math\Angene.Math.csproj" />
     <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
   </ItemGroup>
 

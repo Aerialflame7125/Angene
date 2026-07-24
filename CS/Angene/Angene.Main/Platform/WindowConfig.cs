@@ -42,11 +42,9 @@ namespace Angene.Platform
         public string cTT { internal get; set; } = "";
 
         /// <summary>
-        /// Gets or sets the graphics implementation type used for rendering.
+        /// Changes the render mode for the window, defaults to GDI unless changed. Chooses between GDI, OpenGL, and DX11
         /// </summary>
-        /// <remarks>Defaults to Angene.Graphics.GraphicsType.AnGraphics. Select an enum value to choose
-        /// the rendering backend.</remarks>
-        public Angene.Graphics.GraphicsType GraphicsType { get; set; } = Graphics.GraphicsType.AnGraphics;
+        public RenderType renderMode = RenderType.Default;
 
         /// <summary>Window style flags</summary>
         public WindowManagement.WindowStyle Style { get; set; } = WindowManagement.WindowStyle.OverlappedWindow;

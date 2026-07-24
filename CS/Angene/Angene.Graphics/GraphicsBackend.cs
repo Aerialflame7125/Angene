@@ -1,5 +1,10 @@
-using Angene.Graphics.Angraphics;
+using Angene.Common;
+using Angene.Graphics.DX11;
+using Angene.Graphics.SlangShader;
 using Angene.Windows;
+using Angene.Windows.D3D11;
+using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using static Angene.Windows.Dxgi.DxgiEnums;
 
@@ -121,7 +126,6 @@ namespace Angene.Graphics
                 Gdi32.DeleteDC(memDc);
         }
     }
-
     public class WSGraphicsContext : IGraphicsContext
     {
         private string windowHandle;
@@ -219,23 +223,27 @@ namespace Angene.Graphics
     // Factory for creating platform-specific graphics contexts
     public static class GraphicsContextFactory
     {
-        public static IGraphicsContext Create(object windowHandle, int width, int height, GraphicsType renderMode)
+        public static IGraphicsContext Create(IntPtr windowHandle, int width, int height, int renderMode, IntPtr existingDevice = default, IntPtr existingContext = default)
         {
-            if (renderMode == GraphicsType.Gdi)
-                return new GdiGraphicsContext((IntPtr)windowHandle, width, height);
-            if (renderMode == GraphicsType.AnGraphics)
-                return new AnGraphicsContext((IntPtr)windowHandle, width, height);
-            if (renderMode == GraphicsType.Websocket)
-                return new WSGraphicsContext((string)windowHandle, width, height);
-
+            if (renderMode == 0)
+                return new GdiGraphicsContext(windowHandle, width, height);
+            if (renderMode == 1)
+                throw new Exceptions.FailedToCreateGraphicsBackendException("There currently is not an IGraphicsContext definition for OpenGL.");
+            if (renderMode == 2)
+                return new DX11GraphicsContext(windowHandle, width, height, existingDevice, existingContext);
 
             Common.Logger.LogCritical(
-                "[GraphicsContextFactory] Failed to create IGraphicsContext, 'Graphics.GraphicsType' is not a possible value.",
+                "[GraphicsContextFactory] Failed to create IGraphicsContext, 'Graphics.RenderMode' is not a possible value.",
                 Common.LoggingTarget.Graphics,
-                new Exceptions.FailedToCreateGraphicsBackendException("[GraphicsContextFactory] Failed to create IGraphicsContext, 'Graphics.GraphicsType' is not a possible value."),
+                new Exceptions.FailedToCreateGraphicsBackendException("[GraphicsContextFactory] Failed to create IGraphicsContext, 'Graphics.RenderMode' is not a possible value."),
                 true
             );
             return null;
+        }
+        
+        public static IGraphicsContext CreateWS(string windowHandle, int width, int height)
+        {
+            return new WSGraphicsContext(windowHandle, width, height);
         }
     }
 }

@@ -152,11 +152,6 @@ namespace Angene.Main
 
                 Logger.Instance.OnLog += (message, target, level, time, exception) =>
                 {
-                    if (exception == null && (string)message == "[OnQuit] ExitOnException")
-                    {
-                        destroyInstances();
-                        Environment.Exit(1);
-                    }
                     if (exception != null)
                         _logConsole.AppendLine($"[{level}] {target} ({time}) {message}\n{exception}");
                     else
@@ -437,7 +432,6 @@ namespace Angene.Main
         {
             Logger.LogCritical("The 'Window(string, int, int) constructor is deprecated. Please use the 'WindowConfig' constructor instead.", LoggingTarget.Engine, new AngeneException(""), enginePanic: true);
         }
-        
         public Window(WindowConfig config)
         {
             Width = config.Width;
@@ -480,11 +474,15 @@ namespace Angene.Main
 
             if (!config.cTI)
             {
-                graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height, config.GraphicsType);
+                if (config.renderMode == RenderType.D3D11 && Engine.Instance.SharedD3D11Device != IntPtr.Zero)
+                    graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height, (int)config.renderMode,
+                        Engine.Instance.SharedD3D11Device, Engine.Instance.SharedD3D11Context);
+                else
+                    graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height, (int)config.renderMode);
             }
             else
             {
-                graphicsContext = GraphicsContextFactory.Create((string)Hwnd, config.Width, config.Height, config.GraphicsType);
+                graphicsContext = GraphicsContextFactory.CreateWS((string)Hwnd, config.Width, config.Height);
                 var streamer = new Websocket.WebStreamer(this);
                 _screenPlay = streamer;
                 RegisterWebSocketInput();
@@ -712,18 +710,6 @@ namespace Angene.Main
             return int.TryParse(json.Substring(start, end - start), out int val) ? val : 0;
         }
 
-        public void Cleanup()
-        {
-            Logger.Log("Cleaning up window resources", LoggingTarget.Engine, LogLevel.Important);
-
-            if (!is3D && graphicsContext != null)
-            {
-                graphicsContext.Cleanup();
-            }
-
-            foreach (IScene scene in Scenes)
-                scene?.Cleanup();
-        }
 #if !WINDOWS
         private static object CreateWindowWindows(WindowConfig config, bool cTI, string cTS, object type)
         {

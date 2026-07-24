@@ -85,7 +85,7 @@ namespace Angene.Common
             }
         }
 
-        public static void Log(string message, LoggingTarget logFrom, LogLevel logLevel = LogLevel.Info, Exception? exception = null, bool enginePanic = false, int sceneNumber = -1)
+        private void Log(string message, LoggingTarget logFrom, LogLevel logLevel = LogLevel.Info, Exception? exception = null, bool enginePanic = false, int sceneNumber = -1)
         {
             lock (logLock)
             {
@@ -139,11 +139,13 @@ namespace Angene.Common
             }
         }
 
-        public static void LogDebug(string message, LoggingTarget logFrom) { Log(message, logFrom, LogLevel.Debug); }
-        public static void LogInfo(string message, LoggingTarget logFrom) { Log(message, logFrom, LogLevel.Info); }
-        public static void LogWarning(string message, LoggingTarget logFrom) { Log(message, logFrom, LogLevel.Warning); }
-        public static void LogError(string message, LoggingTarget logFrom) { Log(message, logFrom, LogLevel.Error); }
-        public static void LogCritical(string message, LoggingTarget logFrom, Exception exception, bool enginePanic = false) { Log(message, logFrom, LogLevel.Critical, exception, enginePanic); }
+        // Static methods
+        public static void LogDebug(string message, LoggingTarget logFrom) { Instance.Log(message, logFrom, LogLevel.Debug); }
+        public static void LogInfo(string message, LoggingTarget logFrom) { Instance.Log(message, logFrom, LogLevel.Info); }
+        public static void LogWarning(string message, LoggingTarget logFrom) { Instance.Log(message, logFrom, LogLevel.Warning); }
+        public static void LogError(string message, LoggingTarget logFrom) { Instance.Log(message, logFrom, LogLevel.Error); }
+        public static void LogImportant(string message, LoggingTarget logFrom, bool enginePanic = false) { Instance.Log(message, logFrom, LogLevel.Important); }
+        public static void LogCritical(string message, LoggingTarget logFrom, Exception exception, bool enginePanic = false) { Instance.Log(message, logFrom, LogLevel.Critical, exception, enginePanic); }
 
         public static void Shutdown()
         {

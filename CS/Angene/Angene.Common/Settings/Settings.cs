@@ -148,7 +148,7 @@ Logger.LogError("Could not recognize system build. Graphics.ShaderDirectory is i
                     if (!File.Exists(path))
                         File.Create(path).Close();
 
-                    jo[ns] = value as JToken;
+                    jo[ns] = JToken.FromObject(value);
                 }
                 string o = jo.ToString();
                 byte[] bytes = System.Text.Encoding.UTF8.GetBytes(o);

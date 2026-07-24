@@ -9,13 +9,13 @@ namespace Angene.Math.Vectors
 {
     // Started new developments on 2026,05,24 for Angraphics
     public struct Point { int x, y;
-        public int X;
-        public int Y;
+        private int x1;
+        private int y2;
 
         public Point(int x1, int y2) : this()
         {
-            this.X = x1;
-            this.Y = y2;
+            this.x1 = x1;
+            this.y2 = y2;
         }
     }
 
