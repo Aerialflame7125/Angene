@@ -3,8 +3,10 @@ using AngeneEditor.Runtime;
 using AngeneEditor.ScriptEditor;
 using AngeneEditor.Theme;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace AngeneEditor.Panels
@@ -46,6 +48,7 @@ namespace AngeneEditor.Panels
             Controls.Add(_content);
             Controls.Add(_header);
 
+            ProjectManager.Instance.EntitiesChanged += RefreshCurrentEntity;
             ShowEmpty();
         }
 
@@ -83,11 +86,11 @@ namespace AngeneEditor.Panels
             int y = 10;
 
             SectionHeader("Entity", ref y);
-            AddField("Name", _entity.Name, ref y, editable: true, onChange: v => _entity.Name = v);
-            AddField("X", _entity.X.ToString(), ref y, editable: true,
-                onChange: v => { if (int.TryParse(v, out int x)) _entity.X = x; });
-            AddField("Y", _entity.Y.ToString(), ref y, editable: true,
-                onChange: v => { if (int.TryParse(v, out int yy)) _entity.Y = yy; });
+            AddField("Name", _entity.Name, ref y, editable: true, onChange: value =>
+            {
+                if (_entity != null && value.Length > 0 && value != _entity.Name)
+                    ProjectManager.Instance.RenameEntity(_entity, value);
+            });
 
             var enabledCheck = new CheckBox
             {
@@ -101,11 +104,61 @@ namespace AngeneEditor.Panels
             };
             enabledCheck.CheckedChanged += (_, _) =>
             {
-                _entity.Enabled = enabledCheck.Checked;
-                _host?.SyncEntity(_entity.Name, _entity.X, _entity.Y, _entity.Enabled);
+                if (_entity == null || _entity.Enabled == enabledCheck.Checked)
+                    return;
+
+                _entity = ProjectManager.Instance.UpdateEntity(
+                    _entity,
+                    enabledCheck.Checked ? "Enable entity" : "Disable entity",
+                    entity => entity.Enabled = enabledCheck.Checked);
+                SyncRuntimeEntity();
             };
             _content.Controls.Add(enabledCheck);
             y += 28;
+
+            Divider(ref y);
+
+            SectionHeader("Transform", ref y);
+            AddNumberField("Position X", _entity.X, ref y, value =>
+                UpdateTransform("Move entity", entity => entity.X = (int)MathF.Round(value)));
+            AddNumberField("Position Y", _entity.Y, ref y, value =>
+                UpdateTransform("Move entity", entity => entity.Y = (int)MathF.Round(value)));
+            AddNumberField("Position Z", _entity.Z, ref y, value =>
+                UpdateTransform("Move entity", entity => entity.Z = value));
+            AddNumberField("Rotation X", _entity.RotationX, ref y, value =>
+                UpdateTransform("Rotate entity", entity => entity.RotationX = value));
+            AddNumberField("Rotation Y", _entity.RotationY, ref y, value =>
+                UpdateTransform("Rotate entity", entity => entity.RotationY = value));
+            AddNumberField("Rotation Z", _entity.RotationZ, ref y, value =>
+                UpdateTransform("Rotate entity", entity => entity.RotationZ = value));
+            AddNumberField("Scale X", _entity.ScaleX, ref y, value =>
+                UpdateTransform("Scale entity", entity => entity.ScaleX = value));
+            AddNumberField("Scale Y", _entity.ScaleY, ref y, value =>
+                UpdateTransform("Scale entity", entity => entity.ScaleY = value));
+            AddNumberField("Scale Z", _entity.ScaleZ, ref y, value =>
+                UpdateTransform("Scale entity", entity => entity.ScaleZ = value));
+
+            Divider(ref y);
+
+            // ── Components ────────────────────────────────────────────────────────
+            SectionHeader("Components", ref y);
+            foreach (ComponentDefinition component in _entity.Components)
+                AddComponentCard(component, ref y);
+
+            var addComponentButton = new Button
+            {
+                Text = "+ Add Component",
+                Location = new Point(10, y),
+                Size = new Size(222, 28),
+                BackColor = EditorTheme.PanelHeader,
+                ForeColor = EditorTheme.TextAccent,
+                FlatStyle = FlatStyle.Flat,
+                Font = EditorTheme.FontUISmall,
+                FlatAppearance = { BorderColor = EditorTheme.PanelBorder },
+            };
+            addComponentButton.Click += (_, _) => ShowAddComponentMenu(addComponentButton);
+            _content.Controls.Add(addComponentButton);
+            y += 34;
 
             Divider(ref y);
 
@@ -161,6 +214,210 @@ namespace AngeneEditor.Panels
             };
             saveBtn.Click += (_, _) => ProjectManager.Instance.SaveProject();
             _content.Controls.Add(saveBtn);
+        }
+
+        // ── Component cards ───────────────────────────────────────────────────────
+
+        private void AddComponentCard(ComponentDefinition component, ref int y)
+        {
+            if (_content == null || _entity == null)
+                return;
+
+            int cardHeight = 34 + Math.Max(0, component.Properties.Count) * 28;
+            var card = new Panel
+            {
+                Location = new Point(10, y),
+                Size = new Size(222, cardHeight),
+                BackColor = EditorTheme.BackgroundAlt,
+            };
+
+            var enabled = new CheckBox
+            {
+                Checked = component.Enabled,
+                Location = new Point(7, 6),
+                Size = new Size(20, 20),
+                BackColor = EditorTheme.BackgroundAlt,
+            };
+            enabled.CheckedChanged += (_, _) =>
+            {
+                if (_entity == null || enabled.Checked == component.Enabled)
+                    return;
+
+                ProjectManager.Instance.UpdateComponent(
+                    _entity,
+                    component.Id,
+                    enabled.Checked ? $"Enable {component.Type}" : $"Disable {component.Type}",
+                    target => target.Enabled = enabled.Checked);
+            };
+            card.Controls.Add(enabled);
+
+            card.Controls.Add(new Label
+            {
+                Text = component.Type,
+                Location = new Point(30, 7),
+                Size = new Size(154, 18),
+                ForeColor = EditorTheme.TextPrimary,
+                Font = EditorTheme.FontUIBold,
+            });
+
+            var remove = new Button
+            {
+                Text = "×",
+                Location = new Point(190, 3),
+                Size = new Size(26, 25),
+                BackColor = EditorTheme.BackgroundAlt,
+                ForeColor = EditorTheme.Error,
+                FlatStyle = FlatStyle.Flat,
+                Font = EditorTheme.FontUI,
+                FlatAppearance = { BorderSize = 0 },
+            };
+            remove.Click += (_, _) =>
+            {
+                if (_entity != null)
+                    ProjectManager.Instance.RemoveComponent(_entity, component.Id);
+            };
+            card.Controls.Add(remove);
+
+            int propertyY = 32;
+            foreach ((string propertyName, string propertyValue) in
+                     component.Properties.OrderBy(pair => pair.Key))
+            {
+                card.Controls.Add(new Label
+                {
+                    Text = propertyName,
+                    Location = new Point(8, propertyY + 3),
+                    Size = new Size(82, 18),
+                    ForeColor = EditorTheme.TextSecondary,
+                    Font = EditorTheme.FontUISmall,
+                });
+
+                var valueBox = new TextBox
+                {
+                    Text = propertyValue,
+                    Location = new Point(94, propertyY),
+                    Size = new Size(120, 22),
+                    BackColor = EditorTheme.Panel,
+                    ForeColor = EditorTheme.TextPrimary,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Font = EditorTheme.FontUISmall,
+                };
+                string capturedPropertyName = propertyName;
+                valueBox.Validated += (_, _) =>
+                {
+                    if (_entity == null ||
+                        component.Properties.TryGetValue(
+                            capturedPropertyName,
+                            out string? currentValue) &&
+                        currentValue == valueBox.Text)
+                    {
+                        return;
+                    }
+
+                    string newValue = valueBox.Text;
+                    ProjectManager.Instance.UpdateComponent(
+                        _entity,
+                        component.Id,
+                        $"Edit {component.Type}.{capturedPropertyName}",
+                        target => target.Properties[capturedPropertyName] = newValue);
+                };
+                card.Controls.Add(valueBox);
+                propertyY += 28;
+            }
+
+            _content.Controls.Add(card);
+            y += cardHeight + 6;
+        }
+
+        private void ShowAddComponentMenu(Control anchor)
+        {
+            if (_entity == null)
+                return;
+
+            var menu = new ContextMenuStrip
+            {
+                Renderer = EditorTheme.MenuRenderer(),
+                BackColor = EditorTheme.Panel,
+                ForeColor = EditorTheme.TextPrimary,
+            };
+
+            foreach (string type in new[]
+                     {
+                         "Sprite Renderer",
+                         "Camera",
+                         "Audio Source",
+                         "Box Collider 2D",
+                         "Rigidbody 2D",
+                     })
+            {
+                var item = new ToolStripMenuItem(type)
+                {
+                    BackColor = EditorTheme.Panel,
+                    ForeColor = EditorTheme.TextPrimary,
+                };
+                item.Click += (_, _) => AddComponent(type);
+                menu.Items.Add(item);
+            }
+
+            menu.Items.Add(new ToolStripSeparator());
+            var custom = new ToolStripMenuItem("Custom Component…")
+            {
+                BackColor = EditorTheme.Panel,
+                ForeColor = EditorTheme.TextPrimary,
+            };
+            custom.Click += (_, _) =>
+            {
+                using var dialog = new RenameDialog("Component Type", "My Component");
+                if (dialog.ShowDialog() == DialogResult.OK)
+                    AddComponent(dialog.Value);
+            };
+            menu.Items.Add(custom);
+            menu.Show(anchor, new Point(0, anchor.Height));
+        }
+
+        private void AddComponent(string type)
+        {
+            if (_entity == null)
+                return;
+
+            ProjectManager.Instance.AddComponent(_entity, type, ComponentDefaults(type));
+        }
+
+        private static IReadOnlyDictionary<string, string> ComponentDefaults(string type)
+        {
+            return type switch
+            {
+                "Sprite Renderer" => new Dictionary<string, string>
+                {
+                    ["Sprite"] = "",
+                    ["Color"] = "#FFFFFFFF",
+                    ["Layer"] = "0",
+                },
+                "Camera" => new Dictionary<string, string>
+                {
+                    ["Clear Color"] = "#181A20FF",
+                    ["Orthographic Size"] = "5",
+                    ["Priority"] = "0",
+                },
+                "Audio Source" => new Dictionary<string, string>
+                {
+                    ["Clip"] = "",
+                    ["Volume"] = "1",
+                    ["Loop"] = "false",
+                },
+                "Box Collider 2D" => new Dictionary<string, string>
+                {
+                    ["Size X"] = "1",
+                    ["Size Y"] = "1",
+                    ["Is Trigger"] = "false",
+                },
+                "Rigidbody 2D" => new Dictionary<string, string>
+                {
+                    ["Body Type"] = "Dynamic",
+                    ["Mass"] = "1",
+                    ["Gravity Scale"] = "1",
+                },
+                _ => new Dictionary<string, string>(),
+            };
         }
 
         // ── Script row ────────────────────────────────────────────────────────────
@@ -281,8 +538,7 @@ namespace AngeneEditor.Panels
 
             if (!_entity.Scripts.Contains(scriptName))
             {
-                _entity.Scripts.Add(scriptName);
-                ProjectManager.Instance.ScriptAddedExternal(_entity, scriptName);
+                ProjectManager.Instance.AttachScript(_entity, scriptName);
             }
 
             Rebuild();
@@ -296,8 +552,7 @@ namespace AngeneEditor.Panels
                 "Remove Script", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 return;
 
-            _entity.Scripts.Remove(scriptName);
-            Rebuild();
+            ProjectManager.Instance.DetachScript(_entity, scriptName);
         }
 
         private void OpenScriptInEditor(string scriptName)
@@ -341,7 +596,7 @@ namespace AngeneEditor.Panels
             {
                 Text = label,
                 Location = new Point(10, y + 3),
-                Size = new Size(60, 18),
+                Size = new Size(78, 18),
                 ForeColor = EditorTheme.TextSecondary,
                 Font = EditorTheme.FontUISmall,
             });
@@ -351,18 +606,16 @@ namespace AngeneEditor.Panels
                 var box = new TextBox
                 {
                     Text = value,
-                    Location = new Point(74, y),
-                    Size = new Size(160, 22),
+                    Location = new Point(92, y),
+                    Size = new Size(142, 22),
                     BackColor = EditorTheme.BackgroundAlt,
                     ForeColor = EditorTheme.TextPrimary,
                     BorderStyle = BorderStyle.FixedSingle,
                     Font = EditorTheme.FontUI,
                 };
-                box.TextChanged += (_, _) =>
+                box.Validated += (_, _) =>
                 {
                     onChange?.Invoke(box.Text);
-                    if (_entity != null && _host != null)
-                        _host.SyncEntity(_entity.Name, _entity.X, _entity.Y, _entity.Enabled);
                 };
                 _content.Controls.Add(box);
             }
@@ -371,8 +624,8 @@ namespace AngeneEditor.Panels
                 _content.Controls.Add(new Label
                 {
                     Text = value,
-                    Location = new Point(74, y + 3),
-                    Size = new Size(160, 18),
+                    Location = new Point(92, y + 3),
+                    Size = new Size(142, 18),
                     ForeColor = EditorTheme.TextPrimary,
                     Font = EditorTheme.FontUI,
                 });
@@ -391,6 +644,68 @@ namespace AngeneEditor.Panels
                 BackColor = EditorTheme.PanelBorder,
             });
             y += 10;
+        }
+
+        private void AddNumberField(
+            string label,
+            float value,
+            ref int y,
+            Action<float> onChange)
+        {
+            AddField(
+                label,
+                value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture),
+                ref y,
+                editable: true,
+                onChange: text =>
+                {
+                    if (float.TryParse(
+                            text,
+                            System.Globalization.NumberStyles.Float,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out float parsed))
+                    {
+                        if (MathF.Abs(parsed - value) > 0.0001f)
+                            onChange(parsed);
+                    }
+                });
+        }
+
+        private void UpdateTransform(
+            string description,
+            Action<EntityDefinition> update)
+        {
+            if (_entity == null)
+                return;
+
+            _entity = ProjectManager.Instance.UpdateEntity(_entity, description, update);
+            SyncRuntimeEntity();
+        }
+
+        private void SyncRuntimeEntity()
+        {
+            if (_entity == null)
+                return;
+
+            _host?.SyncEntity(_entity.Name, _entity.X, _entity.Y, _entity.Enabled);
+        }
+
+        private void RefreshCurrentEntity()
+        {
+            if (_entity == null)
+                return;
+
+            EntityDefinition? current = ProjectManager.Instance.CurrentProject?.Entities
+                .Find(entity => entity.Id == _entity.Id);
+            if (current == null)
+            {
+                _entity = null;
+                ShowEmpty();
+                return;
+            }
+
+            _entity = current;
+            Rebuild();
         }
     }
 }

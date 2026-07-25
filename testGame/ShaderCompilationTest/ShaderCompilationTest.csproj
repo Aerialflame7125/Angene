@@ -26,31 +26,22 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <Reference Include="Angene">
-	    <HintPath>..\..\Build\win-x64\Angene\Angene.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Angene.Audio">
-	    <HintPath>..\..\Build\win-x64\Angene\Angene.Audio.dll</HintPath>
+	    <HintPath>..\..\Build\Angene.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Common">
-	    <HintPath>..\..\Build\win-x64\Angene\Angene.Common.dll</HintPath>
+	    <HintPath>..\..\Build\Angene.Common.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Essentials">
-	    <HintPath>..\..\Build\win-x64\Angene\Angene.Essentials.dll</HintPath>
+	    <HintPath>..\..\Build\Angene.Essentials.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Graphics">
-	    <HintPath>..\..\Build\win-x64\Angene\Angene.Graphics.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Angene.Input">
-	    <HintPath>..\..\Build\win-x64\Angene\Angene.Input.dll</HintPath>
+	    <HintPath>..\..\Build\Angene.Graphics.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Management">
-	    <HintPath>..\..\Build\win-x64\Angene\Angene.Management.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Angene.Math">
-	    <HintPath>..\..\Build\win-x64\Angene\Angene.Math.dll</HintPath>
+	    <HintPath>..\..\Build\Angene.Management.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Windows">
-	    <HintPath>..\..\Build\win-x64\Angene\Angene.Windows.dll</HintPath>
+	    <HintPath>..\..\Build\Angene.Windows.dll</HintPath>
 	  </Reference>
 	</ItemGroup>
 

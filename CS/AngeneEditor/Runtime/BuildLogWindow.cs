@@ -11,10 +11,10 @@ namespace AngeneEditor.Runtime
     /// </summary>
     public sealed class BuildLogWindow : Form
     {
-        private RichTextBox _output;
-        private Button _clearBtn;
-        private Button _closeBtn;
-        private Label _statusLabel;
+        private RichTextBox _output = null!;
+        private Button _clearBtn = null!;
+        private Button _closeBtn = null!;
+        private Label _statusLabel = null!;
         private int _lineCount;
         private const int MaxLines = 5000;
 

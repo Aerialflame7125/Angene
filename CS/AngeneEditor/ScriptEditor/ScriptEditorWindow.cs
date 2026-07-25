@@ -103,7 +103,7 @@ namespace AngeneEditor.ScriptEditor
         /// Opens a specific file in Visual Studio via devenv /edit.
         /// VS must already be open with the project, or it opens a new instance.
         /// </summary>
-        public static void OpenFileInVs(string filePath, Form owner)
+        public static void OpenFileInVs(string filePath, Form owner, int? lineNum = null)
         {
             string? vsPath = FindVisualStudio();
             if (vsPath == null)
@@ -114,7 +114,17 @@ namespace AngeneEditor.ScriptEditor
                 return;
             }
 
-            Process.Start(vsPath, $"/edit \"{filePath}\"");
+            // load project + file
+            var project = ProjectManager.Instance.CurrentProject;
+            string csproj = project?.CsprojPath;
+            if (File.Exists(csproj))
+                if (lineNum != null)
+                    Process.Start(vsPath, $"\"{csproj}\" /edit \"{filePath}\" /Command \"Edit.GoTo {lineNum}\"");
+                else
+                    Process.Start(vsPath, $"\"{csproj}\" /edit \"{filePath}\""); // fallback
+            else
+                Process.Start(vsPath, $"/edit \"{filePath}\""); // fallback
+
         }
 
         private static string? FindVisualStudio()

@@ -14,9 +14,10 @@ namespace AngeneEditor.Panels
     /// </summary>
     public sealed class SolutionExplorerPanel : Panel
     {
-        private Label _header;
-        private TreeView _tree;
-        private Label _emptyLabel;
+        private Label _header = null!;
+        private TreeView _tree = null!;
+        private Label _emptyLabel = null!;
+        private TextBox _searchBox = null!;
 
         public SolutionExplorerPanel()
         {
@@ -35,9 +36,9 @@ namespace AngeneEditor.Panels
         {
             _header = new Label
             {
-                Text = "SOLUTION EXPLORER",
+                Text = "PROJECT / ASSETS",
                 Dock = DockStyle.Top,
-                Height = 28,
+                Height = 56,
                 Font = EditorTheme.FontUISmall,
                 ForeColor = EditorTheme.TextSecondary,
                 BackColor = EditorTheme.PanelHeader,
@@ -80,6 +81,20 @@ namespace AngeneEditor.Panels
             openFolderBtn.Click += OpenProjectFolder;
             toolbar.Controls.Add(openFolderBtn);
 
+            _searchBox = new TextBox
+            {
+                PlaceholderText = "Search project and assets…",
+                Location = new Point(4, 30),
+                Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top,
+                Size = new Size(Width - 10, 22),
+                BackColor = EditorTheme.Background,
+                ForeColor = EditorTheme.TextPrimary,
+                BorderStyle = BorderStyle.FixedSingle,
+                Font = EditorTheme.FontUISmall,
+            };
+            _searchBox.TextChanged += (_, _) => RefreshTree();
+            toolbar.Controls.Add(_searchBox);
+
             _tree = new TreeView
             {
                 Dock = DockStyle.Fill,
@@ -96,7 +111,11 @@ namespace AngeneEditor.Panels
             };
             _tree.DrawNode += DrawTreeNode;
             _tree.NodeMouseDoubleClick += OnNodeDoubleClick;
-            _tree.AfterExpand += (_, e) => e.Node.ImageIndex = 1;
+            _tree.AfterExpand += (_, e) =>
+            {
+                if (e.Node != null)
+                    e.Node.ImageIndex = 1;
+            };
 
             // Context menu
             var ctx = new ContextMenuStrip();
@@ -161,7 +180,13 @@ namespace AngeneEditor.Panels
                 ForeColor = EditorTheme.TextAccent,
             };
 
-            PopulateDirectory(root, project.RootPath, depth: 0, maxDepth: 5);
+            project.Assets?.Refresh();
+            PopulateDirectory(
+                root,
+                project.RootPath,
+                depth: 0,
+                maxDepth: 6,
+                _searchBox.Text.Trim());
             _tree.Nodes.Add(root);
             root.Expand();
 
@@ -187,13 +212,19 @@ namespace AngeneEditor.Panels
             }
         }
 
-        private static void PopulateDirectory(TreeNode parent, string dirPath, int depth, int maxDepth)
+        private static bool PopulateDirectory(
+            TreeNode parent,
+            string dirPath,
+            int depth,
+            int maxDepth,
+            string filter)
         {
-            if (depth > maxDepth) return;
+            if (depth > maxDepth) return false;
 
             // Skip common noise directories
             string dirName = Path.GetFileName(dirPath);
-            if (dirName is "obj" or ".git" or ".vs" or "node_modules") return;
+            if (dirName is "obj" or "bin" or ".git" or ".vs" or "node_modules")
+                return false;
 
             try
             {
@@ -201,20 +232,40 @@ namespace AngeneEditor.Panels
                 foreach (var sub in Directory.GetDirectories(dirPath))
                 {
                     string subName = Path.GetFileName(sub);
-                    if (subName is "obj" or ".git" or ".vs") continue;
+                    if (subName is "obj" or "bin" or ".git" or ".vs") continue;
 
                     var node = new TreeNode($"📁 {subName}")
                     {
                         Tag = sub,
                         ForeColor = EditorTheme.TextSecondary,
                     };
-                    parent.Nodes.Add(node);
-                    PopulateDirectory(node, sub, depth + 1, maxDepth);
+                    bool descendantMatches = PopulateDirectory(
+                        node,
+                        sub,
+                        depth + 1,
+                        maxDepth,
+                        filter);
+                    bool directoryMatches = filter.Length == 0 ||
+                                            subName.Contains(
+                                                filter,
+                                                StringComparison.OrdinalIgnoreCase);
+                    if (directoryMatches || descendantMatches)
+                        parent.Nodes.Add(node);
                 }
 
                 // Files
                 foreach (var file in Directory.GetFiles(dirPath))
                 {
+                    string fileName = Path.GetFileName(file);
+                    if (fileName.EndsWith(".meta", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    if (filter.Length > 0 &&
+                        !fileName.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
                     string ext = Path.GetExtension(file).ToLower();
                     string icon = ext switch
                     {
@@ -237,7 +288,7 @@ namespace AngeneEditor.Panels
                         _ => EditorTheme.TextSecondary,
                     };
 
-                    var node = new TreeNode($"{icon} {Path.GetFileName(file)}")
+                    var node = new TreeNode($"{icon} {fileName}")
                     {
                         Tag = file,
                         ForeColor = fileColor,
@@ -246,6 +297,10 @@ namespace AngeneEditor.Panels
                 }
             }
             catch { /* ignore permission errors */ }
+
+            return parent.Nodes.Count > 0 ||
+                   (filter.Length > 0 &&
+                    dirName.Contains(filter, StringComparison.OrdinalIgnoreCase));
         }
 
         // ── Node actions ─────────────────────────────────────────────────────

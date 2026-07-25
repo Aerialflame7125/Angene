@@ -106,10 +106,7 @@ namespace Game
 
             foreach (var win in Engine.Instance.OpenWindows.ToArray())
             {
-                foreach (var scene in win.Scenes)
-                {
-                    scene?.Render();
-                }
+                win.RenderFrame();
                 Engine.Instance.FlushPendingCloses();
             }
         }
@@ -143,9 +140,9 @@ namespace Game
                     {
                         Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
                         Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
-                        scene?.Render();
                     }
 
+                    win.RenderFrame();
                     win._screenPlay?.LateUpdate(dt);
                 }
 

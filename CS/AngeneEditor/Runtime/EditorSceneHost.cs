@@ -19,7 +19,7 @@ namespace AngeneEditor.Runtime
     {
         private AssemblyLoadContext? _loadContext;
         private IScene? _scene;
-        private IGraphicsContext? _gfx;
+        private GdiGraphicsContext? _gfx;
         private Panel? _target;
         private System.Windows.Forms.Timer? _renderTimer;
 
@@ -42,6 +42,7 @@ namespace AngeneEditor.Runtime
             Unload();
 
             _target = targetPanel;
+            _target.Resize += OnTargetResize;
             _loadContext = new AssemblyLoadContext("GameScene", isCollectible: true);
 
             string? dllPath = FindGameDll(projectDir);
@@ -53,13 +54,9 @@ namespace AngeneEditor.Runtime
 
             try
             {
-                // Load all dependency DLLs from the same output folder first
                 string dllDir = Path.GetDirectoryName(dllPath)!;
-                foreach (var dep in Directory.GetFiles(dllDir, "Angene*.dll"))
-                {
-                    try { _loadContext.LoadFromAssemblyPath(dep); }
-                    catch { /* ignore — may already be loaded */ }
-                }
+                _loadContext.Resolving += (_, name) =>
+                    ResolveGameDependency(_loadContext, dllDir, name);
 
                 var asm = _loadContext.LoadFromAssemblyPath(dllPath);
                 _scene = CreateScene(asm, targetPanel);
@@ -99,6 +96,9 @@ namespace AngeneEditor.Runtime
         }
 
         private void Tick(object? s, EventArgs e)
+            => RenderFrame(_mode);
+
+        private void RenderFrame(EngineMode tickMode)
         {
             if (_scene == null || _target == null) return;
 
@@ -107,7 +107,7 @@ namespace AngeneEditor.Runtime
 
             try
             {
-                Lifecycle.ScriptBinding.Tick(_scene, dt, _mode);
+                Lifecycle.ScriptBinding.Tick(_scene, dt, tickMode);
                 Lifecycle.ScriptBinding.Draw(_scene, _mode);
                 _scene.Render();
 
@@ -171,6 +171,15 @@ namespace AngeneEditor.Runtime
 
         public EngineMode GetMode() => _mode;
 
+        public void StepOnce()
+        {
+            if (_mode != EngineMode.Paused)
+                throw new InvalidOperationException("Step is only available while paused.");
+
+            RenderFrame(EngineMode.Play);
+            Log?.Invoke("[EditorHost] Advanced one frame.");
+        }
+
         // ── Hot reload ────────────────────────────────────────────────────────
 
         public void Reload(string projectDir)
@@ -190,6 +199,9 @@ namespace AngeneEditor.Runtime
             _renderTimer = null;
             _selectedEntity = null;
 
+            if (_target != null)
+                _target.Resize -= OnTargetResize;
+
             try { _scene?.Cleanup(); } catch { }
             _scene = null;
 
@@ -198,6 +210,18 @@ namespace AngeneEditor.Runtime
 
             _loadContext?.Unload();
             _loadContext = null;
+            _target = null;
+        }
+
+        private void OnTargetResize(object? sender, EventArgs e)
+        {
+            if (_target == null || _gfx == null ||
+                _target.Width <= 0 || _target.Height <= 0)
+            {
+                return;
+            }
+
+            _gfx.Resize(_target.Width, _target.Height);
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
@@ -270,6 +294,32 @@ namespace AngeneEditor.Runtime
             }
 
             return null;
+        }
+
+        private static Assembly? ResolveGameDependency(
+            AssemblyLoadContext loadContext,
+            string outputDirectory,
+            AssemblyName dependencyName)
+        {
+            // Engine contracts must come from the editor's default context. Loading a
+            // second Angene.Essentials.dll makes the game's IScene a different CLR type,
+            // so an otherwise valid scene can never pass IsAssignableFrom.
+            foreach (Assembly assembly in AssemblyLoadContext.Default.Assemblies)
+            {
+                if (AssemblyName.ReferenceMatchesDefinition(
+                    assembly.GetName(),
+                    dependencyName))
+                {
+                    return assembly;
+                }
+            }
+
+            string dependencyPath =
+                Path.Combine(outputDirectory, $"{dependencyName.Name}.dll");
+
+            return File.Exists(dependencyPath)
+                ? loadContext.LoadFromAssemblyPath(dependencyPath)
+                : null;
         }
 
         public void Dispose() => Unload();

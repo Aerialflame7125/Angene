@@ -12,7 +12,6 @@ namespace AngeneEditor
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
 
             // Apply dark title bars on Windows 11 where possible
             TryEnableDarkTitleBar();

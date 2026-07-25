@@ -13,9 +13,9 @@ namespace AngeneEditor.Panels
     /// </summary>
     public sealed class ConsolePanel : Panel
     {
-        private RichTextBox _output;
-        private Button _clearBtn;
-        private CheckBox _autoScrollCheck;
+        private RichTextBox _output = null!;
+        private Button _clearBtn = null!;
+        private CheckBox _autoScrollCheck = null!;
         private int _lineCount;
         private const int MaxLines = 2000;
 

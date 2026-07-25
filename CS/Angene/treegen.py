@@ -98,8 +98,6 @@ def generate_markdown(api_data, use_gfm=False):
                 tree[ns][cls] = []
 
     lines = []
-    lines.append("# Public API Tree\n")
-    lines.append("> Generated automatically. Read-only output.\n\n")
 
     for ns in sorted(tree.keys()):
         if use_gfm:
@@ -130,11 +128,14 @@ def main():
     parser.add_argument("directories", nargs='+', help="One or more root directories to crawl for .cs files.")
     parser.add_argument("--outdir", default=".", help="Directory to save the generated .md files (defaults to current directory).")
     parser.add_argument("--gfm", action="store_true", help="Output using GitHub-Flavored Markdown (collapsible details).")
+    parser.add_argument("--one-file", action="store_true", help="Combine all output into a single markdown file instead of one per directory.")
     args = parser.parse_args()
 
     out_path = Path(args.outdir)
     out_path.mkdir(parents=True, exist_ok=True)
-
+    backbuffer = None
+    if args.one_file:
+        backbuffer = ""
     for d in args.directories:
         target_dir = Path(d)
         if not target_dir.exists() or not target_dir.is_dir():
@@ -163,6 +164,9 @@ def main():
 
         print(f"Extracted {len(all_api_elements)} public API elements. Generating markdown...")
         md_content = generate_markdown(all_api_elements, args.gfm)
+        if args.one_file and backbuffer is not None:
+            backbuffer += md_content
+            continue  # Skip writing individual files
 
         try:
             with open(output_file, 'w', encoding='utf-8') as out_f:
@@ -170,6 +174,15 @@ def main():
             print(f"Success. Tree written to {output_file}")
         except Exception as e:
             print(f"Failed to write {output_file}: {e}")
+
+    # Write the combined content to a single file if --one-file is specified
+    if args.one_file and backbuffer is not None:
+        try:
+            with open(out_path / "combined.md", 'w', encoding='utf-8') as out_f:
+                out_f.write(backbuffer)
+            print(f"Success. Combined tree written to {out_path / 'combined.md'}")
+        except Exception as e:
+            print(f"Failed to write combined file: {e}")
 
 if __name__ == "__main__":
     main()

@@ -1,13 +1,16 @@
-﻿namespace AngeneEditor.Project
+﻿using Angene.Graphics;
+using Angene.Main;
+
+namespace AngeneEditor.Project
 {
     public static class Templates
     {
         // ── .csproj ──────────────────────────────────────────────────────────────
-        public static string CsProj(string assemblyName, string rootNamespace) => $@"<Project Sdk=""Microsoft.NET.Sdk"">
+        public static string CsProj(string rootNamespace) => $@"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AssemblyName>{assemblyName}</AssemblyName>
+    <AssemblyName>Game</AssemblyName>
     <RootNamespace>{rootNamespace}</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
@@ -42,6 +45,9 @@
     <Reference Include=""Angene.Audio"">
       <HintPath>Libs\Angene.Audio.dll</HintPath>
     </Reference>
+    <Reference Include=""Angene.Management"">
+      <HintPath>Libs\Angene.Management.dll</HintPath>
+    </Reference>
     <Reference Include=""Angene.Math"">
       <HintPath>Libs\Angene.Math.dll</HintPath>
     </Reference>
@@ -65,23 +71,24 @@
 ";
 
         // ── Program.cs ───────────────────────────────────────────────────────────
-        public static string ProgramCs(string rootNamespace) => $@"using Angene.Common;
+        public static string ProgramCs(string rootNamespace, RenderType renderType) => $@"using Angene.Common;
 using Angene.Common.Settings;
 using Angene.Essentials;
 using Angene.Main;
 using Angene.Platform;
 using Angene.Windows;
 using {rootNamespace}.Scenes;
+using {rootNamespace};
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace {rootNamespace}
+namespace Game
 {{
     public class Instances
     {{
-        public Engine engine;
-        public Settings settings;
+        public Engine engine = null!;
+        public Settings settings = null!;
 
         public Instances() {{ }}
         public void MakeInstances(bool verbose)
@@ -122,7 +129,11 @@ namespace {rootNamespace}
             }}
             catch (Exception ex)
             {{
-                Logger.Log($""FATAL EXCEPTION: {{ex.Message}}"", LoggingTarget.MainConstructor, logLevel: LogLevel.Critical, exception: ex);
+                Logger.LogCritical(
+                    $""FATAL EXCEPTION: {{ex.Message}}"",
+                    LoggingTarget.MainConstructor,
+                    ex,
+                    enginePanic: true);
                 return 1;
             }}
         }}
@@ -136,6 +147,7 @@ namespace {rootNamespace}
             config.Title  = ""{rootNamespace}"";
             config.Width  = 1280;
             config.Height = 720;
+            config.renderType = Graphics.RenderType.{renderType};
             Window window = new Window(config);
 
             var scene = new Init(window);
@@ -144,13 +156,9 @@ namespace {rootNamespace}
             bool running = true;
             while (running)
             {{
-                while (Win32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Win32.PM_REMOVE))
-                {{
-                    if (msg.message == Win32.WM_QUIT) {{ running = false; break; }}
-                    Win32.TranslateMessage(ref msg);
-                    Win32.DispatchMessageW(ref msg);
-                }}
-                if (!running) break;
+                running = Window.ProcessMessages();
+                if (!running || !Engine.Instance.OpenWindows.Contains(window))
+                    break;
 
                 foreach (var s in window.Scenes)
                 {{
@@ -171,7 +179,10 @@ namespace {rootNamespace}
 
         // ── Scenes/Init.cs ───────────────────────────────────────────────────────
         // NOTE: No commented-out example entity — ParseInitScene would match it
-        public static string InitSceneCs(string rootNamespace) => $@"using System.Collections.Generic;
+        public static string InitSceneCs(string rootNamespace, RenderType renderType)
+        {
+            if (renderType == RenderType.D3D11)
+                return $@"using System.Collections.Generic;
 using Angene.Common;
 using Angene.Essentials;
 using Angene.Main;
@@ -185,10 +196,10 @@ namespace {rootNamespace}.Scenes
     /// </summary>
     public sealed class Init : IScene
     {{
-        public IRenderer3D? Renderer3D => null;
-
         private readonly Window _window;
-        private List<Entity> _entities = new();
+        public object Instance => this;
+        public string Name => ""Init"";
+        public List<Entity> Entities {{ get; private set; }} = new();
 
         public Init(Window window)
         {{
@@ -197,28 +208,74 @@ namespace {rootNamespace}.Scenes
 
         public void Initialize()
         {{
-            _entities = new List<Entity>();
-            Logger.Log(""Init scene loaded."", LoggingTarget.MainGame, LogLevel.Important);
+            Entities = new List<Entity>();
+            Logger.LogImportant(""Init scene loaded."", LoggingTarget.MainGame);
 
             // ── Add your entities here ───────────────────────────────────────────
         }}
 
         public void Render() {{ }}
         public void OnMessage(System.IntPtr msgPtr) {{ }}
-        public List<Entity> GetEntities() => _entities;
+        public List<Entity> GetEntities() => Entities;
         public void Cleanup()
         {{
-            foreach (var e in _entities) e?.Destroy();
-            _entities.Clear();
+            foreach (var e in Entities) e?.Destroy();
+            Entities.Clear();
         }}
     }}
 }}
 ";
+            else
+                return $@"using System.Collections.Generic;
+using Angene.Common;
+using Angene.Essentials;
+using Angene.Main;
+using Angene.Windows;
+
+namespace {rootNamespace}.Scenes
+{{
+    /// <summary>
+    /// Initial scene — generated by AngeneEditor.
+    /// Add entities and scripts in Initialize(), or use the editor hierarchy.
+    /// </summary>
+    public sealed class Init : IScene
+    {{
+        private readonly Window _window;
+        public object Instance => this;
+        public string Name => ""Init"";
+        public List<Entity> Entities {{ get; private set; }} = new();
+
+        public Init(Window window)
+        {{
+            _window = window;
+        }}
+
+        public void Initialize()
+        {{
+            Entities = new List<Entity>();
+            Logger.LogImportant(""Init scene loaded."", LoggingTarget.MainGame);
+
+            // ── Add your entities here ───────────────────────────────────────────
+        }}
+
+        public void Render() {{ }}
+        public void OnMessage(System.IntPtr msgPtr) {{ }}
+        public List<Entity> GetEntities() => Entities;
+        public void Cleanup()
+        {{
+            foreach (var e in Entities) e?.Destroy();
+            Entities.Clear();
+        }}
+    }}
+}}
+";
+        } 
 
         // ── Scripts/NewScript.cs ─────────────────────────────────────────────────
-        public static string NewScriptCs(string rootNamespace, string scriptName) => $@"// Auto-generated by AngeneEditor
+        public static string NewScriptCs(string rootNamespace, string scriptName) => $@"
 using Angene.Essentials;
 using Angene.Common;
+using Angene.Main;
 using System;
 
 namespace {rootNamespace}.Scripts
@@ -227,6 +284,7 @@ namespace {rootNamespace}.Scripts
     {{
         public void Start()
         {{
+            Logger.LogInfo($""Loaded script '{scriptName}' in scene '{{Engine.Instance.OpenWindows[0].PrimaryScene.Name}}'."", LoggingTarget.MainConstructor);
         }}
 
         public void Update(double dt)
@@ -252,7 +310,7 @@ namespace {rootNamespace}.Scripts
             foreach (var s in scriptNames)
                 sb.AppendLine($"            {varName}.AddScript<Scripts.{s}>();");
             sb.AppendLine($"            {varName}.SetEnabled(true);");
-            sb.AppendLine($"            _entities.Add({varName});");
+            sb.AppendLine($"            Entities.Add({varName});");
             return sb.ToString();
         }
 

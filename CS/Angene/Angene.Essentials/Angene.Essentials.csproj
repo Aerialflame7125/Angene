@@ -24,5 +24,6 @@
 	</Target>
   <ItemGroup>
     <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
+    <ProjectReference Include="..\Angene.Graphics\Angene.Graphics.csproj" />
   </ItemGroup>
 </Project>

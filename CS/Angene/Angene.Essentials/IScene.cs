@@ -2,12 +2,14 @@
 using Angene.Essentials;
 using System;
 using System.Collections.Generic;
+using Angene.Graphics.DX11;
+using Angene.Graphics;
 
 namespace Angene.Essentials
 {
     /// <summary>
     /// Scene interface.
-    /// All lifecycle execution is routed through Angene.Lifecycle.Lifecycle.
+    /// All lifecycle execution is routed through Angene.Lifecycle.
     /// </summary>
     public interface IScene
     {
@@ -26,5 +28,14 @@ namespace Angene.Essentials
         void Render(); // Final render in scene
 
         void Cleanup(); // Scene cleanup
+    }
+
+    /// <summary>
+    /// IDX11Scene definition for a DX11 specific scene with render calls.
+    /// All definitions and execution still gets routed through Angene.Lifecycle
+    /// </summary>
+    public interface IDX11Scene : IScene
+    {
+        void Render(IDX11GraphicsContext graphics);
     }
 }

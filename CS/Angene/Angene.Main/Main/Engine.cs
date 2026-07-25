@@ -831,8 +831,7 @@ namespace Angene.Main
                 {
                     try
                     {
-                        foreach (var scene in movingWin.Scenes)
-                            scene?.Render();
+                        movingWin.RenderFrame();
                     }
                     catch (Exception ex)
                     {
@@ -945,6 +944,32 @@ namespace Angene.Main
 
             foreach (IScene scene in Scenes)
                 scene?.Cleanup();
+        }
+        public void RenderFrame()
+        {
+            if (graphicsContext is IDX11GraphicsContext dx11)
+            {
+                dx11.BeginFrame(0xFF202020);
+                try
+                {
+                    foreach (var scene in Scenes)
+                    {
+                        if (scene is IDX11Scene dx11Scene)
+                            dx11Scene.Render(dx11);
+                        else
+                            scene.Render();
+                    }
+                }
+                finally
+                {
+                    dx11.EndFrame();
+                }
+
+                return;
+            }
+
+            foreach (var scene in Scenes)
+                scene.Render();
         }
 
         /// <summary>

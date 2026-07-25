@@ -48,6 +48,15 @@ namespace Angene.Graphics
         void SetVertexShaderConstantBuffer(IntPtr buffer, uint slot = 0);
         IntPtr CreateRasterizerState(bool cullNone);
         void SetRasterizerState(IntPtr state);
+        void BeginFrame(uint clearColor);
+        void Render(
+            SlangShaderResources.IShader vertexShader,
+            SlangShaderResources.IShader pixelShader,
+            IntPtr inputLayout,
+            IntPtr vertexBuffer,
+            uint vertexStride,
+            uint vertexCount);
+        void EndFrame();
     }
 
     // Windows GDI implementation

@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Text.Json;
+using AngeneEditor.Assets;
+using AngeneEditor.Commands;
+using AngeneEditor.Documents;
 using Angene = AngeneEditor;
 
 namespace AngeneEditor.Project
@@ -16,17 +20,45 @@ namespace AngeneEditor.Project
         public string ScenesPath => Path.Combine(RootPath, "Scenes");
         public string ScriptsPath => Path.Combine(RootPath, "Scripts");
         public string LibsPath => Path.Combine(RootPath, "Libs");
+        public string AssetsPath => Path.Combine(RootPath, "Assets");
+        public string EditorDataPath => Path.Combine(RootPath, ".angene");
+        public string SceneDocumentsPath => Path.Combine(EditorDataPath, "Scenes");
+        public string RecoveryPath => Path.Combine(EditorDataPath, "Recovery", "Main.autosave.angscene");
+        public string ManifestPath => Path.Combine(EditorDataPath, "project.json");
+        public string MainScenePath => Path.Combine(EditorDataPath, "Scenes", "Main.angscene");
 
         public List<EntityDefinition> Entities { get; set; } = new();
+        public SceneDocument Scene { get; set; } = new();
+        public ProjectManifest Manifest { get; set; } = new();
+        public AssetDatabase? Assets { get; set; }
     }
 
     public sealed class EntityDefinition
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = "Entity";
+        public Guid? ParentId { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
+        public float Z { get; set; }
+        public float RotationX { get; set; }
+        public float RotationY { get; set; }
+        public float RotationZ { get; set; }
+        public float ScaleX { get; set; } = 1f;
+        public float ScaleY { get; set; } = 1f;
+        public float ScaleZ { get; set; } = 1f;
+        public List<ComponentDefinition> Components { get; set; } = new();
         public List<string> Scripts { get; set; } = new();
         public bool Enabled { get; set; } = true;
+    }
+
+    public sealed class ComponentDefinition
+    {
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public string Type { get; set; } = "Component";
+        public bool Enabled { get; set; } = true;
+        public Dictionary<string, string> Properties { get; set; } =
+            new(StringComparer.Ordinal);
     }
 
     public sealed class ProjectManager
@@ -37,7 +69,14 @@ namespace AngeneEditor.Project
         public event Action<AngeneProject>? ProjectOpened;
         public event Action<EntityDefinition>? EntityAdded;
         public event Action<EntityDefinition, string>? ScriptAdded;
+        public event Action? EntitiesChanged;
+        public event Action<bool>? DirtyStateChanged;
         public event Action? ProjectSaved;
+
+        private readonly SceneSerializer _sceneSerializer = new();
+        private readonly ProjectManifestStore _manifestStore = new();
+        public CommandHistory History { get; } = new();
+        public bool IsDirty { get; private set; }
 
         private string EditorLibsPath =>
             Path.Combine(AppContext.BaseDirectory, "Libs");
@@ -55,11 +94,13 @@ namespace AngeneEditor.Project
             Directory.CreateDirectory(Path.Combine(root, "Scenes"));
             Directory.CreateDirectory(Path.Combine(root, "Scripts"));
             Directory.CreateDirectory(Path.Combine(root, "Libs"));
+            Directory.CreateDirectory(Path.Combine(root, "Assets"));
+            Directory.CreateDirectory(Path.Combine(root, ".angene", "Scenes"));
 
             string csprojPath = Path.Combine(root, $"{projectName}.csproj");
-            File.WriteAllText(csprojPath, Templates.CsProj(projectName, ns));
+            File.WriteAllText(csprojPath, Templates.CsProj(ns));
             File.WriteAllText(Path.Combine(root, "Program.cs"), Templates.ProgramCs(ns));
-            File.WriteAllText(Path.Combine(root, "Scenes", "Init.cs"), Templates.InitSceneCs(ns));
+            File.WriteAllText(Path.Combine(root, "Scenes", "Init.cs"), Templates.InitSceneCs(ns)); // ask user what renderer
 
             CopyLibs(Path.Combine(root, "Libs"));
 
@@ -69,9 +110,18 @@ namespace AngeneEditor.Project
                 RootPath = root,
                 Namespace = ns,
                 CsprojPath = csprojPath,
+                Scene = new SceneDocument { Name = "Main" },
+                Manifest = new ProjectManifest { Name = projectName },
+                Assets = new AssetDatabase(Path.Combine(root, "Assets")),
             };
 
+            project.Assets.Refresh();
+            _manifestStore.SaveAtomic(project.ManifestPath, project.Manifest);
+            _sceneSerializer.SaveAtomic(project.MainScenePath, project.Scene);
+
             CurrentProject = project;
+            History.Clear();
+            SetDirty(false);
             ProjectOpened?.Invoke(project);
             return project;
         }
@@ -93,30 +143,179 @@ namespace AngeneEditor.Project
                 Namespace = ns,
                 CsprojPath = csprojPath,
                 Entities = new List<EntityDefinition>(), // always start fresh
+                Manifest = LoadOrCreateManifest(root, name),
+                Assets = new AssetDatabase(Path.Combine(root, "Assets")),
             };
 
-            ParseInitScene(project);
+            project.Assets.Refresh();
+            string scenePath = Path.Combine(project.EditorDataPath, project.Manifest.DefaultScene);
+            if (File.Exists(scenePath))
+            {
+                project.Scene = _sceneSerializer.Load(scenePath);
+                SyncEntitiesFromScene(project);
+            }
+            else
+            {
+                ParseInitScene(project);
+                SyncSceneFromEntities(project);
+            }
 
             CurrentProject = project;
+            History.Clear();
+            SetDirty(false);
             ProjectOpened?.Invoke(project);
             return project;
         }
 
         // ── Entity management ─────────────────────────────────────────────────────
 
-        public EntityDefinition AddEntity(string name, int x = 0, int y = 0)
+        public EntityDefinition AddEntity(string name, int x = 0, int y = 0, Guid? parentId = null)
         {
             if (CurrentProject == null) throw new InvalidOperationException("No project open.");
 
-            var entity = new EntityDefinition { Name = name, X = x, Y = y };
-            CurrentProject.Entities.Add(entity);
-            EntityAdded?.Invoke(entity);
-            return entity;
+            var entity = new EntityDefinition
+            {
+                Name = UniqueEntityName(name),
+                ParentId = parentId,
+                X = x,
+                Y = y,
+            };
+
+            ExecuteEntityMutation($"Create {entity.Name}", entities =>
+                entities.Add(CloneEntity(entity)));
+
+            EntityDefinition added = CurrentProject.Entities.Single(item => item.Id == entity.Id);
+            EntityAdded?.Invoke(added);
+            return added;
         }
 
         public void RemoveEntity(EntityDefinition entity)
         {
-            CurrentProject?.Entities.Remove(entity);
+            RemoveEntities(new[] { entity });
+        }
+
+        public void RemoveEntities(IEnumerable<EntityDefinition> entities)
+        {
+            if (CurrentProject == null) return;
+
+            var ids = entities.Select(entity => entity.Id).ToHashSet();
+            bool added;
+            do
+            {
+                added = false;
+                foreach (EntityDefinition candidate in CurrentProject.Entities)
+                {
+                    if (candidate.ParentId is Guid parentId &&
+                        ids.Contains(parentId) &&
+                        ids.Add(candidate.Id))
+                    {
+                        added = true;
+                    }
+                }
+            } while (added);
+
+            ExecuteEntityMutation("Delete entities", projectEntities =>
+                projectEntities.RemoveAll(candidate => ids.Contains(candidate.Id)));
+        }
+
+        public EntityDefinition DuplicateEntity(EntityDefinition source)
+        {
+            if (CurrentProject == null) throw new InvalidOperationException("No project open.");
+
+            EntityDefinition duplicate = CloneEntity(source);
+            duplicate.Id = Guid.NewGuid();
+            duplicate.Name = UniqueEntityName($"{source.Name} Copy");
+
+            ExecuteEntityMutation($"Duplicate {source.Name}", entities =>
+            {
+                int sourceIndex = entities.FindIndex(entity => entity.Id == source.Id);
+                entities.Insert(
+                    sourceIndex < 0 ? entities.Count : sourceIndex + 1,
+                    CloneEntity(duplicate));
+            });
+
+            return CurrentProject.Entities.Single(entity => entity.Id == duplicate.Id);
+        }
+
+        public void RenameEntity(EntityDefinition entity, string name)
+        {
+            string trimmed = name.Trim();
+            if (trimmed.Length == 0)
+                throw new ArgumentException("Entity name cannot be empty.", nameof(name));
+
+            ExecuteEntityMutation($"Rename {entity.Name}", entities =>
+            {
+                EntityDefinition target = RequireEntity(entities, entity.Id);
+                target.Name = UniqueEntityName(trimmed, entity.Id);
+            });
+        }
+
+        public void ReparentEntity(EntityDefinition entity, EntityDefinition? newParent)
+        {
+            if (newParent?.Id == entity.Id)
+                throw new InvalidOperationException("An entity cannot parent itself.");
+
+            if (newParent != null && IsDescendant(entity.Id, newParent.Id))
+                throw new InvalidOperationException("Reparenting would create a hierarchy cycle.");
+
+            ExecuteEntityMutation($"Reparent {entity.Name}", entities =>
+            {
+                RequireEntity(entities, entity.Id).ParentId = newParent?.Id;
+            });
+        }
+
+        public void MoveEntity(EntityDefinition entity, int destinationIndex)
+        {
+            ExecuteEntityMutation($"Reorder {entity.Name}", entities =>
+            {
+                int sourceIndex = entities.FindIndex(item => item.Id == entity.Id);
+                if (sourceIndex < 0) return;
+
+                EntityDefinition moving = entities[sourceIndex];
+                entities.RemoveAt(sourceIndex);
+                entities.Insert(Math.Clamp(destinationIndex, 0, entities.Count), moving);
+            });
+        }
+
+        public EntityDefinition UpdateEntity(
+            EntityDefinition entity,
+            string description,
+            Action<EntityDefinition> update)
+        {
+            ArgumentNullException.ThrowIfNull(update);
+            ExecuteEntityMutation(description, entities =>
+                update(RequireEntity(entities, entity.Id)));
+
+            return CurrentProject!.Entities.Single(candidate => candidate.Id == entity.Id);
+        }
+
+        public void UpdateSceneSettings(
+            string description,
+            Action<SceneSettings> update)
+        {
+            ArgumentNullException.ThrowIfNull(update);
+            if (CurrentProject == null)
+                throw new InvalidOperationException("No project open.");
+
+            History.Execute(new SceneSettingsMutationCommand(
+                CurrentProject,
+                description,
+                update));
+            AfterEntityMutation();
+        }
+
+        public void Undo()
+        {
+            if (!History.CanUndo) return;
+            History.Undo();
+            AfterEntityMutation();
+        }
+
+        public void Redo()
+        {
+            if (!History.CanRedo) return;
+            History.Redo();
+            AfterEntityMutation();
         }
 
         public string AddScript(EntityDefinition entity, string scriptName)
@@ -129,13 +328,87 @@ namespace AngeneEditor.Project
             if (!File.Exists(path))
                 File.WriteAllText(path, Templates.NewScriptCs(CurrentProject.Namespace, safe));
 
-            if (!entity.Scripts.Contains(safe))
-            {
-                entity.Scripts.Add(safe);
-                ScriptAdded?.Invoke(entity, safe);
-            }
+            AttachScript(entity, safe);
 
             return path;
+        }
+
+        public void AttachScript(EntityDefinition entity, string scriptName)
+        {
+            if (CurrentProject == null)
+                throw new InvalidOperationException("No project open.");
+
+            EntityDefinition current = CurrentProject.Entities
+                .Single(item => item.Id == entity.Id);
+            if (current.Scripts.Contains(scriptName, StringComparer.OrdinalIgnoreCase))
+                return;
+
+            ExecuteEntityMutation($"Attach {scriptName}", entities =>
+                RequireEntity(entities, entity.Id).Scripts.Add(scriptName));
+
+            current = CurrentProject.Entities.Single(item => item.Id == entity.Id);
+            ScriptAdded?.Invoke(current, scriptName);
+        }
+
+        public void DetachScript(EntityDefinition entity, string scriptName)
+        {
+            ExecuteEntityMutation($"Detach {scriptName}", entities =>
+                RequireEntity(entities, entity.Id).Scripts.RemoveAll(script =>
+                    string.Equals(script, scriptName, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        public ComponentDefinition AddComponent(
+            EntityDefinition entity,
+            string type,
+            IReadOnlyDictionary<string, string>? defaultProperties = null)
+        {
+            if (string.IsNullOrWhiteSpace(type))
+                throw new ArgumentException("Component type cannot be empty.", nameof(type));
+
+            var component = new ComponentDefinition
+            {
+                Type = type.Trim(),
+                Properties = defaultProperties?.ToDictionary(
+                    pair => pair.Key,
+                    pair => pair.Value,
+                    StringComparer.Ordinal)
+                    ?? new Dictionary<string, string>(StringComparer.Ordinal),
+            };
+
+            ExecuteEntityMutation($"Add {component.Type}", entities =>
+                RequireEntity(entities, entity.Id).Components.Add(CloneComponent(component)));
+
+            return CurrentProject!.Entities
+                .Single(candidate => candidate.Id == entity.Id)
+                .Components.Single(candidate => candidate.Id == component.Id);
+        }
+
+        public void RemoveComponent(EntityDefinition entity, Guid componentId)
+        {
+            ExecuteEntityMutation("Remove component", entities =>
+                RequireEntity(entities, entity.Id).Components.RemoveAll(
+                    component => component.Id == componentId));
+        }
+
+        public ComponentDefinition UpdateComponent(
+            EntityDefinition entity,
+            Guid componentId,
+            string description,
+            Action<ComponentDefinition> update)
+        {
+            ArgumentNullException.ThrowIfNull(update);
+            ExecuteEntityMutation(description, entities =>
+            {
+                ComponentDefinition component = RequireEntity(entities, entity.Id)
+                    .Components.FirstOrDefault(candidate => candidate.Id == componentId)
+                    ?? throw new InvalidOperationException(
+                        $"Component '{componentId}' does not exist.");
+                update(component);
+            });
+
+            return CurrentProject!.Entities
+                .Single(candidate => candidate.Id == entity.Id)
+                .Components.Single(candidate => candidate.Id == componentId);
         }
 
         // ── Save ─────────────────────────────────────────────────────────────────
@@ -143,8 +416,362 @@ namespace AngeneEditor.Project
         public void SaveProject()
         {
             if (CurrentProject == null) return;
+            SyncSceneFromEntities(CurrentProject);
+            _manifestStore.SaveAtomic(CurrentProject.ManifestPath, CurrentProject.Manifest);
+            _sceneSerializer.SaveAtomic(CurrentProject.MainScenePath, CurrentProject.Scene);
             RegenerateInitScene(CurrentProject);
+            DeleteRecoverySnapshot();
+            SetDirty(false);
             ProjectSaved?.Invoke();
+        }
+
+        public bool SaveRecoverySnapshot()
+        {
+            if (CurrentProject == null || !IsDirty)
+                return false;
+
+            SyncSceneFromEntities(CurrentProject);
+            Directory.CreateDirectory(Path.GetDirectoryName(CurrentProject.RecoveryPath)!);
+            _sceneSerializer.SaveAtomic(CurrentProject.RecoveryPath, CurrentProject.Scene);
+            return true;
+        }
+
+        public bool HasRecoverySnapshot()
+        {
+            if (CurrentProject == null || !File.Exists(CurrentProject.RecoveryPath))
+                return false;
+
+            if (!File.Exists(CurrentProject.MainScenePath))
+                return true;
+
+            return File.GetLastWriteTimeUtc(CurrentProject.RecoveryPath) >
+                   File.GetLastWriteTimeUtc(CurrentProject.MainScenePath);
+        }
+
+        public bool RestoreRecoverySnapshot()
+        {
+            if (CurrentProject == null || !File.Exists(CurrentProject.RecoveryPath))
+                return false;
+
+            CurrentProject.Scene = _sceneSerializer.Load(CurrentProject.RecoveryPath);
+            SyncEntitiesFromScene(CurrentProject);
+            History.Clear();
+            SetDirty(true);
+            EntitiesChanged?.Invoke();
+            return true;
+        }
+
+        public void DeleteRecoverySnapshot()
+        {
+            if (CurrentProject == null || !File.Exists(CurrentProject.RecoveryPath))
+                return;
+
+            File.Delete(CurrentProject.RecoveryPath);
+        }
+
+        private void ExecuteEntityMutation(
+            string name,
+            Action<List<EntityDefinition>> mutation)
+        {
+            if (CurrentProject == null)
+                throw new InvalidOperationException("No project open.");
+
+            History.Execute(new EntityMutationCommand(CurrentProject, name, mutation));
+            AfterEntityMutation();
+        }
+
+        private void AfterEntityMutation()
+        {
+            if (CurrentProject == null) return;
+            SyncSceneFromEntities(CurrentProject);
+            SetDirty(true);
+            EntitiesChanged?.Invoke();
+        }
+
+        private void SetDirty(bool value)
+        {
+            if (IsDirty == value) return;
+            IsDirty = value;
+            DirtyStateChanged?.Invoke(value);
+        }
+
+        private bool IsDescendant(Guid ancestorId, Guid possibleDescendantId)
+        {
+            if (CurrentProject == null) return false;
+
+            EntityDefinition? current = CurrentProject.Entities
+                .FirstOrDefault(entity => entity.Id == possibleDescendantId);
+            while (current?.ParentId is Guid parentId)
+            {
+                if (parentId == ancestorId)
+                    return true;
+
+                current = CurrentProject.Entities
+                    .FirstOrDefault(entity => entity.Id == parentId);
+            }
+
+            return false;
+        }
+
+        private string UniqueEntityName(string requested, Guid? exceptId = null)
+        {
+            if (CurrentProject == null) return requested.Trim();
+
+            string root = string.IsNullOrWhiteSpace(requested) ? "Entity" : requested.Trim();
+            string candidate = root;
+            int suffix = 2;
+
+            while (CurrentProject.Entities.Any(entity =>
+                       entity.Id != exceptId &&
+                       string.Equals(entity.Name, candidate, StringComparison.OrdinalIgnoreCase)))
+            {
+                candidate = $"{root} {suffix++}";
+            }
+
+            return candidate;
+        }
+
+        private static EntityDefinition RequireEntity(
+            IEnumerable<EntityDefinition> entities,
+            Guid id)
+        {
+            return entities.FirstOrDefault(entity => entity.Id == id)
+                ?? throw new InvalidOperationException($"Entity '{id}' does not exist.");
+        }
+
+        private static EntityDefinition CloneEntity(EntityDefinition entity)
+        {
+            return new EntityDefinition
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                ParentId = entity.ParentId,
+                X = entity.X,
+                Y = entity.Y,
+                Z = entity.Z,
+                RotationX = entity.RotationX,
+                RotationY = entity.RotationY,
+                RotationZ = entity.RotationZ,
+                ScaleX = entity.ScaleX,
+                ScaleY = entity.ScaleY,
+                ScaleZ = entity.ScaleZ,
+                Enabled = entity.Enabled,
+                Components = entity.Components.Select(CloneComponent).ToList(),
+                Scripts = new List<string>(entity.Scripts),
+            };
+        }
+
+        private static ComponentDefinition CloneComponent(ComponentDefinition component)
+        {
+            return new ComponentDefinition
+            {
+                Id = component.Id,
+                Type = component.Type,
+                Enabled = component.Enabled,
+                Properties = new Dictionary<string, string>(
+                    component.Properties,
+                    StringComparer.Ordinal),
+            };
+        }
+
+        private sealed class EntityMutationCommand : IEditorCommand
+        {
+            private readonly AngeneProject _project;
+            private readonly Action<List<EntityDefinition>> _mutation;
+            private List<EntityDefinition>? _before;
+            private List<EntityDefinition>? _after;
+
+            public EntityMutationCommand(
+                AngeneProject project,
+                string name,
+                Action<List<EntityDefinition>> mutation)
+            {
+                _project = project;
+                Name = name;
+                _mutation = mutation;
+            }
+
+            public string Name { get; }
+
+            public void Execute()
+            {
+                if (_after == null)
+                {
+                    _before = _project.Entities.Select(CloneEntity).ToList();
+                    _mutation(_project.Entities);
+                    _after = _project.Entities.Select(CloneEntity).ToList();
+                }
+                else
+                {
+                    _project.Entities = _after.Select(CloneEntity).ToList();
+                }
+            }
+
+            public void Undo()
+            {
+                if (_before != null)
+                    _project.Entities = _before.Select(CloneEntity).ToList();
+            }
+        }
+
+        private sealed class SceneSettingsMutationCommand : IEditorCommand
+        {
+            private readonly AngeneProject _project;
+            private readonly Action<SceneSettings> _mutation;
+            private SceneSettings? _before;
+            private SceneSettings? _after;
+
+            public SceneSettingsMutationCommand(
+                AngeneProject project,
+                string name,
+                Action<SceneSettings> mutation)
+            {
+                _project = project;
+                Name = name;
+                _mutation = mutation;
+            }
+
+            public string Name { get; }
+
+            public void Execute()
+            {
+                if (_after == null)
+                {
+                    _before = _project.Scene.Settings.DeepClone();
+                    _mutation(_project.Scene.Settings);
+                    _after = _project.Scene.Settings.DeepClone();
+                }
+                else
+                {
+                    _project.Scene.Settings = _after.DeepClone();
+                }
+            }
+
+            public void Undo()
+            {
+                if (_before != null)
+                    _project.Scene.Settings = _before.DeepClone();
+            }
+        }
+
+        private ProjectManifest LoadOrCreateManifest(string root, string name)
+        {
+            string path = Path.Combine(root, ".angene", "project.json");
+            return File.Exists(path)
+                ? _manifestStore.Load(path)
+                : new ProjectManifest { Name = name };
+        }
+
+        private static void SyncSceneFromEntities(AngeneProject project)
+        {
+            var previous = project.Scene.Entities.ToDictionary(entity => entity.Id);
+            var synchronized = new List<SceneEntity>(project.Entities.Count);
+
+            foreach (EntityDefinition definition in project.Entities)
+            {
+                SceneEntity entity = previous.TryGetValue(definition.Id, out SceneEntity? existing)
+                    ? existing.DeepClone()
+                    : new SceneEntity { Id = definition.Id };
+
+                entity.Name = definition.Name;
+                entity.ParentId = definition.ParentId;
+                entity.Enabled = definition.Enabled;
+                entity.Transform.Position = new SceneVector3(definition.X, definition.Y, definition.Z);
+                entity.Transform.Rotation = new SceneVector3(
+                    definition.RotationX,
+                    definition.RotationY,
+                    definition.RotationZ);
+                entity.Transform.Scale = new SceneVector3(
+                    definition.ScaleX,
+                    definition.ScaleY,
+                    definition.ScaleZ);
+
+                var scriptComponents = entity.Components
+                    .Where(component =>
+                        component.Type.StartsWith("Script:", StringComparison.Ordinal))
+                    .GroupBy(component => component.Type, StringComparer.Ordinal)
+                    .ToDictionary(
+                        group => group.Key,
+                        group => group.First(),
+                        StringComparer.Ordinal);
+                entity.Components.RemoveAll(component =>
+                    component.Type.StartsWith("Script:", StringComparison.Ordinal));
+                foreach (string script in definition.Scripts)
+                {
+                    string type = $"Script:{script}";
+                    entity.Components.Add(
+                        scriptComponents.TryGetValue(type, out SceneComponent? component)
+                            ? component
+                            : new SceneComponent { Type = type });
+                }
+
+                var genericComponents = entity.Components
+                    .Where(component =>
+                        !component.Type.StartsWith("Script:", StringComparison.Ordinal))
+                    .ToDictionary(component => component.Id);
+                entity.Components.RemoveAll(component =>
+                    !component.Type.StartsWith("Script:", StringComparison.Ordinal));
+                foreach (ComponentDefinition definitionComponent in definition.Components)
+                {
+                    SceneComponent component = genericComponents.TryGetValue(
+                        definitionComponent.Id,
+                        out SceneComponent? existingComponent)
+                        ? existingComponent
+                        : new SceneComponent { Id = definitionComponent.Id };
+                    component.Type = definitionComponent.Type;
+                    component.Enabled = definitionComponent.Enabled;
+                    component.Properties = definitionComponent.Properties.ToDictionary(
+                        pair => pair.Key,
+                        pair => JsonSerializer.SerializeToElement(pair.Value),
+                        StringComparer.Ordinal);
+                    entity.Components.Add(component);
+                }
+
+                synchronized.Add(entity);
+            }
+
+            project.Scene.Entities = synchronized;
+            project.Scene.EnsureValid();
+        }
+
+        private static void SyncEntitiesFromScene(AngeneProject project)
+        {
+            project.Entities = project.Scene.Entities.Select(entity => new EntityDefinition
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                ParentId = entity.ParentId,
+                Enabled = entity.Enabled,
+                X = (int)MathF.Round(entity.Transform.Position.X),
+                Y = (int)MathF.Round(entity.Transform.Position.Y),
+                Z = entity.Transform.Position.Z,
+                RotationX = entity.Transform.Rotation.X,
+                RotationY = entity.Transform.Rotation.Y,
+                RotationZ = entity.Transform.Rotation.Z,
+                ScaleX = entity.Transform.Scale.X,
+                ScaleY = entity.Transform.Scale.Y,
+                ScaleZ = entity.Transform.Scale.Z,
+                Components = entity.Components
+                    .Where(component =>
+                        !component.Type.StartsWith("Script:", StringComparison.Ordinal))
+                    .Select(component => new ComponentDefinition
+                    {
+                        Id = component.Id,
+                        Type = component.Type,
+                        Enabled = component.Enabled,
+                        Properties = component.Properties.ToDictionary(
+                            pair => pair.Key,
+                            pair => pair.Value.ValueKind == JsonValueKind.String
+                                ? pair.Value.GetString() ?? ""
+                                : pair.Value.GetRawText(),
+                            StringComparer.Ordinal),
+                    })
+                    .ToList(),
+                Scripts = entity.Components
+                    .Where(component => component.Type.StartsWith("Script:", StringComparison.Ordinal))
+                    .Select(component => component.Type["Script:".Length..])
+                    .ToList(),
+            }).ToList();
         }
 
         // ── Init.cs code generation ───────────────────────────────────────────────

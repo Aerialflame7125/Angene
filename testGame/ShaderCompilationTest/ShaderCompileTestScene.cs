@@ -1,14 +1,13 @@
 using Angene.Common;
 using Angene.Essentials;
 using Angene.Graphics;
-using Angene.Graphics.DX11;
 using Angene.Graphics.SlangShader;
 using Angene.Main;
-using Angene.Windows.D3D11;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using static Angene.Windows.Dxgi.DxgiEnums;
+using static Angene.Graphics.Defs;
 
 namespace Game
 {
@@ -16,7 +15,7 @@ namespace Game
     // produces usable D3D11 shaders, by drawing a triangle with the shaders that came out
     // of the cache rather than loading pre-baked .cso files (compare with
     // DX11Test/DX11TestScene.cs, which uses the old .cso-loading path).
-    public class ShaderCompileTestScene : IScene
+    public class ShaderCompileTestScene : IDX11Scene
     {
         public object Instance { get; private set; }
         public List<Entity> Entities { get; private set; } = new List<Entity>();
@@ -30,6 +29,11 @@ namespace Game
         private SlangShaderResources.IShader _vertexShader;
         private SlangShaderResources.IShader _pixelShader;
 
+        private Vertex[] vertices = new Vertex[] { };
+        private uint vertexStride;
+        private int vertexCount;
+        private int totalByteSize;
+
         public ShaderCompileTestScene(Window window)
         {
             _window = window ?? throw new ArgumentNullException(nameof(window));
@@ -40,7 +44,7 @@ namespace Game
             Instance = this;
 
             _gfx = _window.Graphics as IDX11GraphicsContext;
-            if (_gfx == null)
+            if (_gfx is null)
             {
                 Logger.LogCritical("[ShaderCompileTestScene] Window is not using the D3D11 backend — use WindowConfig.Rendering3D(...).", LoggingTarget.Graphics, new AngeneException("Window is not using the D3D11 rendering backend."));
                 return;
@@ -56,17 +60,23 @@ namespace Game
             Logger.LogImportant($"{_vertexShader.Name} = VertexShader, {_pixelShader.Name} = PixelShader", LoggingTarget.Graphics);
             Logger.LogImportant("[ShaderCompileTestScene] Found compiled shaders in ShaderCache — Slang compilation pipeline produced usable shaders.", LoggingTarget.Graphics);
 
-            // Interleaved position (float3) + color (float4) = 7 floats / 28 bytes per vertex
-            float[] vertices =
-            {
-                 0.0f,  0.5f, 0.0f,   1f, 0f, 0f, 1f,
-                 0.5f, -0.5f, 0.0f,   0f, 1f, 0f, 1f,
-                -0.5f, -0.5f, 0.0f,   0f, 0f, 1f, 1f,
+            // Define data cleanly using the struct
+            vertices = new[]{
+                new Vertex { X =  0.0f, Y =  0.5f, Z = 0.0f, R = 1f, G = 0f, B = 0f, A = 1f },
+                new Vertex { X =  0.5f, Y = -0.5f, Z = 0.0f, R = 0f, G = 1f, B = 0f, A = 1f },
+                new Vertex { X = -0.5f, Y = -0.5f, Z = 0.0f, R = 0f, G = 0f, B = 1f, A = 1f }
             };
-            byte[] vertexBytes = new byte[vertices.Length * sizeof(float)];
-            Buffer.BlockCopy(vertices, 0, vertexBytes, 0, vertexBytes.Length);
 
-            _vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
+            vertexStride = (uint)Marshal.SizeOf<Vertex>(); // 28 bytes
+            vertexCount = vertices.Length;            // 3 vertices
+            totalByteSize = (int)(vertexStride * vertexCount);
+
+            // Convert to byte array seamlessly
+            byte[] vertexBytes = MemoryMarshal.AsBytes(vertices.AsSpan()).ToArray();
+            totalByteSize = vertexBytes.Length;
+
+            // Pass variables instead of hardcoded numbers
+            _vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, vertexStride);
 
             var elements = new[]
             {
@@ -84,18 +94,12 @@ namespace Game
 
         public void OnMessage(IntPtr msgPtr) { }
 
-        public void Render()
+        public void Render() { } // temporary compatibility member
+        public void Render(IDX11GraphicsContext _gfx)
         {
-            if (_gfx == null || _vertexShader == null || _pixelShader == null) return;
-
-            _gfx.Clear(0xFF203040); // opaque dark navy
-
-            _gfx.SetVertexBuffer(_vertexBuffer, strideBytes: 7 * sizeof(float));
-            _gfx.SetInputLayout(_inputLayout);
-            _gfx.SetShader(_vertexShader, _pixelShader);
-            _gfx.Draw(3);
-
-            _gfx.Present((IntPtr)_window.Hwnd);
+            _gfx.Render(_vertexShader, _pixelShader,
+                   _inputLayout, _vertexBuffer,
+                   vertexStride, (uint)vertexCount);
         }
 
         public void Cleanup()

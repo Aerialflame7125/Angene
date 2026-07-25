@@ -616,5 +616,45 @@ namespace Angene.Graphics.DX11
         }
 
         public void SetRasterizerState(IntPtr state) => D3D11.RSSetState(_context, state);
+
+        public void BeginFrame(uint clearColor)
+        {
+            if (_context == IntPtr.Zero || _renderTargetView == IntPtr.Zero)
+                return;
+
+            OMSetRenderTargets(_context, 1, _renderTargetView, _depthStencilView);
+
+            var viewport = new D3D11_VIEWPORT
+            {
+                TopLeftX = 0,
+                TopLeftY = 0,
+                Width = _w,
+                Height = _h,
+                MinDepth = 0.0f,
+                MaxDepth = 1.0f
+            };
+
+            SetViewports(_context, 1, ref viewport);
+            Clear(clearColor);
+        }
+
+        public void Render(
+            SlangShaderResources.IShader vertexShader,
+            SlangShaderResources.IShader pixelShader,
+            IntPtr inputLayout,
+            IntPtr vertexBuffer,
+            uint vertexStride,
+            uint vertexCount)
+        {
+            ArgumentNullException.ThrowIfNull(vertexShader);
+            ArgumentNullException.ThrowIfNull(pixelShader);
+
+            SetVertexBuffer(vertexBuffer, vertexStride);
+            SetInputLayout(inputLayout);
+            SetShader(vertexShader, pixelShader);
+            Draw(vertexCount);
+        }
+
+        public void EndFrame() => Present(_hwnd);
     }
 }
