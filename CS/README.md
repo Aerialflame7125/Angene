@@ -5128,8 +5128,17 @@ WindowConfig conf = new WindowConfig();
 conf.Title = "Angene | Demo Code";
 conf.Transparency = Win32.WindowTransparency.SemiTransparent; // Not required, nice touch though
 conf.Width = 1280; conf.Height = 720;
+config.renderType = RenderType.DX11
 window = new Window(conf);
-Logger.Log("New window, yaey!", LoggingTarget.Engine);
+Logger.LogDebug("New window, yaey!", LoggingTarget.Engine);
+```
+
+// 7/25/26
+You can either create your own WindowConfig definition, or use the built in ones. For more information please refer to WindowConfig in Angene.Main.
+As an example, for D3D11, use .Rendering3D:
+```cs
+WindowConfig confg = WindowConfig.Rendering3D("Angene | Rendering3D", 1280, 720);
+Window win = new Window(config);
 ```
 
 Then add a scene to said window:
@@ -5158,8 +5167,8 @@ At least its better than placing it in 'LocalLow{Dev}{Game}Player.log' where NO 
 engine = Engine.Instance;
 engine.Init(true); // If true, opens a new log window
 
-Logger.Log("Hey i'm a debug log!", LoggingTarget.MainGame); // Logs to file, logLevel is optional as so:
-Logger.Log("Woah I'm an error, be scared.", LoggingTarget.Class, logLevel: LogLevel.Error);
+Logger.LogDebug("Hey i'm a debug log!", LoggingTarget.MainGame); // Logs to file, logLevel is optional as so:
+Logger.LogError("Woah I'm an error, be scared.", LoggingTarget.Class);
 ```
 
 But there is even easier:
@@ -5191,41 +5200,60 @@ The message loop is what keeps the entire lifecycle in check, as well as trigger
 This is left open for the developer in case they want anything in between ticks or draw. Use the below as a template if you want:
 
 ```cs
-private static void RunWindowsMessageLoop(Window window, ref double dto, ref double dtl)
+private static void RunWindowsMessageLoop(ref double dt)
 {
-  bool running = true;
-
-  while (running)
-  {
-    while (Win32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Win32.PM_REMOVE))
+    bool running = true;
+    while (running)
     {
-      if (msg.message == Win32.WM_QUIT)
-      {
-        running = false;
-        break;
-      }
-
-      Win32.TranslateMessage(ref msg);
-      Win32.DispatchMessageW(ref msg);
+        while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
+        {
+            if (msg.message == (uint)WM.QUIT)
+            {
+                running = false;
+                break;
+            }
+            User32.TranslateMessage(ref msg);
+            User32.DispatchMessageW(ref msg);
+        }
+        if (!running) break;
+        dt = (DateTime.Now - lastFrame).TotalSeconds;
+        lastFrame = DateTime.Now;
+        foreach (var win in Engine.Instance.OpenWindows)
+        {
+            foreach (var scene in win.Scenes)
+            {
+                Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
+                Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
+            }
+            win.RenderFrame();
+            win._screenPlay?.LateUpdate(dt);
+        }
+        Thread.Sleep(16);
     }
-
-    if (!running) break;
-
-    foreach (var scene in window.Scenes)
-    {
-      double dt = (DateTime.Now - lastFrame).TotalSeconds;
-      Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
-      Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
-      scene?.Render();
-    }
-
-    Thread.Sleep(16);
-  }
 }
 ```
 
 Sure, it's a little counter-intuitive, but it leaves the lifecycle as a choice for the developer, maybe even allowing some funky shit later.
 Just remember, if you detatch the tick method, no scene or script will run. Everything is reliant on ticks and OnDraw.
+
+// 7/25/26
+Another thing, for rendering ever since D3D11 came out, you need a specific window pump in order to properly render windows:
+```cs
+private static void PumpOpenWindows()
+{
+    while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
+    {
+        if (msg.message == (uint)WM.QUIT) break;
+        User32.TranslateMessage(ref msg);
+        User32.DispatchMessageW(ref msg);
+    }
+    foreach (var win in Engine.Instance.OpenWindows.ToArray())
+    {
+        win.RenderFrame();
+        Engine.Instance.FlushPendingCloses();
+    }
+}
+```
 
 ## Package Handler (Angene.PkgHandler)
 
@@ -5298,7 +5326,7 @@ internal class ScriptExample : IScreenPlay
     Logger.LogImportant("Hey this script is set up with the lifecycle!", LoggingTarget.MainGame);
     if (num != null)
     {
-      Logger.Log($"The number is {num}.", LoggingTarget.Class);
+      Logger.LogDebug($"The number is {num}.", LoggingTarget.Class);
     }
   }
   void Cleanup()
@@ -5331,8 +5359,6 @@ public class DemoScene : IScene
   public List<Entity> entities {get; private set;}
   public Window _window;
 
-  public IRenderer3D? Renderer3D => null; // Required by spec, not needed if not rendering 3D.
-
   internal DemoScene(Window window) // Again, not needed by spec, but useful.
   {
     _window = window;
@@ -5342,7 +5368,7 @@ public class DemoScene : IScene
   public void Initialize()
   {
     entities = new List<Entity>();
-    Logger.Log($"Running on {PlatformDetection.CurrentPlatform}", LoggingTarget.MainGame, LogLevel.Info);
+    Logger.LogInfo($"Running on {PlatformDetection.CurrentPlatform}", LoggingTarget.MainGame);
     // ... do entity mumbo jumbo here i guess
   }
 
@@ -5437,7 +5463,7 @@ config.Title = "Angene | exampleGame";
 config.Transparency = Win32.WindowTransparency.SemiTransparent;
 config.Width = 1280; config.Height = 720;
 window = new Window(config);
-Logger.Log("Window created successfully", LoggingTarget.Engine);
+Logger.LogDebug("Window created successfully", LoggingTarget.Engine);
 ```
 
 Simple right? Well the implementation isn't.
@@ -5510,28 +5536,41 @@ public static int Main(IntPtr args, int argc)
                     verbose = true;
                 }
             }
-            Logger.Log($"Arguments received ({argc}):", LoggingTarget.MainConstructor);
+            Logger.LogInfo($"Arguments received ({argc}):", LoggingTarget.MainConstructor);
             for (int i = 0; i < argArray.Length; i++)
             {
-                Logger.Log($"  [{i}] {argArray[i]}", LoggingTarget.MainConstructor);
+                Logger.LogInfo($"  [{i}] {argArray[i]}", LoggingTarget.MainConstructor);
             }
-            Logger.Log("", LoggingTarget.MainConstructor);
+            Logger.LogInfo("", LoggingTarget.MainConstructor);
         }
 
-        Logger.Log("Calling RunGame...", LoggingTarget.MainConstructor);
+        Logger.LogDebug("Calling RunGame...", LoggingTarget.MainConstructor);
         RunGame(verbose);
 
         return 0;
     }
     catch (Exception ex)
     {
-        Logger.Log($"nFATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, logLevel: LogLevel.Critical, exception: ex);
+        Logger.LogCritical($"nFATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, exception: ex);
         return 1; // Error
     }
 }
 ```
 
 Again just an example, but the arguments are as follows. If a log directory is not created after launching the host, something is incorrect with the entry point or the engine hasn't initialized.
+
+// 7/25/26
+Ever since D3D11, prior to actually rendering or creating Windows with initializing the WindowConfig add this to somewhere before creating your windows:
+```cs
+Logger.LogImportant("Waiting for shader precompilation to finish...", LoggingTarget.MainGame);
+while (Engine.Instance.IsCompilingShaders)
+{
+    PumpOpenWindows();
+    Thread.Sleep(16);
+}
+Logger.LogImportant("Shader precompilation finished.", LoggingTarget.MainGame);
+```
+
 
 ## Audio
 
@@ -5729,84 +5768,258 @@ _keyDetection.Register();
 ```
 IsKeyDown() returns a boolean based upon if the key given is down.
 
+## DX11
+Finally long awaited, and still here to ruin peoples lifes. Lets walk through this.
+
+```cs
+public class DX11ExampleScene : IScene
+{
+  public object Instance { get; private set; }
+  public List<Entity> Entities { get; private set; } = new List<Entity>();
+  public string Name => "DX11ExampleScene";
+
+  private readonly Window _window;
+  private IDX11GraphicsContext _gfx;
+
+  private IntPtr _vertexBuffer;
+  private IntPtr _inputLayout;
+  private SlangShaderResources.IShader _vertexShader;
+  private SlangShaderResources.IShader _pixelShader;
+
+  private Vertex[] vertices = new Vertex[] { };
+  private uint vertexStride;
+  private int vertexCount;
+  private int totalByteSize;
+
+  public DX11ExampleScene(Window window)
+  {
+    _window = window ?? throw new ArgumentNullException(nameof(window));
+  }
+  public void Initialize()
+  {
+      Instance = this;
+      _gfx = _window.Graphics as IDX11GraphicsContext;
+      if (_gfx == null)
+      {
+          Logger.LogCritical("Window is not using the D3D11 backend — use WindowConfig.Rendering3D(...).", LoggingTarget.Graphics, new AngeneException("Window is not using the D3D11 rendering backend."));
+          return;
+      }
+
+      if (Engine.Instance.ShaderCache == null
+          || !Engine.Instance.ShaderCache.TryGetValue(1, out _vertexShader)
+          || !Engine.Instance.ShaderCache.TryGetValue(2, out _pixelShader))
+      {
+          Logger.LogCritical("[ShaderCompileTestScene] TestVS/TestPS were not found in Engine.Instance.ShaderCache. Precompilation did not run or failed silently.", LoggingTarget.Graphics, new AngeneException("Shader cache missing expected entries."));
+          return;
+      }
+      Logger.LogImportant($"{_vertexShader.Name} = VertexShader, {_pixelShader.Name} = PixelShader", LoggingTarget.Graphics);
+      Logger.LogImportant("[ShaderCompileTestScene] Found compiled shaders in ShaderCache — Slang compilation pipeline produced usable shaders.", LoggingTarget.Graphics);
+
+      // Define data cleanly using the struct
+      vertices = new[]{
+        new Vertex { X =  0.0f, Y =  0.5f, Z = 0.0f, R = 1f, G = 0f, B = 0f, A = 1f },
+        new Vertex { X =  0.5f, Y = -0.5f, Z = 0.0f, R = 0f, G = 1f, B = 0f, A = 1f },
+        new Vertex { X = -0.5f, Y = -0.5f, Z = 0.0f, R = 0f, G = 0f, B = 1f, A = 1f }
+      }
+    
+      vertexStride = (uint)Marshal.SizeOf<Vertex>();
+      vertexCount = vertices.Length;
+      totalByteSize = (int)(vertexStride * vertexCount);
+
+      byte[] vertexBytes = MemoryMarshal.AsBytes(vertices.AsSpan()).ToArray();
+      totalByteSize = vertexBytes.Length;
+
+      _vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, vertexStride);
+
+      var elements = new[]
+      {
+          new InputElement { SemanticName = "POSITION", SemanticIndex = 0, Format = DXGI_FORMAT.DXGI_FORMAT_R32G32B32_FLOAT,    ByteOffset = 0  },
+          new InputElement { SemanticName = "COLOR",    SemanticIndex = 0, Format = DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT, ByteOffset = 12 },
+      };
+
+      if (_vertexShader.byteCode == null)
+          Logger.LogCritical("Vertex shader bytecode is null. Compilation did not succeed.", LoggingTarget.MainGame, new AngeneException("Bytecode is null."), true);
+
+      _inputLayout = _gfx.CreateInputLayout(elements, _vertexShader.byteCode);
+  }
+
+  public void OnMessage(IntPtr msgPtr) { }
+
+  public void Render() { }
+
+  public void Render(ID3D11GraphicsContext _gfx)
+  {
+      _gfx.Render(_vertexShader, _pixelShader, _inputLayout, _vertexBuffer, vertexStride, (uint)vertexCount);
+  }
+
+  public void Cleanup()
+  {
+      // Don't dispose shaders here, they are owned by Engine.Instance.
+      if (_vertexBuffer != IntPtr.Zero) Marshal.Release(_vertexBuffer);
+      if (_inputLayout != IntPtr.Zero) Marshal.Release(_inputLayout);
+  }
+}
+```
+I know, its a really long exerpt; it's a page taken out of ShaderCompileTestScene.
+It's a beautiful sight aint it? I plan to get this smaller as time goes on for rendering.
+
+## Dx11Shader classes
+Okay, it's the meat and bones of DirectX, stay with me here.
+I tried to get this to a point that even I can understand it, so please be patient with them.
+(I did not crash both of my GPUs twice while making this btw)
+```cs
+[Attributes.Precompile]
+public class TestVertexShader : SlangShaderResources.IShader
+{
+  public string Name => "TestVS";
+  public int id => 1;
+  public string Extension => "hlsl";
+  public string EntryPoint { get; set; } = "main";
+  public SlangShaderResources.ShaderType Type => SlangShaderResources.ShaderType.Vertex;
+  public bool compileToFile { get; } = true;
+  public bool IsDisposed { get; private set; }
+
+  SlangShaderResources.ShaderOrigin SlangShaderResources.IShader.Origin => SlangShaderResources.ShaderOrigin.Dx11;
+
+  public string Code => @"struct VSInput
+{
+    float3 Position : POSITION;
+    float4 Color    : COLOR;
+};
+
+struct VSOutput
+{
+    float4 Position : SV_POSITION;
+    float4 Color    : COLOR;
+};
+
+VSOutput main(VSInput input)
+{
+    VSOutput output;
+    output.Position = float4(input.Position, 1.0f);
+    output.Color = input.Color;
+    return output;
+}
+";
+
+  public byte[] byteCode => null;
+
+  public void Bind() { /* binding is handled by IDX11GraphicsContext.SetShader */ }
+
+  public string OutputDebugInfo(bool log = true)
+  {
+      string info = $"{{'Name':'{Name}','Type':'{Type}'}}";
+      if (log) Logger.LogDebug(info, LoggingTarget.Graphics);
+      return info;
+  }
+
+  public void Dispose() => IsDisposed = true;
+}
+
+[Attributes.Precompile]
+public class TestPixelShader : SlangShaderResources.IShader
+{
+  public string Name => "TestPS";
+  public int id => 2;
+  public string Extension => "hlsl";
+  public string Path { get; set; } = System.IO.Path.Combine(AppContext.BaseDirectory, "Shaders", "PixelShader.hlsl");
+  public string EntryPoint { get; set; } = "main";
+  public SlangShaderResources.ShaderType Type => SlangShaderResources.ShaderType.Pixel;
+  public bool compileToFile { get; } = false;
+  public bool IsDisposed { get; private set; }
+
+  public string Code => @"struct PSInput
+{
+    float4 Position : SV_POSITION;
+    float4 Color    : COLOR;
+};
+
+float4 main(PSInput input) : SV_TARGET
+{
+    return input.Color;
+}
+";
+
+  public byte[] byteCode => null;
+
+  SlangShaderResources.ShaderOrigin SlangShaderResources.IShader.Origin => SlangShaderResources.ShaderOrigin.Dx11;
+
+  public void Bind() { }
+
+  public string OutputDebugInfo(bool log = true)
+  {
+      string info = $"{{'Name':'{Name}','Type':'{Type}','Path':'{Path}'}}";
+      if (log) Logger.LogDebug(info, LoggingTarget.Graphics);
+      return info;
+  }
+
+  public void Dispose() => IsDisposed = true;
+}
+```
+This is an example of a Pixel shader and a Vertex shader. Notice some distinctions:
+1. They do not take after Dx11Shader and instead inherit a class called 'SlangShaderResources.IShader'
+2. They both have a [Attributes.Precompile] attribute. This is an attribute made specifically for shaders for compiling before the window is created.
+3. They both are hlsl. I didn't feel like anything else was necessary.
+4. compileToFile boolean. This boolean is checked at compile time to be caching files inside whichever matches your operating system. Refer to Engine.cs in Angene.Main.
+
+This sucked to get working, but Slang is the primary compiler that is responsible for compiling and the library is about 30 MB. I'm not happy about it either.
+The Slang interop is currently only on the windows platform, for I plan to get this added for Linux too. MacOS users can respectfully, not get this engine.
+
 # QnA
 
   ## Have you [vibecoded](http://vibe-coded.urbanup.com/18530338) any part of this engine?
 
   Sadly, yes. There are major parts within this game engine that are vibe coded. Most of that is the partial lack of interest and lack of thinking that I would ever use it in the future.
-If you need to know which parts are vibe coded, I will list them here:
+  If you need to know which parts are vibe coded, I will list them here:
 
   ### Angene.Math
 
-* Angene.Math
+  * Angene.Math
 
-  * Rand
-* Angene.Math.Defs
+    * Rand
+  * Angene.Math.Defs
 
-  * IComputeBackend
-  * IComputeJob
-* Angene.Math.GPU
+    * IComputeBackend
+    * IComputeJob
+  * Angene.Math.GPU
 
-  * Math
-* Angene.Math.Interpolation
+    * Math
+  * Angene.Math.Interpolation
 
-  * Mathf
-* Angene.Math.Vectors
+    * Mathf
+  * Angene.Math.Vectors
 
-  * Vectors
-
-    ### Angene.Essentials
-
-* Angene.Entity (Partial, logic that is listed carries from human implementation.)
-* Angene.IScene (Partial, original logic and implementations carry from Python and older versions. See commit history.)
-* Angene.Lifecycle
-* Angene.ScreenPlay (Partial, format follows deprecated python version for flexibility, logic roughly sketched by hand.)
+    * Vectors
 
   ### Angene.Common
 
-* Globals
+  * Globals
 
-  * IRenderer3D (Partial, literally just a header to differentiate renderer types.)
+    * IRenderer3D (Partial, literally just a header to differentiate renderer types.)
 
-    ### Angene.Audio
+  ### Angene.Audio
 
-* All of the above.
+  * All of the above.
 
-  * I state this because the entire audio library is vibecoded. Windows audio formats suck and are horrible to work with.
-  * If you wish to fact check me, just remember that the audio libraries are all in CPP and C, requiring importing.
-  * Another thing, Windows audio derives from older versions that still exist in newer systems (Windows 11) still completely being deprecated and dead code. Microslop has yet to remove these older versions, causing discrepancies in what library users should use.
+    * I state this because the entire audio library is vibecoded. Windows audio formats suck and are horrible to work with.
+    * If you wish to fact check me, just remember that the audio libraries are all in CPP and C, requiring importing.
+    * Another thing, Windows audio derives from older versions that still exist in newer systems (Windows 11) still completely being deprecated and dead code. Microslop has yet to remove these older versions, causing discrepancies in what library users should use.
 
-    ### Angene (main library)
+  ### Angene (main library)
 
-* Main
+  * Main
+    * WS
+    * PkgHandler
+  * Crypto
+    * Literally just a conversion wrapper. Too lazy to change all of the references, so why not make it yourself to shut the console up!
 
-  * WS
-  * PkgHandler
-* Platform
+  ### Angene.Windows
 
-  * X11Native
-  * Self-explanatory. Yet to remove it at the time of writing (2026,03,07), considering this is windows-first.
-* Crypto
-
-  * Literally just a conversion wrapper. Too lazy to change all of the references, so why not make it yourself to shut the console up!
-
-    ### Angene.Graphics
-
-* Graphics
-
-  * All of the above
-
-    * Not going to rant about microsoft implementations, just that me personally, I have no idea (as of now) how graphics rendering works in the terms of creation, nor does the documentation really help me in the case of using C#.
-    * Although I do state all of the above, GDI is the only one that does not adhere to this. The implementation carries from Python, and is human written (for the most part, conversion was AI.)
-
-    ### Angene.Windows
-
-* Kernel32
-* Gdi32
-* Win32
-* Win32Messages
-* All of the listed libraries is vibe coded. This primarilly consists of Win32 messages and headers pertaining to specific windows implementations. Microsoft documentation is correct and actually helped a lot when writing python implementations, but I will refer you to the [definitions file](https://github.com/Aerialflame7125/Angene/blob/main/Python/Angene/Main/definitions.py) written in python, and you tell me if you want to implement that in C#.
-* Most of this is also at the hands of bad implementations, very generously providing a great help when it comes to conversions to other languages :thumbs_up: (sarcasm.)
+  * Kernel32
+  * Gdi32
+  * Win32Messages
+  * All of the listed libraries is vibe coded. This primarilly consists of Win32 messages and headers pertaining to specific windows implementations. Microsoft documentation is correct and actually helped a lot when writing python implementations, but I will refer you to the [definitions file](https://github.com/Aerialflame7125/Angene/blob/main/Python/Angene/Main/definitions.py) written in python, and you tell me if you want to implement that in C#.
+  * Most of this is also at the hands of bad implementations, very generously providing a great help when it comes to conversions to other languages :thumbs_up: (sarcasm.)
 
   Also, this entire readme is written by hand before you ask. I'm not going to document a game engine I am working on with AI. What kind of person do you take me for?
 
