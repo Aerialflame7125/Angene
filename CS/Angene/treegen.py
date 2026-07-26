@@ -102,22 +102,22 @@ def generate_markdown(api_data, use_gfm=False):
     for ns in sorted(tree.keys()):
         if use_gfm:
             # Proper spacing so Markdown doesn't choke on the HTML
-            lines.append(f"<details><summary><b>{ns}</b></summary>\n\n")
+            lines.append(f"  <details><summary><b>{ns}</b></summary>\n\n")
         else:
-            lines.append(f"## {ns}\n\n")
+            lines.append(f"  ## {ns}\n\n")
             
         for cls in sorted(tree[ns].keys()):
             if use_gfm:
-                lines.append(f"* **{cls}**\n")
+                lines.append(f"  * **{cls}**\n")
                 for mem in tree[ns][cls]:
-                    lines.append(f"  * `{mem}`\n")
+                    lines.append(f"    * `{mem}`\n")
             else:
-                lines.append(f"* {cls}\n")
+                lines.append(f"  * {cls}\n")
                 for mem in tree[ns][cls]:
-                    lines.append(f"  * {mem}\n")
+                    lines.append(f"    * {mem}\n")
         
         if use_gfm:
-            lines.append("\n</details>\n")
+            lines.append("\n  </details>\n")
         lines.append("\n")
 
     return "".join(lines)
@@ -163,7 +163,9 @@ def main():
             all_api_elements.extend(parse_cs_file(f))
 
         print(f"Extracted {len(all_api_elements)} public API elements. Generating markdown...")
-        md_content = generate_markdown(all_api_elements, args.gfm)
+        md_content = f"## {folder_name}\n\n"
+        md_content += generate_markdown(all_api_elements, args.gfm)
+        md_content += "\n\n"
         if args.one_file and backbuffer is not None:
             backbuffer += md_content
             continue  # Skip writing individual files
