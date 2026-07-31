@@ -11,13 +11,11 @@
 		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
-	<!-- FIXED: Append to DefineConstants instead of replacing -->
-	<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	<PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Windows`))' == 'true'">
+	    <DefineConstants>WINDOWS</DefineConstants>
 	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-		<DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+	<PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Linux`))' == 'true'">
+	    <DefineConstants>LINUX</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -65,7 +63,10 @@
 	  <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
 	  <ProjectReference Include="..\Angene.Graphics\Angene.Graphics.csproj" />
 	  <ProjectReference Include="..\Angene.Management\Angene.Management.csproj" />
-	  <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+		<ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
 	</ItemGroup>
 
     <Target Name="MoveBinariesToBuild" AfterTargets="Build">

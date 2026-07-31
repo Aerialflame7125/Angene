@@ -2,8 +2,10 @@
 using Angene.Essentials;
 using System;
 using System.Collections.Generic;
-using Angene.Graphics.DX11;
 using Angene.Graphics;
+#if Windows
+using Angene.Graphics.DX11;
+#endif
 
 namespace Angene.Essentials
 {
@@ -30,6 +32,7 @@ namespace Angene.Essentials
         void Cleanup(); // Scene cleanup
     }
 
+#if WINDOWS
     /// <summary>
     /// IDX11Scene definition for a DX11 specific scene with render calls.
     /// All definitions and execution still gets routed through Angene.Lifecycle
@@ -38,4 +41,5 @@ namespace Angene.Essentials
     {
         void Render(IDX11GraphicsContext graphics);
     }
+#endif
 }

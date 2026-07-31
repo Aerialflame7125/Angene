@@ -43,8 +43,8 @@ namespace Angene.Common
     {
         public static readonly Logger Instance = new Logger();
         public static StreamWriter? LogInstance;
-        private static readonly Settings.Settings settings = new Settings.Settings();
         private static readonly object logLock = new();
+        private static readonly Settings.Settings settings = new Settings.Settings();
         public bool _verbose = false;
 
         public Action<object, object, object, object, object> OnLog { get; set; } = (_, _, _, _, _) => { }; // Cancer.
@@ -92,28 +92,29 @@ namespace Angene.Common
                 
                 if (LogInstance == null)
                 {
-                    System.Console.WriteLine($"[ERROR] Logger.Log ({DateTime.Now}): LogInstance is null. Message: {message}");
+                    System.Console.WriteLine($"[ERROR] Logger.Log ({DateTime.Now}): LogInstance is null. Message: {message}, LogFrom: {logFrom}, LogLevel: {logLevel}, Exception: {exception?.Message}");
                     return;
                 }
 
                 // Write to file — including exception if present
+                System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                 LogInstance.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
                 if (exception != null)
                 {
+                    System.Console.WriteLine($"  >> {exception.GetType().FullName}: {exception.Message}");
                     LogInstance.WriteLine($"  >> {exception.GetType().FullName}: {exception.Message}");
+                    System.Console.WriteLine($"  >> Stack Trace: {exception.StackTrace}");
                     LogInstance.WriteLine($"  >> Stack Trace: {exception.StackTrace}");
                     if (exception.InnerException != null)
+                    {
+                        System.Console.WriteLine($"  >> Inner: {exception.InnerException.GetType().FullName}: {exception.InnerException.Message}");
                         LogInstance.WriteLine($"  >> Inner: {exception.InnerException.GetType().FullName}: {exception.InnerException.Message}");
+                    }
                 }
 
                 if (sceneNumber != -1)
                     LogInstance.WriteLine($"Log came from Scene Number: {sceneNumber}");
-
-                if (logLevel == LogLevel.Debug && settings.GetSetting("Console.LogDebugToConsole") as string == "1")
-                {
-                    System.Console.WriteLine($"[{logLevel}] {logFrom} ({DateTime.Now}): {message}");
-                }
-
+                
                 // Message dispatcher
                 switch (logLevel)
                 {

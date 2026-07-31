@@ -1,4 +1,5 @@
-﻿using Angene.Common;
+﻿#if WINDOWS
+using Angene.Common;
 using Angene.Graphics.SlangShader;
 using Angene.Windows;
 using Angene.Windows.D3D11;
@@ -658,3 +659,4 @@ namespace Angene.Graphics.DX11
         public void EndFrame() => Present(_hwnd);
     }
 }
+#endif

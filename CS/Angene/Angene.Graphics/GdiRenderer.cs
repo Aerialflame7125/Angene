@@ -1,3 +1,4 @@
+#if WINDOWS
 using Angene.Globals;
 using System;
 using System.Collections.Generic;
@@ -206,3 +207,4 @@ namespace Angene.Graphics
         }
     }
 }
+#endif

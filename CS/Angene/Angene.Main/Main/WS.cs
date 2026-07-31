@@ -1,4 +1,5 @@
-﻿using Angene.Common;
+﻿#if WINDOWS
+using Angene.Common;
 using Angene.Essentials;
 using Angene.Graphics;
 using System;
@@ -193,3 +194,4 @@ namespace Angene.Main
         }
     }
 }
+#endif

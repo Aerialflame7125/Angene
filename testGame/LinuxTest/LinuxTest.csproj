@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<OutputType>Library</OutputType>
+		<AssemblyName>Game</AssemblyName>
+		<RootNamespace>Game</RootNamespace>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Nullable>disable</Nullable>
+		<LangVersion>latest</LangVersion>
+
+		<!-- Generate runtime config file -->
+		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+
+		<!-- Copy dependencies to output -->
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<Platforms>AnyCPU;x64</Platforms>
+	</PropertyGroup>
+
+	<!-- Platform-specific defines -->
+	<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+		<DefineConstants>WINDOWS</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+		<DefineConstants>LINUX</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Reference Include="Angene">
+	    <HintPath>..\..\CS\Build\Linux-x64\Angene\Angene.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Common">
+	    <HintPath>..\..\CS\Build\Linux-x64\Angene\Angene.Common.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Essentials">
+	    <HintPath>..\..\CS\Build\Linux-x64\Angene\Angene.Essentials.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Graphics">
+	    <HintPath>..\..\CS\Build\Linux-x64\Angene\Angene.Graphics.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Management">
+	    <HintPath>..\..\CS\Build\Linux-x64\Angene\Angene.Management.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+
+</Project>

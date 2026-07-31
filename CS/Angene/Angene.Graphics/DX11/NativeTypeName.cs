@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if WINDOWS
+using System;
 
 namespace Angene.Graphics.DX11 // match your --namespace value
 {
@@ -15,3 +16,4 @@ namespace Angene.Graphics.DX11 // match your --namespace value
         public string Name => _name;
     }
 }
+#endif

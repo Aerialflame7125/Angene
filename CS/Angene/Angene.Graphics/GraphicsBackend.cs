@@ -28,7 +28,7 @@ namespace Angene.Graphics
         public DXGI_FORMAT Format;
         public uint ByteOffset;
     }
-
+#if WINDOWS
     public interface IDX11GraphicsContext : IGraphicsContext
     {
         IntPtr ContextHandle { get; }
@@ -229,17 +229,26 @@ namespace Angene.Graphics
         }
     }
 
+#endif
     // Factory for creating platform-specific graphics contexts
     public static class GraphicsContextFactory
     {
         public static IGraphicsContext Create(IntPtr windowHandle, int width, int height, int renderMode, IntPtr existingDevice = default, IntPtr existingContext = default)
         {
             if (renderMode == 0)
+#if WINDOWS
                 return new GdiGraphicsContext(windowHandle, width, height);
+#else
+                throw new Exceptions.FailedToCreateGraphicsBackendException("GDI is only supported on Windows.");
+#endif
+            if (renderMode == 2)
+#if WINDOWS
+                return new DX11GraphicsContext(windowHandle, width, height, existingDevice, existingContext);
+#else
+                throw new Exceptions.FailedToCreateGraphicsBackendException("DirectX11 is only supported on Windows.");
+#endif
             if (renderMode == 1)
                 throw new Exceptions.FailedToCreateGraphicsBackendException("There currently is not an IGraphicsContext definition for OpenGL.");
-            if (renderMode == 2)
-                return new DX11GraphicsContext(windowHandle, width, height, existingDevice, existingContext);
 
             Common.Logger.LogCritical(
                 "[GraphicsContextFactory] Failed to create IGraphicsContext, 'Graphics.RenderMode' is not a possible value.",
@@ -252,7 +261,11 @@ namespace Angene.Graphics
         
         public static IGraphicsContext CreateWS(string windowHandle, int width, int height)
         {
+#if WINDOWS
             return new WSGraphicsContext(windowHandle, width, height);
+#else
+            throw new Exceptions.FailedToCreateGraphicsBackendException("WebSocket graphics context is only supported on Windows.");
+#endif
         }
     }
 }

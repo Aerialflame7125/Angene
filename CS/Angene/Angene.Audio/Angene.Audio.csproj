@@ -7,12 +7,13 @@
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-  	<DefineConstants>WINDOWS</DefineConstants>
+  <PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Windows`))' == 'true'">
+    <DefineConstants>WINDOWS</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-  	<DefineConstants>LINUX</DefineConstants>
+  <PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Linux`))' == 'true'">
+    <DefineConstants>LINUX</DefineConstants>
   </PropertyGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
     <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
