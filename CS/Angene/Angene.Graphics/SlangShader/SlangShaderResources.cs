@@ -14,6 +14,7 @@ namespace Angene.Graphics.SlangShader
         {
             public string Name { get; }
             public bool IsDisposed { get; private set; }
+            public bool VerboseLog { get; set; } = false;
             public ShaderType Type { get; }
 
             public ShaderOrigin Origin { get; }
@@ -70,6 +71,7 @@ namespace Angene.Graphics.SlangShader
             string Extension { get; }
             string Name { get; }
             string EntryPoint { get; }
+            bool VerboseLog { get; set; }
             string Code { get; }
             byte[] byteCode { get; }
             ShaderOrigin Origin { get; }
@@ -89,6 +91,7 @@ namespace Angene.Graphics.SlangShader
 
         public int id { get; }
         public bool compileToFile { get; }
+        public bool VerboseLog { get; set; } = false;
         public IntPtr NativeShader => _nativeShaderPtr;
         public static ShaderOrigin Origin => ShaderOrigin.Dx11;
 

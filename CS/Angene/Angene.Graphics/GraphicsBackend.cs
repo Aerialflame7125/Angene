@@ -230,6 +230,43 @@ namespace Angene.Graphics
     }
 
 #endif
+
+    public interface IVkGraphicsContext : IGraphicsContext
+    {
+        // Context
+        // Replace all refs here with their respective classes when i get the chance
+        IntPtr VkInstance { get; } // keep as IntPtr
+        IntPtr VkPhysicalDevice { get; } // keep as IntPtr
+        IntPtr VkDevice { get; } // keep as IntPtr
+        IntPtr VkQueue { get; }
+
+        // Window/Presentation
+        IntPtr VkSurfaceKHR { get; } // keep as IntPtr
+        IntPtr VkSwapchainKHR { get; } // keep as IntPtr
+        IntPtr VkFormat { get; }
+        IntPtr VkExtent2D { get; }
+        int SwapchainImageCount { get; }
+        int CurrentImageIndex { get; }
+
+        // Execution/Rendering
+        IntPtr VkCommandPool { get; }
+        IntPtr VkCommandBuffer { get; } // keep as IntPtr
+        IntPtr VkRenderPass { get; }
+        IntPtr VkFramebuffer { get; }
+        IntPtr VkPipeline { get; }
+        IntPtr VkSemaphoreImageAvailable { get; }
+        IntPtr VkSemaphoreRenderFinished { get; }
+        IntPtr VkFenceInFlight { get; }
+
+        // IGraphicsContext
+        IntPtr Handle => VkDevice;
+        IntPtr ContextHandle => VkInstance;
+
+        // assuming, havent looked at vk spec yet
+        void BeginFrame();
+        void Render();
+        void EndFrame();
+    }
     // Factory for creating platform-specific graphics contexts
     public static class GraphicsContextFactory
     {

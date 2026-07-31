@@ -63,6 +63,9 @@ namespace Angene.Main
         public IntPtr SharedD3D11Device { get; internal set; } = IntPtr.Zero;
         public IntPtr SharedD3D11Context { get; internal set; } = IntPtr.Zero;
 #endif
+        public IntPtr SharedVkDevice { get; internal set; } = IntPtr.Zero;
+        public IntPtr SharedVkContext { get; internal set; } = IntPtr.Zero;
+
         public Dictionary<int, SlangShaderResources.IShader> ShaderCache { get; internal set; }
     
         internal List<Window> PendingWindowCloses { get; } = new();
@@ -194,19 +197,35 @@ namespace Angene.Main
 
                 if (SharedD3D11Device == IntPtr.Zero)
                 {
-                    SharedD3D11Device = (IntPtr)_graphicscontext.Handle;
+                    SharedD3D11Device = _graphicscontext.Handle;
                     SharedD3D11Context = _graphicscontext.ContextHandle;
                     Marshal.AddRef(SharedD3D11Device);
                     Marshal.AddRef(SharedD3D11Context);
                 }
-
-                // now start shader comp
-                StartShaderCompilation(shaderTypes, shaderCount, _graphicscontext.Handle, _window);
+#else
+                WindowConfig _w = new(); // Im literally copying the above for Vk
+                _w.Width = 100; _w.Height = 100;
+                _w.X = -10000; _w.Y = -10000;
+                _w.ShowOnCreate = true;
+                _w.Title = "Vulkan Dummy Window | Ignore.";
+                _w.renderMode = RenderType.Vulkan;
+                Window _window = new (_w);
+                VkGraphicsContext _graphicscontext = _window.Graphics as VkGraphicsContext; // Vulkan n stuff
+                if (_graphicscontext == null)
+                    Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy Vulkan window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on Vulkan Window."), true);
+                
+                if (SharedVkDevice == IntPtr.Zero)
+                {
+                    SharedVkDevice = _graphicscontext.Handle;
+                    SharedVkContext = _graphicscontext.ContextHandle;
+                }
 #endif
+                // now start shader comp
+                StartShaderCompilation(shaderTypes, shaderCount, _graphicscontext.Handle, _window, verbose);
             }
         }
-#if WINDOWS
-        private void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int _shaderCount, IntPtr _devicePtr, Window _compilationWindow)
+
+        private void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int _shaderCount, IntPtr _devicePtr, Window _compilationWindow, bool verbose = false)
         {
             // Create a new window for showing progress
             WindowConfig _w = new();
@@ -217,13 +236,11 @@ namespace Angene.Main
             _w.renderMode = RenderType.GDI;
             Window _WindowInstance = new Window(_w);
             
-            IScene scene = new ShaderCompilationScene(_shaderTypes, _shaderCount, _devicePtr, _compilationWindow, (IntPtr)_WindowInstance.Hwnd, _WindowInstance);
+            IScene scene = new ShaderCompilationScene(_shaderTypes, _shaderCount, _devicePtr, _compilationWindow, (IntPtr)_WindowInstance.Hwnd, _WindowInstance, verbose);
             _WindowInstance.SetScene(scene);
             scene.Initialize();
         }
-#endif
     }
-#if WINDOWS
     internal class ShaderCompilationScene : IScene
     {
         public object Instance { get; private set; }
@@ -232,6 +249,7 @@ namespace Angene.Main
 
         private readonly List<SlangShaderResources.IShader> _shaderTypes;
         private int _shaderCount;
+        private bool _verbose;
         public double _timeElapsed;
         public int _shaderNum;
         public bool _started;
@@ -241,9 +259,10 @@ namespace Angene.Main
         private IntPtr _hwnd;
         private Window _thisWindow;
 
-        public ShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, IntPtr hwnd, Window thisWindow)
+        public ShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, IntPtr hwnd, Window thisWindow, bool verbose)
         { 
             _shaderTypes = shaderTypes;
+            _verbose = verbose;
             _shaderCount = shaderCount;
             _timeElapsed = 0;
             _shaderNum = 0;
@@ -286,9 +305,18 @@ namespace Angene.Main
                     {
                         _timeElapsed = 0;
                         r.DrawText(centerx, centery - 70, "Running...", 0x0F0);
-                        Logger.LogDebug($"Shader num {_shaderNum}/{_shaderCount - 1} (_shaderTypes Max: {_shaderTypes.Count})", LoggingTarget.Graphics);
                         SlangShaderResources.IShader current = _shaderTypes[_shaderNum];
-                        CompileShader(current, _devicePtr, current.compileToFile);
+                        Logger.LogDebug($"Shader num {_shaderNum}/{_shaderCount - 1} (_shaderTypes Max: {_shaderTypes.Count})", LoggingTarget.Graphics);
+                        switch (current.Origin)
+                        {
+                            case SlangShaderResources.ShaderOrigin.Dx11:
+                                if (current.VerboseLog)
+                                    Logger.LogDebug($"Compiling Dx11 shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
+                                CompileDx11Shader(current, _devicePtr, current.compileToFile);
+                                break;
+
+                        }
+                        
                         _shaderNum++;
                     }
                     else
@@ -342,7 +370,7 @@ namespace Angene.Main
             }
         }
 
-        private void CompileShader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
+        private void CompileDx11Shader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
         {
             string stage = shader.Type switch
             {
@@ -405,7 +433,6 @@ namespace Angene.Main
             _compilationWindow.Close();
         }
     }
-#endif
 
     public class Window
     {

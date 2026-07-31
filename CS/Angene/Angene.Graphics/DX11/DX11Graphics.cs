@@ -29,7 +29,7 @@ namespace Angene.Graphics.DX11
         private bool _sharingDevice = false;
         public IntPtr ContextHandle => _context;
 
-        public nint Handle => (nint)_device;
+        public IntPtr Handle => _device;
 
         public DX11GraphicsContext(IntPtr hwnd, int width, int height, IntPtr existingDevice, IntPtr existingContext)
         {
