@@ -3,6 +3,7 @@ using Angene.Graphics.DX11;
 using Angene.Graphics.SlangShader;
 using Angene.Windows;
 using Angene.Windows.D3D11;
+using Angene.X11.Interop;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
@@ -12,6 +13,30 @@ using static Angene.Windows.Dxgi.DxgiEnums;
 
 namespace Angene.Graphics
 {
+    public unsafe class X11WindowHandle
+    {
+        public XLib._XDisplay* Display { get; }
+        public IntPtr Window { get; }
+        public sbyte* TitlePtr { get; }
+
+        public X11WindowHandle(XLib._XDisplay* display, IntPtr window, sbyte* titlePtr)
+        {
+            Display = display;
+            Window = window;
+            TitlePtr = titlePtr;
+        }
+    }
+
+    public class MicrosoftWindowHandle
+    {
+        public IntPtr Hwnd { get; }
+
+        public MicrosoftWindowHandle(IntPtr hwnd)
+        {
+            Hwnd = hwnd;
+        }
+    }
+
     // Abstract interface for platform-specific graphics
     public interface IGraphicsContext
     {
@@ -272,22 +297,26 @@ namespace Angene.Graphics
     // Factory for creating platform-specific graphics contexts
     public static class GraphicsContextFactory
     {
-        public static IGraphicsContext Create(IntPtr windowHandle, int width, int height, int renderMode, IntPtr existingDevice = default, IntPtr existingContext = default)
+        public static unsafe IGraphicsContext Create(object windowHandle, int width, int height, int renderMode, IntPtr existingDevice = default, IntPtr existingContext = default)
         {
             if (renderMode == 0)
 #if WINDOWS
-                return new GdiGraphicsContext(windowHandle, width, height);
+                return new GdiGraphicsContext(((MicrosoftWindowHandle)windowHandle).Hwnd, width, height);
 #else
                 throw new Exceptions.FailedToCreateGraphicsBackendException("GDI is only supported on Windows.");
 #endif
             if (renderMode == 2)
 #if WINDOWS
-                return new DX11GraphicsContext(windowHandle, width, height, existingDevice, existingContext);
+                return new DX11GraphicsContext(((MicrosoftWindowHandle)windowHandle).Hwnd, width, height, existingDevice, existingContext);
 #else
                 throw new Exceptions.FailedToCreateGraphicsBackendException("DirectX11 is only supported on Windows.");
 #endif
             if (renderMode == 1)
                 throw new Exceptions.FailedToCreateGraphicsBackendException("There currently is not an IGraphicsContext definition for OpenGL.");
+            if (renderMode == 3)
+            {
+                return new VkGraphicsContext(((X11WindowHandle)windowHandle).Window, ((X11WindowHandle)windowHandle).Display, width, height, existingDevice, existingContext);
+            }
 
             Common.Logger.LogCritical(
                 "[GraphicsContextFactory] Failed to create IGraphicsContext, 'Graphics.RenderMode' is not a possible value.",

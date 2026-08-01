@@ -12,6 +12,7 @@
     <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
     <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
     <ProjectReference Include="..\Angene.Vulkan\Angene.Vulkan.csproj" />
+    <ProjectReference Include="..\Angene.X11\Angene.X11.csproj" />
   </ItemGroup>
 
   <ItemGroup>

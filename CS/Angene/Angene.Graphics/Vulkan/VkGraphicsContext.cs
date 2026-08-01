@@ -1,6 +1,7 @@
 using Angene.Common;
 using Angene.Graphics;
 using Angene.Windows;
+using Angene.X11.Interop;
 using static Angene.Vulkan.Interop.Methods;
 using static Angene.Vulkan.Interop.Structs;
 using static Angene.Vulkan.Interop.Enumerators;
@@ -54,7 +55,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private readonly IntPtr _hwnd;
     private readonly int _w, _h;
 
-    public VkGraphicsContext(IntPtr hwnd, int width, int height, IntPtr existingDevice, IntPtr existingContext)
+    public VkGraphicsContext(IntPtr hwnd, XLib._XDisplay* display, int width, int height, IntPtr existingDevice, IntPtr existingContext)
     {
         _hwnd = hwnd;
         _w = width;

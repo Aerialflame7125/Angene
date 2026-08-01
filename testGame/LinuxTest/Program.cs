@@ -2,6 +2,7 @@ using Angene.Common;
 using Angene.Common.Settings;
 using Angene.Essentials;
 using Angene.Main;
+using Angene.X11.Interop;
 using Angene.Platform;
 using System;
 using System.Collections.Generic;
@@ -61,7 +62,16 @@ namespace Game
                 Logger.LogDebug($"Initialized in {t.ElapsedMilliseconds} ms", LoggingTarget.MasterScene);
 
                 double dt = 0.0d;
-                RunMessageLoop(ref dt);
+                WindowConfig config = new WindowConfig()
+                {
+                    Width = 800,
+                    Height = 600,
+                    Title = "Angene Engine Test",
+                    renderMode = Angene.Graphics.RenderType.Vulkan
+                };
+                Window win = new Window(config);
+
+                RunMessageLoop(ref dt, (Angene.Graphics.X11WindowHandle)win.Handle);
                 Logger.LogInfo("Cleanup complete.", LoggingTarget.Engine);
             }
             catch (Exception e)
@@ -70,13 +80,22 @@ namespace Game
             }
         }
 
-        private static void RunMessageLoop(ref double dt)
+        private unsafe static void RunMessageLoop(ref double dt, Angene.Graphics.X11WindowHandle handle)
         {
             bool running = true;
 
             while (running)
             {
                 if (!running) break;
+
+                while (XLib.Methods.XPending(handle.Display) > 0) {
+                    XLib._XEvent xevent = default;
+                    XLib.Methods.XNextEvent(handle.Display, &xevent);
+                    if ((XLib.XEventMask)xevent.type == XLib.XEventMask.KeyPressMask) {
+                        running = false;
+                        Lifecycle.ScriptBinding.ShutdownEngine();
+                    }
+                }
 
                 dt = (DateTime.Now - lastFrame).TotalSeconds;
                 lastFrame = DateTime.Now;
