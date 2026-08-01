@@ -6,6 +6,8 @@ using Angene.Windows.D3D11;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using static Angene.Vulkan.Interop.Enumerators;
+using static Angene.Vulkan.Interop.Structs;
 using static Angene.Windows.Dxgi.DxgiEnums;
 
 namespace Angene.Graphics
@@ -243,8 +245,8 @@ namespace Angene.Graphics
         // Window/Presentation
         IntPtr VkSurfaceKHR { get; } // keep as IntPtr
         IntPtr VkSwapchainKHR { get; } // keep as IntPtr
-        IntPtr VkFormat { get; }
-        IntPtr VkExtent2D { get; }
+        VkFormat VkFormat { get; }
+        VkExtent2D VkExtent2D { get; }
         int SwapchainImageCount { get; }
         int CurrentImageIndex { get; }
 
@@ -259,8 +261,8 @@ namespace Angene.Graphics
         IntPtr VkFenceInFlight { get; }
 
         // IGraphicsContext
-        IntPtr Handle => VkDevice;
-        IntPtr ContextHandle => VkInstance;
+        IntPtr Handle => (IntPtr)VkDevice;
+        IntPtr ContextHandle => (IntPtr)VkInstance;
 
         // assuming, havent looked at vk spec yet
         void BeginFrame();
