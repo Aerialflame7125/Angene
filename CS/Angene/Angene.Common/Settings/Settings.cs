@@ -23,7 +23,7 @@ namespace Angene.Common.Settings
             Register("Console.LogDebugToConsole", 0,
                 v => v is int i && i is 0 or 1);
 
-            Register("Main.Version", "Angene v0.2 | Divine Intellect");
+            Register("Main.Version", "Angene v0.3 | Galvanized Square Steel");
 
             Register("Main.getIsGameAllowedForWebsockets", false,
                 v => v is bool);
