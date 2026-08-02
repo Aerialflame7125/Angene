@@ -153,6 +153,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         _vkDevice = IntPtr.Zero;
         _vkInstance = IntPtr.Zero;
         _disposed = true;
+
+        GC.SuppressFinalize(this);
     }
 
     public void Dispose()

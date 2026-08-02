@@ -59,6 +59,7 @@ namespace Angene.Main
         int shaderCount = 0;
         List<WindowConfig> WindowCreationQueue = new List<WindowConfig>([]);
         public bool IsCompilingShaders = false;
+        public bool ShouldShutdown = false;
 
         private Settings? _settingHandlerInstanced;
 #if WINDOWS
@@ -68,10 +69,12 @@ namespace Angene.Main
 #endif
         public IntPtr SharedVkDevice { get; internal set; } = IntPtr.Zero;
         public IntPtr SharedVkContext { get; internal set; } = IntPtr.Zero;
-
-    
+#if LINUX
+        public unsafe _XDisplay* SharedX11Display { get; internal set; } = null;
+        public bool InitializedXThreads { get; internal set; } = false;
+#endif
         internal List<Window> PendingWindowCloses { get; } = new();
-        public List<Angene.Main.Window> OpenWindows { get; private set; } = new List<Angene.Main.Window>();
+        public List<Window> OpenWindows { get; private set; } = new List<Window>();
           
         public Settings SettingHandlerInstanced
         {
@@ -160,12 +163,47 @@ namespace Angene.Main
             return supportedLibs.ToArray();
         }
 
-        internal static void destroyInstances()
+        public unsafe void XInitThreads()
+        {
+#if LINUX
+            if (SharedX11Display == null)
+            {
+                Logger.LogDebug("[Engine.cs | XInitThreads] Initializing X11 threads..", LoggingTarget.Engine);
+
+                int result = Methods.XInitThreads();
+                if (result == 0)
+                    Logger.LogCritical("[Engine.cs | XInitThreads] Failed to initialize X11 threads. Please check your installation.", LoggingTarget.Engine, new AngeneException("Failed to initialize X11 threads. Installation is corrupt or incomplete."), true);
+
+                InitializedXThreads = true;
+                Logger.LogDebug("[Engine.cs | XInitThreads] Successfully initialized X11 threads.", LoggingTarget.Engine);
+            }
+#endif
+        }
+        
+        internal unsafe static void destroyInstances()
         {
 #if WINDOWS
             if (Instance.SharedD3D11Device != IntPtr.Zero) { Marshal.Release(Instance.SharedD3D11Device); Instance.SharedD3D11Device = IntPtr.Zero; }
             if (Instance.SharedD3D11Context != IntPtr.Zero) { Marshal.Release(Instance.SharedD3D11Context); Instance.SharedD3D11Context = IntPtr.Zero; }
             Instance._logConsole = null;
+#endif
+            if (Instance.SharedVkContext != IntPtr.Zero)
+            {
+                Vulkan.Interop.Methods.vkDestroyInstance(Instance.SharedVkContext, null);
+                Instance.SharedVkContext = IntPtr.Zero;
+            }
+            if (Instance.SharedVkDevice != IntPtr.Zero)
+            {
+                Vulkan.Interop.Methods.vkDeviceWaitIdle(Instance.SharedVkDevice);
+                Vulkan.Interop.Methods.vkDestroyDevice(Instance.SharedVkDevice, null);
+                Instance.SharedVkDevice = IntPtr.Zero; 
+            }
+#if LINUX
+            if (Instance.SharedX11Display != null)
+            {
+                Methods.XCloseDisplay(Instance.SharedX11Display);
+                Instance.SharedX11Display = null;
+            }
 #endif
             Instance._settingHandlerInstanced = null;
         }
@@ -529,6 +567,9 @@ namespace Angene.Main
         private string _instanceConnectionString;
         private static readonly User32.WndProcDelegate s_wndProc = DefaultWndProc;
 #endif
+#if LINUX
+        public nuint wmDeleteAtom, wmPingAtom;
+#endif
         private static bool s_classRegistered;
 
         [Obsolete("This method is deprecated. Please use the 'WindowConfig' constructor instead.", true)]
@@ -808,7 +849,7 @@ namespace Angene.Main
             return int.TryParse(json.Substring(start, end - start), out int val) ? val : 0;
         }
 
-        private static object CreateWindow(WindowConfig config, bool cTI, string cTS, object type)
+        private object CreateWindow(WindowConfig config, bool cTI, string cTS, object type)
         {
             if (!Engine.Instance.supportedLibs.Contains("Graphics"))
                 Logger.LogCritical("Graphics library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("Graphics library was not found at init. Installation is corrupt or incomplete."), true);
@@ -817,6 +858,8 @@ namespace Angene.Main
                 Logger.LogCritical("Windows library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("Windows library was not found at init. Installation is corrupt or incomplete."), true);
             return CreateWindowWindows(config, cTI, cTS, type);
 #else
+            if (!Engine.Instance.InitializedXThreads)
+                Engine.Instance.XInitThreads();
             if (!Engine.Instance.supportedLibs.Contains("X11"))
                 Logger.LogCritical("X11 library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("X11 library was not found at init. Installation is corrupt or incomplete."), true);
             return CreateWindowX11(config, cTI, cTS, type);
@@ -1021,22 +1064,6 @@ namespace Angene.Main
             return User32.DefWindowProcW(hWnd, msg, wParam, lParam);
         }
 
-        /// <summary>
-        /// Process Windows messages.
-        /// Returns false when WM_QUIT is received.
-        /// </summary>
-        public static bool ProcessMessages()
-        {
-            while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
-            {
-                if (msg.message == (uint)WM.QUIT)
-                    return false;
-
-                User32.TranslateMessage(ref msg);
-                User32.DispatchMessageW(ref msg);
-            }
-            return true;
-        }
         public void RenderFrame()
         {
             if (graphicsContext is IDX11GraphicsContext dx11)
@@ -1067,7 +1094,7 @@ namespace Angene.Main
 
 #if LINUX
         // Linux specific api stuff
-        private unsafe static X11WindowHandle CreateWindowX11(WindowConfig config, bool cTI, string cTS, object type)
+        private unsafe X11WindowHandle CreateWindowX11(WindowConfig config, bool cTI, string cTS, object type)
         {
             if (cTI && cTS != null && type != null)
             {
@@ -1076,14 +1103,36 @@ namespace Angene.Main
             }
             else
             {
-                _XDisplay *display = Methods.XOpenDisplay(null);
-                nuint window = Methods.XCreateSimpleWindow(display, Methods.XDefaultRootWindow(display), config.X, config.Y, (uint)config.Width, (uint)config.Height, 0, 0x00000000, 0x00000000);
+                if (Engine.Instance.SharedX11Display == null)
+                {
+                    Engine.Instance.SharedX11Display = Methods.XOpenDisplay(null);
+                    if (Engine.Instance.SharedX11Display == null)
+                    {
+                        Logger.LogCritical("Failed to open X11 display. Ensure that the DISPLAY environment variable is set correctly.", LoggingTarget.Engine, new AngeneException("Failed to open X11 display."), true);
+                    }
+                }
+                nuint window = Methods.XCreateSimpleWindow(Engine.Instance.SharedX11Display, Methods.XDefaultRootWindow(Engine.Instance.SharedX11Display), config.X, config.Y, (uint)config.Width, (uint)config.Height, 0, 0x00000000, 0x00000000);
                 sbyte* titlePtr = ToSBytePtr(config.Title);
                 
-                Methods.XStoreName(display, window, titlePtr);
-                Methods.XSelectInput(display, window, (IntPtr)(XEventMask.KeyPressMask|XEventMask.KeyReleaseMask|XEventMask.ButtonPressMask|XEventMask.ButtonReleaseMask|XEventMask.PointerMotionMask|XEventMask.StructureNotifyMask));
-                Methods.XMapWindow(display, window);
-                return new X11WindowHandle(display, (IntPtr)window, titlePtr);
+                Methods.XStoreName(Engine.Instance.SharedX11Display, window, titlePtr);
+                Methods.XSelectInput(Engine.Instance.SharedX11Display, window, (IntPtr)(XEventMask.KeyPressMask|XEventMask.KeyReleaseMask|XEventMask.ButtonPressMask|XEventMask.ButtonReleaseMask|XEventMask.PointerMotionMask|XEventMask.StructureNotifyMask));
+                Methods.XMapWindow(Engine.Instance.SharedX11Display, window);
+
+                // Say we can handle closing or some shit
+                sbyte* deleteName = ToSBytePtr("WM_DELETE_WINDOW");
+                sbyte* pingName = ToSBytePtr("_NET_WM_PING");
+                wmDeleteAtom = Methods.XInternAtom(Engine.Instance.SharedX11Display, deleteName, 0);
+                wmPingAtom  = Methods.XInternAtom(Engine.Instance.SharedX11Display, pingName, 0);
+                
+                nuint* protocols = stackalloc nuint[2];
+                protocols[0] = wmDeleteAtom;
+                protocols[1] = wmPingAtom;
+                Marshal.FreeHGlobal((IntPtr)deleteName);
+                Marshal.FreeHGlobal((IntPtr)pingName);
+
+                Methods.XSetWMProtocols(Engine.Instance.SharedX11Display, window, protocols, 2);
+
+                return new X11WindowHandle(Engine.Instance.SharedX11Display, (IntPtr)window, titlePtr);
             }
         }
         public unsafe static sbyte* ToSBytePtr(string myString)
@@ -1129,19 +1178,90 @@ namespace Angene.Main
                 WindowMap.Remove(handle);
                 Engine.Instance.OpenWindows.Remove(this);
                 User32.DestroyWindow(handle.Hwnd);
+                if (Engine.Instance.OpenWindows.Count == 0)
+                    Engine.Instance.ShouldShutdown = true;
             }
             else if (Handle is X11WindowHandle x11Handle && x11Handle.Display != null && x11Handle.Window != IntPtr.Zero)
             {
-                Methods.XDestroyWindow(x11Handle.Display, (nuint)x11Handle.Window);
-                Methods.XCloseDisplay(x11Handle.Display);
                 WindowMap.Remove(x11Handle);
                 Engine.Instance.OpenWindows.Remove(this);
+                Cleanup();
+
+                Methods.XLockDisplay(x11Handle.Display);
+                try
+                {
+                    Methods.XDestroyWindow(x11Handle.Display, (nuint)x11Handle.Window);
+                    Methods.XFlush(x11Handle.Display);
+                }
+                finally
+                {
+                    Methods.XUnlockDisplay(x11Handle.Display);
+                }
+
+                if (Engine.Instance.OpenWindows.Count == 0)
+                    Engine.Instance.ShouldShutdown = true;
             }
             else if (Handle is string strHandle)
             {
                 WindowMap.Remove(strHandle);
                 Engine.Instance.OpenWindows.Remove(this);
             }
+        }
+
+        /// <summary>
+        /// Process Window messages.
+        /// Returns false when Quit/Destroy is received and cleans up.
+        /// </summary>
+        public unsafe bool ProcessMessages(object Handle, Action<object>[] injectedCalls = null)
+        {
+            if (Handle is X11WindowHandle _handle)
+            {
+                while (Methods.XPending(_handle.Display) > 0)
+                {
+                    _XEvent xevent = default;
+                    Methods.XNextEvent(_handle.Display, &xevent);
+
+                    IntPtr eventWindowId = (IntPtr)xevent.xany.window;
+                    Window target = WindowMap.Values
+                        .FirstOrDefault(w => w.Handle is X11WindowHandle h && h.Window == eventWindowId);
+
+                    if (target == null)
+                        continue;
+
+                    if (xevent.type == 33 /* ClientMessage */ &&
+                        xevent.xclient.data.l[0] == (IntPtr)target.wmDeleteAtom)
+                    {
+                        target.Close();
+                        continue;
+                    }
+
+                    if (injectedCalls != null)
+                        foreach (var i in injectedCalls)
+                            i(xevent.type);
+                }
+
+                Engine.Instance.FlushPendingCloses();
+            }
+            else if (Handle is MicrosoftWindowHandle)
+            {
+                while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
+                {
+                    if (msg.message == (uint)WM.QUIT)
+                    {
+                        Close();
+                        return false;
+                    }
+                    
+                    if (injectedCalls != null)
+                        foreach (Action<object> i in injectedCalls)
+                            i(msg.message);
+
+                    User32.TranslateMessage(ref msg);
+                    User32.DispatchMessageW(ref msg);
+                    Engine.Instance.FlushPendingCloses();
+                }
+            }
+            return !Engine.Instance.ShouldShutdown;
         }
 
 

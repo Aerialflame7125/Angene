@@ -69,9 +69,19 @@ namespace Game
                     Title = "Angene Engine Test",
                     renderMode = Angene.Graphics.RenderType.Vulkan
                 };
+                WindowConfig config1 = new WindowConfig()
+                {
+                    Width = 800,
+                    Height = 600,
+                    Title = "Angene Engine Test2",
+                    renderMode = Angene.Graphics.RenderType.Vulkan
+                };
+                Window win1 = new Window(config1);
                 Window win = new Window(config);
+                Logger.LogDebug($"OpenWindows count after creation: {Engine.Instance.OpenWindows.Count}", LoggingTarget.Engine);
 
-                RunMessageLoop(ref dt, (Angene.Graphics.X11WindowHandle)win.Handle);
+                RunMessageLoop(ref dt, win);
+                RunMessageLoop(ref dt, win1);
                 Logger.LogInfo("Cleanup complete.", LoggingTarget.Engine);
             }
             catch (Exception e)
@@ -80,22 +90,13 @@ namespace Game
             }
         }
 
-        private unsafe static void RunMessageLoop(ref double dt, Angene.Graphics.X11WindowHandle handle)
+        private unsafe static void RunMessageLoop(ref double dt, Window win)
         {
-            bool running = true;
 
-            while (running)
+            while (!Engine.Instance.ShouldShutdown)
             {
-                if (!running) break;
-
-                while (XLib.Methods.XPending(handle.Display) > 0) {
-                    XLib._XEvent xevent = default;
-                    XLib.Methods.XNextEvent(handle.Display, &xevent);
-                    if ((XLib.XEventMask)xevent.type == XLib.XEventMask.KeyPressMask) {
-                        running = false;
-                        Lifecycle.ScriptBinding.ShutdownEngine();
-                    }
-                }
+                bool runningmaybe = win.ProcessMessages(win.Handle);
+                if (!runningmaybe) break;
 
                 dt = (DateTime.Now - lastFrame).TotalSeconds;
                 lastFrame = DateTime.Now;
@@ -103,6 +104,7 @@ namespace Game
                 Lifecycle.ScriptBinding.Tick(new EmptyScene(), dt, EngineMode.Play);
                 Lifecycle.ScriptBinding.Draw(new EmptyScene(), EngineMode.Play);
             }
+            Lifecycle.ScriptBinding.ShutdownEngine();
         }
     }
 
