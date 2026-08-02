@@ -98,7 +98,6 @@ namespace Angene.Main
         private Engine()
         {
             // Check which libraries exist and what are supported.
-            supportedLibs = CheckSupportedLibraries();
             Lifecycle.ScriptBinding.destroyEngineList.Add(destroyInstances);
         }
 
@@ -234,6 +233,7 @@ namespace Angene.Main
             SettingHandlerInstanced = new Settings();
             SettingHandlerInstanced.LoadDefaults();
             Logger.Instance.Init(verbose);
+            supportedLibs = CheckSupportedLibraries();
             bool skipGraphics = false;
             
             _settingHandlerInstanced.SetSetting("Main.engineCallerMemberName", memberName);
