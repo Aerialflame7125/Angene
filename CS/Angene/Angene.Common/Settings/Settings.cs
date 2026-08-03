@@ -8,11 +8,10 @@ namespace Angene.Common.Settings
 {
     public class Settings
     {
-        public static Settings Instance = new Settings();
-        
-        // Fixed nullability: Dictionary values can be nullable object?
         private static readonly Dictionary<string, Dictionary<string, object?>> _store = new();
         private static readonly Dictionary<string, Func<object, bool>> _validators = new();
+        
+        public static Settings Instance = new Settings();
 
         public event Action<string, object>? OnSettingsChanged;
 
@@ -25,7 +24,6 @@ namespace Angene.Common.Settings
 
         private void LoadDefaults()
         {
-            // Stop calling Instance.Register() inside the constructor while Instance is still null!
             Register("Console.LogDebugToConsole", 0,
                 v => v is int i && i is 0 or 1);
 

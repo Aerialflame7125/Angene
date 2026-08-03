@@ -20,8 +20,7 @@ namespace Game
         public void MakeInstances(bool verbose)
         {
             engine = Engine.Instance;
-            engine.Init(verbose); // scans this assembly for [Precompile] shaders (TestShaders.cs) and starts compiling them
-            settings = engine.SettingHandlerInstanced;
+            engine.Init(new Types.AppInfo("ShaderCompilationTest", 0.1f, "Aerial", "Aerial"), verbose); // scans this assembly for [Precompile] shaders (TestShaders.cs) and starts compiling them
         }
     }
 
@@ -35,12 +34,15 @@ namespace Game
         {
             try
             {
-                RunGame(verbose: true); // verbose so LogConsoleWindow shows compilation progress/errors
+                RunGame(verbose: true);
                 return 0;
             }
             catch (Exception ex)
             {
-                Logger.LogCritical("FATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, exception: ex);
+                System.Console.WriteLine("FATAL EXCEPTION in Main:");
+                System.Console.WriteLine(ex.ToString());   // full type + message + stack trace, no Logger involved
+                try { Logger.LogCritical("FATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, exception: ex); }
+                catch { /* Logger itself may be broken; we already printed the real exception above */ }
                 return 1;
             }
         }
@@ -49,9 +51,12 @@ namespace Game
         {
             try
             {
+                System.Console.WriteLine("New stopwatch");
                 Stopwatch t = new Stopwatch();
+                System.Console.WriteLine("Start stopwatch");
                 t.Start();
 
+                Logger.LogDebug($"Creating instances.", LoggingTarget.MainGame);
                 instances = new Instances();
                 instances.MakeInstances(verbose);
 

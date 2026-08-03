@@ -596,7 +596,7 @@ namespace Angene.Main
             {
 #if WINDOWS
                 if (config.renderMode == RenderType.D3D11 && Engine.Instance.SharedD3D11Device != IntPtr.Zero)
-                    graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height, (int)config.renderMode,
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode,
                         Engine.Instance.SharedD3D11Device, Engine.Instance.SharedD3D11Context);
                 else
                     graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
@@ -607,7 +607,7 @@ namespace Angene.Main
 #if WINDOWS
             else
             {
-                graphicsContext = GraphicsContextFactory.CreateWS((string)Hwnd, config.Width, config.Height);
+                graphicsContext = GraphicsContextFactory.CreateWS((string)Handle, config.Width, config.Height);
                 var streamer = new Websocket.WebStreamer(this);
                 _screenPlay = streamer;
                 RegisterWebSocketInput();
@@ -784,7 +784,7 @@ namespace Angene.Main
 
                     var msg = new WindowManagement.MSG
                     {
-                        hwnd = Hwnd is IntPtr h ? h : IntPtr.Zero,
+                        hwnd = ((MicrosoftWindowHandle)Handle).Hwnd is IntPtr h ? h : IntPtr.Zero,
                         message = message,
                         wParam = wParam,
                         lParam = lParam
@@ -1198,6 +1198,7 @@ namespace Angene.Main
         /// </summary>
         public unsafe bool ProcessMessages(object Handle, Action<object>[] injectedCalls = null)
         {
+#if LINUX
             if (Handle is X11WindowHandle _handle)
             {
                 while (Methods.XPending(_handle.Display) > 0)
@@ -1226,7 +1227,8 @@ namespace Angene.Main
 
                 Engine.Instance.FlushPendingCloses();
             }
-            else if (Handle is MicrosoftWindowHandle)
+#else
+            if (Handle is MicrosoftWindowHandle)
             {
                 while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
                 {
@@ -1246,6 +1248,7 @@ namespace Angene.Main
                 }
             }
             return !Engine.Instance.ShouldShutdown;
+#endif
         }
 
 
