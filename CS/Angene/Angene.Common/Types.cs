@@ -42,5 +42,21 @@
                 // Placeholder.
             }
         }
+
+        public class AppInfo
+        {
+            public string AppName;
+            public float AppVersion;
+            public string Author;
+            public string Developer;
+
+            public AppInfo(string appName, float appVersion, string author, string developer)
+            {
+                AppName = appName;
+                AppVersion = appVersion;
+                Author = author;
+                Developer = developer;
+            }
+        }
     }
 }

@@ -2,26 +2,34 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Angene.Common.Settings
 {
     public class Settings
     {
-        private readonly Dictionary<string, Dictionary<string, object>> _store = new();
-        private readonly Dictionary<string, Func<object, bool>> _validators = new();
+        public static Settings Instance = new Settings();
+        
+        // Fixed nullability: Dictionary values can be nullable object?
+        private static readonly Dictionary<string, Dictionary<string, object?>> _store = new();
+        private static readonly Dictionary<string, Func<object, bool>> _validators = new();
 
         public event Action<string, object>? OnSettingsChanged;
 
-        // load defaults when instantiated
+        // Load defaults when instantiated
         public Settings()
         {
+            Instance = this;
             LoadDefaults();
         }
 
-        public void LoadDefaults()
+        private void LoadDefaults()
         {
+            // Stop calling Instance.Register() inside the constructor while Instance is still null!
             Register("Console.LogDebugToConsole", 0,
                 v => v is int i && i is 0 or 1);
+
+            Register("Main.VersionFloat", 0.3f, v => v is float);
 
             Register("Main.Version", "Angene v0.3 | Galvanized Square Steel");
 
@@ -54,7 +62,7 @@ namespace Angene.Common.Settings
 
             Register("Graphics.ShaderDirectory", targetPath);
 #else
-Logger.LogError("Could not recognize system build. Graphics.ShaderDirectory is invalidated.", LoggingTarget.Graphics);
+            // Logger.LogError("Could not recognize system build. Graphics.ShaderDirectory is invalidated.", LoggingTarget.Graphics);
 #endif
         }
 
@@ -63,9 +71,8 @@ Logger.LogError("Could not recognize system build. Graphics.ShaderDirectory is i
             var (ns, field) = ParseKey(key);
 
             if (!_store.ContainsKey(ns))
-                _store[ns] = new Dictionary<string, object>();
+                _store[ns] = new Dictionary<string, object?>();
 
-            // Write default if key somehow missing (i dont know how it could be missing but I guess.)
             if (!_store[ns].ContainsKey(field))
                 _store[ns][field] = defaultValue;
 
@@ -91,7 +98,7 @@ Logger.LogError("Could not recognize system build. Graphics.ShaderDirectory is i
             return default;
         }
 
-        public bool SetSetting(string key, object value)
+        public bool SetSetting(string key, object? value)
         {
             var (ns, field) = ParseKey(key);
 
@@ -103,7 +110,7 @@ Logger.LogError("Could not recognize system build. Graphics.ShaderDirectory is i
                     if (GetSetting<string?>("Engine.RunningDirectory") == null)
                     {
                         _store[ns][field] = value;
-                        OnSettingsChanged?.Invoke(key, value);
+                        if (value != null) OnSettingsChanged?.Invoke(key, value);
                         return true;
                     }
                     else
@@ -114,16 +121,16 @@ Logger.LogError("Could not recognize system build. Graphics.ShaderDirectory is i
                     return false;
             }
 
-            // if unregistered, register then set key.
+            // If unregistered, register then set key
             if (!_store.TryGetValue(ns, out var nsDict) || !nsDict.ContainsKey(field))
                 Register(key, null);
 
             // Run validator if one exists
-            if (_validators.TryGetValue(key, out var validate) && !validate(value))
+            if (value != null && _validators.TryGetValue(key, out var validate) && !validate(value))
                 return false;
 
             _store[ns][field] = value;
-            OnSettingsChanged?.Invoke(key, value);
+            if (value != null) OnSettingsChanged?.Invoke(key, value);
             return true;
         }
 
@@ -134,37 +141,42 @@ Logger.LogError("Could not recognize system build. Graphics.ShaderDirectory is i
             return (key[..dot], key[(dot + 1)..]);
         }
 
-        public string saveKeys(string path)
+        public string SaveKeys(string path)
         {
             try
             {
                 JObject jo = new();
-                foreach (var key in _store.Keys)
+                foreach (var (ns, fields) in _store)
                 {
-                    var (ns, field) = ParseKey(key);
-                    _store.TryGetValue(ns, out var nsDict);
-                    nsDict.TryGetValue(field, out var value);
-
-                    if (!File.Exists(path))
-                        File.Create(path).Close();
-
-                    jo[ns] = JToken.FromObject(value);
+                    JObject nsObject = new();
+                    foreach (var (field, value) in fields)
+                    {
+                        nsObject[field] = value != null ? JToken.FromObject(value) : null;
+                    }
+                    jo[ns] = nsObject;
                 }
-                string o = jo.ToString();
-                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(o);
-                File.WriteAllBytes(path, bytes);
+
+                string directory = Path.GetDirectoryName(path) ?? "";
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                File.WriteAllText(path, jo.ToString());
                 return path;
             }
             catch (Exception e)
             {
-                throw new AngeneException("An exception was caught when attempting to save keys.", e);
+                throw new Exception("An exception was caught when attempting to save keys.", e);
             }
         }
 
-        public Dictionary<string, Dictionary<string, object>> readKeysFromFile(string path)
+        public Dictionary<string, Dictionary<string, object?>> ReadKeysFromFile(string path)
         {
             try
             {
+                if (!File.Exists(path)) return _store;
+
                 string js = File.ReadAllText(path);
                 JObject root = JObject.Parse(js);
 
@@ -184,7 +196,7 @@ Logger.LogError("Could not recognize system build. Graphics.ShaderDirectory is i
             }
             catch (Exception e)
             {
-                throw new AngeneException("An exception was caught when attempting to read keys.", e);
+                throw new Exception("An exception was caught when attempting to read keys.", e);
             }
         }
     }

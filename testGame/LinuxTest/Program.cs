@@ -21,8 +21,8 @@ namespace Game
         public void MakeInstances(bool verbose)
         {
             engine = Engine.Instance;
-            engine.Init(verbose); // scans this assembly for [Precompile] shaders (TestShaders.cs) and starts compiling them
-            settings = engine.SettingHandlerInstanced;
+            engine.Init(new Types.AppInfo("LinuxTest Angene", 0.1f, "Aerial", "Aerial"), verbose); // scans this assembly for [Precompile] shaders (TestShaders.cs) and starts compiling them
+            settings = engine.settingsInstance;
         }
     }
 

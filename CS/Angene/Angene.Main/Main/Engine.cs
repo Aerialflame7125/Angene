@@ -61,7 +61,6 @@ namespace Angene.Main
         public bool IsCompilingShaders = false;
         public bool ShouldShutdown = false;
 
-        private Settings? _settingHandlerInstanced;
 #if WINDOWS
         private LogConsoleWindow? _logConsole; // log window keepalive
         public IntPtr SharedD3D11Device { get; internal set; } = IntPtr.Zero;
@@ -73,27 +72,11 @@ namespace Angene.Main
         public unsafe _XDisplay* SharedX11Display { get; internal set; } = null;
         public bool InitializedXThreads { get; internal set; } = false;
 #endif
+
+        public Types.AppInfo currentAppInfo { get; internal set; }
         internal List<Window> PendingWindowCloses { get; } = new();
         public List<Window> OpenWindows { get; private set; } = new List<Window>();
-          
-        public Settings SettingHandlerInstanced
-        {
-            get
-            {
-                if (_settingHandlerInstanced == null)
-                {
-                    throw new AngeneException(
-                        "Settings handler not initialized. Please call Engine.Init() before accessing settings."
-                    );
-                }
-
-                return _settingHandlerInstanced;
-            }
-            private set
-            {
-                _settingHandlerInstanced = value;
-            }
-        }
+        public Settings settingsInstance = new Settings();
 
         private Engine()
         {
@@ -204,7 +187,7 @@ namespace Angene.Main
                 Instance.SharedX11Display = null;
             }
 #endif
-            Instance._settingHandlerInstanced = null;
+            Instance.settingsInstance = null;
         }
 
         internal void RequestClose(Window w)
@@ -228,17 +211,18 @@ namespace Angene.Main
                 w.ReallyClose();
         }
 
-        public void Init(bool verbose = false, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        public void Init(Types.AppInfo appInfo, bool verbose = false, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
-            SettingHandlerInstanced = new Settings();
-            SettingHandlerInstanced.LoadDefaults();
             Logger.Instance.Init(verbose);
             supportedLibs = CheckSupportedLibraries();
             bool skipGraphics = false;
+            currentAppInfo = appInfo;
             
-            _settingHandlerInstanced.SetSetting("Main.engineCallerMemberName", memberName);
-            _settingHandlerInstanced.SetSetting("Main.engineCallerFilePath", callerFilePath);
-            _settingHandlerInstanced.SetSetting("Main.engineCallerLineNumber", sourceLineNumber);
+            settingsInstance.SetSetting("Main.engineCallerMemberName", memberName);
+            settingsInstance.SetSetting("Main.engineCallerFilePath", callerFilePath);
+            settingsInstance.SetSetting("Main.engineCallerLineNumber", sourceLineNumber);
+
+            Logger.LogDebug($"Initializing Angene for '{appInfo.AppName}' with version '{appInfo.AppVersion}'.", LoggingTarget.Engine);
             if (!supportedLibs.Contains("Graphics"))
             {
                 Logger.LogWarning("[Engine.cs | Init] Graphics library was not found for this platform. Skipping shader compilation.", LoggingTarget.Engine);
@@ -488,7 +472,7 @@ namespace Angene.Main
             };
 
             string cachePath = Path.Combine(
-                Engine.Instance.SettingHandlerInstanced.GetSetting<string>("Graphics.ShaderDirectory"),
+                Engine.Instance.settingsInstance.GetSetting<string>("Graphics.ShaderDirectory"),
                 $"{shader.Name}-Angene-{shader.Type}-{shader.id}-{shader.Origin}.cso");
 
             byte[] code = null;
@@ -604,7 +588,7 @@ namespace Angene.Main
             Engine.Instance.OpenWindows.Add(this);
 
             string initToken = Guid.NewGuid().ToString("N");
-            Engine.Instance.SettingHandlerInstanced.SetSetting("Main.OTT", initToken); // One Time Token
+            Engine.Instance.settingsInstance.SetSetting("Main.OTT", initToken); // One Time Token
             var mgmtScene = new Angene.Management.ManagementScene(initToken);
             AddScene(mgmtScene);
 
@@ -695,10 +679,10 @@ namespace Angene.Main
                 List<Entity> e = scene.GetEntities(); // If this throws a new Entity of 'ManagementCheck$o7' (creating entity of this name would fail), then we have passed.
                 if (e != null && e.Count == 1)
                 {
-                    if (e[0].name == Engine.Instance.SettingHandlerInstanced.GetSetting("Main.OTT").ToString())
+                    if (e[0].name == Engine.Instance.settingsInstance.GetSetting("Main.OTT").ToString())
                     {
                         e[0].name = "Ent1"; // Rename to indicate success, set management scene, and fail on all other occurances of a Management Scene.
-                        Engine.Instance.SettingHandlerInstanced.SetSetting("Main.OTT", null); // Clear the one time token to prevent reuse
+                        Engine.Instance.settingsInstance.SetSetting("Main.OTT", null); // Clear the one time token to prevent reuse
                         ManagementScene = scene;
                         scene.Initialize();
                         Logger.LogDebug("ManagementScene attached successfully.", LoggingTarget.Engine);
@@ -880,7 +864,7 @@ namespace Angene.Main
                     Logger.LogWarning("If the game developer does NOT allow this, the process will be terminated, commencing check.", LoggingTarget.Engine);
 
                     // check settings
-                    Settings settings = Engine.Instance.SettingHandlerInstanced;
+                    Settings settings = Engine.Instance.settingsInstance;
                     object? a = settings.GetSetting("Main.getIsGameAllowedForWebsockets");
                     if (!(bool)a)
                     {

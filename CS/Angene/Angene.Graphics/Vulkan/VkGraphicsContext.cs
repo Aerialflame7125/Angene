@@ -55,7 +55,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private readonly IntPtr _hwnd;
     private readonly int _w, _h;
 
-    public VkGraphicsContext(IntPtr hwnd, XLib._XDisplay* display, int width, int height, IntPtr existingDevice, IntPtr existingContext)
+    public VkGraphicsContext(IntPtr hwnd, XLib._XDisplay* display, int width, int height, IntPtr existingDevice, IntPtr existingContext, Types.AppInfo? currentAppInfo = null)
     {
         _hwnd = hwnd;
         _w = width;
@@ -71,20 +71,38 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 return;
             }
 
-            IntPtr appNamePtr = Marshal.StringToHGlobalAnsi("Angene Engine");
+            IntPtr appNamePtr = IntPtr.Zero;
             IntPtr engineNamePtr = Marshal.StringToHGlobalAnsi("Angene");
+            VkApplicationInfo appInfo;
 
             try
             {
-                VkApplicationInfo appInfo = new VkApplicationInfo
+                if (currentAppInfo != null)
                 {
-                    sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                    pApplicationName = (sbyte*)appNamePtr,
-                    applicationVersion = 1,
-                    pEngineName = (sbyte*)engineNamePtr,
-                    engineVersion = 1,
-                    apiVersion = (uint)((1 << 22) | (3 << 12) | 0)
-                };
+                    appNamePtr = Marshal.StringToHGlobalAnsi(currentAppInfo.AppName);
+                    appInfo = new VkApplicationInfo
+                    {
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                        pApplicationName = (sbyte*)appNamePtr,
+                        applicationVersion = (uint)Math.Round(currentAppInfo.AppVersion),
+                        pEngineName = (sbyte*)engineNamePtr,
+                        engineVersion = (uint)Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
+                        apiVersion = (uint)((1 << 22) | (3 << 12) | 0)
+                    };
+                }
+                else
+                {
+                    appNamePtr = Marshal.StringToHGlobalAnsi("Angene Application");
+                    appInfo = new VkApplicationInfo
+                    {
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                        pApplicationName = (sbyte*)appNamePtr,
+                        applicationVersion = 0,
+                        pEngineName = (sbyte*)engineNamePtr,
+                        engineVersion = (uint)Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
+                        apiVersion = (uint)((1 << 22) | (3 << 12) | 0)
+                    };
+                }
 
                 VkInstanceCreateInfo createInfo = new VkInstanceCreateInfo
                 {
