@@ -13,7 +13,7 @@ namespace Angene.Common
         public AngeneException(string message, Exception inner) : base(message, inner) { }
     }
 
-    internal enum LogLevel
+    public enum LogLevel
     {
         Debug,
         Info,
@@ -47,7 +47,7 @@ namespace Angene.Common
         private static readonly Settings.Settings settings = new Settings.Settings();
         public bool _verbose = false;
 
-        public event Action<object, object, object, object, object> OnLog { get; set; } = (_, _, _, _, _) => { }; // Cancer.
+        public event Action<string, LoggingTarget, LogLevel, DateTime, Exception?>? OnLog; // Cancer.
 
         public void Init(bool verbose = false)
         {
@@ -119,21 +119,21 @@ namespace Angene.Common
                 switch (logLevel)
                 {
                     case LogLevel.Info:
-                        Instance.OnLog(message, logFrom, logLevel, DateTime.Now, null);
+                        Instance.OnLog?.Invoke(message, logFrom, logLevel, DateTime.Now, null);
                         break;
                     case LogLevel.Warning:
-                        Instance.OnLog(message, logFrom, logLevel, DateTime.Now, null);
+                        Instance.OnLog?.Invoke(message, logFrom, logLevel, DateTime.Now, null);
                         break;
                     case LogLevel.Error:
-                        Instance.OnLog(message, logFrom, logLevel, DateTime.Now, null);
+                        Instance.OnLog?.Invoke(message, logFrom, logLevel, DateTime.Now, null);
                         break;
                     case LogLevel.Critical:
-                        Instance.OnLog(message, logFrom, logLevel, DateTime.Now, exception);
+                        Instance.OnLog?.Invoke(message, logFrom, logLevel, DateTime.Now, exception);
                         if (enginePanic)
-                            Instance.OnLog("[OnQuit] ExitOnException", logFrom, LogLevel.Important, DateTime.Now, null);
+                            Instance.OnLog?.Invoke("[OnQuit] ExitOnException", logFrom, LogLevel.Important, DateTime.Now, null);
                         break;
                     case LogLevel.Important:
-                        Instance.OnLog(message, logFrom, logLevel, DateTime.Now, null);
+                        Instance.OnLog?.Invoke(message, logFrom, logLevel, DateTime.Now, null);
                         break;
                 }
 
