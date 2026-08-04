@@ -1247,8 +1247,8 @@ namespace Angene.Main
                     Engine.Instance.FlushPendingCloses();
                 }
             }
-            return !Engine.Instance.ShouldShutdown;
 #endif
+            return !Engine.Instance.ShouldShutdown;
         }
 
 
