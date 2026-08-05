@@ -30,6 +30,8 @@ using System.Security.Permissions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Angene.Vulkan.Interop.Enumerators;
+using static Angene.Vulkan.Interop.Structs;
 
 namespace Angene.Main
 {
@@ -405,7 +407,11 @@ namespace Angene.Main
                                     Logger.LogDebug($"Compiling Dx11 shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
                                 CompileDx11Shader(current, _devicePtr, current.compileToFile);
                                 break;
-
+                            case SlangShaderResources.ShaderOrigin.Vulkan:
+                                if (current.VerboseLog)
+                                    Logger.LogDebug($"Compiling Vulkan shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
+                                CompileVulkanShader(current, _devicePtr, current.compileToFile);
+                                break;
                         }
                         
                         _shaderNum++;
@@ -461,6 +467,76 @@ namespace Angene.Main
             }
         }
 
+        private void CompileVulkanShader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
+        {
+            string stage = shader.Type switch
+            {
+                SlangShaderResources.ShaderType.Vertex => "vertex",
+                SlangShaderResources.ShaderType.Pixel => "fragment",
+                SlangShaderResources.ShaderType.Compute => "compute",
+                _ => throw new AngeneException($"Unknown stage for shader '{shader.Name}'")
+            };
+
+            string cachePath = Path.Combine(
+                Engine.Instance.settingsInstance.GetSetting<string>("Graphics.ShaderDirectory"),
+                $"{shader.Name}-Angene-{shader.Type}-{shader.id}-{shader.Origin}.spv.cache");
+
+            byte[] code = null;
+
+            if (CompileToFile && File.Exists(cachePath))
+            {
+                if (!TryLoadVerifiedShaderFile(cachePath, out code))
+                {
+                    Logger.LogDebug($"Cached SPIR-V for '{shader.Name}' failed verification, recompiling.", LoggingTarget.Graphics);
+                    code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                    byte[] intBytes = BitConverter.GetBytes(code.Length);
+                    byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
+                    Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
+                    fileData[intBytes.Length] = 0xAF;
+                    Buffer.BlockCopy(code, 0, fileData, intBytes.Length + 1, code.Length);
+                    fileData[intBytes.Length + 1 + code.Length] = 0xAA;
+                    File.WriteAllBytes(cachePath, fileData);
+                }
+            }
+            else if (CompileToFile)
+            {
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                byte[] intBytes = BitConverter.GetBytes(code.Length);
+                byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
+                Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
+                fileData[intBytes.Length] = 0xAF;
+                Buffer.BlockCopy(code, 0, fileData, intBytes.Length + 1, code.Length);
+                fileData[intBytes.Length + 1 + code.Length] = 0xAA;
+                File.WriteAllBytes(cachePath, fileData);
+            }
+            else
+            {
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+            }
+
+            unsafe
+            {
+                fixed (byte* pCode = code)
+                {
+                    var createInfo = new VkShaderModuleCreateInfo
+                    {
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+                        codeSize = (nuint)code.Length,
+                        pCode = (uint*)pCode
+                    };
+
+                    IntPtr module;
+                    VkResult result = Vulkan.Interop.Methods.vkCreateShaderModule(devicePtr, &createInfo, null, &module);
+                    if (result != VkResult.VK_SUCCESS)
+                        throw new AngeneException($"Failed to create shader module for '{shader.Name}': {result}");
+
+                    var wrapped = new VkShader(shader.Name, shader.Type, null, module, shader.id, code);
+                    Engine.Instance.ShaderCache ??= new Dictionary<int, SlangShaderResources.IShader>();
+                    Engine.Instance.ShaderCache[shader.id] = wrapped;
+                }
+            }
+        }
+
         private void CompileDx11Shader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
         {
             string stage = shader.Type switch
@@ -483,18 +559,18 @@ namespace Angene.Main
                 if (!TryLoadVerifiedShaderFile(cachePath, out code))
                 {
                     Logger.LogDebug($"Cached shader file for '{shader.Name}' failed verification, recompiling.", LoggingTarget.Graphics);
-                    code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath);
+                    code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
                 }
             }
             else if (CompileToFile)
             {
                 // No cache yet — compile and write the verified file for next time.
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
             }
             else
             {
                 // Not using file caching at all.
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemory(shader.Code, shader.EntryPoint, stage);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryD3D11(shader.Code, shader.EntryPoint, stage);
             }
 
             unsafe

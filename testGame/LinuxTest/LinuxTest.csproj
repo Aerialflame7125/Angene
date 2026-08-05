@@ -43,6 +43,9 @@
 	  <Reference Include="Angene.X11">
 	    <HintPath>..\..\Build\Angene\Angene.X11.dll</HintPath>
 	  </Reference>
+	  <Reference Include="Angene.Vulkan">
+	    <HintPath>..\..\Build\Angene\Angene.Vulkan.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 </Project>

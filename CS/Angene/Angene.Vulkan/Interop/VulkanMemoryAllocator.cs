@@ -6,21 +6,10 @@ namespace Angene.Vulkan.Interop;
 
 public partial class VulkanMemoryAllocator
 {
-    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-    public unsafe static void* Allocate(void* pUserData, nuint size, nuint alignment, VkSystemAllocationScope scope)
+    public unsafe struct VmaBufferHandle
     {
-        // NativeMemory handles aligned allocations efficiently in .NET
-        return NativeMemory.AlignedAlloc(size, alignment);
-    }
-    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-    public unsafe static void* Reallocate(void* pUserData, void* pOriginal, nuint size, nuint alignment, VkSystemAllocationScope scope)
-    {
-        return NativeMemory.AlignedRealloc(pOriginal, size, alignment);
-    }
-    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-    public unsafe static void Free(void* pUserData, void* pMemory)
-    {
-        NativeMemory.AlignedFree(pMemory);
+        public VkBuffer* Buffer;
+        public VmaAllocation* Allocation;
     }
 
     public enum VmaAllocatorCreateFlagBits : uint

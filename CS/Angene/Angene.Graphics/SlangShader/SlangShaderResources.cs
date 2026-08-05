@@ -133,5 +133,37 @@ namespace Angene.Graphics.SlangShader
             }
         }
     }
+    public class VkShader : BaseShader, IShader
+    {
+        protected IntPtr _nativeShaderModule;
+        public int id { get; }
+        public bool compileToFile { get; }
+        public bool VerboseLog { get; set; } = false;
+        public IntPtr NativeShaderModule => _nativeShaderModule;
+        public static ShaderOrigin Origin => ShaderOrigin.Vulkan;
 
+        public string Code { get; }
+        public string Extension => "spv";
+        public string EntryPoint { get; }
+        public byte[] byteCode { get; }
+
+        public VkShader(string name, ShaderType type, object slangReflectionData, IntPtr nativeShaderModule, int id,
+            byte[] byteCode = null, string code = null)
+            : base(name, type, slangReflectionData)
+        {
+            this.byteCode = byteCode;
+            Code = code;
+            _nativeShaderModule = nativeShaderModule;
+            this.id = id;
+        }
+
+        public override void Bind() { /* handled via pipeline bind, not per-shader */ }
+
+        protected override void DestroyNativeShader()
+        {
+            // needs the owning VkDevice handle to call vkDestroyShaderModule -
+            // store it in the constructor if VkShader needs to self destruct,
+            // or have the graphics context own destruction via its resource tracking dictionaries.
+        }
+    }
 }

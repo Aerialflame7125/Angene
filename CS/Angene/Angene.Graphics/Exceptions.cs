@@ -17,5 +17,10 @@
             public FailedToInitializeVulkanException(string message) : base(message) { }
             public FailedToInitializeVulkanException(string message, Exception inner) : base(message, inner) { }
         }
+        public class FailedToCompileShaderException : Exception
+        {
+            public FailedToCompileShaderException(string message) : base(message) { }
+            public FailedToCompileShaderException(string message, Exception inner) : base(message, inner) { }
+        }
     }
 }

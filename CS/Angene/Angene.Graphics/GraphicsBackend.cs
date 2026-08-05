@@ -261,7 +261,6 @@ namespace Angene.Graphics
     public interface IVkGraphicsContext : IGraphicsContext
     {
         // Context
-        // Replace all refs here with their respective classes when i get the chance
         IntPtr VkInstance { get; } // keep as IntPtr
         IntPtr VkPhysicalDevice { get; } // keep as IntPtr
         IntPtr VkDevice { get; } // keep as IntPtr
@@ -289,15 +288,29 @@ namespace Angene.Graphics
         IntPtr Handle => (IntPtr)VkDevice;
         IntPtr ContextHandle => (IntPtr)VkInstance;
 
-        // assuming, havent looked at vk spec yet
-        void BeginFrame();
-        void Render();
+        // Resource creation
+        IntPtr CreateVertexBuffer(byte[] data, uint strideBytes);
+        IntPtr CreateIndexBuffer(uint[] indices);
+        IntPtr CreateShaderModule(byte[] spirvBytecode);
+        IntPtr CreatePipeline(IntPtr vertexShaderModule, IntPtr fragmentShaderModule,
+                            VkVertexInputAttributeDescription[] attributes, uint strideBytes);
+
+        // Per-draw state
+        void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0);
+        void SetIndexBuffer(IntPtr buffer, uint offset = 0);
+        void SetPipeline(IntPtr pipeline);
+        void Draw(uint vertexCount, uint startVertex = 0);
+        void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0);
+
+        // Frame lifecycle
+        void BeginFrame(uint clearColor);
         void EndFrame();
     }
+    
     // Factory for creating platform-specific graphics contexts
     public static class GraphicsContextFactory
     {
-        public static unsafe IGraphicsContext Create(object windowHandle, int width, int height, int renderMode, IntPtr existingDevice = default, IntPtr existingContext = default)
+        public static unsafe IGraphicsContext Create(object windowHandle, int width, int height, int renderMode, IntPtr existingDevice = default, IntPtr existingContext = default, VkPipelineShaderStageCreateInfo[] shaderStages = null)
         {
             if (renderMode == 0)
 #if WINDOWS
@@ -315,7 +328,7 @@ namespace Angene.Graphics
                 throw new Exceptions.FailedToCreateGraphicsBackendException("There currently is not an IGraphicsContext definition for OpenGL.");
             if (renderMode == 3)
             {
-                return new VkGraphicsContext(((X11WindowHandle)windowHandle).Window, ((X11WindowHandle)windowHandle).Display, width, height, existingDevice, existingContext);
+                return new VkGraphicsContext(((X11WindowHandle)windowHandle).Window, ((X11WindowHandle)windowHandle).Display, width, height, existingDevice, existingContext, shaderStages);
             }
 
             Common.Logger.LogCritical(

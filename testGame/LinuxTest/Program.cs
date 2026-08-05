@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Game.Scenes;
 
 namespace Game
 {
@@ -69,19 +70,12 @@ namespace Game
                     Title = "Angene Engine Test",
                     renderMode = Angene.Graphics.RenderType.Vulkan
                 };
-                WindowConfig config1 = new WindowConfig()
-                {
-                    Width = 800,
-                    Height = 600,
-                    Title = "Angene Engine Test2",
-                    renderMode = Angene.Graphics.RenderType.Vulkan
-                };
-                Window win1 = new Window(config1);
                 Window win = new Window(config);
+                var scene = new Game.Scenes.VkTriangleTestScene(win);
+                win.SetScene(scene);
                 Logger.LogDebug($"OpenWindows count after creation: {Engine.Instance.OpenWindows.Count}", LoggingTarget.Engine);
 
-                RunMessageLoop(ref dt, win);
-                RunMessageLoop(ref dt, win1);
+                RunMessageLoop(ref dt, win, scene);
                 Logger.LogInfo("Cleanup complete.", LoggingTarget.Engine);
             }
             catch (Exception e)
@@ -90,41 +84,20 @@ namespace Game
             }
         }
 
-        private unsafe static void RunMessageLoop(ref double dt, Window win)
+        private static void RunMessageLoop(ref double dt, Window win, IScene scene)
         {
-
             while (!Engine.Instance.ShouldShutdown)
             {
-                bool runningmaybe = win.ProcessMessages(win.Handle);
-                if (!runningmaybe) break;
+                bool a = win.ProcessMessages(win.Handle);
 
                 dt = (DateTime.Now - lastFrame).TotalSeconds;
                 lastFrame = DateTime.Now;
 
-                Lifecycle.ScriptBinding.Tick(new EmptyScene(), dt, EngineMode.Play);
-                Lifecycle.ScriptBinding.Draw(new EmptyScene(), EngineMode.Play);
+                Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
+                Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
             }
+            win.Cleanup();
             Lifecycle.ScriptBinding.ShutdownEngine();
         }
-    }
-
-    public class EmptyScene : IScene
-    {
-        public object Instance => this;
-
-        public List<Entity> Entities => new List<Entity>();
-
-        public string Name => "EmptyScene";
-
-        public void Cleanup() { }
-
-        public void Initialize()
-        {
-            Logger.LogError("EmptyScene.Initialize() called.", LoggingTarget.MasterScene);
-        }
-
-        public void OnMessage(nint msgPtr) { }
-
-        public void Render() { }
     }
 }
