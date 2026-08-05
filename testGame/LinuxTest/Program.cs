@@ -62,6 +62,16 @@ namespace Game
                 t.Stop();
                 Logger.LogDebug($"Initialized in {t.ElapsedMilliseconds} ms", LoggingTarget.MasterScene);
 
+                Logger.LogImportant("Waiting for shader precompilation to finish...", LoggingTarget.MainGame);
+                while (Engine.Instance.IsCompilingShaders)
+                {
+                    foreach (Window window in Engine.Instance.OpenWindows)
+                        window.RenderFrame();
+                    Thread.Sleep(16);
+                }
+                Logger.LogImportant("Shader precompilation finished.", LoggingTarget.MainGame);
+
+
                 double dt = 0.0d;
                 WindowConfig config = new WindowConfig()
                 {

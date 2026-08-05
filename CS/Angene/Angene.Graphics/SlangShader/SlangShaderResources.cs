@@ -7,7 +7,7 @@ namespace Angene.Graphics.SlangShader
 {
     public class SlangShaderResources
     {
-        public enum ShaderType { Vertex, Pixel, Compute, }
+        public enum ShaderType { Vertex, Pixel, Compute, Fragment }
         public enum ShaderOrigin { Dx11, Dx12, OpenGL, Vulkan }
 
         public abstract class BaseShader : IDisposable // Shader layout for future shaders

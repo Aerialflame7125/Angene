@@ -320,6 +320,7 @@ namespace Angene.Main
 
         private void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int _shaderCount, IntPtr _devicePtr, Window _compilationWindow, bool verbose = false)
         {
+#if WINDOWS
             // Create a new window for showing progress
             WindowConfig _w = new();
             _w.Width = 640; _w.Height = 480;
@@ -328,11 +329,222 @@ namespace Angene.Main
             _w.Title = "Angene Shader Compilation";
             _w.renderMode = RenderType.GDI;
             Window _WindowInstance = new Window(_w);
-            
+
             IScene scene = new ShaderCompilationScene(_shaderTypes, _shaderCount, _devicePtr, _compilationWindow, _WindowInstance.Handle, _WindowInstance, verbose);
+#else
+            WindowConfig _w = new();
+            _w.Width = 10; _w.Height = 10;
+            _w.ShowOnCreate = false;
+            _w.Title = "Angene Shader Compilation";
+            _w.renderMode = RenderType.Vulkan;
+            Window _WindowInstance = new Window(_w);
+
+            IScene scene = new LinuxShaderCompilationScene(_shaderTypes, _shaderCount, _devicePtr, _compilationWindow, true, _WindowInstance);
+#endif
             _WindowInstance.SetScene(scene);
             scene.Initialize();
         }
+    }
+
+    internal class LinuxShaderCompilationScene : IScene
+    {
+        public object Instance { get; private set; }
+
+        public List<Entity> Entities { get; private set; } = new List<Entity>();
+        public string Name => "LinuxShaderCompilationScene";
+
+        private readonly List<SlangShaderResources.IShader> _shaderTypes;
+        private int _shaderCount;
+        private bool _verbose;
+        public double _timeElapsed;
+        public int _shaderNum;
+        public bool _started;
+        public bool _done;
+        private IntPtr _devicePtr;
+        private Window _compilationWindow;
+        private Window _thisWindow;
+
+        public LinuxShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, bool verbose, Window thisWindow)
+        {
+            _shaderTypes = shaderTypes;
+            _verbose = verbose;
+            _shaderCount = shaderCount;
+            _timeElapsed = 0;
+            _shaderNum = 0;
+            _started = false;
+            _devicePtr = devicePtr;
+            _compilationWindow = compilationWindow;
+            _thisWindow = thisWindow;
+        }
+
+        public void Cleanup()
+        {
+            _compilationWindow.Close();
+            _thisWindow.Close();
+        }
+        public void Initialize()
+        {
+            Instance = this;
+            _started = true;
+            _done = false;
+            Engine.Instance.IsCompilingShaders = true;
+        }
+        public void OnMessage(nint msgPtr) { }
+        public void Render()
+        {
+            if (_shaderNum < _shaderCount)
+            {
+                _timeElapsed = 0;
+                SlangShaderResources.IShader current = _shaderTypes[_shaderNum];
+                Logger.LogDebug($"Shader num {_shaderNum}/{_shaderCount - 1} (_shaderTypes Max: {_shaderTypes.Count})", LoggingTarget.Graphics);
+                switch (current.Origin)
+                {
+                    case SlangShaderResources.ShaderOrigin.Vulkan:
+                        if (current.VerboseLog)
+                            Logger.LogDebug($"Compiling Vulkan shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
+                        CompileVulkanShader(current, _devicePtr, current.compileToFile);
+                        break; 
+                }
+
+                _shaderNum++;
+            }
+            else
+            {
+                _done = true;
+                Engine.Instance.IsCompilingShaders = false;
+                Cleanup();
+            }
+        }
+
+        private void CompileVulkanShader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
+        {
+            string stage = shader.Type switch
+            {
+                SlangShaderResources.ShaderType.Vertex => "vertex",
+                SlangShaderResources.ShaderType.Pixel => "fragment",
+                SlangShaderResources.ShaderType.Fragment => "fragment",
+                SlangShaderResources.ShaderType.Compute => "compute",
+                _ => throw new AngeneException($"Unknown stage for shader '{shader.Name}'")
+            };
+
+            string cachePath = Path.Combine(
+                Engine.Instance.settingsInstance.GetSetting<string>("Graphics.ShaderDirectory"),
+                $"{shader.Name}-Angene-{shader.Type}-{shader.id}-{shader.Origin}.spv.cache");
+
+            byte[] code = null;
+
+            if (CompileToFile && File.Exists(cachePath))
+            {
+                if (!TryLoadVerifiedShaderFile(cachePath, out code))
+                {
+                    Logger.LogDebug($"Cached SPIR-V for '{shader.Name}' failed verification, recompiling.", LoggingTarget.Graphics);
+                    code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                    byte[] intBytes = BitConverter.GetBytes(code.Length);
+                    byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
+                    Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
+                    fileData[intBytes.Length] = 0xAF;
+                    Buffer.BlockCopy(code, 0, fileData, intBytes.Length + 1, code.Length);
+                    fileData[intBytes.Length + 1 + code.Length] = 0xAA;
+
+                    try
+                    {
+                        string dir = Path.GetDirectoryName(cachePath);
+                        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                            Directory.CreateDirectory(dir);
+
+                        File.WriteAllBytes(cachePath, fileData);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogWarning($"Failed to write shader cache '{cachePath}': {ex.Message}", LoggingTarget.Graphics);
+                    }
+                }
+            }
+            else if (CompileToFile)
+            {
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                byte[] intBytes = BitConverter.GetBytes(code.Length);
+                byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
+                Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
+                fileData[intBytes.Length] = 0xAF;
+                Buffer.BlockCopy(code, 0, fileData, intBytes.Length + 1, code.Length);
+                fileData[intBytes.Length + 1 + code.Length] = 0xAA;
+
+                try
+                {
+                    string dir = Path.GetDirectoryName(cachePath);
+                    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                        Directory.CreateDirectory(dir);
+                    File.WriteAllBytes(cachePath, fileData);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning($"Failed to write shader cache '{cachePath}': {ex.Message}", LoggingTarget.Graphics);
+                }
+            }
+            else
+            {
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+            }
+
+            unsafe
+            {
+                fixed (byte* pCode = code)
+                {
+                    var createInfo = new VkShaderModuleCreateInfo
+                    {
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+                        codeSize = (nuint)code.Length,
+                        pCode = (uint*)pCode
+                    };
+
+                    IntPtr module;
+                    VkResult result = Vulkan.Interop.Methods.vkCreateShaderModule(devicePtr, &createInfo, null, &module);
+                    if (result != VkResult.VK_SUCCESS)
+                        throw new AngeneException($"Failed to create shader module for '{shader.Name}': {result}");
+
+                    var wrapped = new VkShader(shader.Name, shader.Type, null, module, shader.id, code);
+                    Engine.Instance.ShaderCache ??= new Dictionary<int, SlangShaderResources.IShader>();
+                    Engine.Instance.ShaderCache[shader.id] = wrapped;
+                }
+            }
+        }
+
+        private static bool TryLoadVerifiedShaderFile(string path, out byte[] code)
+        {
+            code = null;
+            try
+            {
+                byte[] fileData = File.ReadAllBytes(path);
+                if (fileData.Length < 6) // 4 (length) + 1 (0xAF) + 1 (0xAA) minimum
+                    return false;
+
+                int length = BitConverter.ToInt32(fileData, 0);
+                if (length < 0 || fileData.Length != 4 + 1 + length + 1)
+                    return false; // size doesn't line up with the declared length -> corrupt/truncated
+
+                if (fileData[4] != 0xAF)
+                    return false; // start marker missing
+
+                if (fileData[4 + 1 + length] != 0xAA)
+                    return false; // end marker missing
+
+                code = new byte[length];
+                Buffer.BlockCopy(fileData, 5, code, 0, length);
+                return true;
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogDebug($"Failed to verify shader file '{path}': {ex.Message}", LoggingTarget.Graphics);
+                return false;
+            }
+        }
+
+
     }
     internal class ShaderCompilationScene : IScene
     {
@@ -411,7 +623,7 @@ namespace Angene.Main
                                 if (current.VerboseLog)
                                     Logger.LogDebug($"Compiling Vulkan shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
                                 CompileVulkanShader(current, _devicePtr, current.compileToFile);
-                                break;
+                                break; 
                         }
                         
                         _shaderNum++;
@@ -473,6 +685,7 @@ namespace Angene.Main
             {
                 SlangShaderResources.ShaderType.Vertex => "vertex",
                 SlangShaderResources.ShaderType.Pixel => "fragment",
+                SlangShaderResources.ShaderType.Fragment => "fragment",
                 SlangShaderResources.ShaderType.Compute => "compute",
                 _ => throw new AngeneException($"Unknown stage for shader '{shader.Name}'")
             };
@@ -495,7 +708,19 @@ namespace Angene.Main
                     fileData[intBytes.Length] = 0xAF;
                     Buffer.BlockCopy(code, 0, fileData, intBytes.Length + 1, code.Length);
                     fileData[intBytes.Length + 1 + code.Length] = 0xAA;
-                    File.WriteAllBytes(cachePath, fileData);
+
+                    try
+                    {
+                        string dir = Path.GetDirectoryName(cachePath);
+                        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                            Directory.CreateDirectory(dir);
+
+                        File.WriteAllBytes(cachePath, fileData);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogWarning($"Failed to write shader cache '{cachePath}': {ex.Message}", LoggingTarget.Graphics);
+                    }
                 }
             }
             else if (CompileToFile)
@@ -507,7 +732,18 @@ namespace Angene.Main
                 fileData[intBytes.Length] = 0xAF;
                 Buffer.BlockCopy(code, 0, fileData, intBytes.Length + 1, code.Length);
                 fileData[intBytes.Length + 1 + code.Length] = 0xAA;
-                File.WriteAllBytes(cachePath, fileData);
+
+                try
+                {
+                    string dir = Path.GetDirectoryName(cachePath);
+                    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                        Directory.CreateDirectory(dir);
+                    File.WriteAllBytes(cachePath, fileData);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning($"Failed to write shader cache '{cachePath}': {ex.Message}", LoggingTarget.Graphics);
+                }
             }
             else
             {
@@ -536,7 +772,6 @@ namespace Angene.Main
                 }
             }
         }
-
         private void CompileDx11Shader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
         {
             string stage = shader.Type switch
@@ -1123,9 +1358,11 @@ namespace Angene.Main
 
             return User32.DefWindowProcW(hWnd, msg, wParam, lParam);
         }
+#endif
 
         public void RenderFrame()
         {
+#if WINDOWS
             if (graphicsContext is IDX11GraphicsContext dx11)
             {
                 dx11.BeginFrame(0xFF202020);
@@ -1146,11 +1383,37 @@ namespace Angene.Main
 
                 return;
             }
-
-            foreach (var scene in Scenes)
-                scene.Render();
-        }
 #endif
+            // Non-DX path: call each scene.Render()
+            foreach (var scene in Scenes)
+            {
+                try
+                {
+                    scene.Render();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Exception rendering scene '{scene?.Name}': {ex.Message}", LoggingTarget.Engine);
+                }
+            }
+
+            // Try to present the final buffer for non-DX graphics contexts.
+            // Present takes the window handle; some contexts may ignore the handle if not needed.
+            try
+            {
+                if (graphicsContext != null)
+                {
+                    if (Handle is MicrosoftWindowHandle)
+                        graphicsContext.Present(((MicrosoftWindowHandle)Handle).Hwnd);
+                    else
+                        graphicsContext.Present(IntPtr.Zero);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogDebug($"Present failed in RenderFrame: {ex.Message}", LoggingTarget.Engine);
+            }
+        }
 
 #if LINUX
         // Linux specific api stuff

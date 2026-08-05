@@ -5548,85 +5548,125 @@ public static unsafe partial class Methods
 
     public const uint kDefaultTargetFlags = (uint)(SLANG_TARGET_FLAG_GENERATE_SPIRV_DIRECTLY);
 
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr spGetQueryResultBlob(IntPtr request);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spGetBuildTagString();
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern IGlobalSession* spCreateSession(sbyte* deprecated = null);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spDestroySession(IGlobalSession* session);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSessionSetSharedLibraryLoader(IGlobalSession* session, ISlangSharedLibraryLoader* loader);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern ISlangSharedLibraryLoader* spSessionGetSharedLibraryLoader(IGlobalSession* session);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spSessionCheckCompileTargetSupport(IGlobalSession* session, SlangCompileTarget target);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spSessionCheckPassThroughSupport(IGlobalSession* session, SlangPassThrough passThrough);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spAddBuiltins(IGlobalSession* session, sbyte* sourcePath, sbyte* sourceString);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern ICompileRequest* spCreateCompileRequest(IGlobalSession* session);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spDestroyCompileRequest(ICompileRequest* request);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetFileSystem(ICompileRequest* request, ISlangFileSystem* fileSystem);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetCompileFlags(ICompileRequest* request, uint flags);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spGetCompileFlags(ICompileRequest* request);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetDumpIntermediates(ICompileRequest* request, int enable);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetDumpIntermediatePrefix(ICompileRequest* request, sbyte* prefix);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetLineDirectiveMode(ICompileRequest* request, SlangLineDirectiveMode mode);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetTargetLineDirectiveMode(ICompileRequest* request, int targetIndex, SlangLineDirectiveMode mode);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetTargetForceGLSLScalarBufferLayout(ICompileRequest* request, int targetIndex, byte forceScalarLayout);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetTargetUseMinimumSlangOptimization(ICompileRequest* request, int targetIndex, byte val);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetIgnoreCapabilityCheck(ICompileRequest* request, byte val);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetCodeGenTarget(ICompileRequest* request, SlangCompileTarget target);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spAddCodeGenTarget(ICompileRequest* request, SlangCompileTarget target);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetTargetProfile(ICompileRequest* request, int targetIndex, SlangProfileID profile);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetTargetFlags(ICompileRequest* request, int targetIndex, uint flags);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetTargetFloatingPointMode(ICompileRequest* request, int targetIndex, SlangFloatingPointMode mode);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spAddTargetCapability(ICompileRequest* request, int targetIndex, SlangCapabilityID capability);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetTargetMatrixLayoutMode(ICompileRequest* request, int targetIndex, SlangMatrixLayoutMode mode);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetMatrixLayoutMode(ICompileRequest* request, SlangMatrixLayoutMode mode);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetDebugInfoLevel(ICompileRequest* request, SlangDebugInfoLevel level);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetDebugInfoFormat(ICompileRequest* request, SlangDebugInfoFormat format);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetOptimizationLevel(ICompileRequest* request, SlangOptimizationLevel level);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetOutputContainerFormat(ICompileRequest* request, SlangContainerFormat format);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetPassThrough(ICompileRequest* request, SlangPassThrough passThrough);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetDiagnosticCallback(ICompileRequest* request, delegate* unmanaged[Thiscall]<sbyte*, void*, void> callback, void* userData);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetWriter(ICompileRequest* request, SlangWriterChannel channel, ISlangWriter* writer);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern ISlangWriter* spGetWriter(ICompileRequest* request, SlangWriterChannel channel);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spAddSearchPath(ICompileRequest* request, sbyte* searchDir);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spAddPreprocessorDefine(ICompileRequest* request, sbyte* key, sbyte* value);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spProcessCommandLineArguments(ICompileRequest* request, sbyte** args, int argCount);
     public static int? spProcessCommandLineArguments(ICompileRequest* request, string[] args)
     {
@@ -5666,15 +5706,20 @@ public static unsafe partial class Methods
             }
         }
     }
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spAddTranslationUnit(ICompileRequest* request, SlangSourceLanguage language, sbyte* name);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetDefaultModuleName(ICompileRequest* request, sbyte* defaultModuleName);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spTranslationUnit_addPreprocessorDefine(ICompileRequest* request, int translationUnitIndex, sbyte* key, sbyte* value);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spAddTranslationUnitSourceFile(ICompileRequest* request, int translationUnitIndex, sbyte* path);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spAddTranslationUnitSourceString(ICompileRequest* request, int translationUnitIndex, sbyte* path, sbyte* source);
     public static void spAddTranslationUnitSourceString(ICompileRequest* request, int translationUnitIndex, string path, string source)
     {
@@ -5693,481 +5738,717 @@ public static unsafe partial class Methods
             Marshal.FreeHGlobal(Ptr1);
         }
     }
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spAddLibraryReference(ICompileRequest* request, sbyte* basePath, void* libData, nuint libDataSize);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spAddTranslationUnitSourceStringSpan(ICompileRequest* request, int translationUnitIndex, sbyte* path, sbyte* sourceBegin, sbyte* sourceEnd);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spAddTranslationUnitSourceBlob(ICompileRequest* request, int translationUnitIndex, sbyte* path, ISlangBlob* sourceBlob);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangProfileID spFindProfile(IGlobalSession* session, sbyte* name);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangCapabilityID spFindCapability(IGlobalSession* session, sbyte* name);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spAddEntryPoint(ICompileRequest* request, int translationUnitIndex, sbyte* name, SlangStage stage);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spAddEntryPointEx(ICompileRequest* request, int translationUnitIndex, sbyte* name, SlangStage stage, int genericArgCount, sbyte** genericArgs);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spSetGlobalGenericArgs(ICompileRequest* request, int genericArgCount, sbyte** genericArgs);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spSetTypeNameForGlobalExistentialTypeParam(ICompileRequest* request, int slotIndex, sbyte* typeName);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spSetTypeNameForEntryPointExistentialTypeParam(ICompileRequest* request, int entryPointIndex, int slotIndex, sbyte* typeName);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spCompile(ICompileRequest* request);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spGetDiagnosticOutput(ICompileRequest* request);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spGetDiagnosticOutputBlob(ICompileRequest* request, ISlangBlob** outBlob);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spGetDependencyFileCount(ICompileRequest* request);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spGetDependencyFilePath(ICompileRequest* request, int index);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spGetTranslationUnitCount(ICompileRequest* request);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spGetEntryPointSource(ICompileRequest* request, int entryPointIndex);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void* spGetEntryPointCode(ICompileRequest* request, int entryPointIndex, nuint* outSize);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spGetEntryPointCodeBlob(ICompileRequest* request, int entryPointIndex, int targetIndex, ISlangBlob** outBlob);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spGetEntryPointHostCallable(ICompileRequest* request, int entryPointIndex, int targetIndex, ISlangSharedLibrary** outSharedLibrary);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spGetTargetCodeBlob(ICompileRequest* request, int targetIndex, ISlangBlob** outBlob);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spGetTargetHostCallable(ICompileRequest* request, int targetIndex, ISlangSharedLibrary** outSharedLibrary);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void* spGetCompileRequestCode(ICompileRequest* request, nuint* outSize);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spGetContainerCode(ICompileRequest* request, ISlangBlob** outBlob);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spLoadRepro(ICompileRequest* request, ISlangFileSystem* fileSystem, void* data, nuint size);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spSaveRepro(ICompileRequest* request, ISlangBlob** outBlob);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spEnableReproCapture(ICompileRequest* request);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spGetCompileTimeProfile(ICompileRequest* request, ISlangProfiler** compileTimeProfile, byte shouldClear);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spExtractRepro(IGlobalSession* session, void* reproData, nuint reproDataSize, ISlangMutableFileSystem* fileSystem);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spLoadReproAsFileSystem(IGlobalSession* session, void* reproData, nuint reproDataSize, ISlangFileSystem* replaceFileSystem, ISlangFileSystemExt** outFileSystem);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spOverrideDiagnosticSeverity(ICompileRequest* request, long messageID, SlangSeverity overrideSeverity);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spGetDiagnosticFlags(ICompileRequest* request);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spSetDiagnosticFlags(ICompileRequest* request, int flags);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangProgramLayout* spGetReflection(ICompileRequest* request);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflectionUserAttribute_GetName(SlangReflectionUserAttribute* attrib);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionUserAttribute_GetArgumentCount(SlangReflectionUserAttribute* attrib);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflectionUserAttribute_GetArgumentType(SlangReflectionUserAttribute* attrib, uint index);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spReflectionUserAttribute_GetArgumentValueInt(SlangReflectionUserAttribute* attrib, uint index, int* rs);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spReflectionUserAttribute_GetArgumentValueFloat(SlangReflectionUserAttribute* attrib, uint index, float* rs);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflectionUserAttribute_GetArgumentValueString(SlangReflectionUserAttribute* attrib, uint index, nuint* outSize);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangTypeKind spReflectionType_GetKind(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionType_GetUserAttributeCount(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionUserAttribute* spReflectionType_GetUserAttribute(SlangReflectionType* type, uint index);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionUserAttribute* spReflectionType_FindUserAttributeByName(SlangReflectionType* type, sbyte* name);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflectionType_applySpecializations(SlangReflectionType* type, SlangReflectionGeneric* generic);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionType_GetFieldCount(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariable* spReflectionType_GetFieldByIndex(SlangReflectionType* type, uint index);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern nuint spReflectionType_GetElementCount(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern nuint spReflectionType_GetSpecializedElementCount(SlangReflectionType* type, SlangProgramLayout* reflection);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflectionType_GetElementType(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionType_GetRowCount(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionType_GetColumnCount(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangScalarType spReflectionType_GetScalarType(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangResourceShape spReflectionType_GetResourceShape(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangResourceAccess spReflectionType_GetResourceAccess(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflectionType_GetResourceResultType(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflectionType_GetName(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spReflectionType_GetFullName(SlangReflectionType* type, ISlangBlob** outNameBlob);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionGeneric* spReflectionType_GetGenericContainer(SlangReflectionType* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflectionTypeLayout_GetType(SlangReflectionTypeLayout* type);
-    [DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+    
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangTypeKind spReflectionTypeLayout_getKind(SlangReflectionTypeLayout* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern nuint spReflectionTypeLayout_GetSize(SlangReflectionTypeLayout* type, SlangParameterCategory category);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern nuint spReflectionTypeLayout_GetStride(SlangReflectionTypeLayout* type, SlangParameterCategory category);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spReflectionTypeLayout_getAlignment(SlangReflectionTypeLayout* type, SlangParameterCategory category);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionTypeLayout_GetFieldCount(SlangReflectionTypeLayout* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflectionTypeLayout_GetFieldByIndex(SlangReflectionTypeLayout* type, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_findFieldIndexByName(SlangReflectionTypeLayout* typeLayout, sbyte* nameBegin, sbyte* nameEnd);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflectionTypeLayout_GetExplicitCounter(SlangReflectionTypeLayout* typeLayout);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern nuint spReflectionTypeLayout_GetElementStride(SlangReflectionTypeLayout* type, SlangParameterCategory category);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionTypeLayout* spReflectionTypeLayout_GetElementTypeLayout(SlangReflectionTypeLayout* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflectionTypeLayout_GetElementVarLayout(SlangReflectionTypeLayout* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflectionTypeLayout_getContainerVarLayout(SlangReflectionTypeLayout* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangParameterCategory spReflectionTypeLayout_GetParameterCategory(SlangReflectionTypeLayout* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionTypeLayout_GetCategoryCount(SlangReflectionTypeLayout* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangParameterCategory spReflectionTypeLayout_GetCategoryByIndex(SlangReflectionTypeLayout* type, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangMatrixLayoutMode spReflectionTypeLayout_GetMatrixLayoutMode(SlangReflectionTypeLayout* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spReflectionTypeLayout_getGenericParamIndex(SlangReflectionTypeLayout* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionTypeLayout* spReflectionTypeLayout_getPendingDataTypeLayout(SlangReflectionTypeLayout* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflectionTypeLayout_getSpecializedTypePendingDataVarLayout(SlangReflectionTypeLayout* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionType_getSpecializedTypeArgCount(SlangReflectionType* type);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflectionType_getSpecializedTypeArgType(SlangReflectionType* type, long index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getBindingRangeCount(SlangReflectionTypeLayout* typeLayout);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangBindingType spReflectionTypeLayout_getBindingRangeType(SlangReflectionTypeLayout* typeLayout, long index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spReflectionTypeLayout_isBindingRangeSpecializable(SlangReflectionTypeLayout* typeLayout, int index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getBindingRangeBindingCount(SlangReflectionTypeLayout* typeLayout, long index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionTypeLayout* spReflectionTypeLayout_getBindingRangeLeafTypeLayout(SlangReflectionTypeLayout* typeLayout, long index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariable* spReflectionTypeLayout_getBindingRangeLeafVariable(SlangReflectionTypeLayout* typeLayout, long index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangImageFormat spReflectionTypeLayout_getBindingRangeImageFormat(SlangReflectionTypeLayout* typeLayout, long index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getFieldBindingRangeOffset(SlangReflectionTypeLayout* typeLayout, long fieldIndex);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getExplicitCounterBindingRangeOffset(SlangReflectionTypeLayout* inTypeLayout);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getBindingRangeDescriptorSetIndex(SlangReflectionTypeLayout* typeLayout, long index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getBindingRangeFirstDescriptorRangeIndex(SlangReflectionTypeLayout* typeLayout, long index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getBindingRangeDescriptorRangeCount(SlangReflectionTypeLayout* typeLayout, long index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getDescriptorSetCount(SlangReflectionTypeLayout* typeLayout);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getDescriptorSetSpaceOffset(SlangReflectionTypeLayout* typeLayout, long setIndex);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getDescriptorSetDescriptorRangeCount(SlangReflectionTypeLayout* typeLayout, long setIndex);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getDescriptorSetDescriptorRangeIndexOffset(SlangReflectionTypeLayout* typeLayout, long setIndex, long rangeIndex);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getDescriptorSetDescriptorRangeDescriptorCount(SlangReflectionTypeLayout* typeLayout, long setIndex, long rangeIndex);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangBindingType spReflectionTypeLayout_getDescriptorSetDescriptorRangeType(SlangReflectionTypeLayout* typeLayout, long setIndex, long rangeIndex);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangParameterCategory spReflectionTypeLayout_getDescriptorSetDescriptorRangeCategory(SlangReflectionTypeLayout* typeLayout, long setIndex, long rangeIndex);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getSubObjectRangeCount(SlangReflectionTypeLayout* typeLayout);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getSubObjectRangeBindingRangeIndex(SlangReflectionTypeLayout* typeLayout, long subObjectRangeIndex);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionTypeLayout_getSubObjectRangeSpaceOffset(SlangReflectionTypeLayout* typeLayout, long subObjectRangeIndex);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflectionTypeLayout_getSubObjectRangeOffset(SlangReflectionTypeLayout* typeLayout, long subObjectRangeIndex);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflectionVariable_GetName(SlangReflectionVariable* var);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflectionVariable_GetType(SlangReflectionVariable* var);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionModifier* spReflectionVariable_FindModifier(SlangReflectionVariable* var, SlangModifierID modifierID);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionVariable_GetUserAttributeCount(SlangReflectionVariable* var);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionUserAttribute* spReflectionVariable_GetUserAttribute(SlangReflectionVariable* var, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionUserAttribute* spReflectionVariable_FindUserAttributeByName(SlangReflectionVariable* var, IGlobalSession* globalSession, sbyte* name);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern byte spReflectionVariable_HasDefaultValue(SlangReflectionVariable* inVar);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spReflectionVariable_GetDefaultValueInt(SlangReflectionVariable* inVar, long* rs);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spReflectionVariable_GetDefaultValueFloat(SlangReflectionVariable* inVar, float* rs);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionGeneric* spReflectionVariable_GetGenericContainer(SlangReflectionVariable* var);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariable* spReflectionVariable_applySpecializations(SlangReflectionVariable* var, SlangReflectionGeneric* generic);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariable* spReflectionVariableLayout_GetVariable(SlangReflectionVariableLayout* var);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionTypeLayout* spReflectionVariableLayout_GetTypeLayout(SlangReflectionVariableLayout* var);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern nuint spReflectionVariableLayout_GetOffset(SlangReflectionVariableLayout* var, SlangParameterCategory category);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern nuint spReflectionVariableLayout_GetSpace(SlangReflectionVariableLayout* var, SlangParameterCategory category);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangImageFormat spReflectionVariableLayout_GetImageFormat(SlangReflectionVariableLayout* var);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflectionVariableLayout_GetSemanticName(SlangReflectionVariableLayout* var);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern nuint spReflectionVariableLayout_GetSemanticIndex(SlangReflectionVariableLayout* var);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionDecl* spReflectionFunction_asDecl(SlangReflectionFunction* func);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflectionFunction_GetName(SlangReflectionFunction* func);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionModifier* spReflectionFunction_FindModifier(SlangReflectionFunction* var, SlangModifierID modifierID);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionFunction_GetUserAttributeCount(SlangReflectionFunction* func);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionUserAttribute* spReflectionFunction_GetUserAttribute(SlangReflectionFunction* func, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionUserAttribute* spReflectionFunction_FindUserAttributeByName(SlangReflectionFunction* func, IGlobalSession* globalSession, sbyte* name);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionFunction_GetParameterCount(SlangReflectionFunction* func);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariable* spReflectionFunction_GetParameter(SlangReflectionFunction* func, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflectionFunction_GetResultType(SlangReflectionFunction* func);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionGeneric* spReflectionFunction_GetGenericContainer(SlangReflectionFunction* func);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionFunction* spReflectionFunction_applySpecializations(SlangReflectionFunction* func, SlangReflectionGeneric* generic);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionFunction* spReflectionFunction_specializeWithArgTypes(SlangReflectionFunction* func, long argTypeCount, SlangReflectionType** argTypes);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern byte spReflectionFunction_isOverloaded(SlangReflectionFunction* func);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionFunction_getOverloadCount(SlangReflectionFunction* func);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionFunction* spReflectionFunction_getOverload(SlangReflectionFunction* func, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionDecl_getChildrenCount(SlangReflectionDecl* parentDecl);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionDecl* spReflectionDecl_getChild(SlangReflectionDecl* parentDecl, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflectionDecl_getName(SlangReflectionDecl* decl);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangDeclKind spReflectionDecl_getKind(SlangReflectionDecl* decl);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionFunction* spReflectionDecl_castToFunction(SlangReflectionDecl* decl);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariable* spReflectionDecl_castToVariable(SlangReflectionDecl* decl);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionGeneric* spReflectionDecl_castToGeneric(SlangReflectionDecl* decl);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflection_getTypeFromDecl(SlangReflectionDecl* decl);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionDecl* spReflectionDecl_getParent(SlangReflectionDecl* decl);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionModifier* spReflectionDecl_findModifier(SlangReflectionDecl* decl, SlangModifierID modifierID);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionDecl* spReflectionGeneric_asDecl(SlangReflectionGeneric* generic);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflectionGeneric_GetName(SlangReflectionGeneric* generic);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionGeneric_GetTypeParameterCount(SlangReflectionGeneric* generic);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariable* spReflectionGeneric_GetTypeParameter(SlangReflectionGeneric* generic, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionGeneric_GetValueParameterCount(SlangReflectionGeneric* generic);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariable* spReflectionGeneric_GetValueParameter(SlangReflectionGeneric* generic, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionGeneric_GetTypeParameterConstraintCount(SlangReflectionGeneric* generic, SlangReflectionVariable* typeParam);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflectionGeneric_GetTypeParameterConstraintType(SlangReflectionGeneric* generic, SlangReflectionVariable* typeParam, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangDeclKind spReflectionGeneric_GetInnerKind(SlangReflectionGeneric* generic);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionDecl* spReflectionGeneric_GetInnerDecl(SlangReflectionGeneric* generic);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionGeneric* spReflectionGeneric_GetOuterGenericContainer(SlangReflectionGeneric* generic);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflectionGeneric_GetConcreteType(SlangReflectionGeneric* generic, SlangReflectionVariable* typeParam);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflectionGeneric_GetConcreteIntVal(SlangReflectionGeneric* generic, SlangReflectionVariable* valueParam);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionGeneric* spReflectionGeneric_applySpecializations(SlangReflectionGeneric* currGeneric, SlangReflectionGeneric* generic);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangStage spReflectionVariableLayout_getStage(SlangReflectionVariableLayout* var);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflectionVariableLayout_getPendingDataLayout(SlangReflectionVariableLayout* var);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionParameter_GetBindingIndex(SlangReflectionVariableLayout* parameter);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionParameter_GetBindingSpace(SlangReflectionVariableLayout* parameter);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spIsParameterLocationUsed(ICompileRequest* request, long entryPointIndex, long targetIndex, SlangParameterCategory category, ulong spaceIndex, ulong registerIndex, bool* outUsed);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflectionEntryPoint_getName(SlangEntryPointLayout* entryPoint);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflectionEntryPoint_getNameOverride(SlangEntryPointLayout* entryPoint);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionFunction* spReflectionEntryPoint_getFunction(SlangEntryPointLayout* entryPoint);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionEntryPoint_getParameterCount(SlangEntryPointLayout* entryPoint);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflectionEntryPoint_getParameterByIndex(SlangEntryPointLayout* entryPoint, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangStage spReflectionEntryPoint_getStage(SlangEntryPointLayout* entryPoint);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spReflectionEntryPoint_getComputeThreadGroupSize(SlangEntryPointLayout* entryPoint, ulong axisCount, ulong* outSizeAlongAxis);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void spReflectionEntryPoint_getComputeWaveSize(SlangEntryPointLayout* entryPoint, ulong* outWaveSize);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spReflectionEntryPoint_usesAnySampleRateInput(SlangEntryPointLayout* entryPoint);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflectionEntryPoint_getVarLayout(SlangEntryPointLayout* entryPoint);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflectionEntryPoint_getResultVarLayout(SlangEntryPointLayout* entryPoint);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spReflectionEntryPoint_hasDefaultConstantBuffer(SlangEntryPointLayout* entryPoint);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflectionTypeParameter_GetName(SlangReflectionTypeParameter* typeParam);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionTypeParameter_GetIndex(SlangReflectionTypeParameter* typeParam);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflectionTypeParameter_GetConstraintCount(SlangReflectionTypeParameter* typeParam);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflectionTypeParameter_GetConstraintByIndex(SlangReflectionTypeParameter* typeParam, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spReflection_ToJson(SlangProgramLayout* reflection, ICompileRequest* request, ISlangBlob** outBlob);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflection_GetParameterCount(SlangProgramLayout* reflection);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflection_GetParameterByIndex(SlangProgramLayout* reflection, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spReflection_GetTypeParameterCount(SlangProgramLayout* reflection);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionTypeParameter* spReflection_GetTypeParameterByIndex(SlangProgramLayout* reflection, uint index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionTypeParameter* spReflection_FindTypeParameter(SlangProgramLayout* reflection, sbyte* name);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflection_FindTypeByName(SlangProgramLayout* reflection, sbyte* name);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionTypeLayout* spReflection_GetTypeLayout(SlangProgramLayout* reflection, SlangReflectionType* reflectionType, SlangLayoutRules rules);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionFunction* spReflection_FindFunctionByName(SlangProgramLayout* reflection, sbyte* name);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionFunction* spReflection_FindFunctionByNameInType(SlangProgramLayout* reflection, SlangReflectionType* reflType, sbyte* name);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariable* spReflection_FindVarByNameInType(SlangProgramLayout* reflection, SlangReflectionType* reflType, sbyte* name);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionFunction* spReflection_TryResolveOverloadedFunction(SlangProgramLayout* reflection, uint candidateCount, SlangReflectionFunction** candidates);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern ulong spReflection_getEntryPointCount(SlangProgramLayout* reflection);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangEntryPointLayout* spReflection_getEntryPointByIndex(SlangProgramLayout* reflection, ulong index);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangEntryPointLayout* spReflection_findEntryPointByName(SlangProgramLayout* reflection, sbyte* name);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern ulong spReflection_getGlobalConstantBufferBinding(SlangProgramLayout* reflection);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern nuint spReflection_getGlobalConstantBufferSize(SlangProgramLayout* reflection);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionType* spReflection_specializeType(SlangProgramLayout* reflection, SlangReflectionType* type, long specializationArgCount, SlangReflectionType** specializationArgs, ISlangBlob** outDiagnostics);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionGeneric* spReflection_specializeGeneric(SlangProgramLayout* inProgramLayout, SlangReflectionGeneric* generic, long argCount, SlangReflectionGenericArgType* argTypes, SlangReflectionGenericArg* args, ISlangBlob** outDiagnostics);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern byte spReflection_isSubType(SlangProgramLayout* reflection, SlangReflectionType* subType, SlangReflectionType* superType);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern ulong spReflection_getHashedStringCount(SlangProgramLayout* reflection);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spReflection_getHashedString(SlangProgramLayout* reflection, ulong index, nuint* outCount);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint spComputeStringHash(sbyte* chars, nuint count);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionTypeLayout* spReflection_getGlobalParamsTypeLayout(SlangProgramLayout* reflection);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern SlangReflectionVariableLayout* spReflection_getGlobalParamsVarLayout(SlangProgramLayout* reflection);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* spGetTranslationUnitSource(ICompileRequest* request, int translationUnitIndex);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern long spReflection_getBindlessSpaceIndex(SlangProgramLayout* reflection);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern ISession* spReflection_GetSession(SlangProgramLayout* reflection);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spCompileRequest_getProgram(ICompileRequest* request, IComponentType** outProgram);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spCompileRequest_getProgramWithEntryPoints(ICompileRequest* request, IComponentType** outProgram);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spCompileRequest_getEntryPoint(ICompileRequest* request, long entryPointIndex, IComponentType** outEntryPoint);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spCompileRequest_getModule(ICompileRequest* request, long translationUnitIndex, IModule** outModule);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int spCompileRequest_getSession(ICompileRequest* request, ISession** outSession);
 
     public const int kSessionFlags_None = 0;
 
     public const uint kInvalidCoverageCounterIndex = 0xffffffffU;
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern ISlangBlob* slang_createBlob(void* data, nuint size);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int slang_writeCoverageManifestJson(ICoverageTracingMetadata* metadata, ISlangBlob** outBlob);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern IModule* slang_loadModuleFromSource(ISession* session, sbyte* moduleName, sbyte* path, sbyte* source, nuint sourceSize, ISlangBlob** outDiagnostics = null);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern IModule* slang_loadModuleFromIRBlob(ISession* session, sbyte* moduleName, sbyte* path, void* source, nuint sourceSize, ISlangBlob** outDiagnostics = null);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int slang_loadModuleInfoFromIRBlob(ISession* session, void* source, nuint sourceSize, long* outModuleVersion, sbyte** outModuleCompilerVersion, sbyte** outModuleName);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int slang_createGlobalSession(long apiVersion, IGlobalSession** outGlobalSession);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int slang_createGlobalSession2(SlangGlobalSessionDesc* desc, IGlobalSession** outGlobalSession);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int slang_createGlobalSessionWithoutCoreModule(long apiVersion, IGlobalSession** outGlobalSession);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern ISlangBlob* slang_getEmbeddedCoreModule();
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void slang_shutdown();
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void slang_enableRecordLayer(byte enable);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern byte slang_isRecordLayerEnabled();
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void slang_setReplayDirectory(sbyte* path);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* slang_getReplayDirectory();
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* slang_getCurrentReplayPath();
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int slang_loadReplay(sbyte* folderPath);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int slang_loadLatestReplay();
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern void slang_replayMarker(sbyte* label);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern sbyte* slang_getLastInternalErrorMessage();
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int slang_createByteCodeRunner(ByteCodeRunnerDesc* desc, IByteCodeRunner** outByteCodeRunner);
-[DllImport("slang.dll", CallingConvention = CallingConvention.Cdecl)]
+
+[DllImport("slang", CallingConvention = CallingConvention.Cdecl)]
     public static extern int slang_disassembleByteCode(ISlangBlob* moduleBlob, ISlangBlob** outDisassemblyBlob);
 
     public static void shutdown()

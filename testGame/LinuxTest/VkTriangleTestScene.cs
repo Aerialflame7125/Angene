@@ -7,6 +7,7 @@ using Angene.Essentials;
 using System.Collections.Generic;
 using Angene.Main;
 using System;
+using Angene.Graphics.SlangShader;
 
 namespace Game.Scenes
 {
@@ -23,6 +24,9 @@ namespace Game.Scenes
         private IntPtr _vertexShaderModule;
         private IntPtr _fragmentShaderModule;
         private IntPtr _pipeline;
+
+        private SlangShaderResources.IShader _vertexShader;
+        private SlangShaderResources.IShader _fragShader;
 
         public VkTriangleTestScene(Window window)
         {
@@ -52,12 +56,16 @@ namespace Game.Scenes
 
             _vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
 
-            string shaderDir = Path.Combine(AppContext.BaseDirectory, "Shaders");
-            byte[] vsSpirv = File.ReadAllBytes(Path.Combine(shaderDir, "triangle.vert.spv"));
-            byte[] fsSpirv = File.ReadAllBytes(Path.Combine(shaderDir, "triangle.frag.spv"));
+            if (Engine.Instance.ShaderCache == null
+                || !Engine.Instance.ShaderCache.TryGetValue(1, out _vertexShader)
+                || !Engine.Instance.ShaderCache.TryGetValue(2, out _fragShader))
+            {
+                Logger.LogCritical("[ShaderCompileTestScene] VertexShader/FragmentShader were not found in Engine.Instance.ShaderCache. Precompilation did not run or failed silently.", LoggingTarget.Graphics, new AngeneException("Shader cache missing expected entries."));
+                return;
+            }
 
-            _vertexShaderModule = _gfx.CreateShaderModule(vsSpirv);
-            _fragmentShaderModule = _gfx.CreateShaderModule(fsSpirv);
+            _vertexShaderModule = _gfx.CreateShaderModule(_vertexShader.byteCode);
+            _fragmentShaderModule = _gfx.CreateShaderModule(_fragShader.byteCode);
 
             var attributes = new VkVertexInputAttributeDescription[]
             {
