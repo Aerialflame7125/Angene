@@ -22,6 +22,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private VkExtent2D _vkExtent2D;
     private int _swapchainImageCount;
     private int _currentImageIndex;
+    private IntPtr[] _vkImages = new IntPtr[0];
+    private IntPtr[] _vkImageViews = new IntPtr[0];
     private IntPtr _vkCommandPool;
     private IntPtr _vkCommandBuffer;
     private IntPtr _vkRenderPass;
@@ -43,6 +45,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     public VkExtent2D VkExtent2D => _vkExtent2D;
     public int SwapchainImageCount => _swapchainImageCount;
     public int CurrentImageIndex => _currentImageIndex;
+    public IntPtr[] VkImages => _vkImages;
+    public IntPtr[] VkImageViews => _vkImageViews;
     public IntPtr VkCommandPool => _vkCommandPool;
     public IntPtr VkCommandBuffer => _vkCommandBuffer;
     public IntPtr VkRenderPass => _vkRenderPass;
@@ -62,7 +66,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private readonly IntPtr _hwnd;
     private readonly int _w, _h;
 
-    public VkGraphicsContext(IntPtr hwnd, XLib._XDisplay* display, int width, int height, IntPtr existingDevice, IntPtr existingContext, Types.AppInfo? currentAppInfo = null)
+    public VkGraphicsContext(IntPtr hwnd, XLib._XDisplay* display, int width, int height, IntPtr existingDevice, IntPtr existingContext, Types.AppInfo? currentAppInfo = null, VkPresentModeKHR wantedPresentationMode = VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
     {
         _hwnd = hwnd;
         _w = width;
@@ -147,7 +151,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 foreach (var r in required)
                 {
                     if (!available.Contains(r))
-                        throw new Exception($"Required Vulkan extension missing: {r}");
+                        throw new Exceptions.FailedToInitializeVulkanException($"Required Vulkan extension missing: {r}");
                     toEnable.Add(r);
                 }
                 foreach (var o in optional)
@@ -216,7 +220,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 result = vkCreateXlibSurfaceKHR(instanceHandle, &create_info, null, &surface);
                 if (result != VkResult.VK_SUCCESS)
                 {
-                    throw new Exception($"Failed to create Vulkan surface: {result}");
+                    throw new Exceptions.FailedToInitializeVulkanException($"Failed to create Vulkan surface: {result}");
                 }
                 _vkSurfaceKHR = surface;
 #endregion
@@ -267,11 +271,92 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 VmaAllocation* localVmaAllocation;
                 result = vmaCreateBuffer(localAllocator, &bufferInfo, &allocInfo, &localBuffer, &localVmaAllocation, null);
                 if (result != VkResult.VK_SUCCESS)
-                    throw new Exception($"Failed to create buffer via VMA: {result}");
+                    throw new Exceptions.FailedToInitializeVulkanException($"Failed to create buffer via VMA: {result}");
 
                 _vma_VkBuffer = localBuffer;
                 _vmaAllocation = localVmaAllocation;
                 _vmaAllocator = localAllocator;
+#endregion
+#region Swapchain (_vkSwapchainKHR)
+                VkSurfaceCapabilitiesKHR _surfaceCapabilities = new VkSurfaceCapabilitiesKHR();
+                result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physicalDevice, _vkSurfaceKHR, &_surfaceCapabilities);
+                if (result != VkResult.VK_SUCCESS)
+                    throw new Exceptions.FailedToInitializeVulkanException($"Failed to create swapchain (vkGetPhysicalDeviceSurfaceCapabilitiesKHR): {result}");
+                
+                // get surface format
+                uint surfaceFormatCount;
+                vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, _vkSurfaceKHR, &surfaceFormatCount, null);
+
+                VkSurfaceFormatKHR[] surfaceFormats = new VkSurfaceFormatKHR[surfaceFormatCount];
+                fixed (VkSurfaceFormatKHR* pSurfaceFormats = surfaceFormats)
+                    vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, _vkSurfaceKHR, &surfaceFormatCount, pSurfaceFormats);
+                
+                VkSurfaceFormatKHR SurfaceFormat = ContextHelpers.ChooseSurfaceFormatAndColorSpace(surfaceFormats);
+
+                // get present modes
+                uint presentModeCount;
+                vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, _vkSurfaceKHR, &presentModeCount, null);
+
+                VkPresentModeKHR[] presentModes = new VkPresentModeKHR[presentModeCount];
+                fixed (VkPresentModeKHR* pPresentModes = presentModes)
+                    vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, _vkSurfaceKHR, &presentModeCount, pPresentModes);
+
+                // create swapchain
+                VkSwapchainCreateInfoKHR swapchainCreateInfo = new VkSwapchainCreateInfoKHR
+                {
+                    sType = VkStructureType.VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+                    pNext = null,
+                    flags = 0,
+                    surface = (VkSurfaceKHR*)_vkSurfaceKHR,
+                    minImageCount = ContextHelpers.ChooseNumImages(_surfaceCapabilities),
+                    imageFormat = SurfaceFormat.format,
+                    imageColorSpace = SurfaceFormat.colorSpace,
+                    imageExtent = _surfaceCapabilities.currentExtent,
+                    imageArrayLayers = 1,
+                    imageUsage = (uint)(VkImageUsageFlagBits.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VkImageUsageFlagBits.VK_IMAGE_USAGE_TRANSFER_DST_BIT), // 1 is for basic rendering, 2 is for post processing
+                    imageSharingMode = VkSharingMode.VK_SHARING_MODE_EXCLUSIVE,
+                    queueFamilyIndexCount = 0,
+                    pQueueFamilyIndices = null, 
+                    preTransform = _surfaceCapabilities.currentTransform,
+                    compositeAlpha = VkCompositeAlphaFlagBitsKHR.VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR, // ignore alpha channel
+                    presentMode = ContextHelpers.ChoosePresentationMode(presentModes, wantedPresentationMode),
+                    clipped = 1
+                };
+                IntPtr _localSwapchain = IntPtr.Zero;
+                result = vkCreateSwapchainKHR(_device, &swapchainCreateInfo, null, &_localSwapchain);
+                if (result != VkResult.VK_SUCCESS)
+                    throw new Exceptions.FailedToInitializeVulkanException("Failed to create swapchain (vkCreateSwapchainKHR): {result}");
+
+                _vkSwapchainKHR = _localSwapchain;
+#endregion
+#region Image Views (_currentImageIndex), (_swapchainImageCount), (_vkImages), (_vkImageViews)
+                // If we are here, success! Now time to get swapchain images
+                uint numswapchainImages = 0;
+                result = vkGetSwapchainImagesKHR(_device, _vkSwapchainKHR, &numswapchainImages, null);
+                if (result != VkResult.VK_SUCCESS)
+                    throw new Exceptions.FailedToInitializeVulkanException($"Failed to get swapchain images (vkGetSwapchainImagesKHR): {result}");
+
+                _swapchainImageCount = (int)numswapchainImages;
+
+                _vkImages = new IntPtr[numswapchainImages];
+                _vkImageViews = new IntPtr[numswapchainImages];
+
+                fixed (IntPtr* images = _vkImages)
+                {
+                    result = vkGetSwapchainImagesKHR(_device, _vkSwapchainKHR, &numswapchainImages, images);
+                    if (result != VkResult.VK_SUCCESS)
+                        throw new Exceptions.FailedToInitializeVulkanException($"Failed to get swapchain images (vkGetSwapchainImagesKHR): {result}");
+                }
+
+                // Aaaaaand create the views
+                int layerCount = 1;
+                int mipLevels = 1;
+                for (uint i = 0; i < numswapchainImages; i++)
+                    _vkImageViews[i] = ContextHelpers.CreateImageView(_device, _vkImages[i], SurfaceFormat.format, VkImageAspectFlagBits.VK_IMAGE_ASPECT_COLOR_BIT, VkImageViewType.VK_IMAGE_VIEW_TYPE_2D, (uint)layerCount, (uint)mipLevels);
+
+#endregion
+#region Render Pass
+
 #endregion
             }
             finally
@@ -304,10 +389,15 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         {
             vkDeviceWaitIdle(_vkDevice);
         }
+        
+        // destroy image views
+        foreach (IntPtr imageView in _vkImageViews)
+            vkDestroyImageView(_vkDevice, imageView, null);
+        
+        // destroy swapchain
+        vkDestroySwapchainKHR(_vkDevice, _vkSwapchainKHR, null);
 
-        // TODO: destroy swapchain, render pass, framebuffers, pipeline,
-        // command pool, semaphores, fence — in that dependency order —
-        // before destroying the device and (if not sharing) the instance.
+        // destroy memory allocators
         if (_vmaAllocator != null)
         {
             vmaDestroyBuffer(_vmaAllocator, _vma_VkBuffer, _vmaAllocation);
@@ -317,19 +407,24 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             _vmaAllocation = null;
         }
 
+        // destroy device
         if (!_sharingDevice)
         {
             if (_vkDevice != IntPtr.Zero)
-            {
                 vkDestroyDevice(_vkDevice, null);
-            }
+            
+            // kill surface
+            if (_vkSurfaceKHR != IntPtr.Zero)
+                vkDestroySurfaceKHR(_vkInstance, _vkSurfaceKHR, null);
+            
+            // kill instance
             if (_vkInstance != IntPtr.Zero)
-            {
                 vkDestroyInstance(_vkInstance, null);
-            }
         }
+        
         _vkDevice = IntPtr.Zero;
         _vkInstance = IntPtr.Zero;
+        _vkSurfaceKHR = IntPtr.Zero;
         _disposed = true;
 
         GC.SuppressFinalize(this);
@@ -349,6 +444,70 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
 public unsafe class VkGraphicsContextHelpers
 {
+    public VkSurfaceFormatKHR ChooseSurfaceFormatAndColorSpace(VkSurfaceFormatKHR[] surfaceFormats)
+    {
+        for (int i = 0; i < surfaceFormats.Count(); i++)
+            if ((surfaceFormats[i].format == VkFormat.VK_FORMAT_B8G8R8A8_SRGB) && (surfaceFormats[i].colorSpace == VkColorSpaceKHR.VK_COLOR_SPACE_SRGB_NONLINEAR_KHR))
+                return surfaceFormats[i];
+
+        return surfaceFormats[0];
+    }
+    public IntPtr CreateImageView(IntPtr device, IntPtr image, VkFormat format, VkImageAspectFlagBits aspectFlags, VkImageViewType viewType, uint layerCount, uint mipLevels)
+    {
+        VkImageViewCreateInfo viewInfo = new VkImageViewCreateInfo
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            pNext = null,
+            flags = 0,
+            image = (VkImage*)image,
+            viewType = viewType,
+            format = format,
+            components =
+            {
+                r = VkComponentSwizzle.VK_COMPONENT_SWIZZLE_IDENTITY,
+                g = VkComponentSwizzle.VK_COMPONENT_SWIZZLE_IDENTITY,
+                b = VkComponentSwizzle.VK_COMPONENT_SWIZZLE_IDENTITY,
+                a = VkComponentSwizzle.VK_COMPONENT_SWIZZLE_IDENTITY
+            },
+            subresourceRange =
+            {
+                aspectMask = (uint)aspectFlags,
+                baseMipLevel = 0,
+                levelCount = mipLevels,
+                baseArrayLayer = 0,
+                layerCount = layerCount
+            }
+        };
+        IntPtr imageView = IntPtr.Zero;
+        VkResult res = vkCreateImageView(device, &viewInfo, null, &imageView);
+        if (res != VkResult.VK_SUCCESS)
+            throw new Exceptions.FailedToInitializeVulkanException($"Failed to create image view (vkCreateImageView): {res}");
+        return imageView;
+    }
+    public VkPresentModeKHR ChoosePresentationMode(VkPresentModeKHR[] presentModes, VkPresentModeKHR wantedPresentationMode)
+    {
+        if (presentModes.Contains(wantedPresentationMode)) // check for developer's chosen presentation mode
+            return wantedPresentationMode;
+
+        for (int i = 0; i < presentModes.Count(); i++)
+            if (presentModes[i] == VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
+                return presentModes[i];
+
+        // Default to FIFO because it is always supported
+        return VkPresentModeKHR.VK_PRESENT_MODE_FIFO_KHR;
+    }
+    public uint ChooseNumImages(VkSurfaceCapabilitiesKHR caps)
+    {
+        uint requestedNumImages = caps.minImageCount + 1;
+
+        uint finalNumImages = 0;
+
+        if ((caps.maxImageCount > 0) && (requestedNumImages > caps.maxImageCount))
+            finalNumImages = caps.maxImageCount;
+        else
+            finalNumImages = requestedNumImages;
+        return finalNumImages;
+    }
     public void SelectPhysicalDeviceAndLogicalDevice(
         IntPtr instance,
         out IntPtr physicalDevice,

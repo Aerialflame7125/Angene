@@ -12,5 +12,10 @@
             public FailedToCreateGraphicsBackendException(string message) : base(message) { }
             public FailedToCreateGraphicsBackendException(string message, Exception inner) : base(message, inner) { }
         }
+        public class FailedToInitializeVulkanException : Exception
+        {
+            public FailedToInitializeVulkanException(string message) : base(message) { }
+            public FailedToInitializeVulkanException(string message, Exception inner) : base(message, inner) { }
+        }
     }
 }
