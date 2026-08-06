@@ -329,7 +329,7 @@ namespace Angene.Graphics
                 throw new Exceptions.FailedToCreateGraphicsBackendException("There currently is not an IGraphicsContext definition for OpenGL.");
             if (renderMode == 3)
             {
-                return new VkGraphicsContext(((X11WindowHandle)windowHandle).Window, ((X11WindowHandle)windowHandle).Display, width, height, shaderStages);
+                return new VkGraphicsContext(((X11WindowHandle)windowHandle).Window, windowHandle, width, height, shaderStages);
             }
 
             Common.Logger.LogCritical(

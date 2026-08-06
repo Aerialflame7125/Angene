@@ -101,7 +101,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         return 0;
     }
 
-    public VkGraphicsContext(IntPtr hwnd, XLib._XDisplay* display, int width, int height, Dictionary<int, object> shaders, Types.AppInfo? currentAppInfo = null, VkPresentModeKHR wantedPresentationMode = VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
+    public VkGraphicsContext(IntPtr hwnd, object windowHandle, int width, int height, Dictionary<int, object> shaders, Types.AppInfo? currentAppInfo = null, VkPresentModeKHR wantedPresentationMode = VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
     {
         _hwnd = hwnd;
         _w = width;
@@ -162,8 +162,9 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 #endregion
 #region Extensions
                 // Extensions //
-                var required = new List<string> { "VK_KHR_surface", "VK_KHR_xlib_surface", "VK_KHR_get_surface_capabilities2", "VK_EXT_surface_maintenance1", "VK_EXT_debug_utils" };
-                var optional = new List<string> { };
+                var requiredLinux = new List<string> { "VK_KHR_surface", "VK_KHR_xlib_surface", "VK_KHR_get_surface_capabilities2", "VK_EXT_surface_maintenance1"};
+                var requiredWindows = new List<string> { "VK_KHR_surface", "VK_KHR_win32_surface", "VK_KHR_get_surface_capabilities2", "VK_EXT_surface_maintenance1"};
+                var optional = new List<string> { "VK_EXT_debug_utils" };
 
                 uint extCount = 0;
                 vkEnumerateInstanceExtensionProperties(null, &extCount, null);
@@ -185,11 +186,23 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 }
 
                 var toEnable = new List<string>();
-                foreach (var r in required)
+                if (windowHandle is X11WindowHandle)
                 {
-                    if (!available.Contains(r))
-                        throw new Exceptions.FailedToInitializeVulkanException($"Required Vulkan extension missing: {r}");
-                    toEnable.Add(r);
+                    foreach (var r in requiredLinux)
+                    {
+                        if (!available.Contains(r))
+                            throw new Exceptions.FailedToInitializeVulkanException($"Required Vulkan extension missing: {r}");
+                        toEnable.Add(r);
+                    }
+                }
+                else if (windowHandle is MicrosoftWindowHandle)
+                {
+                    foreach (var r in requiredWindows)
+                    {
+                        if (!available.Contains(r))
+                            throw new Exceptions.FailedToInitializeVulkanException($"Required Vulkan extension missing: {r}");
+                        toEnable.Add(r);
+                    }
                 }
                 foreach (var o in optional)
                 {
@@ -275,25 +288,54 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
             _debugMessenger = debugMessenger;
 #endregion
-#region Surface Creation (_vkSurfaceKHR) (XLib)
-                IntPtr surface = IntPtr.Zero;
-                VkXlibSurfaceCreateInfoKHR create_info = new VkXlibSurfaceCreateInfoKHR
-                {
-                    sType = VkStructureType.VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
-                    pNext = null,
-                    flags = 0,
-                    dpy = (void**)display,
-                    window = (nuint)hwnd
-                };
+#region Surface Creation (_vkSurfaceKHR)
 
-                functionPointerName = Marshal.StringToHGlobalAnsi("vkCreateXcbSurfaceKHR");
-
-                result = vkCreateXlibSurfaceKHR(instanceHandle, &create_info, null, &surface);
-                if (result != VkResult.VK_SUCCESS)
+#region XLib
+                if (windowHandle is X11WindowHandle xWindowHandle)
                 {
-                    throw new Exceptions.FailedToInitializeVulkanException($"Failed to create Vulkan surface: {result}");
+                    IntPtr surface = IntPtr.Zero;
+                    VkXlibSurfaceCreateInfoKHR create_info = new VkXlibSurfaceCreateInfoKHR
+                    {
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
+                        pNext = null,
+                        flags = 0,
+                        dpy = (void**)xWindowHandle.Display,
+                        window = (nuint)hwnd
+                    };
+
+                    functionPointerName = Marshal.StringToHGlobalAnsi("vkCreateXcbSurfaceKHR");
+
+                    result = vkCreateXlibSurfaceKHR(instanceHandle, &create_info, null, &surface);
+                    if (result != VkResult.VK_SUCCESS)
+                    {
+                        throw new Exceptions.FailedToInitializeVulkanException($"Failed to create Vulkan surface: {result}");
+                    }
+                    _vkSurfaceKHR = surface;
                 }
-                _vkSurfaceKHR = surface;
+#endregion
+
+#region Windows
+                else if (windowHandle is MicrosoftWindowHandle MWindowHandle)
+                {
+                    IntPtr surface = IntPtr.Zero;
+                    VkWin32SurfaceCreateInfoKHR create_info = new VkWin32SurfaceCreateInfoKHR
+                    {
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+                        pNext = null,
+                        flags = 0,
+                        hinstance = (void*)Kernel32.GetModuleHandle(null),
+                        hwnd = (void*)MWindowHandle.Hwnd
+                    };
+
+                    functionPointerName = Marshal.StringToHGlobalAnsi("vkCreateWin32SurfaceKHR");
+
+                    result = vkCreateWin32SurfaceKHR(instanceHandle, &create_info, null, &surface);
+                    if (result != VkResult.VK_SUCCESS)
+                        throw new Exceptions.FailedToInitializeVulkanException($"Failed to create Vulkan surface: {result}");
+                    _vkSurfaceKHR = surface;
+                }
+#endregion
+
 #endregion
 #region Select physical device (_vkPhysicalDevice) + logical device (_device) + graphics queue (_vkQueue)
                 IntPtr _physicalDevice = IntPtr.Zero;
