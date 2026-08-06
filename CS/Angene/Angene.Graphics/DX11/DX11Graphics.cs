@@ -27,9 +27,12 @@ namespace Angene.Graphics.DX11
 
         private IntPtr _existingDevice, _existingContext;
         private bool _sharingDevice = false;
+        protected bool _disposed = false;
         public IntPtr ContextHandle => _context;
 
         public IntPtr Handle => _device;
+
+        public bool shuttingDown { get; internal set; } = false;
 
         public DX11GraphicsContext(IntPtr hwnd, int width, int height, IntPtr existingDevice, IntPtr existingContext)
         {
@@ -66,6 +69,8 @@ namespace Angene.Graphics.DX11
                 throw;
             }
         }
+
+        public bool isDisposed() => _disposed;
 
         private IntPtr _stagingTexture;
 
@@ -389,6 +394,8 @@ namespace Angene.Graphics.DX11
         }
         public void Cleanup()
         {
+            shuttingDown = true;
+
             ReleaseComObject(ref _renderTargetView);
             ReleaseComObject(ref _depthStencilView);
             ReleaseComObject(ref _swapChain);
@@ -397,6 +404,7 @@ namespace Angene.Graphics.DX11
             ReleaseComObject(ref _stagingTexture);
 
             Logger.LogInfo("[D3D11] Cleaned up device context.", LoggingTarget.Engine);
+            _disposed = true;
         }
         public void Dispose()
         {

@@ -102,32 +102,73 @@ namespace Angene.Graphics.SlangShader
         /// <summary>
         /// Extracts bytecode from an ISlangBlob COM object.
         /// </summary>
-        private unsafe static byte[] ExtractBytecodeFromBlob(ISlangBlob* blob)
+        private unsafe static byte[] ExtractBytecodeFromBlob(ISlangBlob* blob, bool blobFromSpirv = false)
         {
-            if ((IntPtr)blob == IntPtr.Zero)
-                throw new Exception("Blob is null");
-
-            IntPtr vtable = Marshal.ReadIntPtr((IntPtr)blob);
-
-            IntPtr pGetBufferPointer = Marshal.ReadIntPtr(vtable, 3 * IntPtr.Size);
-            IntPtr pGetBufferSize = Marshal.ReadIntPtr(vtable, 4 * IntPtr.Size);
-            IntPtr pRelease = Marshal.ReadIntPtr(vtable, 2 * IntPtr.Size);
-
-            var getBufferPointer = Marshal.GetDelegateForFunctionPointer<GetBufferPointerDelegate>(pGetBufferPointer);
-            var getBufferSize = Marshal.GetDelegateForFunctionPointer<GetBufferSizeDelegate>(pGetBufferSize);
-            var releaseBlob = Marshal.GetDelegateForFunctionPointer<ReleaseDelegate>(pRelease);
-
-            IntPtr dataPtr = getBufferPointer((IntPtr)blob);
-            int size = (int)getBufferSize((IntPtr)blob).ToUInt32();
-
-            byte[] bytecode = new byte[size];
-            if (size > 0 && dataPtr != IntPtr.Zero)
+            if (blobFromSpirv)
             {
-                Marshal.Copy(dataPtr, bytecode, 0, size);
-            }
+                Common.Logger.LogDebug("Extracting bytecode from a Spirv blob.", Common.LoggingTarget.Graphics);
+                if ((IntPtr)blob == IntPtr.Zero)
+                    throw new Exception("Blob is null");
 
-            releaseBlob((IntPtr)blob);
-            return bytecode;
+                void* dataPtr = blob->getBufferPointer();
+                nuint rawSize = blob->getBufferSize();
+                int size = (int)rawSize;
+
+                if (size == 0 || dataPtr == null)
+                {
+                    blob->release();
+                    return Array.Empty<byte>();
+                }
+
+                if (size % 4 != 0)
+                {
+                    byte* bytePtr = (byte*)dataPtr;
+                    // Verify if the remaining overhang bytes are null padding
+                    while (size % 4 != 0 && size > 0 && bytePtr[size - 1] == 0)
+                    {
+                        size--;
+                    }
+
+                    if (size % 4 != 0)
+                    {
+                        blob->release();
+                        throw new Exception($"Slang returned an unaligned SPIR-V blob size ({rawSize} bytes) that cannot be safely padded to 4 bytes.");
+                    }
+                }
+
+                byte[] bytecode = new byte[size];
+                Marshal.Copy((IntPtr)dataPtr, bytecode, 0, size);
+
+                blob->release();
+                return bytecode;
+            }
+            else
+            {
+                if ((IntPtr)blob == IntPtr.Zero)
+                    throw new Exception("Blob is null");
+
+                IntPtr vtable = Marshal.ReadIntPtr((IntPtr)blob);
+
+                IntPtr pGetBufferPointer = Marshal.ReadIntPtr(vtable, 3 * IntPtr.Size);
+                IntPtr pGetBufferSize = Marshal.ReadIntPtr(vtable, 4 * IntPtr.Size);
+                IntPtr pRelease = Marshal.ReadIntPtr(vtable, 2 * IntPtr.Size);
+
+                var getBufferPointer = Marshal.GetDelegateForFunctionPointer<GetBufferPointerDelegate>(pGetBufferPointer);
+                var getBufferSize = Marshal.GetDelegateForFunctionPointer<GetBufferSizeDelegate>(pGetBufferSize);
+                var releaseBlob = Marshal.GetDelegateForFunctionPointer<ReleaseDelegate>(pRelease);
+
+                IntPtr dataPtr = getBufferPointer((IntPtr)blob);
+                int size = (int)getBufferSize((IntPtr)blob).ToUInt32();
+
+                byte[] bytecode = new byte[size];
+                if (size > 0 && dataPtr != IntPtr.Zero)
+                {
+                    Marshal.Copy(dataPtr, bytecode, 0, size);
+                }
+
+                releaseBlob((IntPtr)blob);
+                return bytecode;
+            }
         }
 
         public enum ToShaderType
@@ -213,7 +254,6 @@ namespace Angene.Graphics.SlangShader
                 // Ask for SPIR-V generated directly rather than via GLSL — avoids a GLSL round-trip
                 Methods.spSetTargetFlags(request, targetIndex, Methods.kDefaultTargetFlags);
 
-                // Profile selection: SPIR-V versions, not DX shader-model strings.
                 SlangProfileID profile = WithNativeString("spirv_1_5", pProfile => Methods.spFindProfile(_globalSession, pProfile));
                 if (profile != 0)
                     Methods.spSetTargetProfile(request, targetIndex, profile);
@@ -237,7 +277,7 @@ namespace Angene.Graphics.SlangShader
                         throw new Exception($"Failed to get compiled SPIR-V code blob. Code = {getBlobResult}");
                 }
 
-                return ExtractBytecodeFromBlob(codeBlob);
+                return ExtractBytecodeFromBlob(codeBlob, true);
             }
             finally
             {

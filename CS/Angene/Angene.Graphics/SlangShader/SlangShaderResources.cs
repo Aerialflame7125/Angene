@@ -135,11 +135,10 @@ namespace Angene.Graphics.SlangShader
     }
     public class VkShader : BaseShader, IShader
     {
-        protected IntPtr _nativeShaderModule;
+        public IntPtr NativeShaderModule { get; internal set; }
         public int id { get; }
         public bool compileToFile { get; }
         public bool VerboseLog { get; set; } = false;
-        public IntPtr NativeShaderModule => _nativeShaderModule;
         public static ShaderOrigin Origin => ShaderOrigin.Vulkan;
 
         public string Code { get; }
@@ -147,13 +146,13 @@ namespace Angene.Graphics.SlangShader
         public string EntryPoint { get; }
         public byte[] byteCode { get; }
 
-        public VkShader(string name, ShaderType type, object slangReflectionData, IntPtr nativeShaderModule, int id,
+        public VkShader(string name, ShaderType type, object slangReflectionData, int id, IntPtr nativeShaderModule = 0,
             byte[] byteCode = null, string code = null)
             : base(name, type, slangReflectionData)
         {
             this.byteCode = byteCode;
             Code = code;
-            _nativeShaderModule = nativeShaderModule;
+            NativeShaderModule = nativeShaderModule;
             this.id = id;
         }
 

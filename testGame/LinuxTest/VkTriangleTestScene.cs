@@ -25,9 +25,6 @@ namespace Game.Scenes
         private IntPtr _fragmentShaderModule;
         private IntPtr _pipeline;
 
-        private SlangShaderResources.IShader _vertexShader;
-        private SlangShaderResources.IShader _fragShader;
-
         public VkTriangleTestScene(Window window)
         {
             _window = window ?? throw new ArgumentNullException(nameof(window));
@@ -56,16 +53,11 @@ namespace Game.Scenes
 
             _vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
 
-            if (Engine.Instance.ShaderCache == null
-                || !Engine.Instance.ShaderCache.TryGetValue(1, out _vertexShader)
-                || !Engine.Instance.ShaderCache.TryGetValue(2, out _fragShader))
-            {
-                Logger.LogCritical("[ShaderCompileTestScene] VertexShader/FragmentShader were not found in Engine.Instance.ShaderCache. Precompilation did not run or failed silently.", LoggingTarget.Graphics, new AngeneException("Shader cache missing expected entries."));
-                return;
-            }
+            var vertexShader = Engine.Instance.ShaderCache[1] as VkShader;
+            var fragmentShader = Engine.Instance.ShaderCache[2] as VkShader;
 
-            _vertexShaderModule = _gfx.CreateShaderModule(_vertexShader.byteCode);
-            _fragmentShaderModule = _gfx.CreateShaderModule(_fragShader.byteCode);
+            if (vertexShader.NativeShaderModule == IntPtr.Zero || fragmentShader.NativeShaderModule == IntPtr.Zero)
+                throw new Exception("Shader module handle is zero!");
 
             var attributes = new VkVertexInputAttributeDescription[]
             {
@@ -83,7 +75,8 @@ namespace Game.Scenes
                 },
             };
 
-            _pipeline = _gfx.CreatePipeline(_vertexShaderModule, _fragmentShaderModule, attributes, strideBytes: 7 * sizeof(float));
+            _pipeline = _gfx.CreatePipeline(vertexShader.NativeShaderModule, fragmentShader.NativeShaderModule,
+                attributes, 7 * sizeof(float));
 
             Logger.LogInfo("[VkTriangleTestScene] Initialized.", LoggingTarget.Graphics);
         }
@@ -94,7 +87,7 @@ namespace Game.Scenes
         {
             if (_gfx == null) return;
 
-            _gfx.BeginFrame(0xFF203040); // opaque dark navy
+            _gfx.BeginFrame(0x00000000); // bright green
 
             _gfx.SetPipeline(_pipeline);
             _gfx.SetVertexBuffer(_vertexBuffer, strideBytes: 7 * sizeof(float));

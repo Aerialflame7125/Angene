@@ -19,35 +19,28 @@ namespace Game
             public string Extension => "hlsl";
             public string EntryPoint { get; set; } = "vertexMain";
             public ShaderType Type => ShaderType.Vertex;
-            public bool compileToFile { get; } = true;
+            public bool compileToFile { get; } = false;
             public bool IsDisposed { get; private set; }
 
             ShaderOrigin IShader.Origin => ShaderOrigin.Vulkan;
 
-            public string Code => @"
-            struct VertexOutput {
-                float4 position : SV_Position;
-                float3 color : COLOR;
-            };
-
-            VertexOutput vertexMain(uint vertexId : SV_VertexID) {
-                VertexOutput output;
-                float2 positions[3] = { 
-                    float2(0.0, -0.5), 
-                    float2(0.5, 0.5), 
-                    float2(-0.5, 0.5) 
-                };
-                float3 colors[3] = { 
-                    float3(1.0, 0.0, 0.0), 
-                    float3(0.0, 1.0, 0.0), 
-                    float3(0.0, 0.0, 1.0) 
-                };
-
-                output.position = float4(positions[vertexId], 0.0, 1.0);
-                output.color = colors[vertexId];
-                return output;
-            }
-            ";
+            public string Code => @"struct VSInput
+{
+    float3 position : POSITION;
+    float4 color : COLOR;
+};
+struct VSOutput
+{
+    float4 position : SV_Position;
+    float4 color : COLOR;
+};
+VSOutput vertexMain(VSInput input)
+{
+    VSOutput output;
+    output.position = float4(input.position, 1.0);
+    output.color = input.color;
+    return output;
+}";
             public byte[] byteCode => null;
 
             public void Bind() { /* binding is handled by IDX11GraphicsContext.SetShader */ }
@@ -72,21 +65,18 @@ namespace Game
             public string Extension => "hlsl";
             public string EntryPoint { get; set; } = "fragmentMain";
             public ShaderType Type => ShaderType.Fragment;
-            public bool compileToFile { get; } = true;
+            public bool compileToFile { get; } = false;
             public bool IsDisposed { get; private set; }
 
             ShaderOrigin IShader.Origin => ShaderOrigin.Vulkan;
 
-            public string Code => @"
-            struct VertexOutput {
-                float4 position : SV_Position;
-                float3 color : COLOR;
-            };
-
-            float4 fragmentMain(VertexOutput input) : SV_Target {
-                return float4(input.color, 1.0);
-            }
-            ";
+            public string Code => @"struct VertexOutput {
+    float4 position : SV_Position;
+    float4 color : COLOR;
+};
+float4 fragmentMain(VertexOutput input) : SV_Target {
+    return input.color;
+}";
             public byte[] byteCode => null;
 
             public void Bind() { /* binding is handled by IDX11GraphicsContext.SetShader */ }

@@ -44,6 +44,7 @@ namespace Angene.Graphics
         void Clear(uint color);
         void Present(IntPtr windowHandle);
         void Cleanup();
+        bool isDisposed();
         void Resize(int width, int height);
         byte[] GetRawPixels();
     }
@@ -64,6 +65,7 @@ namespace Angene.Graphics
         IntPtr CreateVertexShader(byte[] bytecode);
         IntPtr CreatePixelShader(byte[] bytecode);
         IntPtr CreateInputLayout(InputElement[] elements, byte[] vsBytecode);
+
         void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0);
         void SetIndexBuffer(IntPtr buffer, uint offset = 0);
         void SetInputLayout(IntPtr inputLayout);
@@ -291,9 +293,8 @@ namespace Angene.Graphics
         // Resource creation
         IntPtr CreateVertexBuffer(byte[] data, uint strideBytes);
         IntPtr CreateIndexBuffer(uint[] indices);
-        IntPtr CreateShaderModule(byte[] spirvBytecode);
         IntPtr CreatePipeline(IntPtr vertexShaderModule, IntPtr fragmentShaderModule,
-                            VkVertexInputAttributeDescription[] attributes, uint strideBytes);
+                      VkVertexInputAttributeDescription[] attributes, uint strideBytes);
 
         // Per-draw state
         void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0);
@@ -310,7 +311,7 @@ namespace Angene.Graphics
     // Factory for creating platform-specific graphics contexts
     public static class GraphicsContextFactory
     {
-        public static unsafe IGraphicsContext Create(object windowHandle, int width, int height, int renderMode, IntPtr existingDevice = default, IntPtr existingContext = default, VkPipelineShaderStageCreateInfo[] shaderStages = null)
+        public static unsafe IGraphicsContext Create(object windowHandle, int width, int height, int renderMode, IntPtr existingDevice = default, IntPtr existingContext = default, Dictionary<int, object> shaderStages = null)
         {
             if (renderMode == 0)
 #if WINDOWS
@@ -328,7 +329,7 @@ namespace Angene.Graphics
                 throw new Exceptions.FailedToCreateGraphicsBackendException("There currently is not an IGraphicsContext definition for OpenGL.");
             if (renderMode == 3)
             {
-                return new VkGraphicsContext(((X11WindowHandle)windowHandle).Window, ((X11WindowHandle)windowHandle).Display, width, height, existingDevice, existingContext, shaderStages);
+                return new VkGraphicsContext(((X11WindowHandle)windowHandle).Window, ((X11WindowHandle)windowHandle).Display, width, height, shaderStages);
             }
 
             Common.Logger.LogCritical(

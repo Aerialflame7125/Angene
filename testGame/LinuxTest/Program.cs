@@ -2,14 +2,10 @@ using Angene.Common;
 using Angene.Common.Settings;
 using Angene.Essentials;
 using Angene.Main;
-using Angene.X11.Interop;
 using Angene.Platform;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
-using Game.Scenes;
 
 namespace Game
 {
@@ -67,7 +63,6 @@ namespace Game
                 {
                     foreach (Window window in Engine.Instance.OpenWindows)
                         window.RenderFrame();
-                    Thread.Sleep(16);
                 }
                 Logger.LogImportant("Shader precompilation finished.", LoggingTarget.MainGame);
 
@@ -105,6 +100,7 @@ namespace Game
 
                 Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
                 Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
+                win.RenderFrame();
             }
             win.Cleanup();
             Lifecycle.ScriptBinding.ShutdownEngine();

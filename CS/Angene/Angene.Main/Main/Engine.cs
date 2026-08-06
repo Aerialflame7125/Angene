@@ -57,7 +57,7 @@ namespace Angene.Main
     {
         public string[] supportedLibs;
         List<SlangShaderResources.IShader> shaderTypes = new List<SlangShaderResources.IShader>();
-        public Dictionary<int, SlangShaderResources.IShader> ShaderCache { get; internal set; }
+        public Dictionary<int, object> ShaderCache { get; internal set; }
         int shaderCount = 0;
         List<WindowConfig> WindowCreationQueue = new List<WindowConfig>([]);
         public bool IsCompilingShaders = false;
@@ -68,8 +68,6 @@ namespace Angene.Main
         public IntPtr SharedD3D11Device { get; internal set; } = IntPtr.Zero;
         public IntPtr SharedD3D11Context { get; internal set; } = IntPtr.Zero;
 #endif
-        public IntPtr SharedVkDevice { get; internal set; } = IntPtr.Zero;
-        public IntPtr SharedVkContext { get; internal set; } = IntPtr.Zero;
 #if LINUX
         public unsafe _XDisplay* SharedX11Display { get; internal set; } = null;
         public bool InitializedXThreads { get; internal set; } = false;
@@ -171,17 +169,6 @@ namespace Angene.Main
             if (Instance.SharedD3D11Context != IntPtr.Zero) { Marshal.Release(Instance.SharedD3D11Context); Instance.SharedD3D11Context = IntPtr.Zero; }
             Instance._logConsole = null;
 #endif
-            if (Instance.SharedVkContext != IntPtr.Zero)
-            {
-                Vulkan.Interop.Methods.vkDestroyInstance(Instance.SharedVkContext, null);
-                Instance.SharedVkContext = IntPtr.Zero;
-            }
-            if (Instance.SharedVkDevice != IntPtr.Zero)
-            {
-                Vulkan.Interop.Methods.vkDeviceWaitIdle(Instance.SharedVkDevice);
-                Vulkan.Interop.Methods.vkDestroyDevice(Instance.SharedVkDevice, null);
-                Instance.SharedVkDevice = IntPtr.Zero; 
-            }
 #if LINUX
             if (Instance.SharedX11Display != null)
             {
@@ -306,12 +293,6 @@ namespace Angene.Main
                 VkGraphicsContext _graphicscontext = _window.Graphics as VkGraphicsContext; // Vulkan n stuff
                 if (_graphicscontext == null)
                     Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy Vulkan window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on Vulkan Window."), true);
-                
-                if (SharedVkDevice == IntPtr.Zero)
-                {
-                    SharedVkDevice = _graphicscontext.Handle;
-                    SharedVkContext = _graphicscontext.ContextHandle;
-                }
 #endif
                 // now start shader comp
                 StartShaderCompilation(shaderTypes, shaderCount, _graphicscontext.Handle, _window, verbose);
@@ -503,8 +484,8 @@ namespace Angene.Main
                     if (result != VkResult.VK_SUCCESS)
                         throw new AngeneException($"Failed to create shader module for '{shader.Name}': {result}");
 
-                    var wrapped = new VkShader(shader.Name, shader.Type, null, module, shader.id, code);
-                    Engine.Instance.ShaderCache ??= new Dictionary<int, SlangShaderResources.IShader>();
+                    var wrapped = new VkShader(shader.Name, shader.Type, null, shader.id, module, code);
+                    Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
                     Engine.Instance.ShaderCache[shader.id] = wrapped;
                 }
             }
@@ -750,27 +731,9 @@ namespace Angene.Main
                 code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
             }
 
-            unsafe
-            {
-                fixed (byte* pCode = code)
-                {
-                    var createInfo = new VkShaderModuleCreateInfo
-                    {
-                        sType = VkStructureType.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-                        codeSize = (nuint)code.Length,
-                        pCode = (uint*)pCode
-                    };
-
-                    IntPtr module;
-                    VkResult result = Vulkan.Interop.Methods.vkCreateShaderModule(devicePtr, &createInfo, null, &module);
-                    if (result != VkResult.VK_SUCCESS)
-                        throw new AngeneException($"Failed to create shader module for '{shader.Name}': {result}");
-
-                    var wrapped = new VkShader(shader.Name, shader.Type, null, module, shader.id, code);
-                    Engine.Instance.ShaderCache ??= new Dictionary<int, SlangShaderResources.IShader>();
-                    Engine.Instance.ShaderCache[shader.id] = wrapped;
-                }
-            }
+            var wrapped = new VkShader(shader.Name, shader.Type, null, shader.id, 0, code);
+            Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
+            Engine.Instance.ShaderCache[shader.id] = wrapped;
         }
         private void CompileDx11Shader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
         {
@@ -823,8 +786,8 @@ namespace Angene.Main
                     else
                         Logger.LogDebug($"Bytecode length: {code.Length}", LoggingTarget.MainGame);
                     var wrapped = new Dx11Shader(shader.Name, shader.Type, null, null, IntPtr.Zero, nativeShader, shader.id, code);
-                    Engine.Instance.ShaderCache ??= new Dictionary<int, SlangShaderResources.IShader>();
-                    Engine.Instance.ShaderCache[shader.id] = (SlangShaderResources.IShader)wrapped;
+                    Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
+                    Engine.Instance.ShaderCache[shader.id] = wrapped;
                 }
             }
         }
@@ -872,7 +835,7 @@ namespace Angene.Main
         {
             Logger.LogCritical("The 'Window(string, int, int) constructor is deprecated. Please use the 'WindowConfig' constructor instead.", LoggingTarget.Engine, new AngeneException(""), enginePanic: true);
         }
-        public Window(WindowConfig config)
+        public unsafe Window(WindowConfig config)
         {
             Width = config.Width;
             Height = config.Height;
@@ -912,7 +875,12 @@ namespace Angene.Main
                 else
                     graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
 #else
-                graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
+                if (config.renderMode == RenderType.Vulkan)
+                {
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, shaderStages: Engine.Instance.ShaderCache);
+                }
+                else
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
 #endif
             }
 #if WINDOWS
@@ -1508,6 +1476,7 @@ namespace Angene.Main
             {
                 WindowMap.Remove(x11Handle);
                 Engine.Instance.OpenWindows.Remove(this);
+                DestroyGraphicsContext();
                 Cleanup();
 
                 Methods.XLockDisplay(x11Handle.Display);
@@ -1529,6 +1498,16 @@ namespace Angene.Main
                 WindowMap.Remove(strHandle);
                 Engine.Instance.OpenWindows.Remove(this);
             }
+        }
+
+        private void DestroyGraphicsContext()
+        {
+            if (graphicsContext is VkGraphicsContext vkContext)
+                vkContext.Cleanup();
+#if WINDOWS
+            else if (graphicsContext is DX11GraphicsContext dx11Context)
+                dx11Context.Cleanup();
+#endif
         }
 
         /// <summary>
