@@ -101,9 +101,12 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         return 0;
     }
 
-    public VkGraphicsContext(IntPtr hwnd, object windowHandle, int width, int height, Dictionary<int, object> shaders, Types.AppInfo? currentAppInfo = null, VkPresentModeKHR wantedPresentationMode = VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
+    public VkGraphicsContext(object windowHandle, int width, int height, Dictionary<int, object> shaders, Types.AppInfo? currentAppInfo = null, VkPresentModeKHR wantedPresentationMode = VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
     {
-        _hwnd = hwnd;
+        if (windowHandle is MicrosoftWindowHandle MWinHandle)
+            _hwnd = MWinHandle.Hwnd;
+        else if (windowHandle is X11WindowHandle XWinHandle)
+            _hwnd = XWinHandle.Window;
         _w = width;
         _h = height;
 
@@ -300,7 +303,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         pNext = null,
                         flags = 0,
                         dpy = (void**)xWindowHandle.Display,
-                        window = (nuint)hwnd
+                        window = (nuint)_hwnd
                     };
 
                     functionPointerName = Marshal.StringToHGlobalAnsi("vkCreateXcbSurfaceKHR");

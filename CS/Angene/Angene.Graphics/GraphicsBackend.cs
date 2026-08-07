@@ -97,6 +97,7 @@ namespace Angene.Graphics
         private IntPtr oldBitmap;
         private int width;
         private int height;
+        private bool _disposed = false;
 
         public IntPtr Handle => memDc;
         
@@ -162,7 +163,9 @@ namespace Angene.Graphics
                 Gdi32.DeleteObject(bitmap);
             if (memDc != IntPtr.Zero)
                 Gdi32.DeleteDC(memDc);
+            _disposed = true;
         }
+        public bool isDisposed() => _disposed;
     }
     public class WSGraphicsContext : IGraphicsContext
     {
@@ -172,6 +175,7 @@ namespace Angene.Graphics
         private IntPtr oldBitmap;
         private int width;
         private int height;
+        private bool _disposed = false;
 
         public IntPtr Handle => memDc;
 
@@ -232,7 +236,9 @@ namespace Angene.Graphics
                 Gdi32.DeleteObject(bitmap);
             if (memDc != IntPtr.Zero)
                 Gdi32.DeleteDC(memDc);
+            _disposed = true;
         }
+        public bool isDisposed() => _disposed;
         public byte[] GetRawPixels()
         {
             int size = width * height * 4;
@@ -329,7 +335,7 @@ namespace Angene.Graphics
                 throw new Exceptions.FailedToCreateGraphicsBackendException("There currently is not an IGraphicsContext definition for OpenGL.");
             if (renderMode == 3)
             {
-                return new VkGraphicsContext(((X11WindowHandle)windowHandle).Window, windowHandle, width, height, shaderStages);
+                return new VkGraphicsContext(windowHandle, width, height, shaderStages);
             }
 
             Common.Logger.LogCritical(
