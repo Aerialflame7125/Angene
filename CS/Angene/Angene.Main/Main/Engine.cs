@@ -259,80 +259,121 @@ namespace Angene.Main
             if (shaderTypes != null && shaderCount >= 1 && !skipGraphics)
             {
                 Logger.LogImportant($"Found {shaderCount} Shaders. Halting startup and attempting compilation..", LoggingTarget.Graphics);
-#if WINDOWS
-                // alright im going to fucking hate this
-                // To generate d3d shaders, low and behold, you *have* to initialize it.
-                // So lets initialize it here then dispose of it after it is done.
-                WindowConfig _w = new();
-                _w.Width = 100; _w.Height = 100;
-                _w.X = -10000; _w.Y = -10000;
-                _w.Style = WindowManagement.WindowStyle.PopupWindow;
-                _w.ShowOnCreate = true;
-                _w.Title = "D3D11 Dummy Window | Ignore.";
-                _w.renderMode = RenderType.D3D11;
-                Window _window = new(_w);
-                IDX11GraphicsContext _graphicscontext = _window.Graphics as IDX11GraphicsContext;
-                if (_graphicscontext == null)
-                    Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy D3D11 window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on D3D11 Window."), true);
-
-                if (SharedD3D11Device == IntPtr.Zero)
+                bool usesVulkan = false;
+                bool usesD3D11 = false;
+                foreach (SlangShaderResources.IShader shader in shaderTypes)
                 {
-                    SharedD3D11Device = _graphicscontext.Handle;
-                    SharedD3D11Context = _graphicscontext.ContextHandle;
-                    Marshal.AddRef(SharedD3D11Device);
-                    Marshal.AddRef(SharedD3D11Context);
+                    if (shader.Origin == SlangShaderResources.ShaderOrigin.Dx11)
+                        usesD3D11 = true;
+                    else if (shader.Origin == SlangShaderResources.ShaderOrigin.Vulkan)
+                        usesVulkan = true;
                 }
-#else
-                WindowConfig _w = new(); // Im literally copying the above for Vk
-                _w.Width = 100; _w.Height = 100;
-                _w.X = -10000; _w.Y = -10000;
-                _w.ShowOnCreate = true;
-                _w.Title = "Vulkan Dummy Window | Ignore.";
-                _w.renderMode = RenderType.Vulkan;
-                Window _window = new (_w);
-                VkGraphicsContext _graphicscontext = _window.Graphics as VkGraphicsContext; // Vulkan n stuff
-                if (_graphicscontext == null)
-                    Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy Vulkan window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on Vulkan Window."), true);
+                Window _D3dwindow = null;
+                IDX11GraphicsContext _D3Dgraphicscontext = null;
+                Window _Vkwindow = null;
+                VkGraphicsContext _Vkgraphicscontext = null;
+                
+#if WINDOWS
+                if (usesD3D11)
+                {
+                    // alright im going to fucking hate this
+                    // To generate d3d shaders, low and behold, you *have* to initialize it.
+                    // So lets initialize it here then dispose of it after it is done.
+                    WindowConfig _D3DW = new();
+                    _D3DW.Width = 100; _D3DW.Height = 100;
+                    _D3DW.X = -10000; _D3DW.Y = -10000;
+                    _D3DW.Style = WindowManagement.WindowStyle.PopupWindow;
+                    _D3DW.ShowOnCreate = true;
+                    _D3DW.Title = "D3D11 Dummy Window | Ignore.";
+                    _D3DW.renderMode = RenderType.D3D11;
+                    _D3dwindow = new(_w);
+                    _D3Dgraphicscontext = _window.Graphics as IDX11GraphicsContext;
+                    if (_D3Dgraphicscontext == null)
+                        Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy D3D11 window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on D3D11 Window."), true);
+
+                    if (SharedD3D11Device == IntPtr.Zero)
+                    {
+                        SharedD3D11Device = _graphicscontext.Handle;
+                        SharedD3D11Context = _graphicscontext.ContextHandle;
+                        Marshal.AddRef(SharedD3D11Device);
+                        Marshal.AddRef(SharedD3D11Context);
+                    }
+                }
 #endif
+                if (usesVulkan)
+                {
+                    WindowConfig _VkW = new(); // Im literally copying the above for Vk
+                    _VkW.Width = 100; _VkW.Height = 100;
+                    _VkW.X = -10000; _VkW.Y = -10000;
+                    _VkW.ShowOnCreate = true;
+                    _VkW.Title = "Vulkan Dummy Window | Ignore.";
+                    _VkW.renderMode = RenderType.Vulkan;
+                    _Vkwindow = new (_VkW);
+                    _Vkgraphicscontext = _Vkwindow.Graphics as VkGraphicsContext; // Vulkan n stuff
+                    if (_Vkgraphicscontext == null)
+                        Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy Vulkan window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on Vulkan Window."), true);
+                }
+
                 // now start shader comp
-                StartShaderCompilation(shaderTypes, shaderCount, _graphicscontext.Handle, _window, verbose);
+                if (usesD3D11 && usesVulkan)
+                {
+#if WINDOWS
+                    StartShaderCompilation(shaderTypes, shaderCount, _D3Dgraphicscontext.Handle, _D3dwindow, _Vkgraphicscontext, _Vkwindow, verbose);
+                    #endif
+                }
+                else if (usesD3D11 && !usesVulkan)
+                {
+#if WINDOWS
+                    StartShaderCompilation(shaderTypes, shaderCount, _D3Dgraphicscontext.Handle, _D3dwindow, null, null, verbose);
+#endif
+                }
+                else if (!usesD3D11 && usesVulkan)
+                {
+                    StartShaderCompilation(shaderTypes, shaderCount, null, null, _Vkgraphicscontext.Handle, _Vkwindow, verbose);
+                }
             }
         }
 
-        private void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int _shaderCount, IntPtr _devicePtr, Window _compilationWindow, bool verbose = false)
+        private void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int _shaderCount, IntPtr? _D3DDevicePtr, Window? _D3DCompilationWindow, IntPtr? _VkDevicePtr, Window? _VkCompilationWindow, bool verbose = false)
         {
 #if WINDOWS
-            // Create a new window for showing progress
-            WindowConfig _w = new();
-            _w.Width = 640; _w.Height = 480;
-            _w.Style = WindowManagement.WindowStyle.PopupWindow;
-            _w.ShowOnCreate = true;
-            _w.Title = "Angene Shader Compilation";
-            _w.renderMode = RenderType.GDI;
-            Window _WindowInstance = new Window(_w);
+            if (_D3DDevicePtr != null && _D3DCompilationWindow != null)
+            {
+                // Create a new window for showing progress
+                WindowConfig _wD3D = new();
+                _wD3D.Width = 640; _wD3D.Height = 480;
+                _wD3D.Style = WindowManagement.WindowStyle.PopupWindow;
+                _wD3D.ShowOnCreate = true;
+                _wD3D.Title = "Angene Shader Compilation";
+                _wD3D.renderMode = RenderType.GDI;
+                Window _WindowInstanceD3D = new Window(_wD3D);
 
-            IScene scene = new ShaderCompilationScene(_shaderTypes, _shaderCount, _devicePtr, _compilationWindow, _WindowInstance.Handle, _WindowInstance, verbose);
-#else
-            WindowConfig _w = new();
-            _w.Width = 10; _w.Height = 10;
-            _w.ShowOnCreate = false;
-            _w.Title = "Angene Shader Compilation";
-            _w.renderMode = RenderType.Vulkan;
-            Window _WindowInstance = new Window(_w);
-
-            IScene scene = new LinuxShaderCompilationScene(_shaderTypes, _shaderCount, _devicePtr, _compilationWindow, true, _WindowInstance);
+                IScene D3DScene = new Dx11ShaderCompilationScene(_shaderTypes, _shaderCount, (IntPtr)_D3DDevicePtr, _D3DCompilationWindow, _WindowInstanceD3D.Handle, _WindowInstanceD3D, verbose);
+            }
 #endif
-            _WindowInstance.SetScene(scene);
-            scene.Initialize();
+            if (_VkDevicePtr != null && _VkCompilationWindow != null)
+            {
+                WindowConfig _wVk = new();
+                _wVk.Width = 10; _wVk.Height = 10;
+                _wVk.X = -10000; _wVk.Y = -10000;
+                _wVk.ShowOnCreate = false;
+                _wVk.Title = "Angene Shader Compilation";
+                _wVk.renderMode = RenderType.Vulkan;
+                Window _WindowInstanceVk = new Window(_wVk);
+
+                IScene Vkscene = new VulkanShaderCompilationScene(_shaderTypes, _shaderCount, (IntPtr)_VkDevicePtr, _VkCompilationWindow, verbose, _WindowInstanceVk);
+                _WindowInstanceVk.SetScene(Vkscene);
+                Vkscene.Initialize();
+            }
         }
     }
 
-    internal class LinuxShaderCompilationScene : IScene
+    internal class VulkanShaderCompilationScene : IScene
     {
         public object Instance { get; private set; }
 
         public List<Entity> Entities { get; private set; } = new List<Entity>();
-        public string Name => "LinuxShaderCompilationScene";
+        public string Name => "VulkanShaderCompilationScene";
 
         private readonly List<SlangShaderResources.IShader> _shaderTypes;
         private int _shaderCount;
@@ -345,7 +386,7 @@ namespace Angene.Main
         private Window _compilationWindow;
         private Window _thisWindow;
 
-        public LinuxShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, bool verbose, Window thisWindow)
+        public VulkanShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, bool verbose, Window thisWindow)
         {
             _shaderTypes = shaderTypes;
             _verbose = verbose;
@@ -527,7 +568,9 @@ namespace Angene.Main
 
 
     }
-    internal class ShaderCompilationScene : IScene
+
+#if WINDOWS
+    internal class Dx11ShaderCompilationScene : IScene
     {
         public object Instance { get; private set; }
         public List<Entity> Entities { get; private set; } = new List<Entity>();
@@ -545,7 +588,7 @@ namespace Angene.Main
         private IntPtr _hwnd;
         private Window _thisWindow;
 
-        public ShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, object handle, Window thisWindow, bool verbose)
+        public Dx11ShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, object handle, Window thisWindow, bool verbose)
         { 
             _shaderTypes = shaderTypes;
             _verbose = verbose;
@@ -600,11 +643,6 @@ namespace Angene.Main
                                     Logger.LogDebug($"Compiling Dx11 shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
                                 CompileDx11Shader(current, _devicePtr, current.compileToFile);
                                 break;
-                            case SlangShaderResources.ShaderOrigin.Vulkan:
-                                if (current.VerboseLog)
-                                    Logger.LogDebug($"Compiling Vulkan shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
-                                CompileVulkanShader(current, _devicePtr, current.compileToFile);
-                                break; 
                         }
                         
                         _shaderNum++;
@@ -660,81 +698,6 @@ namespace Angene.Main
             }
         }
 
-        private void CompileVulkanShader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
-        {
-            string stage = shader.Type switch
-            {
-                SlangShaderResources.ShaderType.Vertex => "vertex",
-                SlangShaderResources.ShaderType.Pixel => "fragment",
-                SlangShaderResources.ShaderType.Fragment => "fragment",
-                SlangShaderResources.ShaderType.Compute => "compute",
-                _ => throw new AngeneException($"Unknown stage for shader '{shader.Name}'")
-            };
-
-            string cachePath = Path.Combine(
-                Engine.Instance.settingsInstance.GetSetting<string>("Graphics.ShaderDirectory"),
-                $"{shader.Name}-Angene-{shader.Type}-{shader.id}-{shader.Origin}.spv.cache");
-
-            byte[] code = null;
-
-            if (CompileToFile && File.Exists(cachePath))
-            {
-                if (!TryLoadVerifiedShaderFile(cachePath, out code))
-                {
-                    Logger.LogDebug($"Cached SPIR-V for '{shader.Name}' failed verification, recompiling.", LoggingTarget.Graphics);
-                    code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
-                    byte[] intBytes = BitConverter.GetBytes(code.Length);
-                    byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
-                    Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
-                    fileData[intBytes.Length] = 0xAF;
-                    Buffer.BlockCopy(code, 0, fileData, intBytes.Length + 1, code.Length);
-                    fileData[intBytes.Length + 1 + code.Length] = 0xAA;
-
-                    try
-                    {
-                        string dir = Path.GetDirectoryName(cachePath);
-                        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                            Directory.CreateDirectory(dir);
-
-                        File.WriteAllBytes(cachePath, fileData);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogWarning($"Failed to write shader cache '{cachePath}': {ex.Message}", LoggingTarget.Graphics);
-                    }
-                }
-            }
-            else if (CompileToFile)
-            {
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
-                byte[] intBytes = BitConverter.GetBytes(code.Length);
-                byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
-                Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
-                fileData[intBytes.Length] = 0xAF;
-                Buffer.BlockCopy(code, 0, fileData, intBytes.Length + 1, code.Length);
-                fileData[intBytes.Length + 1 + code.Length] = 0xAA;
-
-                try
-                {
-                    string dir = Path.GetDirectoryName(cachePath);
-                    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                        Directory.CreateDirectory(dir);
-                    File.WriteAllBytes(cachePath, fileData);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogWarning($"Failed to write shader cache '{cachePath}': {ex.Message}", LoggingTarget.Graphics);
-                }
-            }
-            else
-            {
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
-            }
-
-            var wrapped = new VkShader(shader.Name, shader.Type, null, shader.id, 0, code);
-            Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
-            Engine.Instance.ShaderCache[shader.id] = wrapped;
-        }
         private void CompileDx11Shader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
         {
             string stage = shader.Type switch
@@ -798,6 +761,7 @@ namespace Angene.Main
             _compilationWindow.Close();
         }
     }
+#endif
 
     public class Window
     {
@@ -835,7 +799,7 @@ namespace Angene.Main
         {
             Logger.LogCritical("The 'Window(string, int, int) constructor is deprecated. Please use the 'WindowConfig' constructor instead.", LoggingTarget.Engine, new AngeneException(""), enginePanic: true);
         }
-        public unsafe Window(WindowConfig config)
+        public Window(WindowConfig config)
         {
             Width = config.Width;
             Height = config.Height;
@@ -874,14 +838,13 @@ namespace Angene.Main
                         Engine.Instance.SharedD3D11Device, Engine.Instance.SharedD3D11Context);
                 else
                     graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
-#else
+#endif
                 if (config.renderMode == RenderType.Vulkan)
                 {
                     graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, shaderStages: Engine.Instance.ShaderCache);
                 }
                 else
                     graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
-#endif
             }
 #if WINDOWS
             else

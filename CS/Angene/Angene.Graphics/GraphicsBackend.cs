@@ -56,7 +56,7 @@ namespace Angene.Graphics
         public DXGI_FORMAT Format;
         public uint ByteOffset;
     }
-#if WINDOWS
+
     public interface IDX11GraphicsContext : IGraphicsContext
     {
         IntPtr ContextHandle { get; }
@@ -263,8 +263,6 @@ namespace Angene.Graphics
             throw new NotImplementedException();
         }
     }
-
-#endif
 
     public interface IVkGraphicsContext : IGraphicsContext
     {
