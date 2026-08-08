@@ -145,9 +145,9 @@ namespace Angene.Main
             return supportedLibs.ToArray();
         }
 
+#if LINUX
         public unsafe void XInitThreads()
         {
-#if LINUX
             if (SharedX11Display == null)
             {
                 Logger.LogDebug("[Engine.cs | XInitThreads] Initializing X11 threads..", LoggingTarget.Engine);
@@ -159,8 +159,8 @@ namespace Angene.Main
                 InitializedXThreads = true;
                 Logger.LogDebug("[Engine.cs | XInitThreads] Successfully initialized X11 threads.", LoggingTarget.Engine);
             }
-#endif
         }
+#endif
         
         internal unsafe static void destroyInstances()
         {
@@ -286,15 +286,15 @@ namespace Angene.Main
                     _D3DW.ShowOnCreate = true;
                     _D3DW.Title = "D3D11 Dummy Window | Ignore.";
                     _D3DW.renderMode = RenderType.D3D11;
-                    _D3dwindow = new(_w);
-                    _D3Dgraphicscontext = _window.Graphics as IDX11GraphicsContext;
+                    _D3dwindow = new(_D3DW);
+                    _D3Dgraphicscontext = _D3dwindow.Graphics as IDX11GraphicsContext;
                     if (_D3Dgraphicscontext == null)
                         Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy D3D11 window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on D3D11 Window."), true);
 
                     if (SharedD3D11Device == IntPtr.Zero)
                     {
-                        SharedD3D11Device = _graphicscontext.Handle;
-                        SharedD3D11Context = _graphicscontext.ContextHandle;
+                        SharedD3D11Device = _D3Dgraphicscontext.Handle;
+                        SharedD3D11Context = _D3Dgraphicscontext.ContextHandle;
                         Marshal.AddRef(SharedD3D11Device);
                         Marshal.AddRef(SharedD3D11Context);
                     }
@@ -318,7 +318,7 @@ namespace Angene.Main
                 if (usesD3D11 && usesVulkan)
                 {
 #if WINDOWS
-                    StartShaderCompilation(shaderTypes, shaderCount, _D3Dgraphicscontext.Handle, _D3dwindow, _Vkgraphicscontext, _Vkwindow, verbose);
+                    StartShaderCompilation(shaderTypes, shaderCount, _D3Dgraphicscontext.Handle, _D3dwindow, _Vkgraphicscontext.Handle, _Vkwindow, verbose);
                     #endif
                 }
                 else if (usesD3D11 && !usesVulkan)

@@ -166,7 +166,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 #region Extensions
                 // Extensions //
                 var requiredLinux = new List<string> { "VK_KHR_surface", "VK_KHR_xlib_surface", "VK_KHR_get_surface_capabilities2", "VK_EXT_surface_maintenance1"};
-                var requiredWindows = new List<string> { "VK_KHR_surface", "VK_KHR_win32_surface", "VK_KHR_get_surface_capabilities2", "VK_EXT_surface_maintenance1"};
+                var requiredWindows = new List<string> { "VK_KHR_surface", "VK_KHR_win32_surface", "VK_KHR_get_surface_capabilities2"};
                 var optional = new List<string> { "VK_EXT_debug_utils" };
 
                 uint extCount = 0;
