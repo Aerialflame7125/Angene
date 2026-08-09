@@ -302,6 +302,12 @@ namespace Angene.Main
 #endif
                 if (usesVulkan)
                 {
+
+#if WINDOWS
+                    Logger.LogCritical("Using Vulkan on Windows is not supported. Please use D3D11.", LoggingTarget.Engine, new AngeneException("Using Vulkan on Windows is not supported. Please use D3D11."), true);
+#endif
+#if LINUX
+
                     WindowConfig _VkW = new(); // Im literally copying the above for Vk
                     _VkW.Width = 100; _VkW.Height = 100;
                     _VkW.X = -10000; _VkW.Y = -10000;
@@ -312,6 +318,7 @@ namespace Angene.Main
                     _Vkgraphicscontext = _Vkwindow.Graphics as VkGraphicsContext; // Vulkan n stuff
                     if (_Vkgraphicscontext == null)
                         Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy Vulkan window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on Vulkan Window."), true);
+#endif
                 }
 
                 // now start shader comp
@@ -319,7 +326,7 @@ namespace Angene.Main
                 {
 #if WINDOWS
                     StartShaderCompilation(shaderTypes, shaderCount, _D3Dgraphicscontext.Handle, _D3dwindow, _Vkgraphicscontext.Handle, _Vkwindow, verbose);
-                    #endif
+#endif
                 }
                 else if (usesD3D11 && !usesVulkan)
                 {
@@ -351,6 +358,7 @@ namespace Angene.Main
                 IScene D3DScene = new Dx11ShaderCompilationScene(_shaderTypes, _shaderCount, (IntPtr)_D3DDevicePtr, _D3DCompilationWindow, _WindowInstanceD3D.Handle, _WindowInstanceD3D, verbose);
             }
 #endif
+
             if (_VkDevicePtr != null && _VkCompilationWindow != null)
             {
                 WindowConfig _wVk = new();
@@ -1431,6 +1439,9 @@ namespace Angene.Main
             {
                 WindowMap.Remove(handle);
                 Engine.Instance.OpenWindows.Remove(this);
+                DestroyGraphicsContext();
+                Logger.LogDebug("Cleaning up window resources.", LoggingTarget.Engine);
+                Cleanup();
                 User32.DestroyWindow(handle.Hwnd);
                 if (Engine.Instance.OpenWindows.Count == 0)
                     Engine.Instance.ShouldShutdown = true;
@@ -1440,6 +1451,8 @@ namespace Angene.Main
                 WindowMap.Remove(x11Handle);
                 Engine.Instance.OpenWindows.Remove(this);
                 DestroyGraphicsContext();
+
+                Logger.LogDebug("Cleaning up window resources.", LoggingTarget.Engine);
                 Cleanup();
 
                 Methods.XLockDisplay(x11Handle.Display);
@@ -1466,10 +1479,14 @@ namespace Angene.Main
         private void DestroyGraphicsContext()
         {
             if (graphicsContext is VkGraphicsContext vkContext)
+            {
                 vkContext.Cleanup();
+            }
 #if WINDOWS
             else if (graphicsContext is DX11GraphicsContext dx11Context)
+            {
                 dx11Context.Cleanup();
+            }
 #endif
         }
 

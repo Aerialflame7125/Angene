@@ -12,6 +12,7 @@ using System.Text;
 using System.Diagnostics;
 using static Angene.Graphics.SlangShader.SlangShaderResources;
 using Angene.Graphics.SlangShader;
+using System.Reflection.Metadata.Ecma335;
 
 public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 {
@@ -316,7 +317,6 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     _vkSurfaceKHR = surface;
                 }
 #endregion
-
 #region Windows
                 else if (windowHandle is MicrosoftWindowHandle MWindowHandle)
                 {
@@ -338,7 +338,6 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     _vkSurfaceKHR = surface;
                 }
 #endregion
-
 #endregion
 #region Select physical device (_vkPhysicalDevice) + logical device (_device) + graphics queue (_vkQueue)
                 IntPtr _physicalDevice = IntPtr.Zero;
@@ -1127,6 +1126,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
     public void BeginFrame(uint clearColor)
     {
+        if (shuttingDown || _disposed) return;
         VkResult result;
         IntPtr fence = _vkFenceInFlight;
         uint imageIndex;
@@ -1199,6 +1199,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
     public void EndFrame()
     {
+        if (shuttingDown || _disposed) return;
+
         vkCmdEndRenderPass(_vkCommandBuffer);
         VkResult result = vkEndCommandBuffer(_vkCommandBuffer);
         if (result != VkResult.VK_SUCCESS)
@@ -1240,76 +1242,77 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         result = vkQueuePresentKHR(_vkQueue, &presentInfo);
         if (result == VkResult.VK_ERROR_OUT_OF_DATE_KHR || result == VkResult.VK_SUBOPTIMAL_KHR)
             RecreateSwapchain();
+        else if (result == VkResult.VK_ERROR_DEVICE_LOST)
+            return;
         else if (result != VkResult.VK_SUCCESS && result != VkResult.VK_SUBOPTIMAL_KHR)
             throw new Exception($"Failed to present (vkQueuePresentKHR): {result}");
     }
 
     public void Render(int vertices)
     {
-        if (!shuttingDown && !_disposed)
+        if (shuttingDown || _disposed) return;
+
+        VkResult result;
+        VkGraphicsContextHelpers contextHelpers = new VkGraphicsContextHelpers();
+        IntPtr fence = _vkFenceInFlight;
+        IntPtr commandBuffer = _vkCommandBuffer;
+        vkWaitForFences(_vkDevice, 1, &fence, 1, UInt64.MaxValue);
+        vkResetFences(_vkDevice, 1, &fence);
+        uint _imageIndex = (uint)_currentImageIndex;
+
+        fixed (int* pImageIndex = &_currentImageIndex)
+            result = vkAcquireNextImageKHR(_vkDevice, _vkSwapchainKHR, ulong.MaxValue, _vkSemaphoreImageAvailable, IntPtr.Zero, (uint*)pImageIndex);
+
+        if (result != VkResult.VK_SUCCESS)
+            throw new Exception($"Failed to acquire next image (vkAcquireNextImageKHR): {result}");
+
+        vkResetCommandBuffer(commandBuffer, 0);
+        contextHelpers.recordCommandBuffer(commandBuffer, (int)_imageIndex, _vkRenderPass, _vkFramebuffers, _vkSurfaceCapabilities, _vkPipeline, vertices);
+
+        vkCmdEndRenderPass(_vkCommandBuffer);
+
+        result = vkEndCommandBuffer(_vkCommandBuffer);
+        if (result != VkResult.VK_SUCCESS)
+            throw new Exception($"Failed to record command buffer (vkEndCommandBuffer): {result}");
+
+        IntPtr[] waitSemaphores = new IntPtr[] { _vkSemaphoreImageAvailable };
+        IntPtr[] signalSemaphores = new IntPtr[] { _vkSemaphoreRenderFinished };
+        IntPtr[] swapChains = new IntPtr[] { _vkSwapchainKHR };
+        VkPipelineStageFlagBits[] waitStages = new VkPipelineStageFlagBits[] { VkPipelineStageFlagBits.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        fixed (IntPtr* pWaitSemaphores = waitSemaphores)
         {
-            VkResult result;
-            VkGraphicsContextHelpers contextHelpers = new VkGraphicsContextHelpers();
-            IntPtr fence = _vkFenceInFlight;
-            IntPtr commandBuffer = _vkCommandBuffer;
-            vkWaitForFences(_vkDevice, 1, &fence, 1, UInt64.MaxValue);
-            vkResetFences(_vkDevice, 1, &fence);
-            uint _imageIndex = (uint)_currentImageIndex;
-
-            fixed (int* pImageIndex = &_currentImageIndex)
-                result = vkAcquireNextImageKHR(_vkDevice, _vkSwapchainKHR, ulong.MaxValue, _vkSemaphoreImageAvailable, IntPtr.Zero, (uint*)pImageIndex);
-
-            if (result != VkResult.VK_SUCCESS)
-                throw new Exception($"Failed to acquire next image (vkAcquireNextImageKHR): {result}");
-
-            vkResetCommandBuffer(commandBuffer, 0);
-            contextHelpers.recordCommandBuffer(commandBuffer, (int)_imageIndex, _vkRenderPass, _vkFramebuffers, _vkSurfaceCapabilities, _vkPipeline, vertices);
-
-            vkCmdEndRenderPass(_vkCommandBuffer);
-
-            result = vkEndCommandBuffer(_vkCommandBuffer);
-            if (result != VkResult.VK_SUCCESS)
-                throw new Exception($"Failed to record command buffer (vkEndCommandBuffer): {result}");
-
-            IntPtr[] waitSemaphores = new IntPtr[] { _vkSemaphoreImageAvailable };
-            IntPtr[] signalSemaphores = new IntPtr[] { _vkSemaphoreRenderFinished };
-            IntPtr[] swapChains = new IntPtr[] { _vkSwapchainKHR };
-            VkPipelineStageFlagBits[] waitStages = new VkPipelineStageFlagBits[] { VkPipelineStageFlagBits.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-            fixed (IntPtr* pWaitSemaphores = waitSemaphores)
+            fixed (IntPtr* pSignalSemaphores = signalSemaphores)
             {
-                fixed (IntPtr* pSignalSemaphores = signalSemaphores)
+                fixed (VkPipelineStageFlagBits* pWaitStages = waitStages) // cancer
                 {
-                    fixed (VkPipelineStageFlagBits* pWaitStages = waitStages) // cancer
+                    VkSubmitInfo submitInfo = new VkSubmitInfo
                     {
-                        VkSubmitInfo submitInfo = new VkSubmitInfo
-                        {
-                            sType = VkStructureType.VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                            waitSemaphoreCount = 1,
-                            pWaitSemaphores = (VkSemaphore**)pWaitSemaphores,
-                            pWaitDstStageMask = (uint*)pWaitStages,
-                            commandBufferCount = 1,
-                            pCommandBuffers = (VkCommandBuffer**)&commandBuffer,
-                            signalSemaphoreCount = 1,
-                            pSignalSemaphores = (VkSemaphore**)pSignalSemaphores
-                        };
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                        waitSemaphoreCount = 1,
+                        pWaitSemaphores = (VkSemaphore**)pWaitSemaphores,
+                        pWaitDstStageMask = (uint*)pWaitStages,
+                        commandBufferCount = 1,
+                        pCommandBuffers = (VkCommandBuffer**)&commandBuffer,
+                        signalSemaphoreCount = 1,
+                        pSignalSemaphores = (VkSemaphore**)pSignalSemaphores
+                    };
 
-                        result = vkQueueSubmit(_vkQueue, 1, &submitInfo, _vkFenceInFlight);
-                    }
-                    fixed (IntPtr* swapchain = swapChains)
+                    result = vkQueueSubmit(_vkQueue, 1, &submitInfo, _vkFenceInFlight);
+                }
+                fixed (IntPtr* swapchain = swapChains)
+                {
+                    VkPresentInfoKHR presentInfo = new VkPresentInfoKHR
                     {
-                        VkPresentInfoKHR presentInfo = new VkPresentInfoKHR
-                        {
-                            sType = VkStructureType.VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                            waitSemaphoreCount = 1,
-                            pWaitSemaphores = (VkSemaphore**)pSignalSemaphores,
-                            swapchainCount = 1,
-                            pSwapchains = (VkSwapchainKHR**)swapchain,
-                            pImageIndices = &_imageIndex,
-                            pResults = null // Optional, allows to check if every swap chain presentation was successful
-                        };
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                        waitSemaphoreCount = 1,
+                        pWaitSemaphores = (VkSemaphore**)pSignalSemaphores,
+                        swapchainCount = 1,
+                        pSwapchains = (VkSwapchainKHR**)swapchain,
+                        pImageIndices = &_imageIndex,
+                        pResults = null // Optional, allows to check if every swap chain presentation was successful
+                    };
 
-                        vkQueuePresentKHR(_vkQueue, &presentInfo);
-                    }
+                    vkQueuePresentKHR(_vkQueue, &presentInfo);
                 }
             }
         }
@@ -1323,51 +1326,52 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
     public void Cleanup()
     {
+        int stackCount = 1;
         if (_disposed) return;
 
         shuttingDown = true;
-
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 1
         if (_vkDevice != IntPtr.Zero)
         {
             vkDeviceWaitIdle(_vkDevice);
         }
-        
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 2
         if (_destroyFunc != null && _debugMessenger != IntPtr.Zero)
             _destroyFunc(_vkInstance, _debugMessenger, null);
-
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 3
         // destroy vma
         foreach (var entry in _vmaBuffers.Values)
             vmaDestroyBuffer(_vmaAllocator, entry.Buffer, entry.Allocation);
         _vmaBuffers.Clear();
-
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 4
         // destroy shaders
         foreach (IntPtr module in shaderModules)
             vkDestroyShaderModule(_vkDevice, module, null);
-
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 5
         // destroy command pool
         vkDestroyCommandPool(_vkDevice, _vkCommandPool, null);
-
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 6
         // destroy image views
         foreach (IntPtr imageView in _vkImageViews)
             vkDestroyImageView(_vkDevice, imageView, null);
-        
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 7
         // destroy semaphores and fence
         vkDestroySemaphore(_vkDevice, _vkSemaphoreImageAvailable, null);
         vkDestroySemaphore(_vkDevice, _vkSemaphoreRenderFinished, null);
         vkDestroyFence(_vkDevice, _vkFenceInFlight, null);
-
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 8
         // destroy swapchain
         vkDestroySwapchainKHR(_vkDevice, _vkSwapchainKHR, null);
-
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 9
         // destroy framebuffers
         foreach (IntPtr framebuffer in _vkFramebuffers)
             vkDestroyFramebuffer(_vkDevice, framebuffer, null);
-
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 10
         // destroy pipeline layout
         vkDestroyPipeline(_vkDevice, _vkPipeline, null);
         vkDestroyPipelineLayout(_vkDevice, _vkPipelineLayout, null);
         vkDestroyRenderPass(_vkDevice, _vkRenderPass, null);
-
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 11
         // destroy memory allocators
         if (_vmaAllocator != null)
         {
@@ -1377,26 +1381,28 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             _vma_VkBuffer = null;
             _vmaAllocation = null;
         }
-
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 12
         // destroy device
         if (!_sharingDevice)
         {
             if (_vkDevice != IntPtr.Zero)
                 vkDestroyDevice(_vkDevice, null);
-            
+            Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 13
             // kill surface
             if (_vkSurfaceKHR != IntPtr.Zero)
                 vkDestroySurfaceKHR(_vkInstance, _vkSurfaceKHR, null);
-            
+            Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 14
             // kill instance
             if (_vkInstance != IntPtr.Zero)
                 vkDestroyInstance(_vkInstance, null);
+            Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 15
         }
-        
+        Logger.LogDebug(stackCount++.ToString(), LoggingTarget.Graphics); // 16
         _vkDevice = IntPtr.Zero;
         _vkInstance = IntPtr.Zero;
         _vkSurfaceKHR = IntPtr.Zero;
         _disposed = true;
+        Logger.LogDebug("Disposed Vulkan instance.", LoggingTarget.Graphics);
 
         GC.SuppressFinalize(this);
     }
