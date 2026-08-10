@@ -17,7 +17,7 @@ using static Angene.Windows.Slang.SpecializationArg.Kind;
 using static Angene.Windows.Slang.TypeReflection.Kind;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Angene.Windows.Slang;
+namespace Angene.Windows.Slang; // Slang "slang-2026.14.1"
 
 public enum SlangSeverity
 {

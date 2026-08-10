@@ -68,7 +68,7 @@ namespace Angene.Input
 
             foreach (Window w in Engine.Instance.OpenWindows)
             {
-                Entity DetectionEntity = new Entity(0, 0, "KeyDetection");
+                Entity DetectionEntity = new Entity("KeyDetection");
                 _script = new KeyDetectionScript();
                 ManagementScene? a = w.ManagementScene as ManagementScene;
                 Entity b = a.AddEntity(DetectionEntity);

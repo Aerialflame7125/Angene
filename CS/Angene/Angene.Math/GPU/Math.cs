@@ -3,7 +3,6 @@ using Angene.Math.Defs;
 using Angene.Math.Vectors;
 using Angene.Math.Interpolation;
 using System.Runtime.InteropServices;
-using Angene.Common;
 
 namespace Angene.Math.GPU
 {
@@ -17,7 +16,7 @@ namespace Angene.Math.GPU
 
         public Math(IComputeBackend backend)
         {
-            _backend = backend ?? throw new Common.AngeneException("GpuMath requires a valid IComputeBackend.");
+            _backend = backend ?? throw new Exception("GpuMath requires a valid IComputeBackend.");
         }
 
         // --- Vec2 bulk ops ---
@@ -25,7 +24,7 @@ namespace Angene.Math.GPU
         public Vec2[] Add(Vec2[] a, Vec2[] b)
         {
             if (a.Length != b.Length)
-                throw new Common.AngeneException("GpuMath.Add: arrays must be equal length.");
+                throw new Exception("GpuMath.Add: arrays must be equal length.");
 
             if (a.Length < GpuThreshold)
             {
@@ -98,7 +97,7 @@ namespace Angene.Math.GPU
         public float[] Dot(Vec2[] a, Vec2[] b)
         {
             if (a.Length != b.Length)
-                throw new Common.AngeneException("GpuMath.Dot: arrays must be equal length.");
+                throw new Exception("GpuMath.Dot: arrays must be equal length.");
 
             if (a.Length < GpuThreshold)
             {
@@ -148,7 +147,7 @@ namespace Angene.Math.GPU
         public Vec2[] Lerp(Vec2[] a, Vec2[] b, float t)
         {
             if (a.Length != b.Length)
-                throw new Common.AngeneException("GpuMath.Lerp: arrays must be equal length.");
+                throw new Exception("GpuMath.Lerp: arrays must be equal length.");
 
             if (a.Length < GpuThreshold)
             {
@@ -177,7 +176,7 @@ namespace Angene.Math.GPU
         public Vec2[] Lerp(Vec2[] a, Vec2[] b, float[] t)
         {
             if (a.Length != b.Length || a.Length != t.Length)
-                throw new Common.AngeneException("GpuMath.Lerp: all arrays must be equal length.");
+                throw new Exception("GpuMath.Lerp: all arrays must be equal length.");
 
             if (a.Length < GpuThreshold)
             {
@@ -207,7 +206,7 @@ namespace Angene.Math.GPU
         public Vec3[] Add(Vec3[] a, Vec3[] b)
         {
             if (a.Length != b.Length)
-                throw new Common.AngeneException("GpuMath.Add: arrays must be equal length.");
+                throw new Exception("GpuMath.Add: arrays must be equal length.");
 
             if (a.Length < GpuThreshold)
             {
@@ -235,7 +234,7 @@ namespace Angene.Math.GPU
         public Vec3[] Cross(Vec3[] a, Vec3[] b)
         {
             if (a.Length != b.Length)
-                throw new Common.AngeneException("GpuMath.Cross: arrays must be equal length.");
+                throw new Exception("GpuMath.Cross: arrays must be equal length.");
 
             if (a.Length < GpuThreshold)
             {
@@ -285,7 +284,7 @@ namespace Angene.Math.GPU
         public float[] Dot(Vec3[] a, Vec3[] b)
         {
             if (a.Length != b.Length)
-                throw new Common.AngeneException("GpuMath.Dot: arrays must be equal length.");
+                throw new Exception("GpuMath.Dot: arrays must be equal length.");
 
             if (a.Length < GpuThreshold)
             {
@@ -342,7 +341,7 @@ namespace Angene.Math.GPU
         public Matrix3x3[] Multiply(Matrix3x3[] a, Matrix3x3[] b)
         {
             if (a.Length != b.Length)
-                throw new Common.AngeneException("GpuMath.Multiply: arrays must be equal length.");
+                throw new Exception("GpuMath.Multiply: arrays must be equal length.");
 
             if (a.Length < GpuThreshold)
             {
@@ -398,7 +397,7 @@ namespace Angene.Math.GPU
         public float[] Lerp(float[] a, float[] b, float t)
         {
             if (a.Length != b.Length)
-                throw new Common.AngeneException("GpuMath.Lerp: arrays must be equal length.");
+                throw new Exception("GpuMath.Lerp: arrays must be equal length.");
 
             if (a.Length < GpuThreshold)
             {
@@ -613,7 +612,7 @@ namespace Angene.Math.GPU
         public Vec2 Average(Vec2[] vectors)
         {
             if (vectors.Length == 0)
-                throw new Common.AngeneException("GpuMath.Average: cannot average empty array.");
+                throw new Exception("GpuMath.Average: cannot average empty array.");
             return Sum(vectors) / vectors.Length;
         }
 

@@ -13,7 +13,7 @@ namespace Angene.Management
 
         Entity defaultEnt;
 
-        public ManagementScene(string Token) => Entities.Add(new Entity(-100, -100, Token));
+        public ManagementScene(string Token) => Entities.Add(new Entity(Token));
 
         public Entity AddEntity(Entity entity)
         {

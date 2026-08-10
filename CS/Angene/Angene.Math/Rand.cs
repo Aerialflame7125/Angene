@@ -1,5 +1,4 @@
-﻿using Angene.Common;
-using Angene.Math.Interpolation;
+﻿using Angene.Math.Interpolation;
 using Angene.Math.Vectors;
 
 namespace Angene.Math
@@ -39,7 +38,7 @@ namespace Angene.Math
         public static T Pick<T>(IList<T> items)
         {
             if (items == null || items.Count == 0)
-                throw new AngeneException("Rand.Pick() called on null or empty list.");
+                throw new Exception("Rand.Pick() called on null or empty list.");
             return items[Range(0, items.Count)];
         }
 
