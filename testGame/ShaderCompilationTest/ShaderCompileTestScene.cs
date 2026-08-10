@@ -26,8 +26,10 @@ namespace Game
 
         private IntPtr _vertexBuffer;
         private IntPtr _inputLayout;
-        private SlangShaderResources.IShader _vertexShader;
-        private SlangShaderResources.IShader _pixelShader;
+        private object vertexShader;
+        private object pixelShader;
+        private SlangShaderResources.IShader _vertexShader => (SlangShaderResources.IShader)vertexShader;
+        private SlangShaderResources.IShader _pixelShader => (SlangShaderResources.IShader)pixelShader;
 
         private Vertex[] vertices = new Vertex[] { };
         private uint vertexStride;
@@ -51,8 +53,8 @@ namespace Game
             }
 
             if (Engine.Instance.ShaderCache == null
-                || !Engine.Instance.ShaderCache.TryGetValue(1, out _vertexShader)
-                || !Engine.Instance.ShaderCache.TryGetValue(2, out _pixelShader))
+                || !Engine.Instance.ShaderCache.TryGetValue(1, out vertexShader)
+                || !Engine.Instance.ShaderCache.TryGetValue(2, out pixelShader))
             {
                 Logger.LogCritical("[ShaderCompileTestScene] TestVS/TestPS were not found in Engine.Instance.ShaderCache. Precompilation did not run or failed silently.", LoggingTarget.Graphics, new AngeneException("Shader cache missing expected entries."));
                 return;

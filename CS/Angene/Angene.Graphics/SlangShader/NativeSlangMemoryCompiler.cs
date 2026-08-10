@@ -201,6 +201,9 @@ namespace Angene.Graphics.SlangShader
             fileData[intBytes.Length + 1 + code.Length] = (byte)0xAA;
 
             // write and return
+            string dir = Path.GetDirectoryName(outputPath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
             File.WriteAllBytes(outputPath, fileData);
             return code;
         }

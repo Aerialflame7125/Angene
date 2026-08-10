@@ -356,6 +356,8 @@ namespace Angene.Main
                 Window _WindowInstanceD3D = new Window(_wD3D);
 
                 IScene D3DScene = new Dx11ShaderCompilationScene(_shaderTypes, _shaderCount, (IntPtr)_D3DDevicePtr, _D3DCompilationWindow, _WindowInstanceD3D.Handle, _WindowInstanceD3D, verbose);
+                _WindowInstanceD3D.SetScene(D3DScene);
+                D3DScene.Initialize();
             }
 #endif
 
@@ -840,19 +842,24 @@ namespace Angene.Main
 
             if (!config.cTI)
             {
-#if WINDOWS
-                if (config.renderMode == RenderType.D3D11 && Engine.Instance.SharedD3D11Device != IntPtr.Zero)
-                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode,
-                        Engine.Instance.SharedD3D11Device, Engine.Instance.SharedD3D11Context);
-                else
-                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
-#endif
-                if (config.renderMode == RenderType.Vulkan)
+                if (config.renderMode == RenderType.D3D11)
                 {
-                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, shaderStages: Engine.Instance.ShaderCache);
+#if WINDOWS
+                    graphicsContext = Engine.Instance.SharedD3D11Device != IntPtr.Zero
+                        ? GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode,
+                            Engine.Instance.SharedD3D11Device, Engine.Instance.SharedD3D11Context)
+                        : GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
+#endif
+                }
+                else if (config.renderMode == RenderType.Vulkan)
+                {
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode,
+                        shaderStages: Engine.Instance.ShaderCache);
                 }
                 else
+                {
                     graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
+                }
             }
 #if WINDOWS
             else
