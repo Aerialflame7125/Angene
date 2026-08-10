@@ -101,6 +101,8 @@ namespace Angene.Essentials
             private static readonly Dictionary<Entity, List<Lifecycle>> _entityScripts = new();
             public static List<Action> destroyEngineList = new();
 
+            private static bool shutdownEngineCalled = false;
+
             // api
 
             /// <summary>
@@ -353,6 +355,10 @@ namespace Angene.Essentials
             /// </summary>
             public static void ShutdownEngine()
             {
+                if (shutdownEngineCalled)
+                    return;
+
+                shutdownEngineCalled = true;
                 foreach (var binding in _entityScripts.Keys)
                 {
                     if (binding.IsEnabled())
@@ -371,6 +377,7 @@ namespace Angene.Essentials
                         Logger.LogError($"Exception in destroy callback: {ex.Message}", LoggingTarget.Engine);
                     }
                 }
+                Logger.LogInfo("[ShutdownEngine] Oki bye bye!", LoggingTarget.Engine);
                 destroyEngineList.Clear();
             }
 

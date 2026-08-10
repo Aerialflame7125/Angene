@@ -5,6 +5,7 @@ using Angene.Windows;
 
 namespace Angene.Platform
 {
+    public enum OSType { Microsoft, Linux, Unknown }
     /// <summary>
     /// Configuration options for window creation
     /// </summary>
@@ -44,7 +45,8 @@ namespace Angene.Platform
         /// <summary>
         /// Changes the render mode for the window, defaults to GDI unless changed. Chooses between GDI, OpenGL, and DX11
         /// </summary>
-        public RenderType renderMode = RenderType.Default;
+        public RenderType renderMode;
+        public static OSType OS = OSType.Unknown;
 
         /// <summary>Window style flags</summary>
         public WindowManagement.WindowStyle Style { get; set; } = WindowManagement.WindowStyle.OverlappedWindow;
@@ -71,21 +73,59 @@ namespace Angene.Platform
             }
         }
 
+        public WindowConfig()
+        {
+            switch (Environment.OSVersion.Platform)
+            {
+                case (PlatformID.Win32NT):
+                    OS = OSType.Microsoft;
+                    break;
+                case (PlatformID.Unix):
+                    OS = OSType.Linux;
+                    break;
+                default:
+                    OS = OSType.Unknown;
+                    break;
+            }
+        }
+
         /// <summary>
         /// Creates a standard desktop window configuration
         /// </summary>
         public static WindowConfig Standard(string title, int width, int height)
         {
-            return new WindowConfig
+            RenderType b = RenderType.GDI;
+            switch (Environment.OSVersion.Platform)
             {
-                Title = title,
-                Width = width,
-                Height = height,
-                Style = WindowManagement.WindowStyle.OverlappedWindow,
-                StyleEx = WindowManagement.WindowStyleEx.None,
-                Transparency = WindowManagement.WindowTransparency.None,
-                renderMode = RenderType.Default
-            };
+                case (PlatformID.Win32NT):
+                    b = RenderType.GDI;
+                    break;
+                case (PlatformID.Unix):
+                    b = RenderType.Vulkan;
+                    break;
+                default:
+                    throw new Exception("PlatformID cannot be found. WindowConfig creation is not possible.");
+            }
+            if (b == RenderType.GDI)
+                return new WindowConfig
+                {
+                    Title = title,
+                    Width = width,
+                    Height = height,
+                    Style = WindowManagement.WindowStyle.OverlappedWindow,
+                    StyleEx = WindowManagement.WindowStyleEx.None,
+                    Transparency = WindowManagement.WindowTransparency.None,
+                    renderMode = b
+                };
+            else
+                return new WindowConfig
+                {
+                    Title = title,
+                    Width = width,
+                    Height = height,
+                    Transparency = WindowManagement.WindowTransparency.None,
+                    renderMode = b
+                };
         }
 
         /// <summary>
@@ -93,7 +133,20 @@ namespace Angene.Platform
         /// </summary>
         public static WindowConfig TransparentOverlay(string title, int width, int height, bool clickThrough = true)
         {
-            return new WindowConfig
+            RenderType b = RenderType.GDI;
+            switch (Environment.OSVersion.Platform)
+            {
+                case (PlatformID.Win32NT):
+                    b = RenderType.GDI;
+                    break;
+                case (PlatformID.Unix):
+                    b = RenderType.Vulkan;
+                    break;
+                default:
+                    throw new Exception("PlatformID cannot be found. WindowConfig creation is not possible.");
+            }
+            if (b == RenderType.GDI)
+                return new WindowConfig
             {
                 Title = title,
                 Width = width,
@@ -109,8 +162,22 @@ namespace Angene.Platform
                     Alpha = 255,  // Window alpha (we use OpenGL alpha for per-pixel)
                     ClickThrough = clickThrough
                 },
-                renderMode = RenderType.Default
+                renderMode = b
             };
+            else
+                return new WindowConfig
+                {
+                    Title = title,
+                    Width = width,
+                    Height = height,
+                    Transparency = new WindowManagement.WindowTransparency
+                    {
+                        Enabled = true,
+                        Alpha = 255, // no idea if vulkan even supports this
+                        ClickThrough = clickThrough
+                    },
+                    renderMode = b
+                };
         }
 
         /// <summary>
@@ -118,7 +185,20 @@ namespace Angene.Platform
         /// </summary>
         public static WindowConfig Borderless(string title, int width, int height)
         {
-            return new WindowConfig
+            RenderType b = RenderType.GDI;
+            switch (Environment.OSVersion.Platform)
+            {
+                case (PlatformID.Win32NT):
+                    b = RenderType.GDI;
+                    break;
+                case (PlatformID.Unix):
+                    b = RenderType.Vulkan;
+                    break;
+                default:
+                    throw new Exception("PlatformID cannot be found. WindowConfig creation is not possible.");
+            }
+            if (b == RenderType.GDI)
+                return new WindowConfig
             {
                 Title = title,
                 Width = width,
@@ -126,8 +206,17 @@ namespace Angene.Platform
                 Style = WindowManagement.WindowStyle.Popup,
                 StyleEx = WindowManagement.WindowStyleEx.None,
                 Transparency = WindowManagement.WindowTransparency.None,
-                renderMode = RenderType.Default
+                renderMode = b
             };
+            else
+                return new WindowConfig
+                {
+                    Title = title,
+                    Width = width,
+                    Height = height,
+                    Transparency = WindowManagement.WindowTransparency.None,
+                    renderMode = b
+                };
         }
 
         /// <summary>
@@ -135,7 +224,20 @@ namespace Angene.Platform
         /// </summary>
         public static WindowConfig Rendering3D(string title, int width, int height)
         {
-            return new WindowConfig
+            RenderType b = RenderType.D3D11;
+            switch (Environment.OSVersion.Platform)
+            {
+                case (PlatformID.Win32NT):
+                    b = RenderType.D3D11;
+                    break;
+                case (PlatformID.Unix):
+                    b = RenderType.Vulkan;
+                    break;
+                default:
+                    throw new Exception("PlatformID cannot be found. WindowConfig creation is not possible.");
+            }
+            if (b == RenderType.D3D11)
+                return new WindowConfig
             {
                 Title = title,
                 Width = width,
@@ -143,8 +245,17 @@ namespace Angene.Platform
                 Style = WindowManagement.WindowStyle.OverlappedWindow,
                 StyleEx = WindowManagement.WindowStyleEx.None,
                 Transparency = WindowManagement.WindowTransparency.None,
-                renderMode = RenderType.D3D11
+                renderMode = b
             };
+            else
+                return new WindowConfig
+                {
+                    Title = title,
+                    Width = width,
+                    Height = height,
+                    Transparency = WindowManagement.WindowTransparency.None,
+                    renderMode = b
+                };
         }
     }
 }

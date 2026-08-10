@@ -4,10 +4,8 @@ using Angene.Essentials;
 using Angene.Main;
 using Angene.Platform;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace Game
 {
@@ -20,8 +18,8 @@ namespace Game
         public void MakeInstances(bool verbose)
         {
             engine = Engine.Instance;
-            engine.Init(verbose); // scans this assembly for [Precompile] shaders (TestShaders.cs) and starts compiling them
-            settings = engine.SettingHandlerInstanced;
+            engine.Init(new Types.AppInfo("LinuxTest Angene", 0.1f, "Aerial", "Aerial"), verbose); // scans this assembly for [Precompile] shaders (TestShaders.cs) and starts compiling them
+            settings = engine.settingsInstance;
         }
     }
 
@@ -60,8 +58,29 @@ namespace Game
                 t.Stop();
                 Logger.LogDebug($"Initialized in {t.ElapsedMilliseconds} ms", LoggingTarget.MasterScene);
 
+                Logger.LogImportant("Waiting for shader precompilation to finish...", LoggingTarget.MainGame);
+                while (Engine.Instance.IsCompilingShaders)
+                {
+                    foreach (Window window in Engine.Instance.OpenWindows)
+                        window.RenderFrame();
+                }
+                Logger.LogImportant("Shader precompilation finished.", LoggingTarget.MainGame);
+
+
                 double dt = 0.0d;
-                RunMessageLoop(ref dt);
+                WindowConfig config = new WindowConfig()
+                {
+                    Width = 800,
+                    Height = 600,
+                    Title = "Angene Engine Test",
+                    renderMode = Angene.Graphics.RenderType.Vulkan
+                };
+                Window win = new Window(config);
+                var scene = new Game.Scenes.VkTriangleTestScene(win);
+                win.SetScene(scene);
+                Logger.LogDebug($"OpenWindows count after creation: {Engine.Instance.OpenWindows.Count}", LoggingTarget.Engine);
+
+                RunMessageLoop(ref dt, win, scene);
                 Logger.LogInfo("Cleanup complete.", LoggingTarget.Engine);
             }
             catch (Exception e)
@@ -70,40 +89,21 @@ namespace Game
             }
         }
 
-        private static void RunMessageLoop(ref double dt)
+        private static void RunMessageLoop(ref double dt, Window win, IScene scene)
         {
-            bool running = true;
-
-            while (running)
+            while (!Engine.Instance.ShouldShutdown)
             {
-                if (!running) break;
+                bool a = win.ProcessMessages(win.Handle);
 
                 dt = (DateTime.Now - lastFrame).TotalSeconds;
                 lastFrame = DateTime.Now;
 
-                Lifecycle.ScriptBinding.Tick(new EmptyScene(), dt, EngineMode.Play);
-                Lifecycle.ScriptBinding.Draw(new EmptyScene(), EngineMode.Play);
+                Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
+                Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
+                win.RenderFrame();
             }
+            win.Cleanup();
+            Lifecycle.ScriptBinding.ShutdownEngine();
         }
-    }
-
-    public class EmptyScene : IScene
-    {
-        public object Instance => this;
-
-        public List<Entity> Entities => new List<Entity>();
-
-        public string Name => "EmptyScene";
-
-        public void Cleanup() { }
-
-        public void Initialize()
-        {
-            Logger.LogError("EmptyScene.Initialize() called.", LoggingTarget.MasterScene);
-        }
-
-        public void OnMessage(nint msgPtr) { }
-
-        public void Render() { }
     }
 }

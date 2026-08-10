@@ -46,9 +46,6 @@
 		<!-- Renderer Files -->
 		<Compile Include="Renderers\**\*.cs" />
 
-		<!-- Windows-only files -->
-		<Compile Include="Platform\WindowConfig.cs" />
-
 		<!-- External Implementations -->
 		<Compile Include="External\**\*.cs" />
 	</ItemGroup>
@@ -63,6 +60,7 @@
 	  <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
 	  <ProjectReference Include="..\Angene.Graphics\Angene.Graphics.csproj" />
 	  <ProjectReference Include="..\Angene.Management\Angene.Management.csproj" />
+	  <ProjectReference Include="..\Angene.X11\Angene.X11.csproj" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(OS)' == 'Windows_NT'">

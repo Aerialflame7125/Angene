@@ -1,4 +1,5 @@
-﻿using Angene.Common;
+﻿global using static Angene.X11.Interop.XLib;
+using Angene.Common;
 using Angene.Common.Settings;
 using Angene.Essentials;
 using Angene.External;
@@ -29,6 +30,8 @@ using System.Security.Permissions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Angene.Vulkan.Interop.Enumerators;
+using static Angene.Vulkan.Interop.Structs;
 
 namespace Angene.Main
 {
@@ -52,62 +55,128 @@ namespace Angene.Main
 
     public class Engine
     {
+        public string[] supportedLibs;
         List<SlangShaderResources.IShader> shaderTypes = new List<SlangShaderResources.IShader>();
+        public Dictionary<int, object> ShaderCache { get; internal set; }
         int shaderCount = 0;
         List<WindowConfig> WindowCreationQueue = new List<WindowConfig>([]);
         public bool IsCompilingShaders = false;
+        public bool ShouldShutdown = false;
 
-        private Settings? _settingHandlerInstanced;
 #if WINDOWS
         private LogConsoleWindow? _logConsole; // log window keepalive
         public IntPtr SharedD3D11Device { get; internal set; } = IntPtr.Zero;
         public IntPtr SharedD3D11Context { get; internal set; } = IntPtr.Zero;
 #endif
-        public Dictionary<int, SlangShaderResources.IShader> ShaderCache { get; internal set; }
-    
-        internal List<Window> PendingWindowCloses { get; } = new();
-        public List<Angene.Main.Window> OpenWindows { get; private set; } = new List<Angene.Main.Window>();
-          
-        public Settings SettingHandlerInstanced
-        {
-            get
-            {
-                if (_settingHandlerInstanced == null)
-                {
-                    throw new AngeneException(
-                        "Settings handler not initialized. Please call Engine.Init() before accessing settings."
-                    );
-                }
+#if LINUX
+        public unsafe _XDisplay* SharedX11Display { get; internal set; } = null;
+        public bool InitializedXThreads { get; internal set; } = false;
+#endif
 
-                return _settingHandlerInstanced;
-            }
-            private set
-            {
-                _settingHandlerInstanced = value;
-            }
-        }
+        public Types.AppInfo currentAppInfo { get; internal set; }
+        internal List<Window> PendingWindowCloses { get; } = new();
+        public List<Window> OpenWindows { get; private set; } = new List<Window>();
+        public Settings settingsInstance = new Settings();
 
         private Engine()
         {
+            // Check which libraries exist and what are supported.
             Lifecycle.ScriptBinding.destroyEngineList.Add(destroyInstances);
         }
 
         public static Engine Instance { get; } = new Engine();
 
-        internal static void destroyInstances()
+        // Check supported libraries
+        private static string[] CheckSupportedLibraries()
+        {
+            List<string> supportedLibs = new List<string>();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Logger.LogDebug("[Engine.cs | CheckSupportedLibraries] Checking for supported libraries on Windows.", LoggingTarget.Engine);
+                string[] AllLibs = new[] { "Graphics", "Vulkan", "D3D11", "Input", "Math", "Audio" };
+                // Manual checks, most important.
+                if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Windows.dll")))
+                    supportedLibs.Add("Windows");
+                else
+                    Logger.LogCritical("[Engine.cs | CheckSupportedLibraries] Angene.Windows.dll is missing. Please check your installation.", LoggingTarget.Engine, new AngeneException("Angene.Windows.dll is missing. Installation is corrupt or incomplete."), true);
+
+                if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Common.dll")))
+                    supportedLibs.Add("Common");
+                else
+                    Logger.LogCritical("[Engine.cs | CheckSupportedLibraries] Angene.Common.dll is missing. Please check your installation.", LoggingTarget.Engine, new AngeneException("Angene.Common.dll is missing. Installation is corrupt or incomplete."), true);
+
+                if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Essentials.dll")))
+                    supportedLibs.Add("Essentials");
+                else
+                    Logger.LogCritical("[Engine.cs | CheckSupportedLibraries] Angene.Essentials.dll is missing. Please check your installation.", LoggingTarget.Engine, new AngeneException("Angene.Essentials.dll is missing. Installation is corrupt or incomplete."), true);
+
+                foreach (string lib in AllLibs)
+                    if (File.Exists(Path.Combine(AppContext.BaseDirectory, $"Angene.{lib}.dll")))
+                        supportedLibs.Add(lib);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Logger.LogDebug("[Engine.cs | CheckSupportedLibraries] Checking for supported libraries on Linux.", LoggingTarget.Engine);
+                string [] AllLibs = new[] { "Graphics", "Vulkan", "Input", "Math", "Audio" };
+                if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.X11.dll")))
+                    supportedLibs.Add("X11");
+                else
+                    Logger.LogWarning("[Engine.cs | CheckSupportedLibraries] Angene.X11.dll is missing. If this is intended, please ignore this message.", LoggingTarget.Engine);
+
+                if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Common.dll")))
+                    supportedLibs.Add("Common");
+                else
+                    Logger.LogCritical("[Engine.cs | CheckSupportedLibraries] Angene.Common.dll is missing. Please check your installation.", LoggingTarget.Engine, new AngeneException("Angene.Common.dll is missing. Installation is corrupt or incomplete."), true);
+
+                if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Essentials.dll")))
+                    supportedLibs.Add("Essentials");
+                else
+                    Logger.LogCritical("[Engine.cs | CheckSupportedLibraries] Angene.Essentials.dll is missing. Please check your installation.", LoggingTarget.Engine, new AngeneException("Angene.Essentials.dll is missing. Installation is corrupt or incomplete."), true);
+
+                foreach (string lib in AllLibs)
+                    if (File.Exists(Path.Combine(AppContext.BaseDirectory, $"Angene.{lib}.dll")))
+                        supportedLibs.Add(lib);
+            }
+            else
+                Logger.LogDebug("[Engine.cs | CheckSupportedLibraries] Unsupported OS platform detected. No libraries will be checked for existance. More power to you.", LoggingTarget.Engine);
+
+            Logger.LogDebug($"Evaluated supported libraries: {string.Join(", ", supportedLibs.ToArray())}", LoggingTarget.Engine);
+            return supportedLibs.ToArray();
+        }
+
+#if LINUX
+        public unsafe void XInitThreads()
+        {
+            if (SharedX11Display == null)
+            {
+                Logger.LogDebug("[Engine.cs | XInitThreads] Initializing X11 threads..", LoggingTarget.Engine);
+
+                int result = Methods.XInitThreads();
+                if (result == 0)
+                    Logger.LogCritical("[Engine.cs | XInitThreads] Failed to initialize X11 threads. Please check your installation.", LoggingTarget.Engine, new AngeneException("Failed to initialize X11 threads. Installation is corrupt or incomplete."), true);
+
+                InitializedXThreads = true;
+                Logger.LogDebug("[Engine.cs | XInitThreads] Successfully initialized X11 threads.", LoggingTarget.Engine);
+            }
+        }
+#endif
+        
+        internal unsafe static void destroyInstances()
         {
 #if WINDOWS
             if (Instance.SharedD3D11Device != IntPtr.Zero) { Marshal.Release(Instance.SharedD3D11Device); Instance.SharedD3D11Device = IntPtr.Zero; }
             if (Instance.SharedD3D11Context != IntPtr.Zero) { Marshal.Release(Instance.SharedD3D11Context); Instance.SharedD3D11Context = IntPtr.Zero; }
             Instance._logConsole = null;
 #endif
-            Instance._settingHandlerInstanced = null;
-        }
-
-        internal List<WindowConfig> AddSceneToCreationQueue(WindowConfig scene)
-        {
-            WindowCreationQueue.Add(scene);
-            return WindowCreationQueue;
+#if LINUX
+            if (Instance.SharedX11Display != null)
+            {
+                Methods.XCloseDisplay(Instance.SharedX11Display);
+                Instance.SharedX11Display = null;
+            }
+#endif
+            Instance.settingsInstance = null;
         }
 
         internal void RequestClose(Window w)
@@ -131,40 +200,52 @@ namespace Angene.Main
                 w.ReallyClose();
         }
 
-        public void Init(bool verbose = false, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        public void Init(Types.AppInfo appInfo, bool verbose = false, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
-            SettingHandlerInstanced = new Settings();
-            SettingHandlerInstanced.LoadDefaults();
             Logger.Instance.Init(verbose);
+            supportedLibs = CheckSupportedLibraries();
+            bool skipGraphics = false;
+            currentAppInfo = appInfo;
             
-            _settingHandlerInstanced.SetSetting("Main.engineCallerMemberName", memberName);
-            _settingHandlerInstanced.SetSetting("Main.engineCallerFilePath", callerFilePath);
-            _settingHandlerInstanced.SetSetting("Main.engineCallerLineNumber", sourceLineNumber);
-            try
-            {
-                shaderTypes = Assembly.GetCallingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null).Select(t => (SlangShaderResources.IShader)Activator.CreateInstance(t)).ToList();
-                shaderCount = shaderTypes.Count();
-            }
-            catch(Exception e)
-            {
-                Logger.LogCritical("Failed to get shaders via attribute, Failing.", LoggingTarget.Engine, e, true);
-            }
-#if WINDOWS
-            if (verbose)
-            {
-                _logConsole = new LogConsoleWindow();
+            settingsInstance.SetSetting("Main.engineCallerMemberName", memberName);
+            settingsInstance.SetSetting("Main.engineCallerFilePath", callerFilePath);
+            settingsInstance.SetSetting("Main.engineCallerLineNumber", sourceLineNumber);
 
-                Logger.Instance.OnLog += (message, target, level, time, exception) =>
+            Logger.LogDebug($"Initializing Angene for '{appInfo.AppName}' with version '{appInfo.AppVersion}'.", LoggingTarget.Engine);
+            if (!supportedLibs.Contains("Graphics"))
+            {
+                Logger.LogWarning("[Engine.cs | Init] Graphics library was not found for this platform. Skipping shader compilation.", LoggingTarget.Engine);
+                skipGraphics = true;
+            }
+
+            if (!skipGraphics)
+            {
+                try
                 {
-                    if (exception != null)
-                        _logConsole.AppendLine($"[{level}] {target} ({time}) {message}\n{exception}");
-                    else
-                        _logConsole.AppendLine($"[{level}] {target} ({time}) {message}");
-                };
+                    shaderTypes = Assembly.GetCallingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null).Select(t => (SlangShaderResources.IShader)Activator.CreateInstance(t)).ToList();
+                    shaderCount = shaderTypes.Count();
+                }
+                catch(Exception e)
+                {
+                    Logger.LogCritical("Failed to get shaders via attribute, Failing.", LoggingTarget.Engine, e, true);
+                }
+#if WINDOWS
+                if (verbose)
+                {
+                    _logConsole = new LogConsoleWindow();
 
-                Logger.LogDebug("Verbose log console initialized.", LoggingTarget.Engine);
-            }
+                    Logger.Instance.OnLog += (message, target, level, time, exception) =>
+                    {
+                        if (exception != null)
+                            _logConsole.AppendLine($"[{level}] {target} ({time}) {message}\n{exception}");
+                        else
+                            _logConsole.AppendLine($"[{level}] {target} ({time}) {message}");
+                    };
+
+                    Logger.LogDebug("Verbose log console initialized.", LoggingTarget.Engine);
+                }
 #endif
+            }
             Logger.Instance.OnLog += (message, target, level, time, exception) =>
             {
                 if (exception == null && (string)message == "[OnQuit] ExitOnException")
@@ -173,58 +254,331 @@ namespace Angene.Main
                     Environment.Exit(1);
                 }
             };
-            if (shaderTypes != null && shaderCount >= 1)
+
+
+            if (shaderTypes != null && shaderCount >= 1 && !skipGraphics)
             {
                 Logger.LogImportant($"Found {shaderCount} Shaders. Halting startup and attempting compilation..", LoggingTarget.Graphics);
-#if WINDOWS
-                // alright im going to fucking hate this
-                // To generate d3d shaders, low and behold, you *have* to initialize it.
-                // So lets initialize it here then dispose of it after it is done.
-                WindowConfig _w = new();
-                _w.Width = 100; _w.Height = 100;
-                _w.X = -10000; _w.Y = -10000;
-                _w.Style = WindowManagement.WindowStyle.PopupWindow;
-                _w.ShowOnCreate = true;
-                _w.Title = "D3D11 Dummy Window | Ignore.";
-                _w.renderMode = RenderType.D3D11;
-                Window _window = new(_w);
-                IDX11GraphicsContext _graphicscontext = _window.Graphics as IDX11GraphicsContext;
-                if (_graphicscontext == null)
-                    Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy D3D11 window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on D3D11 Window."), true);
-
-                if (SharedD3D11Device == IntPtr.Zero)
+                bool usesVulkan = false;
+                bool usesD3D11 = false;
+                foreach (SlangShaderResources.IShader shader in shaderTypes)
                 {
-                    SharedD3D11Device = (IntPtr)_graphicscontext.Handle;
-                    SharedD3D11Context = _graphicscontext.ContextHandle;
-                    Marshal.AddRef(SharedD3D11Device);
-                    Marshal.AddRef(SharedD3D11Context);
+                    if (shader.Origin == SlangShaderResources.ShaderOrigin.Dx11)
+                        usesD3D11 = true;
+                    else if (shader.Origin == SlangShaderResources.ShaderOrigin.Vulkan)
+                        usesVulkan = true;
+                }
+                Window _D3dwindow = null;
+                IDX11GraphicsContext _D3Dgraphicscontext = null;
+                Window _Vkwindow = null;
+                VkGraphicsContext _Vkgraphicscontext = null;
+                
+#if WINDOWS
+                if (usesD3D11)
+                {
+                    // alright im going to fucking hate this
+                    // To generate d3d shaders, low and behold, you *have* to initialize it.
+                    // So lets initialize it here then dispose of it after it is done.
+                    WindowConfig _D3DW = new();
+                    _D3DW.Width = 100; _D3DW.Height = 100;
+                    _D3DW.X = -10000; _D3DW.Y = -10000;
+                    _D3DW.Style = WindowManagement.WindowStyle.PopupWindow;
+                    _D3DW.ShowOnCreate = true;
+                    _D3DW.Title = "D3D11 Dummy Window | Ignore.";
+                    _D3DW.renderMode = RenderType.D3D11;
+                    _D3dwindow = new(_D3DW);
+                    _D3Dgraphicscontext = _D3dwindow.Graphics as IDX11GraphicsContext;
+                    if (_D3Dgraphicscontext == null)
+                        Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy D3D11 window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on D3D11 Window."), true);
+
+                    if (SharedD3D11Device == IntPtr.Zero)
+                    {
+                        SharedD3D11Device = _D3Dgraphicscontext.Handle;
+                        SharedD3D11Context = _D3Dgraphicscontext.ContextHandle;
+                        Marshal.AddRef(SharedD3D11Device);
+                        Marshal.AddRef(SharedD3D11Context);
+                    }
+                }
+#endif
+                if (usesVulkan)
+                {
+
+#if WINDOWS
+                    Logger.LogCritical("Using Vulkan on Windows is not supported. Please use D3D11.", LoggingTarget.Engine, new AngeneException("Using Vulkan on Windows is not supported. Please use D3D11."), true);
+#endif
+#if LINUX
+
+                    WindowConfig _VkW = new(); // Im literally copying the above for Vk
+                    _VkW.Width = 100; _VkW.Height = 100;
+                    _VkW.X = -10000; _VkW.Y = -10000;
+                    _VkW.ShowOnCreate = true;
+                    _VkW.Title = "Vulkan Dummy Window | Ignore.";
+                    _VkW.renderMode = RenderType.Vulkan;
+                    _Vkwindow = new (_VkW);
+                    _Vkgraphicscontext = _Vkwindow.Graphics as VkGraphicsContext; // Vulkan n stuff
+                    if (_Vkgraphicscontext == null)
+                        Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy Vulkan window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on Vulkan Window."), true);
+#endif
                 }
 
                 // now start shader comp
-                StartShaderCompilation(shaderTypes, shaderCount, _graphicscontext.Handle, _window);
+                if (usesD3D11 && usesVulkan)
+                {
+#if WINDOWS
+                    StartShaderCompilation(shaderTypes, shaderCount, _D3Dgraphicscontext.Handle, _D3dwindow, _Vkgraphicscontext.Handle, _Vkwindow, verbose);
 #endif
+                }
+                else if (usesD3D11 && !usesVulkan)
+                {
+#if WINDOWS
+                    StartShaderCompilation(shaderTypes, shaderCount, _D3Dgraphicscontext.Handle, _D3dwindow, null, null, verbose);
+#endif
+                }
+                else if (!usesD3D11 && usesVulkan)
+                {
+                    StartShaderCompilation(shaderTypes, shaderCount, null, null, _Vkgraphicscontext.Handle, _Vkwindow, verbose);
+                }
             }
         }
-#if WINDOWS
-        private void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int _shaderCount, IntPtr _devicePtr, Window _compilationWindow)
+
+        private void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int _shaderCount, IntPtr? _D3DDevicePtr, Window? _D3DCompilationWindow, IntPtr? _VkDevicePtr, Window? _VkCompilationWindow, bool verbose = false)
         {
-            // Create a new window for showing progress
-            WindowConfig _w = new();
-            _w.Width = 640; _w.Height = 480;
-            _w.Style = WindowManagement.WindowStyle.PopupWindow;
-            _w.ShowOnCreate = true;
-            _w.Title = "Angene Shader Compilation";
-            _w.renderMode = RenderType.GDI;
-            Window _WindowInstance = new Window(_w);
-            
-            IScene scene = new ShaderCompilationScene(_shaderTypes, _shaderCount, _devicePtr, _compilationWindow, (IntPtr)_WindowInstance.Hwnd, _WindowInstance);
-            _WindowInstance.SetScene(scene);
-            scene.Initialize();
-        }
-#endif
-    }
 #if WINDOWS
-    internal class ShaderCompilationScene : IScene
+            if (_D3DDevicePtr != null && _D3DCompilationWindow != null)
+            {
+                // Create a new window for showing progress
+                WindowConfig _wD3D = new();
+                _wD3D.Width = 640; _wD3D.Height = 480;
+                _wD3D.Style = WindowManagement.WindowStyle.PopupWindow;
+                _wD3D.ShowOnCreate = true;
+                _wD3D.Title = "Angene Shader Compilation";
+                _wD3D.renderMode = RenderType.GDI;
+                Window _WindowInstanceD3D = new Window(_wD3D);
+
+                IScene D3DScene = new Dx11ShaderCompilationScene(_shaderTypes, _shaderCount, (IntPtr)_D3DDevicePtr, _D3DCompilationWindow, _WindowInstanceD3D.Handle, _WindowInstanceD3D, verbose);
+            }
+#endif
+
+            if (_VkDevicePtr != null && _VkCompilationWindow != null)
+            {
+                WindowConfig _wVk = new();
+                _wVk.Width = 10; _wVk.Height = 10;
+                _wVk.X = -10000; _wVk.Y = -10000;
+                _wVk.ShowOnCreate = false;
+                _wVk.Title = "Angene Shader Compilation";
+                _wVk.renderMode = RenderType.Vulkan;
+                Window _WindowInstanceVk = new Window(_wVk);
+
+                IScene Vkscene = new VulkanShaderCompilationScene(_shaderTypes, _shaderCount, (IntPtr)_VkDevicePtr, _VkCompilationWindow, verbose, _WindowInstanceVk);
+                _WindowInstanceVk.SetScene(Vkscene);
+                Vkscene.Initialize();
+            }
+        }
+    }
+
+    internal class VulkanShaderCompilationScene : IScene
+    {
+        public object Instance { get; private set; }
+
+        public List<Entity> Entities { get; private set; } = new List<Entity>();
+        public string Name => "VulkanShaderCompilationScene";
+
+        private readonly List<SlangShaderResources.IShader> _shaderTypes;
+        private int _shaderCount;
+        private bool _verbose;
+        public double _timeElapsed;
+        public int _shaderNum;
+        public bool _started;
+        public bool _done;
+        private IntPtr _devicePtr;
+        private Window _compilationWindow;
+        private Window _thisWindow;
+
+        public VulkanShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, bool verbose, Window thisWindow)
+        {
+            _shaderTypes = shaderTypes;
+            _verbose = verbose;
+            _shaderCount = shaderCount;
+            _timeElapsed = 0;
+            _shaderNum = 0;
+            _started = false;
+            _devicePtr = devicePtr;
+            _compilationWindow = compilationWindow;
+            _thisWindow = thisWindow;
+        }
+
+        public void Cleanup()
+        {
+            _compilationWindow.Close();
+            _thisWindow.Close();
+        }
+        public void Initialize()
+        {
+            Instance = this;
+            _started = true;
+            _done = false;
+            Engine.Instance.IsCompilingShaders = true;
+        }
+        public void OnMessage(nint msgPtr) { }
+        public void Render()
+        {
+            if (_shaderNum < _shaderCount)
+            {
+                _timeElapsed = 0;
+                SlangShaderResources.IShader current = _shaderTypes[_shaderNum];
+                Logger.LogDebug($"Shader num {_shaderNum}/{_shaderCount - 1} (_shaderTypes Max: {_shaderTypes.Count})", LoggingTarget.Graphics);
+                switch (current.Origin)
+                {
+                    case SlangShaderResources.ShaderOrigin.Vulkan:
+                        if (current.VerboseLog)
+                            Logger.LogDebug($"Compiling Vulkan shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
+                        CompileVulkanShader(current, _devicePtr, current.compileToFile);
+                        break; 
+                }
+
+                _shaderNum++;
+            }
+            else
+            {
+                _done = true;
+                Engine.Instance.IsCompilingShaders = false;
+                Cleanup();
+            }
+        }
+
+        private void CompileVulkanShader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
+        {
+            string stage = shader.Type switch
+            {
+                SlangShaderResources.ShaderType.Vertex => "vertex",
+                SlangShaderResources.ShaderType.Pixel => "fragment",
+                SlangShaderResources.ShaderType.Fragment => "fragment",
+                SlangShaderResources.ShaderType.Compute => "compute",
+                _ => throw new AngeneException($"Unknown stage for shader '{shader.Name}'")
+            };
+
+            string cachePath = Path.Combine(
+                Engine.Instance.settingsInstance.GetSetting<string>("Graphics.ShaderDirectory"),
+                $"{shader.Name}-Angene-{shader.Type}-{shader.id}-{shader.Origin}.spv.cache");
+
+            byte[] code = null;
+
+            if (CompileToFile && File.Exists(cachePath))
+            {
+                if (!TryLoadVerifiedShaderFile(cachePath, out code))
+                {
+                    Logger.LogDebug($"Cached SPIR-V for '{shader.Name}' failed verification, recompiling.", LoggingTarget.Graphics);
+                    code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                    byte[] intBytes = BitConverter.GetBytes(code.Length);
+                    byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
+                    Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
+                    fileData[intBytes.Length] = 0xAF;
+                    Buffer.BlockCopy(code, 0, fileData, intBytes.Length + 1, code.Length);
+                    fileData[intBytes.Length + 1 + code.Length] = 0xAA;
+
+                    try
+                    {
+                        string dir = Path.GetDirectoryName(cachePath);
+                        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                            Directory.CreateDirectory(dir);
+
+                        File.WriteAllBytes(cachePath, fileData);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogWarning($"Failed to write shader cache '{cachePath}': {ex.Message}", LoggingTarget.Graphics);
+                    }
+                }
+            }
+            else if (CompileToFile)
+            {
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                byte[] intBytes = BitConverter.GetBytes(code.Length);
+                byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
+                Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
+                fileData[intBytes.Length] = 0xAF;
+                Buffer.BlockCopy(code, 0, fileData, intBytes.Length + 1, code.Length);
+                fileData[intBytes.Length + 1 + code.Length] = 0xAA;
+
+                try
+                {
+                    string dir = Path.GetDirectoryName(cachePath);
+                    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                        Directory.CreateDirectory(dir);
+                    File.WriteAllBytes(cachePath, fileData);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning($"Failed to write shader cache '{cachePath}': {ex.Message}", LoggingTarget.Graphics);
+                }
+            }
+            else
+            {
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+            }
+
+            unsafe
+            {
+                fixed (byte* pCode = code)
+                {
+                    var createInfo = new VkShaderModuleCreateInfo
+                    {
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+                        codeSize = (nuint)code.Length,
+                        pCode = (uint*)pCode
+                    };
+
+                    IntPtr module;
+                    VkResult result = Vulkan.Interop.Methods.vkCreateShaderModule(devicePtr, &createInfo, null, &module);
+                    if (result != VkResult.VK_SUCCESS)
+                        throw new AngeneException($"Failed to create shader module for '{shader.Name}': {result}");
+
+                    var wrapped = new VkShader(shader.Name, shader.Type, null, shader.id, module, code);
+                    Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
+                    Engine.Instance.ShaderCache[shader.id] = wrapped;
+                }
+            }
+        }
+
+        private static bool TryLoadVerifiedShaderFile(string path, out byte[] code)
+        {
+            code = null;
+            try
+            {
+                byte[] fileData = File.ReadAllBytes(path);
+                if (fileData.Length < 6) // 4 (length) + 1 (0xAF) + 1 (0xAA) minimum
+                    return false;
+
+                int length = BitConverter.ToInt32(fileData, 0);
+                if (length < 0 || fileData.Length != 4 + 1 + length + 1)
+                    return false; // size doesn't line up with the declared length -> corrupt/truncated
+
+                if (fileData[4] != 0xAF)
+                    return false; // start marker missing
+
+                if (fileData[4 + 1 + length] != 0xAA)
+                    return false; // end marker missing
+
+                code = new byte[length];
+                Buffer.BlockCopy(fileData, 5, code, 0, length);
+                return true;
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogDebug($"Failed to verify shader file '{path}': {ex.Message}", LoggingTarget.Graphics);
+                return false;
+            }
+        }
+
+
+    }
+
+#if WINDOWS
+    internal class Dx11ShaderCompilationScene : IScene
     {
         public object Instance { get; private set; }
         public List<Entity> Entities { get; private set; } = new List<Entity>();
@@ -232,6 +586,7 @@ namespace Angene.Main
 
         private readonly List<SlangShaderResources.IShader> _shaderTypes;
         private int _shaderCount;
+        private bool _verbose;
         public double _timeElapsed;
         public int _shaderNum;
         public bool _started;
@@ -241,16 +596,17 @@ namespace Angene.Main
         private IntPtr _hwnd;
         private Window _thisWindow;
 
-        public ShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, IntPtr hwnd, Window thisWindow)
+        public Dx11ShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, object handle, Window thisWindow, bool verbose)
         { 
             _shaderTypes = shaderTypes;
+            _verbose = verbose;
             _shaderCount = shaderCount;
             _timeElapsed = 0;
             _shaderNum = 0;
             _started = false;
             _devicePtr = devicePtr;
             _compilationWindow = compilationWindow;
-            _hwnd = hwnd;
+            _hwnd = ((MicrosoftWindowHandle)handle).Hwnd;
             _thisWindow = thisWindow;
         }
 
@@ -286,9 +642,17 @@ namespace Angene.Main
                     {
                         _timeElapsed = 0;
                         r.DrawText(centerx, centery - 70, "Running...", 0x0F0);
-                        Logger.LogDebug($"Shader num {_shaderNum}/{_shaderCount - 1} (_shaderTypes Max: {_shaderTypes.Count})", LoggingTarget.Graphics);
                         SlangShaderResources.IShader current = _shaderTypes[_shaderNum];
-                        CompileShader(current, _devicePtr, current.compileToFile);
+                        Logger.LogDebug($"Shader num {_shaderNum}/{_shaderCount - 1} (_shaderTypes Max: {_shaderTypes.Count})", LoggingTarget.Graphics);
+                        switch (current.Origin)
+                        {
+                            case SlangShaderResources.ShaderOrigin.Dx11:
+                                if (current.VerboseLog)
+                                    Logger.LogDebug($"Compiling Dx11 shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
+                                CompileDx11Shader(current, _devicePtr, current.compileToFile);
+                                break;
+                        }
+                        
                         _shaderNum++;
                     }
                     else
@@ -342,7 +706,7 @@ namespace Angene.Main
             }
         }
 
-        private void CompileShader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
+        private void CompileDx11Shader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
         {
             string stage = shader.Type switch
             {
@@ -353,7 +717,7 @@ namespace Angene.Main
             };
 
             string cachePath = Path.Combine(
-                Engine.Instance.SettingHandlerInstanced.GetSetting<string>("Graphics.ShaderDirectory"),
+                Engine.Instance.settingsInstance.GetSetting<string>("Graphics.ShaderDirectory"),
                 $"{shader.Name}-Angene-{shader.Type}-{shader.id}-{shader.Origin}.cso");
 
             byte[] code = null;
@@ -364,18 +728,18 @@ namespace Angene.Main
                 if (!TryLoadVerifiedShaderFile(cachePath, out code))
                 {
                     Logger.LogDebug($"Cached shader file for '{shader.Name}' failed verification, recompiling.", LoggingTarget.Graphics);
-                    code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath);
+                    code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
                 }
             }
             else if (CompileToFile)
             {
                 // No cache yet — compile and write the verified file for next time.
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
             }
             else
             {
                 // Not using file caching at all.
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemory(shader.Code, shader.EntryPoint, stage);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryD3D11(shader.Code, shader.EntryPoint, stage);
             }
 
             unsafe
@@ -393,8 +757,8 @@ namespace Angene.Main
                     else
                         Logger.LogDebug($"Bytecode length: {code.Length}", LoggingTarget.MainGame);
                     var wrapped = new Dx11Shader(shader.Name, shader.Type, null, null, IntPtr.Zero, nativeShader, shader.id, code);
-                    Engine.Instance.ShaderCache ??= new Dictionary<int, SlangShaderResources.IShader>();
-                    Engine.Instance.ShaderCache[shader.id] = (SlangShaderResources.IShader)wrapped;
+                    Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
+                    Engine.Instance.ShaderCache[shader.id] = wrapped;
                 }
             }
         }
@@ -409,7 +773,7 @@ namespace Angene.Main
 
     public class Window
     {
-        public object Hwnd { get; private set; }
+        public object Handle { get; private set; }
 
         public List<IScene> Scenes { get; private set; } = new List<IScene>();
         public IScene? PrimaryScene { get; private set; }
@@ -433,6 +797,9 @@ namespace Angene.Main
         private string _instanceConnectionString;
         private static readonly User32.WndProcDelegate s_wndProc = DefaultWndProc;
 #endif
+#if LINUX
+        public nuint wmDeleteAtom, wmPingAtom;
+#endif
         private static bool s_classRegistered;
 
         [Obsolete("This method is deprecated. Please use the 'WindowConfig' constructor instead.", true)]
@@ -454,27 +821,20 @@ namespace Angene.Main
                 _instanceConnectionString = null;
             }
 #endif
-            
-            if (Engine.Instance.IsCompilingShaders)
-            {
-                Logger.LogInfo("You are not currently allowed to create windows while shader compilation is occuring. This window creation call has been added to a queue.", LoggingTarget.Engine);
-                Engine.Instance.AddSceneToCreationQueue(config);
-                return;
-            }
 
-            Hwnd = CreateWindow(config, config.cTI, config.cTS, config.cTT);
-            if (Hwnd.GetType() != typeof(String))
+            Handle = CreateWindow(config, config.cTI, config.cTS, config.cTT);
+            if (Handle.GetType() != typeof(String))
             {
-                WindowMap[(IntPtr)Hwnd] = this;
+                WindowMap[Handle] = this;
             }
             else
             {
-                WindowMap[Hwnd] = this;
+                WindowMap[Handle] = this;
             }
             Engine.Instance.OpenWindows.Add(this);
 
             string initToken = Guid.NewGuid().ToString("N");
-            Engine.Instance.SettingHandlerInstanced.SetSetting("Main.OTT", initToken); // One Time Token
+            Engine.Instance.settingsInstance.SetSetting("Main.OTT", initToken); // One Time Token
             var mgmtScene = new Angene.Management.ManagementScene(initToken);
             AddScene(mgmtScene);
 
@@ -482,18 +842,22 @@ namespace Angene.Main
             {
 #if WINDOWS
                 if (config.renderMode == RenderType.D3D11 && Engine.Instance.SharedD3D11Device != IntPtr.Zero)
-                    graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height, (int)config.renderMode,
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode,
                         Engine.Instance.SharedD3D11Device, Engine.Instance.SharedD3D11Context);
                 else
-                    graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height, (int)config.renderMode);
-#else
-                graphicsContext = GraphicsContextFactory.Create((IntPtr)Hwnd, config.Width, config.Height, (int)config.renderMode);
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
 #endif
+                if (config.renderMode == RenderType.Vulkan)
+                {
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, shaderStages: Engine.Instance.ShaderCache);
+                }
+                else
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
             }
 #if WINDOWS
             else
             {
-                graphicsContext = GraphicsContextFactory.CreateWS((string)Hwnd, config.Width, config.Height);
+                graphicsContext = GraphicsContextFactory.CreateWS((string)Handle, config.Width, config.Height);
                 var streamer = new Websocket.WebStreamer(this);
                 _screenPlay = streamer;
                 RegisterWebSocketInput();
@@ -565,10 +929,10 @@ namespace Angene.Main
                 List<Entity> e = scene.GetEntities(); // If this throws a new Entity of 'ManagementCheck$o7' (creating entity of this name would fail), then we have passed.
                 if (e != null && e.Count == 1)
                 {
-                    if (e[0].name == Engine.Instance.SettingHandlerInstanced.GetSetting("Main.OTT").ToString())
+                    if (e[0].name == Engine.Instance.settingsInstance.GetSetting("Main.OTT").ToString())
                     {
                         e[0].name = "Ent1"; // Rename to indicate success, set management scene, and fail on all other occurances of a Management Scene.
-                        Engine.Instance.SettingHandlerInstanced.SetSetting("Main.OTT", null); // Clear the one time token to prevent reuse
+                        Engine.Instance.settingsInstance.SetSetting("Main.OTT", null); // Clear the one time token to prevent reuse
                         ManagementScene = scene;
                         scene.Initialize();
                         Logger.LogDebug("ManagementScene attached successfully.", LoggingTarget.Engine);
@@ -670,7 +1034,7 @@ namespace Angene.Main
 
                     var msg = new WindowManagement.MSG
                     {
-                        hwnd = Hwnd is IntPtr h ? h : IntPtr.Zero,
+                        hwnd = ((MicrosoftWindowHandle)Handle).Hwnd is IntPtr h ? h : IntPtr.Zero,
                         message = message,
                         wParam = wParam,
                         lParam = lParam
@@ -719,12 +1083,20 @@ namespace Angene.Main
             return int.TryParse(json.Substring(start, end - start), out int val) ? val : 0;
         }
 
-        private static object CreateWindow(WindowConfig config, bool cTI, string cTS, object type)
+        private object CreateWindow(WindowConfig config, bool cTI, string cTS, object type)
         {
+            if (!Engine.Instance.supportedLibs.Contains("Graphics"))
+                Logger.LogCritical("Graphics library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("Graphics library was not found at init. Installation is corrupt or incomplete."), true);
 #if WINDOWS
+            if (!Engine.Instance.supportedLibs.Contains("Windows"))
+                Logger.LogCritical("Windows library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("Windows library was not found at init. Installation is corrupt or incomplete."), true);
             return CreateWindowWindows(config, cTI, cTS, type);
 #else
-            throw new AngeneException("Window creation not yet implemented for non-windows platforms.");
+            if (!Engine.Instance.InitializedXThreads)
+                Engine.Instance.XInitThreads();
+            if (!Engine.Instance.supportedLibs.Contains("X11"))
+                Logger.LogCritical("X11 library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("X11 library was not found at init. Installation is corrupt or incomplete."), true);
+            return CreateWindowX11(config, cTI, cTS, type);
 #endif
         }
 
@@ -742,7 +1114,7 @@ namespace Angene.Main
                     Logger.LogWarning("If the game developer does NOT allow this, the process will be terminated, commencing check.", LoggingTarget.Engine);
 
                     // check settings
-                    Settings settings = Engine.Instance.SettingHandlerInstanced;
+                    Settings settings = Engine.Instance.settingsInstance;
                     object? a = settings.GetSetting("Main.getIsGameAllowedForWebsockets");
                     if (!(bool)a)
                     {
@@ -815,7 +1187,7 @@ namespace Angene.Main
                 User32.ShowWindow(hwnd, Consts.SW_SHOW);
                 Logger.LogDebug($"Window({hwnd}) shown", LoggingTarget.Engine);
                 User32.UpdateWindow(hwnd);
-                return hwnd;
+                return new MicrosoftWindowHandle(hwnd);
 
             }
             return IntPtr.Zero;
@@ -925,25 +1297,11 @@ namespace Angene.Main
 
             return User32.DefWindowProcW(hWnd, msg, wParam, lParam);
         }
+#endif
 
-        /// <summary>
-        /// Process Windows messages.
-        /// Returns false when WM_QUIT is received.
-        /// </summary>
-        public static bool ProcessMessages()
-        {
-            while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
-            {
-                if (msg.message == (uint)WM.QUIT)
-                    return false;
-
-                User32.TranslateMessage(ref msg);
-                User32.DispatchMessageW(ref msg);
-            }
-            return true;
-        }
         public void RenderFrame()
         {
+#if WINDOWS
             if (graphicsContext is IDX11GraphicsContext dx11)
             {
                 dx11.BeginFrame(0xFF202020);
@@ -964,9 +1322,89 @@ namespace Angene.Main
 
                 return;
             }
-
+#endif
+            // Non-DX path: call each scene.Render()
             foreach (var scene in Scenes)
-                scene.Render();
+            {
+                try
+                {
+                    scene.Render();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Exception rendering scene '{scene?.Name}': {ex.Message}", LoggingTarget.Engine);
+                }
+            }
+
+            // Try to present the final buffer for non-DX graphics contexts.
+            // Present takes the window handle; some contexts may ignore the handle if not needed.
+            try
+            {
+                if (graphicsContext != null)
+                {
+                    if (Handle is MicrosoftWindowHandle)
+                        graphicsContext.Present(((MicrosoftWindowHandle)Handle).Hwnd);
+                    else
+                        graphicsContext.Present(IntPtr.Zero);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogDebug($"Present failed in RenderFrame: {ex.Message}", LoggingTarget.Engine);
+            }
+        }
+
+#if LINUX
+        // Linux specific api stuff
+        private unsafe X11WindowHandle CreateWindowX11(WindowConfig config, bool cTI, string cTS, object type)
+        {
+            if (cTI && cTS != null && type != null)
+            {
+                Logger.LogError("Websocket streaming is not supported on Linux yet.", LoggingTarget.Engine);
+                return new X11WindowHandle(null, IntPtr.Zero, null);
+            }
+            else
+            {
+                if (Engine.Instance.SharedX11Display == null)
+                {
+                    Engine.Instance.SharedX11Display = Methods.XOpenDisplay(null);
+                    if (Engine.Instance.SharedX11Display == null)
+                    {
+                        Logger.LogCritical("Failed to open X11 display. Ensure that the DISPLAY environment variable is set correctly.", LoggingTarget.Engine, new AngeneException("Failed to open X11 display."), true);
+                    }
+                }
+                nuint window = Methods.XCreateSimpleWindow(Engine.Instance.SharedX11Display, Methods.XDefaultRootWindow(Engine.Instance.SharedX11Display), config.X, config.Y, (uint)config.Width, (uint)config.Height, 0, 0x00000000, 0x00000000);
+                sbyte* titlePtr = ToSBytePtr(config.Title);
+                
+                Methods.XStoreName(Engine.Instance.SharedX11Display, window, titlePtr);
+                Methods.XSelectInput(Engine.Instance.SharedX11Display, window, (IntPtr)(XEventMask.KeyPressMask|XEventMask.KeyReleaseMask|XEventMask.ButtonPressMask|XEventMask.ButtonReleaseMask|XEventMask.PointerMotionMask|XEventMask.StructureNotifyMask));
+                Methods.XMapWindow(Engine.Instance.SharedX11Display, window);
+
+                // Say we can handle closing or some shit
+                sbyte* deleteName = ToSBytePtr("WM_DELETE_WINDOW");
+                sbyte* pingName = ToSBytePtr("_NET_WM_PING");
+                wmDeleteAtom = Methods.XInternAtom(Engine.Instance.SharedX11Display, deleteName, 0);
+                wmPingAtom  = Methods.XInternAtom(Engine.Instance.SharedX11Display, pingName, 0);
+                
+                nuint* protocols = stackalloc nuint[2];
+                protocols[0] = wmDeleteAtom;
+                protocols[1] = wmPingAtom;
+                Marshal.FreeHGlobal((IntPtr)deleteName);
+                Marshal.FreeHGlobal((IntPtr)pingName);
+
+                Methods.XSetWMProtocols(Engine.Instance.SharedX11Display, window, protocols, 2);
+
+                return new X11WindowHandle(Engine.Instance.SharedX11Display, (IntPtr)window, titlePtr);
+            }
+        }
+        public unsafe static sbyte* ToSBytePtr(string myString)
+        {
+            // 1. Allocate space and copy the string data to unmanaged memory
+            IntPtr unmanagedPtr = Marshal.StringToHGlobalAnsi(myString);
+            sbyte* sbytePtr = (sbyte*)unmanagedPtr.ToPointer();
+
+            // 2. Cast directly to an sbyte*
+            return sbytePtr;
         }
 #endif
 
@@ -995,23 +1433,120 @@ namespace Angene.Main
             Engine.Instance.RequestClose(this);
         }
 
-        internal void ReallyClose()
+        internal unsafe void ReallyClose()
         {
-            if (Hwnd is IntPtr hwnd && hwnd != IntPtr.Zero)
+            if (Handle is MicrosoftWindowHandle handle && handle.Hwnd != IntPtr.Zero)
             {
-                WindowMap.Remove(hwnd);
+                WindowMap.Remove(handle);
                 Engine.Instance.OpenWindows.Remove(this);
-#if WINDOWS
-                User32.DestroyWindow(hwnd);
-#else
-                // no window destruction yet
-#endif
+                DestroyGraphicsContext();
+                Logger.LogDebug("Cleaning up window resources.", LoggingTarget.Engine);
+                Cleanup();
+                User32.DestroyWindow(handle.Hwnd);
+                if (Engine.Instance.OpenWindows.Count == 0)
+                    Engine.Instance.ShouldShutdown = true;
             }
-            else if (Hwnd is string strHandle)
+            else if (Handle is X11WindowHandle x11Handle && x11Handle.Display != null && x11Handle.Window != IntPtr.Zero)
+            {
+                WindowMap.Remove(x11Handle);
+                Engine.Instance.OpenWindows.Remove(this);
+                DestroyGraphicsContext();
+
+                Logger.LogDebug("Cleaning up window resources.", LoggingTarget.Engine);
+                Cleanup();
+
+                Methods.XLockDisplay(x11Handle.Display);
+                try
+                {
+                    Methods.XDestroyWindow(x11Handle.Display, (nuint)x11Handle.Window);
+                    Methods.XFlush(x11Handle.Display);
+                }
+                finally
+                {
+                    Methods.XUnlockDisplay(x11Handle.Display);
+                }
+
+                if (Engine.Instance.OpenWindows.Count == 0)
+                    Engine.Instance.ShouldShutdown = true;
+            }
+            else if (Handle is string strHandle)
             {
                 WindowMap.Remove(strHandle);
                 Engine.Instance.OpenWindows.Remove(this);
             }
+        }
+
+        private void DestroyGraphicsContext()
+        {
+            if (graphicsContext is VkGraphicsContext vkContext)
+            {
+                vkContext.Cleanup();
+            }
+#if WINDOWS
+            else if (graphicsContext is DX11GraphicsContext dx11Context)
+            {
+                dx11Context.Cleanup();
+            }
+#endif
+        }
+
+        /// <summary>
+        /// Process Window messages.
+        /// Returns false when Quit/Destroy is received and cleans up.
+        /// </summary>
+        public unsafe bool ProcessMessages(object Handle, Action<object>[] injectedCalls = null)
+        {
+#if LINUX
+            if (Handle is X11WindowHandle _handle)
+            {
+                while (Methods.XPending(_handle.Display) > 0)
+                {
+                    _XEvent xevent = default;
+                    Methods.XNextEvent(_handle.Display, &xevent);
+
+                    IntPtr eventWindowId = (IntPtr)xevent.xany.window;
+                    Window target = WindowMap.Values
+                        .FirstOrDefault(w => w.Handle is X11WindowHandle h && h.Window == eventWindowId);
+
+                    if (target == null)
+                        continue;
+
+                    if (xevent.type == 33 /* ClientMessage */ &&
+                        xevent.xclient.data.l[0] == (IntPtr)target.wmDeleteAtom)
+                    {
+                        target.Close();
+                        continue;
+                    }
+
+                    if (injectedCalls != null)
+                        foreach (var i in injectedCalls)
+                            i(xevent.type);
+                }
+
+                Engine.Instance.FlushPendingCloses();
+            }
+#else
+            if (Handle is MicrosoftWindowHandle)
+            {
+                while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
+                {
+                    if (msg.message == (uint)WM.QUIT)
+                    {
+                        Close();
+                        return false;
+                    }
+                    
+                    if (injectedCalls != null)
+                        foreach (Action<object> i in injectedCalls)
+                            i(msg.message);
+
+                    User32.TranslateMessage(ref msg);
+                    User32.DispatchMessageW(ref msg);
+                    Engine.Instance.FlushPendingCloses();
+                }
+            }
+#endif
+            return !Engine.Instance.ShouldShutdown;
         }
 
 

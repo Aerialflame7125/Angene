@@ -7,13 +7,14 @@ namespace Angene.Graphics.SlangShader
 {
     public class SlangShaderResources
     {
-        public enum ShaderType { Vertex, Pixel, Compute, }
+        public enum ShaderType { Vertex, Pixel, Compute, Fragment }
         public enum ShaderOrigin { Dx11, Dx12, OpenGL, Vulkan }
 
         public abstract class BaseShader : IDisposable // Shader layout for future shaders
         {
             public string Name { get; }
             public bool IsDisposed { get; private set; }
+            public bool VerboseLog { get; set; } = false;
             public ShaderType Type { get; }
 
             public ShaderOrigin Origin { get; }
@@ -70,6 +71,7 @@ namespace Angene.Graphics.SlangShader
             string Extension { get; }
             string Name { get; }
             string EntryPoint { get; }
+            bool VerboseLog { get; set; }
             string Code { get; }
             byte[] byteCode { get; }
             ShaderOrigin Origin { get; }
@@ -89,6 +91,7 @@ namespace Angene.Graphics.SlangShader
 
         public int id { get; }
         public bool compileToFile { get; }
+        public bool VerboseLog { get; set; } = false;
         public IntPtr NativeShader => _nativeShaderPtr;
         public static ShaderOrigin Origin => ShaderOrigin.Dx11;
 
@@ -130,5 +133,36 @@ namespace Angene.Graphics.SlangShader
             }
         }
     }
+    public class VkShader : BaseShader, IShader
+    {
+        public IntPtr NativeShaderModule { get; internal set; }
+        public int id { get; }
+        public bool compileToFile { get; }
+        public bool VerboseLog { get; set; } = false;
+        public static ShaderOrigin Origin => ShaderOrigin.Vulkan;
 
+        public string Code { get; }
+        public string Extension => "spv";
+        public string EntryPoint { get; }
+        public byte[] byteCode { get; }
+
+        public VkShader(string name, ShaderType type, object slangReflectionData, int id, IntPtr nativeShaderModule = 0,
+            byte[] byteCode = null, string code = null)
+            : base(name, type, slangReflectionData)
+        {
+            this.byteCode = byteCode;
+            Code = code;
+            NativeShaderModule = nativeShaderModule;
+            this.id = id;
+        }
+
+        public override void Bind() { /* handled via pipeline bind, not per-shader */ }
+
+        protected override void DestroyNativeShader()
+        {
+            // needs the owning VkDevice handle to call vkDestroyShaderModule -
+            // store it in the constructor if VkShader needs to self destruct,
+            // or have the graphics context own destruction via its resource tracking dictionaries.
+        }
+    }
 }

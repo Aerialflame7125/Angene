@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+	<TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Native/win-x64/vma.dll">
+      <LogicalName>Angene.Vulkan.Native.win-x64.vma.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Native/linux-x64/libvma.so">
+      <LogicalName>Angene.Vulkan.Native.linux-x64.libvma.so</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

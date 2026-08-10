@@ -3,13 +3,40 @@ using Angene.Graphics.DX11;
 using Angene.Graphics.SlangShader;
 using Angene.Windows;
 using Angene.Windows.D3D11;
+using Angene.X11.Interop;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using static Angene.Vulkan.Interop.Enumerators;
+using static Angene.Vulkan.Interop.Structs;
 using static Angene.Windows.Dxgi.DxgiEnums;
 
 namespace Angene.Graphics
 {
+    public unsafe class X11WindowHandle
+    {
+        public XLib._XDisplay* Display { get; }
+        public IntPtr Window { get; }
+        public sbyte* TitlePtr { get; }
+
+        public X11WindowHandle(XLib._XDisplay* display, IntPtr window, sbyte* titlePtr)
+        {
+            Display = display;
+            Window = window;
+            TitlePtr = titlePtr;
+        }
+    }
+
+    public class MicrosoftWindowHandle
+    {
+        public IntPtr Hwnd { get; }
+
+        public MicrosoftWindowHandle(IntPtr hwnd)
+        {
+            Hwnd = hwnd;
+        }
+    }
+
     // Abstract interface for platform-specific graphics
     public interface IGraphicsContext
     {
@@ -17,6 +44,7 @@ namespace Angene.Graphics
         void Clear(uint color);
         void Present(IntPtr windowHandle);
         void Cleanup();
+        bool isDisposed();
         void Resize(int width, int height);
         byte[] GetRawPixels();
     }
@@ -28,7 +56,7 @@ namespace Angene.Graphics
         public DXGI_FORMAT Format;
         public uint ByteOffset;
     }
-#if WINDOWS
+
     public interface IDX11GraphicsContext : IGraphicsContext
     {
         IntPtr ContextHandle { get; }
@@ -37,6 +65,7 @@ namespace Angene.Graphics
         IntPtr CreateVertexShader(byte[] bytecode);
         IntPtr CreatePixelShader(byte[] bytecode);
         IntPtr CreateInputLayout(InputElement[] elements, byte[] vsBytecode);
+
         void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0);
         void SetIndexBuffer(IntPtr buffer, uint offset = 0);
         void SetInputLayout(IntPtr inputLayout);
@@ -68,6 +97,7 @@ namespace Angene.Graphics
         private IntPtr oldBitmap;
         private int width;
         private int height;
+        private bool _disposed = false;
 
         public IntPtr Handle => memDc;
         
@@ -133,7 +163,9 @@ namespace Angene.Graphics
                 Gdi32.DeleteObject(bitmap);
             if (memDc != IntPtr.Zero)
                 Gdi32.DeleteDC(memDc);
+            _disposed = true;
         }
+        public bool isDisposed() => _disposed;
     }
     public class WSGraphicsContext : IGraphicsContext
     {
@@ -143,6 +175,7 @@ namespace Angene.Graphics
         private IntPtr oldBitmap;
         private int width;
         private int height;
+        private bool _disposed = false;
 
         public IntPtr Handle => memDc;
 
@@ -203,7 +236,9 @@ namespace Angene.Graphics
                 Gdi32.DeleteObject(bitmap);
             if (memDc != IntPtr.Zero)
                 Gdi32.DeleteDC(memDc);
+            _disposed = true;
         }
+        public bool isDisposed() => _disposed;
         public byte[] GetRawPixels()
         {
             int size = width * height * 4;
@@ -229,26 +264,77 @@ namespace Angene.Graphics
         }
     }
 
-#endif
+    public interface IVkGraphicsContext : IGraphicsContext
+    {
+        // Context
+        IntPtr VkInstance { get; } // keep as IntPtr
+        IntPtr VkPhysicalDevice { get; } // keep as IntPtr
+        IntPtr VkDevice { get; } // keep as IntPtr
+        IntPtr VkQueue { get; }
+
+        // Window/Presentation
+        IntPtr VkSurfaceKHR { get; } // keep as IntPtr
+        IntPtr VkSwapchainKHR { get; } // keep as IntPtr
+        VkFormat VkFormat { get; }
+        VkExtent2D VkExtent2D { get; }
+        int SwapchainImageCount { get; }
+        int CurrentImageIndex { get; }
+
+        // Execution/Rendering
+        IntPtr VkCommandPool { get; }
+        IntPtr VkCommandBuffer { get; } // keep as IntPtr
+        IntPtr VkRenderPass { get; }
+        IntPtr VkFramebuffer { get; }
+        IntPtr VkPipeline { get; }
+        IntPtr VkSemaphoreImageAvailable { get; }
+        IntPtr VkSemaphoreRenderFinished { get; }
+        IntPtr VkFenceInFlight { get; }
+
+        // IGraphicsContext
+        IntPtr Handle => (IntPtr)VkDevice;
+        IntPtr ContextHandle => (IntPtr)VkInstance;
+
+        // Resource creation
+        IntPtr CreateVertexBuffer(byte[] data, uint strideBytes);
+        IntPtr CreateIndexBuffer(uint[] indices);
+        IntPtr CreatePipeline(IntPtr vertexShaderModule, IntPtr fragmentShaderModule,
+                      VkVertexInputAttributeDescription[] attributes, uint strideBytes);
+
+        // Per-draw state
+        void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0);
+        void SetIndexBuffer(IntPtr buffer, uint offset = 0);
+        void SetPipeline(IntPtr pipeline);
+        void Draw(uint vertexCount, uint startVertex = 0);
+        void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0);
+
+        // Frame lifecycle
+        void BeginFrame(uint clearColor);
+        void EndFrame();
+    }
+    
     // Factory for creating platform-specific graphics contexts
     public static class GraphicsContextFactory
     {
-        public static IGraphicsContext Create(IntPtr windowHandle, int width, int height, int renderMode, IntPtr existingDevice = default, IntPtr existingContext = default)
+        public static unsafe IGraphicsContext Create(object windowHandle, int width, int height, int renderMode, IntPtr existingDevice = default, IntPtr existingContext = default, Dictionary<int, object> shaderStages = null)
         {
             if (renderMode == 0)
 #if WINDOWS
-                return new GdiGraphicsContext(windowHandle, width, height);
+                return new GdiGraphicsContext(((MicrosoftWindowHandle)windowHandle).Hwnd, width, height);
 #else
                 throw new Exceptions.FailedToCreateGraphicsBackendException("GDI is only supported on Windows.");
 #endif
             if (renderMode == 2)
 #if WINDOWS
-                return new DX11GraphicsContext(windowHandle, width, height, existingDevice, existingContext);
+                return new DX11GraphicsContext(((MicrosoftWindowHandle)windowHandle).Hwnd, width, height, existingDevice, existingContext);
 #else
                 throw new Exceptions.FailedToCreateGraphicsBackendException("DirectX11 is only supported on Windows.");
 #endif
             if (renderMode == 1)
                 throw new Exceptions.FailedToCreateGraphicsBackendException("There currently is not an IGraphicsContext definition for OpenGL.");
+            if (renderMode == 3)
+            {
+                return new VkGraphicsContext(windowHandle, width, height, shaderStages);
+            }
 
             Common.Logger.LogCritical(
                 "[GraphicsContextFactory] Failed to create IGraphicsContext, 'Graphics.RenderMode' is not a possible value.",

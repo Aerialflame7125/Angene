@@ -1,5 +1,7 @@
 #include <windows.h>
 #include <stdio.h>
+#include <stdarg.h>
+#include <iostream>
 #include <string>
 #include <vector>
 #include "nethost.h"
@@ -10,18 +12,81 @@
 
 bool g_consoleAvailable = false;
 
-// Check if we have a console available
-bool CheckConsoleAvailable()
+// A WinMain-subsystem app has no console of its own, even when launched from
+// cmd/PowerShell. AttachConsole(ATTACH_PARENT_PROCESS) hooks us into the
+// console of whatever process started us (if any), and we then have to
+// re-point the CRT's stdout/stderr/stdin at that console explicitly.
+// If there's no parent console (e.g. launched by double-clicking the exe),
+// this fails and we just stay silent rather than popping up a new window.
+bool AttachToConsole()
 {
-    HWND consoleWnd = GetConsoleWindow();
-    if (consoleWnd == NULL)
+    if (!AttachConsole(ATTACH_PARENT_PROCESS))
         return false;
 
-    HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hStdOut == NULL || hStdOut == INVALID_HANDLE_VALUE)
-        return false;
+    FILE* fp = nullptr;
+    freopen_s(&fp, "CONOUT$", "w", stdout);
+    freopen_s(&fp, "CONOUT$", "w", stderr);
+    freopen_s(&fp, "CONIN$", "r", stdin);
+
+    // freopen only rebinds the CRT's FILE* streams. Managed code (the .NET
+    // Console class) reads the process's Win32-level standard handles via
+    // GetStdHandle instead, so without this, System.Console.WriteLine calls
+    // in the hosted assembly are silently swallowed even though our own
+    // printf-based logging works fine.
+    HANDLE hConOut = CreateFileW(L"CONOUT$", GENERIC_READ | GENERIC_WRITE,
+                                  FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+                                  OPEN_EXISTING, 0, nullptr);
+    HANDLE hConIn = CreateFileW(L"CONIN$", GENERIC_READ | GENERIC_WRITE,
+                                 FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+                                 OPEN_EXISTING, 0, nullptr);
+
+    if (hConOut != INVALID_HANDLE_VALUE)
+    {
+        SetStdHandle(STD_OUTPUT_HANDLE, hConOut);
+        SetStdHandle(STD_ERROR_HANDLE, hConOut);
+    }
+    if (hConIn != INVALID_HANDLE_VALUE)
+    {
+        SetStdHandle(STD_INPUT_HANDLE, hConIn);
+    }
+
+    // Re-sync C++ iostreams with the new C stdio handles, in case any code
+    // elsewhere uses std::cout/std::cerr.
+    std::ios::sync_with_stdio(true);
 
     return true;
+}
+
+// -----------------------------------------------------------------------
+// Logging (mirrors the Linux host so behavior/output is consistent)
+// -----------------------------------------------------------------------
+
+void LogMessage(const char* format, ...)
+{
+    if (!g_consoleAvailable) return;
+
+    char buffer[1024];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+
+    printf("%s", buffer);
+    fflush(stdout);
+}
+
+void LogError(const char* format, ...)
+{
+    if (!g_consoleAvailable) return;
+
+    char buffer[1024];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+
+    fprintf(stderr, "ERROR: %s", buffer);
+    fflush(stderr);
 }
 
 // hostfxr function pointers
@@ -43,12 +108,16 @@ bool LoadHostfxr()
 
     if (rc != 0)
     {
+        LogError("get_hostfxr_path failed, rc=0x%x\n", rc);
         return false;
     }
+
+    LogMessage("[OK] Found hostfxr at %ls\n\n", buffer);
 
     HMODULE lib = LoadLibraryW(buffer);
     if (!lib)
     {
+        LogError("LoadLibraryW failed for %ls (GetLastError=%lu)\n", buffer, GetLastError());
         return false;
     }
 
@@ -63,6 +132,7 @@ bool LoadHostfxr()
 
     if (!init_for_cmd_line_fptr || !init_for_config_fptr || !get_delegate_fptr || !close_fptr)
     {
+        LogError("Failed to resolve one or more required hostfxr exports\n");
         return false;
     }
     return true;
@@ -173,6 +243,7 @@ int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
     }
     else
     {
+        LogError("Failed to write temporary runtime config: %ls\n", tempConfigPath.c_str());
         return -1;
     }
 
@@ -181,6 +252,7 @@ int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
     params.size = sizeof(hostfxr_initialize_parameters);
     params.host_path = assemblyPath.c_str();
 
+    LogMessage("[TRACE] Calling hostfxr_initialize_for_runtime_config...\n");
     hostfxr_handle cxt = nullptr;
     int rc = init_for_config_fptr(
         tempConfigPath.c_str(),
@@ -192,11 +264,14 @@ int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
 
     if (rc != 0 || cxt == nullptr)
     {
+        LogError("hostfxr_initialize_for_runtime_config failed, rc=0x%x\n", rc);
         if (cxt) close_fptr(cxt);
         return -1;
     }
+    LogMessage("[TRACE] hostfxr_initialize_for_runtime_config OK (rc=0x%x)\n", rc);
 
     // Get the load assembly function pointer
+    LogMessage("[TRACE] Calling hostfxr_get_runtime_delegate...\n");
     load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = nullptr;
     rc = get_delegate_fptr(
         cxt,
@@ -205,15 +280,18 @@ int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
 
     if (rc != 0 || load_assembly_and_get_function_pointer == nullptr)
     {
+        LogError("Failed to get load_assembly_and_get_function_pointer delegate, rc=0x%x\n", rc);
         close_fptr(cxt);
         return -1;
     }
+    LogMessage("[TRACE] hostfxr_get_runtime_delegate OK\n");
 
     // Define the function pointer type
     typedef int (CORECLR_DELEGATE_CALLTYPE* custom_entry_point_fn)(const wchar_t** argv, int argc);
     custom_entry_point_fn mainFunc = nullptr;
 
     // Load the assembly and get the function pointer
+    LogMessage("[TRACE] Loading assembly and resolving %ls.Main...\n", typeName.c_str());
     rc = load_assembly_and_get_function_pointer(
         assemblyPath.c_str(),
         typeName.c_str(),
@@ -224,13 +302,17 @@ int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
 
     if (rc != 0 || mainFunc == nullptr)
     {
+        LogError("Failed to load assembly / get function pointer for %ls, rc=0x%x\n", typeName.c_str(), rc);
         close_fptr(cxt);
         return -1;
     }
+    LogMessage("[TRACE] Assembly loaded, Main resolved at %p\n", (void*)mainFunc);
 
     // Call the managed function
+    LogMessage("[TRACE] Invoking managed Main() now...\n");
     const wchar_t** argvPtr = const_cast<const wchar_t**>(argv);
     int result = mainFunc(argvPtr, argc);
+    LogMessage("[TRACE] Managed Main() returned %d\n", result);
 
     // Cleanup
     close_fptr(cxt);
@@ -240,13 +322,28 @@ int LoadAndRunManagedCode_Embedded(const std::wstring& assemblyPath,
 // Main entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+    // Attach to the parent console (e.g. cmd/PowerShell) if one launched us, so
+    // logging behaves the same as the Linux host. Silently does nothing if the
+    // exe was double-clicked / has no parent console.
+    g_consoleAvailable = AttachToConsole();
+
+    LogMessage("Runtime: CoreCLR / hostfxr\n\n");
+
     // Parse command-line arguments (Windows style)
     int argc = 0;
     LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
+    if (argc > 1)
+    {
+        LogMessage("Command-line arguments received:\n");
+        for (int i = 1; i < argc; i++) LogMessage("  [%d] %ls\n", i, argv[i]);
+        LogMessage("\n");
+    }
+
     // Load hostfxr
     if (!LoadHostfxr())
     {
+        LogError("Failed to load hostfxr exports\n");
         if (argv) LocalFree(argv);
         return -1;
     }
@@ -265,6 +362,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     get_hostfxr_path(hostfxrPath, &buffer_size, nullptr);
     std::wstring detectedVersion = DetectDotNetVersion(hostfxrPath);
 
+    LogMessage("[OK] Detected .NET runtime version %ls\n\n", detectedVersion.c_str());
+
     // Scan for possible assemblies
     auto assemblies = FindPossibleAssemblies(dirPath);
 
@@ -280,8 +379,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     if (!targetAssembly)
     {
+        LogError("No game assembly found!\n");
+        if (argv) LocalFree(argv);
         return -1;
     }
+
+    LogMessage("[OK] Using assembly %ls (type %ls)\n\n", targetAssembly->dllPath.c_str(), targetAssembly->className.c_str());
 
     // Execute using embedded config method (most compatible)
     int result = LoadAndRunManagedCode_Embedded(
@@ -290,6 +393,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         argc,
         argv,
         detectedVersion);
+
+    LogMessage("Exit Code: %d\n", result);
 
     // Free command-line argument memory
     if (argv) LocalFree(argv);
