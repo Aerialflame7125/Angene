@@ -1,9 +1,9 @@
 ﻿using Angene.Common;
 using System.Diagnostics.Tracing;
 using System.Runtime.InteropServices;
-using static Angene.Graphics.SlangShader.SlangShaderResources;
+using static Angene.Essentials.GraphicsContexts.SlangShaderResources;
 
-namespace Angene.Graphics.SlangShader
+namespace Angene.Essentials.GraphicsContexts
 {
     public class SlangShaderResources
     {
@@ -135,7 +135,16 @@ namespace Angene.Graphics.SlangShader
     }
     public class VkShader : BaseShader, IShader
     {
-        public IntPtr NativeShaderModule { get; internal set; }
+        private IntPtr _nativeShaderModule;
+        public IntPtr NativeShaderModule
+        {
+            get => _nativeShaderModule;
+            set
+            {
+                if (_nativeShaderModule == IntPtr.Zero)
+                    _nativeShaderModule = value;
+            }
+        }
         public int id { get; }
         public bool compileToFile { get; }
         public bool VerboseLog { get; set; } = false;

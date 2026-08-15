@@ -2,7 +2,7 @@
 using Angene.Common;
 using Angene.Common.Settings;
 using Angene.Essentials;
-using Angene.External;
+using Angene.Essentials.GraphicsContexts;
 using Angene.Globals;
 using Angene.Graphics;
 using Angene.Graphics.DX11;
@@ -10,7 +10,6 @@ using Angene.Graphics.SlangShader;
 using Angene.Platform;
 using Angene.Windows;
 using Angene.Windows.D3D11;
-using DiscordRPC.Message;
 using Org.BouncyCastle.Asn1.Cmp;
 using System;
 using System.Collections.Generic;
@@ -383,6 +382,7 @@ namespace Angene.Main
         public object Instance { get; private set; }
 
         public List<Entity> Entities { get; private set; } = new List<Entity>();
+        public Entity MainCamera { get; } = null;
         public string Name => "VulkanShaderCompilationScene";
 
         private readonly List<SlangShaderResources.IShader> _shaderTypes;
@@ -777,9 +777,19 @@ namespace Angene.Main
     {
         public object Handle { get; private set; }
 
-        public List<IScene> Scenes { get; private set; } = new List<IScene>();
+        private List<IScene> _scenes = new List<IScene>();
+
+        public List<IScene> Scenes 
+        { 
+            get => _scenes; 
+            private set => _scenes = value; 
+        }
+
         public IScene? PrimaryScene { get; private set; }
         public IScene ManagementScene { get; internal set; }
+
+        public object PrimaryCamera { get; private set; } = null;
+        public object[] Cameras { get; private set; }
 
         public int Width { get; }
         public int Height { get; }
@@ -853,12 +863,12 @@ namespace Angene.Main
                 }
                 else if (config.renderMode == RenderType.Vulkan)
                 {
-                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode,
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo,
                         shaderStages: Engine.Instance.ShaderCache);
                 }
                 else
                 {
-                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo);
                 }
             }
 #if WINDOWS
@@ -902,6 +912,24 @@ namespace Angene.Main
             Scenes.Clear();
             Scenes.Add(scene);
             PrimaryScene = scene;
+            foreach (Entity ent in scene.Entities)
+            {
+                if (ent.HasComponent<Essentials.Components.VulkanCamera>())
+                {
+                    if (PrimaryCamera == null)
+                        PrimaryCamera = ent.GetComponent<Essentials.Components.VulkanCamera>();
+                    Cameras.Append(ent.GetComponent<Essentials.Components.VulkanCamera>());
+                }
+                else
+                {
+                    if (ent.HasComponent<Essentials.Components.D3D11Camera>())
+                    {
+                        if (PrimaryCamera == null)
+                            PrimaryCamera = ent.GetComponent<Essentials.Components.D3D11Camera>();
+                        Cameras.Append(ent.GetComponent<Essentials.Components.D3D11Camera>());
+                    }
+                }
+            }
 
             // Initialize the scene
             scene.Initialize();
@@ -1320,6 +1348,11 @@ namespace Angene.Main
                             dx11Scene.Render(dx11);
                         else
                             scene.Render();
+                        foreach (Entity e in scene.Entities)
+                        {
+                            if (e.ParentScene != scene)
+                                e.ParentScene = scene;
+                        }
                     }
                 }
                 finally
@@ -1336,6 +1369,11 @@ namespace Angene.Main
                 try
                 {
                     scene.Render();
+                    foreach (Entity e in scene.Entities)
+                    {
+                        if (e.ParentScene != scene)
+                            e.ParentScene = scene;
+                    }
                 }
                 catch (Exception ex)
                 {

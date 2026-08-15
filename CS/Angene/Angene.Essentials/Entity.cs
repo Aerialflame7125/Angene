@@ -23,9 +23,9 @@ namespace Angene.Essentials
         public string name;
 
         // Transform
-        public ComponentStructs.Transform3D Transform
+        public Transform3D Transform
         {
-            get => GetComponent<ComponentStructs.Transform3D>() ?? AddComponent<ComponentStructs.Transform3D>();
+            get => GetComponent<Transform3D>() ?? AddComponent<Transform3D>();
             set => AddComponent(value);
         }
 
@@ -37,6 +37,14 @@ namespace Angene.Essentials
         // Entity hierarchy (now safe because Entity is a class)
         public List<Entity> childEntities { get; private set; }
         private Entity? _parent;
+        private IScene _parentScene = null;
+
+        public IScene ParentScene 
+        {
+            get => _parentScene;
+            set => _parentScene ??= value; 
+        }
+
 
         // Internal enabled state (use Lifecycle.SetEntityEnabled to change)
         internal bool _enabled;
@@ -77,7 +85,7 @@ namespace Angene.Essentials
             _scripts = new List<object>();
             childEntities = new List<Entity>();
             _parent = null;
-            AddComponent(new ComponentStructs.Transform3D(Pos, Rot, Scale));
+            AddComponent(new Transform3D(Pos, Rot, Scale));
             _enabled = true;
 
             // Register with lifecycle system

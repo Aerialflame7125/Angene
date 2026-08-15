@@ -10,9 +10,12 @@ using static Angene.Vulkan.Interop.VulkanMemoryAllocator.Methods;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Diagnostics;
-using static Angene.Graphics.SlangShader.SlangShaderResources;
 using Angene.Graphics.SlangShader;
 using System.Reflection.Metadata.Ecma335;
+using Angene.Essentials;
+using static Angene.Common.Types;
+using Angene.Essentials.GraphicsContexts;
+using Angene.Math.Vectors;
 
 public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 {
@@ -43,6 +46,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private Dictionary<IntPtr, VmaBufferHandle> _vmaBuffers = new();
     private IntPtr _currentVertexBuffer;
     private IntPtr _currentPipeline;
+    private IScene _scene;
+    private AppInfo _currentAppInfo;
 
 
 
@@ -89,6 +94,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
     public bool shuttingDown { get; internal set; } = false;
     private readonly int _w, _h;
+    VkGraphicscontextHelpers contextHelpers = new VkGraphicscontextHelpers();
+
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     private static uint DebugCallback(
@@ -102,7 +109,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         return 0;
     }
 
-    public VkGraphicsContext(object windowHandle, int width, int height, Dictionary<int, object> shaders, Types.AppInfo? currentAppInfo = null, VkPresentModeKHR wantedPresentationMode = VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
+    public VkGraphicsContext(object windowHandle, int width, int height, Dictionary<int, object> shaders, IScene Scene, Types.AppInfo? currentAppInfo = null, VkPresentModeKHR wantedPresentationMode = VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
     {
         if (windowHandle is MicrosoftWindowHandle MWinHandle)
             _hwnd = MWinHandle.Hwnd;
@@ -110,6 +117,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             _hwnd = XWinHandle.Window;
         _w = width;
         _h = height;
+        _scene = Scene;
+        _currentAppInfo = currentAppInfo;
 
         try
         {
@@ -121,7 +130,6 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         vkShaderList.Add(vkShader);
                 Shaders = vkShaderList.ToArray();
             }
-            VkGraphicsContextHelpers ContextHelpers = new VkGraphicsContextHelpers();
 
             IntPtr appNamePtr = IntPtr.Zero;
             IntPtr functionPointerName = IntPtr.Zero;
@@ -293,7 +301,6 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             _debugMessenger = debugMessenger;
 #endregion
 #region Surface Creation (_vkSurfaceKHR)
-
 #region XLib
                 if (windowHandle is X11WindowHandle xWindowHandle)
                 {
@@ -344,7 +351,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 IntPtr _device = IntPtr.Zero;
                 IntPtr _graphicsQueue = IntPtr.Zero;
                 
-                ContextHelpers.SelectPhysicalDeviceAndLogicalDevice(_vkInstance, out _physicalDevice, out _device, out _graphicsQueue);
+                contextHelpers.SelectPhysicalDeviceAndLogicalDevice(_vkInstance, out _physicalDevice, out _device, out _graphicsQueue);
 
                 _vkPhysicalDevice = _physicalDevice;
                 _vkDevice = _device;
@@ -435,7 +442,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 fixed (VkSurfaceFormatKHR* pSurfaceFormats = surfaceFormats)
                     vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, _vkSurfaceKHR, &surfaceFormatCount, pSurfaceFormats);
                 
-                VkSurfaceFormatKHR SurfaceFormat = ContextHelpers.ChooseSurfaceFormatAndColorSpace(surfaceFormats);
+                VkSurfaceFormatKHR SurfaceFormat = contextHelpers.ChooseSurfaceFormatAndColorSpace(surfaceFormats);
 
                 _surfaceFormat = SurfaceFormat;
                 _vkFormat = SurfaceFormat.format;
@@ -448,7 +455,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 fixed (VkPresentModeKHR* pPresentModes = presentModes)
                     vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, _vkSurfaceKHR, &presentModeCount, pPresentModes);
 
-                _presentMode = ContextHelpers.ChoosePresentationMode(presentModes, wantedPresentationMode);
+                _presentMode = contextHelpers.ChoosePresentationMode(presentModes, wantedPresentationMode);
 
                 // create swapchain
                 VkSwapchainCreateInfoKHR swapchainCreateInfo = new VkSwapchainCreateInfoKHR
@@ -457,7 +464,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     pNext = null,
                     flags = 0,
                     surface = (VkSurfaceKHR*)_vkSurfaceKHR,
-                    minImageCount = ContextHelpers.ChooseNumImages(_surfaceCapabilities),
+                    minImageCount = contextHelpers.ChooseNumImages(_surfaceCapabilities),
                     imageFormat = SurfaceFormat.format,
                     imageColorSpace = SurfaceFormat.colorSpace,
                     imageExtent = _surfaceCapabilities.currentExtent,
@@ -468,7 +475,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     pQueueFamilyIndices = null, 
                     preTransform = _surfaceCapabilities.currentTransform,
                     compositeAlpha = VkCompositeAlphaFlagBitsKHR.VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR, // ignore alpha channel
-                    presentMode = ContextHelpers.ChoosePresentationMode(presentModes, wantedPresentationMode),
+                    presentMode = contextHelpers.ChoosePresentationMode(presentModes, wantedPresentationMode),
                     clipped = 1
                 };
                 IntPtr _localSwapchain = IntPtr.Zero;
@@ -499,7 +506,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 int layerCount = 1;
                 int mipLevels = 1;
                 for (uint i = 0; i < numswapchainImages; i++)
-                    _vkImageViews[i] = ContextHelpers.CreateImageView(_device, _vkImages[i], SurfaceFormat.format, VkImageAspectFlagBits.VK_IMAGE_ASPECT_COLOR_BIT, VkImageViewType.VK_IMAGE_VIEW_TYPE_2D, (uint)layerCount, (uint)mipLevels);
+                    _vkImageViews[i] = contextHelpers.CreateImageView(_device, _vkImages[i], SurfaceFormat.format, VkImageAspectFlagBits.VK_IMAGE_ASPECT_COLOR_BIT, VkImageViewType.VK_IMAGE_VIEW_TYPE_2D, (uint)layerCount, (uint)mipLevels);
 
 #endregion
 #region Render Pass (_vkRenderPass), (_vkPipelineLayout)
@@ -711,7 +718,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 #region Command Pool (_vkCommandPool)
                 IntPtr commandPool;
     
-                VkGraphicsContextHelpers.QueueFamilyIndices queueFamilyIndices = (VkGraphicsContextHelpers.QueueFamilyIndices)ContextHelpers.findQueueFamilies(_physicalDevice, _vkSurfaceKHR);
+                VkGraphicscontextHelpers.QueueFamilyIndices queueFamilyIndices = (VkGraphicscontextHelpers.QueueFamilyIndices)contextHelpers.findQueueFamilies(_physicalDevice, _vkSurfaceKHR);
                 VkCommandPoolCreateInfo poolInfo = new VkCommandPoolCreateInfo
                 {
                     sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -1021,7 +1028,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
     private void RecreateSwapchain()
     {
-        VkGraphicsContextHelpers ContextHelpers = new VkGraphicsContextHelpers();
+        VkGraphicscontextHelpers contextHelpers = new VkGraphicscontextHelpers();
         IntPtr vkSwapchainKHR = _vkSwapchainKHR;
         // Wait for device to finish
         vkDeviceWaitIdle(_vkDevice);
@@ -1044,7 +1051,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
             surface = (VkSurfaceKHR*)_vkSurfaceKHR,
-            minImageCount = ContextHelpers.ChooseNumImages(caps),
+            minImageCount = contextHelpers.ChooseNumImages(caps),
             imageFormat = _vkFormat,
             imageColorSpace = _surfaceFormat.colorSpace,
             imageExtent = caps.currentExtent,
@@ -1070,7 +1077,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
         // Create new image views
         for (uint i = 0; i < imageCount; i++)
-            _vkImageViews[i] = ContextHelpers.CreateImageView(_vkDevice, _vkImages[i], _surfaceFormat.format,
+            _vkImageViews[i] = contextHelpers.CreateImageView(_vkDevice, _vkImages[i], _surfaceFormat.format,
                 VkImageAspectFlagBits.VK_IMAGE_ASPECT_COLOR_BIT, VkImageViewType.VK_IMAGE_VIEW_TYPE_2D, 1, 1);
 
         // Recreate framebuffers
@@ -1252,8 +1259,14 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     {
         if (shuttingDown || _disposed) return;
 
+        Entity mainCam = _scene.GetCameraEntity();
+        Angene.Essentials.Components.Transform3D camTransform = mainCam.GetComponent<Angene.Essentials.Components.Transform3D>();
+        Angene.Essentials.Components.VulkanCamera vCam = mainCam.GetComponent<Angene.Essentials.Components.VulkanCamera>();
+
+        Matrix4x4 viewMatrix = vCam.LookTo(camTransform.pos, vCam.forward, vCam.up);
+        Matrix4x4 projMatrix = vCam.Perspective(vCam.fov, vCam.aspectRatio, vCam.nearPlane, vCam.farPlane);
+
         VkResult result;
-        VkGraphicsContextHelpers contextHelpers = new VkGraphicsContextHelpers();
         IntPtr fence = _vkFenceInFlight;
         IntPtr commandBuffer = _vkCommandBuffer;
         vkWaitForFences(_vkDevice, 1, &fence, 1, UInt64.MaxValue);
@@ -1267,7 +1280,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             throw new Exception($"Failed to acquire next image (vkAcquireNextImageKHR): {result}");
 
         vkResetCommandBuffer(commandBuffer, 0);
-        contextHelpers.recordCommandBuffer(commandBuffer, (int)_imageIndex, _vkRenderPass, _vkFramebuffers, _vkSurfaceCapabilities, _vkPipeline, vertices);
+        contextHelpers.recordCommandBuffer(commandBuffer, (int)_imageIndex, _vkRenderPass, _vkFramebuffers, _vkSurfaceCapabilities, _vkPipeline, vertices, viewMatrix, projMatrix, _vkPipelineLayout);
 
         vkCmdEndRenderPass(_vkCommandBuffer);
 
@@ -1421,10 +1434,14 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     }
 }
 
-public unsafe class VkGraphicsContextHelpers
+public unsafe class VkGraphicscontextHelpers
 {
-    
-    public void recordCommandBuffer(IntPtr commandBuffer, int imageIndex, IntPtr renderPass, IntPtr[] framebuffers,  VkSurfaceCapabilitiesKHR _surfaceCapabilities, IntPtr _vkPipeline, int vertices)
+    struct CameraPushConstants
+    {
+        public Matrix4x4 View;
+        public Matrix4x4 Proj;
+    }
+    public void recordCommandBuffer(IntPtr commandBuffer, int imageIndex, IntPtr renderPass, IntPtr[] framebuffers,  VkSurfaceCapabilitiesKHR _surfaceCapabilities, IntPtr _vkPipeline, int vertices, Matrix4x4 viewMatrix, Matrix4x4 projMatrix, IntPtr vkPipelineLayout)
     {
         VkCommandBufferBeginInfo beginInfo = new VkCommandBufferBeginInfo
         {
@@ -1491,6 +1508,9 @@ public unsafe class VkGraphicsContextHelpers
             extent = _surfaceCapabilities.currentExtent
         };
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+        CameraPushConstants pc = new CameraPushConstants { View = viewMatrix, Proj = projMatrix };
+        vkCmdPushConstants(commandBuffer, vkPipelineLayout, (uint)VkShaderStageFlagBits.VK_SHADER_STAGE_VERTEX_BIT, 0, (uint)sizeof(CameraPushConstants), &pc);
 
         vkCmdDraw(commandBuffer, (uint)vertices, 1, 0, 0);
 

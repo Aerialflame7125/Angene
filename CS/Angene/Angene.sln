@@ -21,13 +21,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene", "Angene.Main\Angen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Management", "Angene.Management\Angene.Management.csproj", "{C073B101-4E6F-9D69-6F1B-54D108C25B3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.XR", "Angene.XR\Angene.XR.csproj", "{9DE722C4-6409-4702-8919-7C29E6F5FF00}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Angene.X11", "Angene.X11", "{82EEA83F-51A6-313F-7601-A0807E6A532A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Extensions.XR", "Angene.Extensions.XR\Angene.Extensions.XR.csproj", "{9DE722C4-6409-4702-8919-7C29E6F5FF00}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.X11", "Angene.X11\Angene.X11.csproj", "{D8AC69A4-A49E-4E21-BE1C-B7A827E8CC3B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Vulkan", "Angene.Vulkan\Angene.Vulkan.csproj", "{BE17C8F3-E6F1-A7F4-0D30-F753971465E9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Vulkan", "Angene.Vulkan\Angene.Vulkan.csproj", "{82EEA83F-51A6-313F-7601-A0807E6A532A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -183,6 +181,18 @@ Global
 		{BE17C8F3-E6F1-A7F4-0D30-F753971465E9}.Release|x64.Build.0 = Release|x64
 		{BE17C8F3-E6F1-A7F4-0D30-F753971465E9}.Release|x86.ActiveCfg = Release|Any CPU
 		{BE17C8F3-E6F1-A7F4-0D30-F753971465E9}.Release|x86.Build.0 = Release|Any CPU
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Debug|x64.ActiveCfg = Debug|x64
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Debug|x64.Build.0 = Debug|x64
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Debug|x86.Build.0 = Debug|Any CPU
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Release|x64.ActiveCfg = Release|x64
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Release|x64.Build.0 = Release|x64
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Release|x86.ActiveCfg = Release|Any CPU
+		{0DC5B8ED-BECA-4E3A-BDEB-FDD89F1847B1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

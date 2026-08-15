@@ -2,7 +2,6 @@
 using Angene.Essentials;
 using System;
 using System.Collections.Generic;
-using Angene.Graphics;
 #if Windows
 using Angene.Graphics.DX11;
 #endif
@@ -17,8 +16,10 @@ namespace Angene.Essentials
     {
         object Instance { get; }
         List<Entity> Entities { get; }
+        Entity MainCamera { get; }
         string Name { get; }
 
+        public Entity GetCameraEntity() => MainCamera;
         public List<Entity> GetEntities() => Entities;
         public void AddEntity(Entity e) => Entities.Add(e);
         public void RemoveEntity(Entity e) => Entities.Remove(e);
@@ -27,7 +28,7 @@ namespace Angene.Essentials
 
         void OnMessage(IntPtr msgPtr); //On WM Message
 
-        void Render(); // Final render in scene
+        void Render() { } // Final render in scene
 
         void Cleanup(); // Scene cleanup
     }

@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+namespace Angene.Vulkan;
 internal static class LibLoader
 {
     [ModuleInitializer]

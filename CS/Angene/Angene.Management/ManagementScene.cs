@@ -11,6 +11,8 @@ namespace Angene.Management
 
         public List<Entity> Entities { get; internal set; } = new List<Entity>();
 
+        public Entity MainCamera => null;
+
         Entity defaultEnt;
 
         public ManagementScene(string Token) => Entities.Add(new Entity(Token));
