@@ -28,6 +28,21 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Native/win-x64/slang.dll">
+      <LogicalName>Angene.Graphics.Native.win-x64.slang.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Native/win-x64/slang-compiler.dll">
+      <LogicalName>Angene.Graphics.Native.win-x64.slang-compiler.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Native/linux-x64/libslang.so">
+      <LogicalName>Angene.Graphics.Native.linux-x64.libslang.so</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Native/linux-x64/libslang-compiler.so">
+      <LogicalName>Angene.Graphics.Native.linux-x64.libslang-compiler.so</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="DX11\" />
   </ItemGroup>
 

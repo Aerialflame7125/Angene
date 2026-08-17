@@ -54,6 +54,7 @@ namespace Angene.Essentials
             Id = _nextId++;
             name = _name;
             _scripts = new List<object>();
+            _components = new Dictionary<Type, object>();
             childEntities = new List<Entity>();
             _parent = null;
             _enabled = true;
@@ -83,6 +84,7 @@ namespace Angene.Essentials
             Id = _nextId++;
             name = _name;
             _scripts = new List<object>();
+            _components = new Dictionary<Type, object>();
             childEntities = new List<Entity>();
             _parent = null;
             AddComponent(new Transform3D(Pos, Rot, Scale));

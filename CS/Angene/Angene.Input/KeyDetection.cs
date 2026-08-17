@@ -1,6 +1,5 @@
 ﻿using Angene.Common;
 using Angene.Essentials;
-using Angene.Input.WinInput;
 using Angene.Main;
 using Angene.Management;
 using Angene.Windows;
@@ -15,26 +14,62 @@ namespace Angene.Input
         private readonly HashSet<object> _heldKeys = new();
 
         public void Start() { }
-        public void OnMessage(IntPtr msgPtr)
+        public unsafe void OnMessage(IntPtr msgPtr)
         {
-            if (msgPtr == IntPtr.Zero) return;
-            var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
-
-            switch (msg.message)
+            if (Engine.Instance.SharedX11Display != null)
             {
-                case (uint)WM.KEYDOWN:
-                    object downKey = Key.TryNInt(msg.wParam);
-                    if (downKey is not 0)
-                        _heldKeys.Add(downKey);
-                    break;
+                if (X11Keyboard.IsKeyDown())
+                {
+                    List<nuint> rawDownKeys = X11Keyboard.GetPressedKeys();
+                    var currentFrameKeys = new HashSet<uint>();
 
-                case (uint)WM.KEYUP:
-                    object upKey = Key.TryNInt(msg.wParam);
-                    if (upKey is not 0)
-                        _heldKeys.Remove(upKey);
-                    break;
+                    foreach (nuint k in rawDownKeys)
+                    {
+                        uint downKey = (uint)Key.TryByte((uint)k); 
+                        if (downKey != 0)
+                        {
+                            currentFrameKeys.Add(downKey);
+                        }
+                    }
+
+                    _heldKeys.RemoveWhere(k => !currentFrameKeys.Contains((uint)k));
+
+                    foreach (uint k in currentFrameKeys)
+                    {
+                        _heldKeys.Add(k);
+                    }
+                }
+                else
+                {
+                    _heldKeys.Clear();
+                }
+            }
+            else
+            {
+                if (msgPtr == IntPtr.Zero) return;
+                var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
+
+                switch (msg.message)
+                {
+                    case (uint)WM.KEYDOWN:
+                        uint downKey = (uint)Key.TryNInt(msg.wParam);
+                        if (downKey != 0 && !_heldKeys.Contains(downKey))
+                        {
+                            _heldKeys.Add(downKey);
+                        }
+                        break;
+
+                    case (uint)WM.KEYUP:
+                        uint upKey = (uint)Key.TryNInt(msg.wParam);
+                        if (upKey != 0)
+                        {
+                            _heldKeys.Remove(upKey);
+                        }
+                        break;
+                }
             }
         }
+
 
         public bool IsKeyDown(object key) => _heldKeys.Contains(key);
 

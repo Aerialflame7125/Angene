@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<OutputType>Library</OutputType>
+		<AssemblyName>Game</AssemblyName>
+		<RootNamespace>Game</RootNamespace>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Nullable>disable</Nullable>
+		<LangVersion>latest</LangVersion>
+
+		<!-- Generate runtime config file -->
+		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+
+		<!-- Copy dependencies to output -->
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<Platforms>AnyCPU;x64</Platforms>
+	</PropertyGroup>
+
+	<!-- Platform-specific defines -->
+	<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+		<DefineConstants>WINDOWS</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+		<DefineConstants>LINUX</DefineConstants>
+	</PropertyGroup>
+
+	<!-- Ship the material package next to the built game -->
+	<ItemGroup>
+		<None Include="Assets\CameraMaterials.angpkg">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="Angene">
+	    <HintPath>..\..\Build\Angene\Angene.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Common">
+	    <HintPath>..\..\Build\Angene\Angene.Common.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Essentials">
+	    <HintPath>..\..\Build\Angene\Angene.Essentials.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Graphics">
+	    <HintPath>..\..\Build\Angene\Angene.Graphics.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Management">
+	    <HintPath>..\..\Build\Angene\Angene.Management.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Input">
+	    <HintPath>..\..\Build\Angene\Angene.Input.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Math">
+	    <HintPath>..\..\Build\Angene\Angene.Math.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.X11">
+	    <HintPath>..\..\Build\Angene\Angene.X11.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Vulkan">
+	    <HintPath>..\..\Build\Angene\Angene.Vulkan.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+
+</Project>

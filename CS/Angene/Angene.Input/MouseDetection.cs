@@ -1,6 +1,5 @@
 ﻿using Angene.Common;
 using Angene.Essentials;
-using Angene.Input.WinInput;
 using Angene.Main;
 using Angene.Management;
 using Angene.Windows;
@@ -14,7 +13,7 @@ namespace Angene.Input
         private float ypos = 0f;
         private bool isInWindow = false;
 
-        private readonly HashSet<Keys.IKeyCodeMouse> _heldButtons = new();
+        private readonly HashSet<Keys.IKeyCodeMouseWin> _heldButtons = new();
 
         public void Start() { }
         public void OnMessage(IntPtr msgPtr)
@@ -25,16 +24,16 @@ namespace Angene.Input
             switch (msg.message)
             {
                 case (uint)WM.LBUTTONDOWN:
-                    _heldButtons.Add(WinInput.Keys.IKeyCodeMouse.LMouse);
+                    _heldButtons.Add(Keys.IKeyCodeMouseWin.LMouse);
                     break;
                 case (uint)WM.LBUTTONUP:
-                    _heldButtons.Remove(WinInput.Keys.IKeyCodeMouse.LMouse);
+                    _heldButtons.Remove(Keys.IKeyCodeMouseWin.LMouse);
                     break;
                 case (uint)WM.RBUTTONDOWN:
-                    _heldButtons.Add(WinInput.Keys.IKeyCodeMouse.RMouse);
+                    _heldButtons.Add(Keys.IKeyCodeMouseWin.RMouse);
                     break;
                 case (uint)WM.RBUTTONUP:
-                    _heldButtons.Remove(WinInput.Keys.IKeyCodeMouse.RMouse);
+                    _heldButtons.Remove(Keys.IKeyCodeMouseWin.RMouse);
                     break;
                 case (uint)WM.MOUSEMOVE:
                     xpos = (short)(msg.lParam.ToInt64() & 0xFFFF);
@@ -59,9 +58,9 @@ namespace Angene.Input
             }
         }
 
-        public bool IsButtonDown(Keys.IKeyCodeMouse button) => _heldButtons.Contains(button);
+        public bool IsButtonDown(Keys.IKeyCodeMouseWin button) => _heldButtons.Contains(button);
 
-        public HashSet<Keys.IKeyCodeMouse> GetDownButtons() => _heldButtons;
+        public HashSet<Keys.IKeyCodeMouseWin> GetDownButtons() => _heldButtons;
 
         public (float, float) GetPosition() => (xpos, ypos);
 
@@ -161,7 +160,7 @@ namespace Angene.Input
         /// <param name="key"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static bool IsButtonDown(Keys.IKeyCodeMouse button)
+        public static bool IsButtonDown(Keys.IKeyCodeMouseWin button)
         {
             if (_script == null)
                 throw new InvalidOperationException("MouseDetection not registered. Call MouseDetection.Register() first.");
@@ -182,7 +181,7 @@ namespace Angene.Input
             Logger.LogDebug("[MouseDetection] Unregistered.", LoggingTarget.Engine);
         }
 
-        public static HashSet<Keys.IKeyCodeMouse> GetDownButtons => _script?.GetDownButtons() ?? throw new InvalidOperationException("MouseDetection not registered.");
+        public static HashSet<Keys.IKeyCodeMouseWin> GetDownButtons => _script?.GetDownButtons() ?? throw new InvalidOperationException("MouseDetection not registered.");
         public static (float, float) GetPosition() => (_script?.GetPosition() ?? throw new InvalidOperationException("MouseDetection not registered."));
         public static bool IsInWindow() => _script?.IsInWindow() ?? throw new InvalidOperationException("MouseDetection not registered.");
     }
