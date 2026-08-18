@@ -1335,6 +1335,7 @@ namespace Angene.Main
 
         public void RenderFrame()
         {
+            if (_cleanedUp) return;
 #if WINDOWS
             if (graphicsContext is IDX11GraphicsContext dx11)
             {

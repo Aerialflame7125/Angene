@@ -37,9 +37,6 @@
     <EmbeddedResource Include="Native/linux-x64/libslang.so">
       <LogicalName>Angene.Graphics.Native.linux-x64.libslang.so</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="Native/linux-x64/libslang-compiler.so">
-      <LogicalName>Angene.Graphics.Native.linux-x64.libslang-compiler.so</LogicalName>
-    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
