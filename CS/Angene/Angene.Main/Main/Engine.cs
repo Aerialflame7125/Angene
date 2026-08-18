@@ -795,7 +795,6 @@ namespace Angene.Main
         public int Height { get; }
 
         private IGraphicsContext? graphicsContext;
-        private bool is3D;
         public IScreenPlay? _screenPlay; // for ws method
 
         // Engine mode tracking
@@ -1462,11 +1461,11 @@ namespace Angene.Main
 
             Logger.LogInfo("Cleaning up window resources", LoggingTarget.Engine);
 
-            if (!is3D && graphicsContext != null)
-                graphicsContext.Cleanup();
-
             foreach (IScene scene in Scenes)
                 scene?.Cleanup();
+
+            if (graphicsContext != null)
+                graphicsContext.Cleanup();
         }
         /// <summary>
         /// Requests this window be closed. Frees this window's own scenes/graphics
@@ -1484,9 +1483,8 @@ namespace Angene.Main
             {
                 WindowMap.Remove(handle);
                 Engine.Instance.OpenWindows.Remove(this);
-                DestroyGraphicsContext();
-                Logger.LogDebug("Cleaning up window resources.", LoggingTarget.Engine);
                 Cleanup();
+                Logger.LogDebug("Cleaning up window resources.", LoggingTarget.Engine);
                 User32.DestroyWindow(handle.Hwnd);
                 if (Engine.Instance.OpenWindows.Count == 0)
                     Engine.Instance.ShouldShutdown = true;
@@ -1495,8 +1493,6 @@ namespace Angene.Main
             {
                 WindowMap.Remove(x11Handle);
                 Engine.Instance.OpenWindows.Remove(this);
-                DestroyGraphicsContext();
-
                 Logger.LogDebug("Cleaning up window resources.", LoggingTarget.Engine);
                 Cleanup();
 
@@ -1519,20 +1515,6 @@ namespace Angene.Main
                 WindowMap.Remove(strHandle);
                 Engine.Instance.OpenWindows.Remove(this);
             }
-        }
-
-        private void DestroyGraphicsContext()
-        {
-            if (graphicsContext is VkGraphicsContext vkContext)
-            {
-                vkContext.Cleanup();
-            }
-#if WINDOWS
-            else if (graphicsContext is DX11GraphicsContext dx11Context)
-            {
-                dx11Context.Cleanup();
-            }
-#endif
         }
 
         /// <summary>

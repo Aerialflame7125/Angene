@@ -9,9 +9,10 @@ using Angene.X11.Interop;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using static Angene.Common.Types;
+using static Angene.Essentials.Types;
 using static Angene.Vulkan.Interop.Enumerators;
 using static Angene.Vulkan.Interop.Structs;
+using static Angene.Vulkan.Interop.VulkanMemoryAllocator;
 using static Angene.Windows.Dxgi.DxgiEnums;
 
 namespace Angene.Graphics
@@ -215,11 +216,11 @@ namespace Angene.Graphics
             throw new NotImplementedException();
         }
     }
-
+    
     // Factory for creating platform-specific graphics contexts
-    public static class GraphicsContextFactory
+    public static unsafe class GraphicsContextFactory
     {
-        public static unsafe IGraphicsContext Create(object windowHandle, int width, int height, int renderMode, IScene openScene, AppInfo currentAppInfo, IntPtr existingDevice = default, IntPtr existingContext = default, Dictionary<int, object> shaderStages = null)
+        public static IGraphicsContext Create(object windowHandle, int width, int height, int renderMode, IScene openScene, AppInfo currentAppInfo, IntPtr existingDevice = default, IntPtr existingContext = default, Dictionary<int, object> shaderStages = null)
         {
             if (renderMode == 0)
 #if WINDOWS

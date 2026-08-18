@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using static Angene.Vulkan.Interop.Enumerators;
 
 namespace Game
 {
@@ -19,7 +20,7 @@ namespace Game
         public void MakeInstances(bool verbose)
         {
             engine = Engine.Instance;
-            engine.Init(new Types.AppInfo("CameraTest Angene", 0.1f, "Aerial", "Aerial"), verbose); // scans this assembly for [Precompile] shaders (Shaders.cs) and starts compiling them
+            engine.Init(new Types.AppInfo("CameraTest Angene", 0.1f, "Aerial", "Aerial", VkPresentModeKHR.VK_PRESENT_MODE_IMMEDIATE_KHR), verbose); // scans this assembly for [Precompile] shaders (Shaders.cs) and starts compiling them
             settings = engine.settingsInstance;
         }
     }
