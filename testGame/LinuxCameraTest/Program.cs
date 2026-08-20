@@ -1,6 +1,7 @@
 using Angene.Common;
 using Angene.Common.Settings;
 using Angene.Essentials;
+using Angene.Input;
 using Angene.Main;
 using Angene.Platform;
 using System;
@@ -27,6 +28,7 @@ namespace Game
 
     public class Program
     {
+        public static KeyDetection _keyDetection = new KeyDetection();
         public static Instances instances;
         private static DateTime lastFrame;
 

@@ -35,6 +35,7 @@
 		<!-- Core Engine Files -->
 		<Compile Include="Crypto\AesGcmWrapper.cs" />
 		<Compile Include="Main\Engine.cs" />
+		<Compile Include="Main\Window.cs" />
 		<Compile Include="Main\LogConsoleWindow.cs" />
 		<Compile Include="Main\PkgHandler.cs" />
 		<Compile Include="Main\WS.cs" />

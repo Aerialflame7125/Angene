@@ -31,8 +31,6 @@ internal static class LibLoader
             string extractPath = ExtractToCache(assembly, resourceName, fileName);
             if (OperatingSystem.IsWindows())
                 ExtractToCache(assembly, "Angene.Graphics.Native.win-x64.slang-compiler.dll", "slang-compiler.dll");
-            else
-                ExtractToCache(assembly, "Angene.Graphics.Native.linux-x64.libslang-compiler.so", "libslang-compiler.so");
             return NativeLibrary.Load(extractPath);
         }
 

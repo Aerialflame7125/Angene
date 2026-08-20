@@ -14,7 +14,7 @@ namespace Angene.Essentials
     /// </summary>
     public interface IScene
     {
-        object Instance { get; }
+        static object Instance { get; }
         List<Entity> Entities { get; }
         Entity MainCamera { get; }
         string Name { get; }
@@ -26,7 +26,7 @@ namespace Angene.Essentials
 
         void Initialize(); //On Scene Init
 
-        void OnMessage(IntPtr msgPtr); //On WM Message
+        void OnMessage(IntPtr msgPtr); //On WM Message from Windows.
 
         void Render() { } // Final render in scene
 

@@ -11,10 +11,38 @@ namespace Angene.Input
 {
     internal class KeyDetectionScript : IScreenPlay
     {
-        private readonly HashSet<object> _heldKeys = new();
+        private readonly HashSet<uint> _heldKeys = new();
 
+        public Action _fullscreenAction = null;
+        private bool holdingFullscreen = false;
         public void Start() { }
         public unsafe void OnMessage(IntPtr msgPtr)
+        {
+            if (Engine.Instance.SharedX11Display == null)
+            {
+                if (msgPtr == IntPtr.Zero) return;
+                var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
+
+                switch (msg.message)
+                {
+                    case (uint)WM.KEYDOWN:
+                        uint downKey = (uint)Key.TryNInt(msg.wParam);
+                        if (downKey != 0)
+                            _heldKeys.Add(downKey);
+                        break;
+
+                    case (uint)WM.KEYUP:
+                        uint upKey = (uint)Key.TryNInt(msg.wParam);
+                        if (upKey != 0)
+                        {
+                            _heldKeys.Remove(upKey);
+                        }
+                        break;  
+                }
+            }
+        }
+
+        public unsafe void Update(double dt)
         {
             if (Engine.Instance.SharedX11Display != null)
             {
@@ -25,55 +53,39 @@ namespace Angene.Input
 
                     foreach (nuint k in rawDownKeys)
                     {
-                        uint downKey = (uint)Key.TryByte((uint)k); 
+                        uint downKey = Key.TryXKeysym(k);
                         if (downKey != 0)
-                        {
                             currentFrameKeys.Add(downKey);
-                        }
                     }
 
-                    _heldKeys.RemoveWhere(k => !currentFrameKeys.Contains((uint)k));
+                    _heldKeys.RemoveWhere(k => !currentFrameKeys.Contains(k));
 
                     foreach (uint k in currentFrameKeys)
-                    {
                         _heldKeys.Add(k);
-                    }
                 }
                 else
                 {
                     _heldKeys.Clear();
                 }
-            }
-            else
-            {
-                if (msgPtr == IntPtr.Zero) return;
-                var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
-
-                switch (msg.message)
+                if (_heldKeys.Contains((uint)Keys.IKeyCodeModX.Alt_R) && _heldKeys.Contains((uint)Keys.IKeyCodeModX.Return))
                 {
-                    case (uint)WM.KEYDOWN:
-                        uint downKey = (uint)Key.TryNInt(msg.wParam);
-                        if (downKey != 0 && !_heldKeys.Contains(downKey))
-                        {
-                            _heldKeys.Add(downKey);
-                        }
-                        break;
-
-                    case (uint)WM.KEYUP:
-                        uint upKey = (uint)Key.TryNInt(msg.wParam);
-                        if (upKey != 0)
-                        {
-                            _heldKeys.Remove(upKey);
-                        }
-                        break;
+                    if (!holdingFullscreen)
+                    {
+                        Engine.Instance.OpenWindows[0].set_fullscreen();
+                        Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
+                        holdingFullscreen = true;
+                    }
+                }
+                else
+                {
+                    holdingFullscreen = false;
                 }
             }
         }
 
+        public bool IsKeyDown(uint key) => _heldKeys.Contains(key);
 
-        public bool IsKeyDown(object key) => _heldKeys.Contains(key);
-
-        public HashSet<Object> GetDownKeys() => _heldKeys;
+        public HashSet<uint> GetDownKeys() => _heldKeys;
         
         public void Render() { }
         public void Cleanup() { }
@@ -169,7 +181,7 @@ namespace Angene.Input
         /// <param name="key"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static bool IsKeyDown(object key)
+        public static bool IsKeyDown(uint key)
         {
             if (_script == null)
                 throw new InvalidOperationException("KeyDetection not registered. Call KeyDetection.Register() first.");
@@ -190,6 +202,6 @@ namespace Angene.Input
             Logger.LogDebug("[KeyDetection] Unregistered.", LoggingTarget.Engine);
         }
 
-        public static HashSet<object> GetDownKeys => _script?.GetDownKeys() ?? throw new InvalidOperationException("KeyDetection not registered.");
+        public static HashSet<uint> GetDownKeys => _script?.GetDownKeys() ?? throw new InvalidOperationException("KeyDetection not registered.");
     }
 }

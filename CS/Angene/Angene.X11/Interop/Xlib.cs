@@ -6,6 +6,8 @@ namespace Angene.X11.Interop;
 
 public class XLib
 {
+    public const long SubstructureNotifyMask = 0x00080000;
+    public const long SubstructureRedirectMask = 0x00100000;
     public enum XEventMask : long
     {
         NoEventMask = 0,

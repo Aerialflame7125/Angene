@@ -44,13 +44,13 @@ namespace Game.Scenes
     /// </summary>
     public unsafe class CameraTestScene : IScene
     {
-        public object Instance { get; private set; }
+        public static object Instance { get; private set; }
         public List<Entity> Entities { get; private set; } = new List<Entity>();
         public string Name => "CameraTestScene";
 
         public Entity MainCamera => null;
 
-        private readonly Window _window;
+        internal readonly Window _window;
         private readonly string _materialsPackagePath;
         private IVkGraphicsContext _gfx;
 
@@ -124,6 +124,8 @@ namespace Game.Scenes
                 isPrimary = true,
             });
             Entities.Add(_cameraEntity);
+
+            
 
             var controller = _cameraEntity.AddScript<CameraControllerScript>();
             controller.Initialize(_cameraEntity);

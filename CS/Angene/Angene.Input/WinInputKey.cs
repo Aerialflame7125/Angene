@@ -3,7 +3,7 @@ using System;
 
 namespace Angene.Input
 {
-    public class Key
+    public partial class Key
     {
         public static object TryInt(int n)
         {

@@ -3,6 +3,80 @@ using System;
 
 namespace Angene.Input
 {
+    public partial class Key
+    {
+        public static uint TryXKeysym(nuint keyCodeRaw)
+        {
+            uint keyCode = (uint)keyCodeRaw;
+
+            if (Enum.IsDefined(typeof(Keys.IKeyCodeExtraX), keyCode))
+                return (uint)(Keys.IKeyCodeExtraX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeModX), keyCode))
+                return (uint)(Keys.IKeyCodeModX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeMultiKeyX), keyCode))
+                return (uint)(Keys.IKeyCodeMultiKeyX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeCursorControlX), keyCode))
+                return (uint)(Keys.IKeyCodeCursorControlX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeMiscX), keyCode))
+                return (uint)(Keys.IKeyCodeMiscX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeNumPadX), keyCode))
+                return (uint)(Keys.IKeyCodeNumPadX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeFuncX), keyCode))
+                return (uint)(Keys.IKeyCodeFuncX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeXKBExtensionX), keyCode))
+                return (uint)(Keys.IKeyCodeXKBExtensionX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCode3270X), keyCode))
+                return (uint)(Keys.IKeyCode3270X)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeJPX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeJPX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeLatin1X), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeLatin1X)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeLatin2X), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeLatin2X)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeLatin3X), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeLatin3X)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeLatin4X), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeLatin4X)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeLatin8X), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeLatin8X)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeLatin9X), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeLatin9X)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeJPKatakanaX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeJPKatakanaX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeARX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeARX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeRUX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeRUX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeGRX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeGRX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeAPLX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeAPLX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeHBX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeHBX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeTHX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeTHX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeKRX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeKRX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeHYX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeHYX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeGEX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeGEX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeAZX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeAZX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeLangX.IKeyCodeVNX), keyCode))
+                return (uint)(Keys.IKeyCodeLangX.IKeyCodeVNX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeTechnicalX), keyCode))
+                return (uint)(Keys.IKeyCodeTechnicalX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeSpecialX), keyCode))
+                return (uint)(Keys.IKeyCodeSpecialX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodePublishingX), keyCode))
+                return (uint)(Keys.IKeyCodePublishingX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeCurrencyX), keyCode))
+                return (uint)(Keys.IKeyCodeCurrencyX)keyCode;
+            else
+                return 0;
+        }
+    }
     public partial struct Keys // i dunno what people will and wont use, so this is yoinked from an xlib header file
     {
         public enum IKeyCodeExtraX : uint

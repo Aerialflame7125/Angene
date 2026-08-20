@@ -5,6 +5,8 @@ using Angene.Essentials.Components;
 using Angene.Math.Vectors;
 using Latin1 = Angene.Input.Keys.IKeyCodeLangX.IKeyCodeLatin1X;
 using CursorKeys = Angene.Input.Keys.IKeyCodeCursorControlX;
+using Game.Scenes;
+using Angene.Input;
 
 namespace Game
 {
@@ -43,6 +45,8 @@ namespace Game
         private const float LookSpeed = 1.6f;      // radians / second
         private const float PitchLimit = 1.5f;     // just under 90 degrees, in radians
 
+        private KeyDetection keyDetection = new KeyDetection();
+
         public void Initialize(Entity cameraEntity)
         {
             if (cameraEntity == null)
@@ -58,6 +62,9 @@ namespace Game
                     LoggingTarget.MainGame);
                 return;
             }
+
+
+            keyDetection.Register(cameraEntity);
 
             // Derive the starting yaw/pitch from whatever forward vector was configured
             // when the VulkanCamera component was created, so the very first Update()
@@ -80,10 +87,10 @@ namespace Game
             float delta = (float)dt;
 
             // --- Look (arrow keys) ---
-            if (X11Keyboard.IsKeyDown((nuint)CursorKeys.Left)) _yaw -= LookSpeed * delta;
-            if (X11Keyboard.IsKeyDown((nuint)CursorKeys.Right)) _yaw += LookSpeed * delta;
-            if (X11Keyboard.IsKeyDown((nuint)CursorKeys.Up)) _pitch += LookSpeed * delta;
-            if (X11Keyboard.IsKeyDown((nuint)CursorKeys.Down)) _pitch -= LookSpeed * delta;
+            if (KeyDetection.IsKeyDown((uint)CursorKeys.Left)) _yaw -= LookSpeed * delta;
+            if (KeyDetection.IsKeyDown((uint)CursorKeys.Right)) _yaw += LookSpeed * delta;
+            if (KeyDetection.IsKeyDown((uint)CursorKeys.Up)) _pitch += LookSpeed * delta;
+            if (KeyDetection.IsKeyDown((uint)CursorKeys.Down)) _pitch -= LookSpeed * delta;
             _pitch = Math.Clamp(_pitch, -PitchLimit, PitchLimit);
 
             Vec3 forward = new Vec3(
@@ -97,12 +104,12 @@ namespace Game
 
             // --- Move (WASD + Space/C for vertical) ---
             Vec3 move = new Vec3(0, 0, 0);
-            if (X11Keyboard.IsKeyDown((nuint)Latin1.w)) move += forward;
-            if (X11Keyboard.IsKeyDown((nuint)Latin1.s)) move -= forward;
-            if (X11Keyboard.IsKeyDown((nuint)Latin1.d)) move += right;
-            if (X11Keyboard.IsKeyDown((nuint)Latin1.a)) move -= right;
-            if (X11Keyboard.IsKeyDown((nuint)Latin1.space)) move += worldUp;
-            if (X11Keyboard.IsKeyDown((nuint)Latin1.c)) move -= worldUp;
+            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.w)) move += forward;
+            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.s)) move -= forward;
+            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.d)) move += right;
+            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.a)) move -= right;
+            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.space)) move += worldUp;
+            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.c)) move -= worldUp;
 
             if (move.Length > 0.0001f)
                 _transform.pos += move.Normalized * (MoveSpeed * delta);
