@@ -836,6 +836,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             Buffer.MemoryCopy(pData, allocationInfo.pMappedData, (ulong)data.Length, (ulong)data.Length);
 
         IntPtr handle = (IntPtr)buffer;
+
         _vmaBuffers[handle] = new VmaBufferHandle { Buffer = buffer, Allocation = allocation };
         return handle;
     }
@@ -881,6 +882,32 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         IntPtr handle = (IntPtr)buffer;
         _vmaBuffers[handle] = new VmaBufferHandle { Buffer = buffer, Allocation = allocation };
         return handle;
+    }
+
+    public void DestroyBuffer(IntPtr bufferHandle)
+    {
+        lock (_allocatorLock)
+        {
+            if (_disposed || shuttingDown || _vmaAllocator == null)
+                return; 
+
+            vmaDestroyBuffer(_vmaAllocator, _vmaBuffers[bufferHandle].Buffer, _vmaBuffers[bufferHandle].Allocation);
+        }
+        _vmaBuffers.Remove(bufferHandle);
+    }
+
+    public void UpdateBuffer(IntPtr oldBufferHandle, IntPtr newBufferHandle)
+    {
+        lock (_allocatorLock)
+        {
+            if (_disposed || shuttingDown || _vmaAllocator == null)
+                return;
+
+            vmaDestroyBuffer(_vmaAllocator, _vmaBuffers[oldBufferHandle].Buffer, _vmaBuffers[oldBufferHandle].Allocation);
+        }
+
+        _vmaBuffers[oldBufferHandle] = _vmaBuffers[newBufferHandle];
+        _vmaBuffers.Remove(newBufferHandle);
     }
 
     public IntPtr CreatePipeline(IntPtr vertexShaderModule, IntPtr fragmentShaderModule,

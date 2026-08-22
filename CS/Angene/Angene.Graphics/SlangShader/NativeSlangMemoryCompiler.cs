@@ -180,6 +180,7 @@ namespace Angene.Graphics.SlangShader
         public static byte[] CompileShaderFromMemoryToFile(string sourceCode, string entryPoint, string stage, string outputPath, ToShaderType toType)
         {
             // Initialize
+            
             byte[] code = null;
             if (toType == null)
                 throw new Exceptions.FailedToCompileShaderException("toType is null and invalid. Skipping shader.");

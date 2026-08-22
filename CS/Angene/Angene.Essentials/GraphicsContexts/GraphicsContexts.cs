@@ -92,6 +92,8 @@ namespace Angene.Essentials.GraphicsContexts;
                       VkVertexInputAttributeDescription[] attributes, uint strideBytes);
 
         // Per-draw state
+        void DestroyBuffer(IntPtr bufferHandle);
+        void UpdateBuffer(IntPtr oldBufferHandle, IntPtr newBufferHandle);
         void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0);
         void SetIndexBuffer(IntPtr buffer, uint offset = 0);
         void SetPipeline(IntPtr pipeline);

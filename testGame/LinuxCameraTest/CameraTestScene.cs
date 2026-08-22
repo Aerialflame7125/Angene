@@ -62,6 +62,11 @@ namespace Game.Scenes
         private Entity _cubeEntity;
         private Dictionary<string, FaceColor> _materials;
 
+        private Angene.Audio.MiniAudio.MiniAudio mAudio = new Angene.Audio.MiniAudio.MiniAudio();
+
+        private List<(Vec3 ndc0, Vec3 ndc1, Vec3 ndc2, float depth, FaceColor color)> triangles = new List<(Vec3 ndc0, Vec3 ndc1, Vec3 ndc2, float depth, FaceColor color)>();
+        private List<float> verts = new();
+
         // Unit cube (half-extent 0.5) face definitions: 4 corner indices (fan order) + material key.
         private static readonly Vec3[] Corners =
         {
@@ -125,8 +130,6 @@ namespace Game.Scenes
             });
             Entities.Add(_cameraEntity);
 
-            
-
             var controller = _cameraEntity.AddScript<CameraControllerScript>();
             controller.Initialize(_cameraEntity);
 
@@ -159,15 +162,20 @@ namespace Game.Scenes
 
             _pipeline = _gfx.CreatePipeline(vertexShader.NativeShaderModule, fragmentShader.NativeShaderModule,
                 attributes, 7 * sizeof(float));
-
+            
+            Logger.LogInfo($"[MiniAudio] Linked native version: {new string((sbyte*)Angene.Audio.MiniAudio.Interop.Methods.ma_version_string())}", LoggingTarget.Engine);
+            mAudio.Play("cake.mp3");
             Logger.LogInfo("[CameraTestScene] Initialized.", LoggingTarget.Graphics);
         }
 
         public void OnMessage(IntPtr msgPtr) { }
+        IntPtr vertexBuffer = IntPtr.Zero;
 
         public void Render()
         {
             if (_gfx == null) return;
+            if (vertexBuffer != IntPtr.Zero)
+                _gfx.DestroyBuffer(vertexBuffer);
 
             var camTransform = _cameraEntity.GetComponent<Transform3D>();
             var vCam = _cameraEntity.GetComponent<VulkanCamera>();
@@ -184,7 +192,7 @@ namespace Game.Scenes
             Buffer.BlockCopy(vertexData, 0, vertexBytes, 0, vertexBytes.Length);
 
             // NOTE: allocates a fresh VMA vertex buffer every frame -- see caveat #3 above.
-            IntPtr vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
+            vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
 
             _gfx.BeginFrame(0x00202020); // dark gray background
 
@@ -193,6 +201,7 @@ namespace Game.Scenes
             _gfx.Draw((uint)vertexCount);
 
             _gfx.EndFrame();
+            
         }
 
         /// <summary>
@@ -202,8 +211,7 @@ namespace Game.Scenes
         /// </summary>
         private float[] BuildSortedNdcVertexBuffer(Matrix4x4 modelView, Matrix4x4 proj, out int vertexCount)
         {
-            var triangles = new List<(Vec3 ndc0, Vec3 ndc1, Vec3 ndc2, float depth, FaceColor color)>();
-
+            triangles.Clear();
             foreach (var face in Faces)
             {
                 FaceColor color = _materials.TryGetValue(face.material, out var c) ? c : new FaceColor(1, 1, 1, 1);
@@ -215,7 +223,8 @@ namespace Game.Scenes
             // Painter's algorithm: farthest (most negative view-space Z) first.
             triangles.Sort((t1, t2) => t1.depth.CompareTo(t2.depth));
 
-            var verts = new List<float>(triangles.Count * 3 * 7);
+            verts.Clear();
+            verts.Append(triangles.Count * 3 * 7);
             foreach (var tri in triangles)
             {
                 AppendVertex(verts, tri.ndc0, tri.color);

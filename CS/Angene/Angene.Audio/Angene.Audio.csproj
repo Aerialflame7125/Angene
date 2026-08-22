@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
@@ -18,6 +19,15 @@
     <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
     <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
     <ProjectReference Include="..\Angene.Main\Angene.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Native/win-x64/miniaudio.dll">
+      <LogicalName>Angene.MiniAudio.Native.win-x64.miniaudio.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Native/linux-x64/libminiaudio.so">
+      <LogicalName>Angene.MiniAudio.Native.linux-x64.libminiaudio.so</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
