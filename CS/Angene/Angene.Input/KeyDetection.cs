@@ -42,6 +42,7 @@ namespace Angene.Input
             }
         }
 
+#if LINUX
         public unsafe void Update(double dt)
         {
             if (Engine.Instance.SharedX11Display != null)
@@ -82,6 +83,7 @@ namespace Angene.Input
                 }
             }
         }
+#endif
 
         public bool IsKeyDown(uint key) => _heldKeys.Contains(key);
 

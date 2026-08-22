@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Angene.Common;
+using Angene.Common.Settings;
 using Angene.Essentials;
 using Angene.Essentials.GraphicsContexts;
 using Angene.Graphics;
@@ -78,6 +82,8 @@ namespace Angene.Main
             if (Handle.GetType() != typeof(String))
             {
                 WindowMap[Handle] = this;
+                if (Handle.GetType() == typeof(MicrosoftWindowHandle))
+                    WindowMap[((MicrosoftWindowHandle)Handle).Hwnd] = WindowMap[Handle];
             }
             else
             {
@@ -96,9 +102,9 @@ namespace Angene.Main
                 {
 #if WINDOWS
                     graphicsContext = Engine.Instance.SharedD3D11Device != IntPtr.Zero
-                        ? GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode,
+                        ? GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo,
                             Engine.Instance.SharedD3D11Device, Engine.Instance.SharedD3D11Context)
-                        : GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode);
+                        : GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo);
 #endif
                 }
                 else if (config.renderMode == RenderType.Vulkan)
@@ -552,9 +558,7 @@ namespace Angene.Main
             if (msg == (uint)WM.CLOSE)
             {
                 if (WindowMap.TryGetValue(hWnd, out var w))
-                {
-                    w.Cleanup();
-                }
+                    w.Close();
                 User32.DestroyWindow(hWnd);
                 return IntPtr.Zero;
             }
@@ -563,6 +567,7 @@ namespace Angene.Main
             {
                 if (WindowMap.TryGetValue(hWnd, out var destroyedWin))
                 {
+                    User32.PostQuitMessage(0);
                     WindowMap.Remove(hWnd);
                     Engine.Instance.OpenWindows.Remove(destroyedWin);
                 }
@@ -686,6 +691,7 @@ namespace Angene.Main
                 return new X11WindowHandle(Engine.Instance.SharedX11Display, (IntPtr)window, titlePtr);
             }
         }
+#endif
         public unsafe static sbyte* ToSBytePtr(string myString)
         {
             // 1. Allocate space and copy the string data to unmanaged memory
@@ -695,7 +701,6 @@ namespace Angene.Main
             // 2. Cast directly to an sbyte*
             return sbytePtr;
         }
-#endif
 
         private bool _cleanedUp;
 
@@ -731,8 +736,10 @@ namespace Angene.Main
                 Cleanup();
                 Logger.LogDebug("Cleaning up window resources.", LoggingTarget.Engine);
                 User32.DestroyWindow(handle.Hwnd);
-                if (Engine.Instance.OpenWindows.Count == 0)
+                if (Engine.Instance.OpenWindows.Count == 0 && !Engine.Instance.oneTimeShouldShutdownBypass)
                     Engine.Instance.ShouldShutdown = true;
+                else if (Engine.Instance.OpenWindows.Count == 0 && Engine.Instance.oneTimeShouldShutdownBypass)
+                    Engine.Instance.oneTimeShouldShutdownBypass = false;
             }
             else if (Handle is X11WindowHandle x11Handle && x11Handle.Display != null && x11Handle.Window != IntPtr.Zero)
             {
@@ -831,16 +838,21 @@ namespace Angene.Main
                 Engine.Instance.FlushPendingCloses();
             }
 #else
-            if (Handle is MicrosoftWindowHandle)
+            if (Handle is MicrosoftWindowHandle han)
             {
-                while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
+                while (User32.PeekMessageW(out var msg, han.Hwnd, 0, 0, Consts.PM_REMOVE))
                 {
-                    if (msg.message == (uint)WM.QUIT)
+                    if (msg.message == (uint)WM.DESTROY)
+                    {
+                        User32.PostQuitMessage(0);
+                        return false;
+                    }
+                    else if (msg.message == (uint)WM.QUIT)
                     {
                         Close();
                         return false;
                     }
-                    
+
                     if (injectedCalls != null)
                         foreach (Action<object> i in injectedCalls)
                             i(msg.message);

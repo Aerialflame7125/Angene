@@ -34,7 +34,7 @@ namespace Game
         {
             try
             {
-                RunGame(verbose: true);
+                RunGame(verbose: false);
                 return 0;
             }
             catch (Exception ex)
@@ -88,7 +88,7 @@ namespace Game
                 Logger.LogDebug($"Initialized in {t.ElapsedMilliseconds} ms", LoggingTarget.MasterScene);
 
                 double dt = 0.0d;
-                RunWindowsMessageLoop(ref dt);
+                RunWindowsMessageLoop(ref dt, window, scene);
 
                 Logger.LogDebug("Cleaning up...", LoggingTarget.Engine);
                 window.Cleanup();
@@ -116,43 +116,23 @@ namespace Game
             }
         }
 
-        private static void RunWindowsMessageLoop(ref double dt)
+        private static void RunWindowsMessageLoop(ref double dt, Window win, IScene scene)
         {
-            bool running = true;
-
-            while (running)
+            while (!Engine.Instance.ShouldShutdown)
             {
-                while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
-                {
-                    if (msg.message == (uint)WM.QUIT)
-                    {
-                        running = false;
-                        break;
-                    }
-
-                    User32.TranslateMessage(ref msg);
-                    User32.DispatchMessageW(ref msg);
-                }
-
-                if (!running) break;
+                bool b = win.ProcessMessages(win.Handle);
+                if (b == false)
+                    Logger.LogDebug("true", LoggingTarget.Engine);
 
                 dt = (DateTime.Now - lastFrame).TotalSeconds;
                 lastFrame = DateTime.Now;
 
-                foreach (var win in Engine.Instance.OpenWindows)
-                {
-                    foreach (var scene in win.Scenes)
-                    {
-                        Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
-                        Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
-                    }
-
-                    win.RenderFrame();
-                    win._screenPlay?.LateUpdate(dt);
-                }
-
-                Thread.Sleep(16);
+                Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
+                win.RenderFrame();
+                Engine.Instance.FlushPendingCloses();
             }
+            win.Cleanup();
+            Lifecycle.ScriptBinding.ShutdownEngine();
         }
     }
 }

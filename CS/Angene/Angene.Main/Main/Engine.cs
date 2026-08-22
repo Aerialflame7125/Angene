@@ -14,6 +14,8 @@ using Angene.Essentials.GraphicsContexts;
 using Angene.Graphics;
 using Angene.Graphics.SlangShader;
 using Angene.Platform;
+using Angene.Windows;
+using Angene.Windows.D3D11;
 using static Angene.Vulkan.Interop.Enumerators;
 using static Angene.Vulkan.Interop.Structs;
 using static Angene.X11.Interop.XLib;
@@ -60,6 +62,20 @@ namespace Angene.Main
         internal List<Window> PendingWindowCloses { get; } = new();
         public List<Window> OpenWindows { get; private set; } = new List<Window>();
         public Settings settingsInstance = new Settings();
+
+        private bool otssb = true;
+        public bool oneTimeShouldShutdownBypass
+        {
+            get
+            {
+                return otssb;
+            }
+            set
+            {
+                if (value == false && otssb == true)
+                    otssb = false;
+            }
+        }
 
         private Engine()
         {
@@ -569,6 +585,7 @@ namespace Angene.Main
         public object Instance { get; private set; }
         public List<Entity> Entities { get; private set; } = new List<Entity>();
         public string Name => "ShaderCompilationScene";
+        public Entity MainCamera => null;
 
         private readonly List<SlangShaderResources.IShader> _shaderTypes;
         private int _shaderCount;
