@@ -48,7 +48,7 @@ namespace Game.Scenes
         public List<Entity> Entities { get; private set; } = new List<Entity>();
         public string Name => "CameraTestScene";
 
-        public Entity MainCamera => null;
+        public Entity MainCamera => _cameraEntity;
 
         internal readonly Window _window;
         private readonly string _materialsPackagePath;

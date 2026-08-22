@@ -22,19 +22,22 @@ internal static class LibLoader
 
     private static IntPtr Resolve(string name, Assembly assembly, DllImportSearchPath? searchPath)
     {
-        if (name == "vma")
+        lock (Angene.Common.Locks.LibraryLoaderLock)
         {
-            var (rid, fileName) = OperatingSystem.IsWindows()
-                ? ("win-x64", "vma.dll")
-                : ("linux-x64", "libvma.so");
+            if (name == "vma")
+            {
+                var (rid, fileName) = OperatingSystem.IsWindows()
+                    ? ("win-x64", "vma.dll")
+                    : ("linux-x64", "libvma.so");
 
-            string resourceName = $"Angene.Vulkan.Native.{rid}.{fileName}";
-            string extractPath = ExtractToCache(assembly, resourceName, fileName);
-            return NativeLibrary.Load(extractPath);
+                string resourceName = $"Angene.Vulkan.Native.{rid}.{fileName}";
+                string extractPath = ExtractToCache(assembly, resourceName, fileName);
+                return NativeLibrary.Load(extractPath);
+            }
+
+            // Not ours — hand off to the Vulkan resolver, then default probing
+            return ResolveVulkanLib(name, assembly, searchPath);
         }
-
-        // Not ours — hand off to the Vulkan resolver, then default probing
-        return ResolveVulkanLib(name, assembly, searchPath);
     }
 
     private static IntPtr ResolveVulkanLib(string libraryName, System.Reflection.Assembly assembly, DllImportSearchPath? searchPath)

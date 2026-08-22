@@ -21,20 +21,23 @@ internal static class LibLoader
 
     private static IntPtr Resolve(string name, Assembly assembly, DllImportSearchPath? searchPath)
     {
-        if (name == "slang")
+        lock (Angene.Common.Locks.LibraryLoaderLock)
         {
-            var (rid, fileName) = OperatingSystem.IsWindows()
-                ? ("win-x64", "slang.dll")
-                : ("linux-x64", "libslang.so");
+            if (name == "slang")
+            {
+                var (rid, fileName) = OperatingSystem.IsWindows()
+                    ? ("win-x64", "slang.dll")
+                    : ("linux-x64", "libslang.so");
 
-            string resourceName = $"Angene.Graphics.Native.{rid}.{fileName}";
-            string extractPath = ExtractToCache(assembly, resourceName, fileName);
-            if (OperatingSystem.IsWindows())
-                ExtractToCache(assembly, "Angene.Graphics.Native.win-x64.slang-compiler.dll", "slang-compiler.dll");
-            return NativeLibrary.Load(extractPath);
+                string resourceName = $"Angene.Graphics.Native.{rid}.{fileName}";
+                string extractPath = ExtractToCache(assembly, resourceName, fileName);
+                if (OperatingSystem.IsWindows())
+                    ExtractToCache(assembly, "Angene.Graphics.Native.win-x64.slang-compiler.dll", "slang-compiler.dll");
+                return NativeLibrary.Load(extractPath);
+            }
+
+            return IntPtr.Zero;
         }
-
-        return IntPtr.Zero;
     }
 
     private static string ExtractToCache(Assembly assembly, string resourceName, string fileName)

@@ -23,10 +23,10 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Native/win-x64/miniaudio.dll">
-      <LogicalName>Angene.MiniAudio.Native.win-x64.miniaudio.dll</LogicalName>
+      <LogicalName>Angene.Audio.Native.win-x64.miniaudio.dll</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Native/linux-x64/libminiaudio.so">
-      <LogicalName>Angene.MiniAudio.Native.linux-x64.libminiaudio.so</LogicalName>
+      <LogicalName>Angene.Audio.Native.linux-x64.libminiaudio.so</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

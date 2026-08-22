@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using static Angene.Windows.Dxgi.DxgiEnums;
 using static Angene.Graphics.Defs;
+using Angene.Essentials.GraphicsContexts;
 
 namespace Game
 {
@@ -20,6 +21,8 @@ namespace Game
         public object Instance { get; private set; }
         public List<Entity> Entities { get; private set; } = new List<Entity>();
         public string Name => "ShaderCompileTestScene";
+
+        public Entity MainCamera => null;
 
         private readonly Window _window;
         private IDX11GraphicsContext _gfx;
