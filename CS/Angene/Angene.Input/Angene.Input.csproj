@@ -14,11 +14,4 @@
     <ProjectReference Include="..\Angene.Main\Angene.csproj" />
     <ProjectReference Include="..\Angene.Management\Angene.Management.csproj" />
   </ItemGroup>
-
-  <PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Windows`))' == 'true'">
-	    <DefineConstants>WINDOWS</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Linux`))' == 'true'">
-	    <DefineConstants>LINUX</DefineConstants>
-	</PropertyGroup>
 </Project>

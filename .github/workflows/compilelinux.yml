@@ -1,0 +1,31 @@
+name: Compile Linux
+
+on:
+  push:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore CS/Angene/Angene.sln
+    - name: Build
+      run: dotnet build "CS/Angene/Angene.sln" --configuration Release --no-restore
+    - name: Publish
+      run: dotnet publish "CS/Angene/Angene.sln" -c Release -r linux-x64 -p:AngenePlatform=Linux -o "Build\Angene\Lin" -p:WarningLevel=0
+    - name: Zip Linux build
+      run: zip -r AngeneLin.zip Build/Angene/Lin
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AngeneLinux
+        path: AngeneLin.zip
+        compression-level: 0

@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <AngenePlatform Condition="'$(AngenePlatform)'==''and $([MSBuild]::IsOSPlatform('Windows'))">Windows</AngenePlatform>
+    <AngenePlatform Condition="'$(AngenePlatform)'==''and $([MSBuild]::IsOSPlatform('Linux'))">Linux</AngenePlatform>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(AngenePlatform)'=='Windows'">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(AngenePlatform)'=='Linux'">
+    <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+  </PropertyGroup>
+</Project>

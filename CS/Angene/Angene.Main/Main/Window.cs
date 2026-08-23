@@ -12,7 +12,9 @@ using Angene.Essentials.GraphicsContexts;
 using Angene.Graphics;
 using Angene.Platform;
 using Angene.Vulkan.Interop;
+#if WINDOWS
 using Angene.Windows;
+#endif
 using Angene.Linux.X11;
 using static Angene.Essentials.Types;
 using static Angene.Linux.X11.XLib;
@@ -373,13 +375,14 @@ namespace Angene.Main
             if (!Engine.Instance.supportedLibs.Contains("Windows"))
                 Logger.LogCritical("Windows library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("Windows library was not found at init. Installation is corrupt or incomplete."), true);
             return CreateWindowWindows(config, cTI, cTS, type);
-#else
+#elif LINUX
             if (!Engine.Instance.InitializedXThreads)
                 Engine.Instance.XInitThreads();
             if (!Engine.Instance.supportedLibs.Contains("X11"))
                 Logger.LogCritical("X11 library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("X11 library was not found at init. Installation is corrupt or incomplete."), true);
             return CreateWindowX11(config, cTI, cTS, type);
 #endif
+            return null; // shuts up the compiler
         }
 
 #if WINDOWS
@@ -732,6 +735,7 @@ namespace Angene.Main
         {
             if (Handle is MicrosoftWindowHandle handle && handle.Hwnd != IntPtr.Zero)
             {
+#if WINDOWS
                 WindowMap.Remove(handle);
                 Engine.Instance.OpenWindows.Remove(this);
                 Cleanup();
@@ -741,6 +745,7 @@ namespace Angene.Main
                     Engine.Instance.ShouldShutdown = true;
                 else if (Engine.Instance.OpenWindows.Count == 0 && Engine.Instance.oneTimeShouldShutdownBypass)
                     Engine.Instance.oneTimeShouldShutdownBypass = false;
+#endif
             }
             else if (Handle is X11WindowHandle x11Handle && x11Handle.Display != null && x11Handle.Window != IntPtr.Zero)
             {
@@ -760,8 +765,10 @@ namespace Angene.Main
                     XLib.Methods.XUnlockDisplay(x11Handle.Display);
                 }
 
-                if (Engine.Instance.OpenWindows.Count == 0)
+                if (Engine.Instance.OpenWindows.Count == 0 && !Engine.Instance.oneTimeShouldShutdownBypass)
                     Engine.Instance.ShouldShutdown = true;
+                else if (Engine.Instance.OpenWindows.Count == 0 && Engine.Instance.oneTimeShouldShutdownBypass)
+                    Engine.Instance.oneTimeShouldShutdownBypass = false;
             }
             else if (Handle is string strHandle)
             {
@@ -863,7 +870,7 @@ namespace Angene.Main
 
                 Engine.Instance.FlushPendingCloses();
             }
-#else
+#elif WINDOWS
             if (Handle is MicrosoftWindowHandle han)
             {
                 while (User32.PeekMessageW(out var msg, han.Hwnd, 0, 0, Consts.PM_REMOVE))

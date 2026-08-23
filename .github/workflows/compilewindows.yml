@@ -1,0 +1,31 @@
+name: Compile Windows
+
+on:
+  push:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    - name: Restore Dependencies
+      run: dotnet restore "CS/Angene/Angene.sln"
+    - name: Build
+      run: dotnet build "CS/Angene/Angene.sln" --configuration Release --no-restore
+    - name: Publish
+      run: dotnet publish "CS/Angene/Angene.sln" -c Release -r win-x64 -p:AngenePlatform=Windows -o "Build\Angene\Win" -p:WarningLevel=0
+    - name: Zip Windows build
+      shell: powershell
+      run: |
+        Compress-Archive -Path "Build/Angene/Win" -DestinationPath "AngeneWin.zip"
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AngeneWindows
+        path: AngeneWin.zip
+        compression-level: 0
+

@@ -14,8 +14,10 @@ using Angene.Essentials.GraphicsContexts;
 using Angene.Graphics;
 using Angene.Graphics.SlangShader;
 using Angene.Platform;
+#if WINDOWS
 using Angene.Windows;
 using Angene.Windows.D3D11;
+#endif
 using static Angene.Vulkan.Interop.Enumerators;
 using static Angene.Vulkan.Interop.Structs;
 using static Angene.Linux.X11.XLib;

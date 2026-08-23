@@ -11,13 +11,6 @@
 		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Windows`))' == 'true'">
-	    <DefineConstants>WINDOWS</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Linux`))' == 'true'">
-	    <DefineConstants>LINUX</DefineConstants>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="System.Drawing.Common" Version="10.0.3" />
@@ -64,7 +57,7 @@
 	  <ProjectReference Include="..\Angene.Linux\Angene.Linux.csproj" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+	<ItemGroup Condition="'$(AngenePlatform)' == 'Windows'">
 		<ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
 	</ItemGroup>
 
