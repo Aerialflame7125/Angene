@@ -22,10 +22,8 @@ jobs:
       run: dotnet build "CS/Angene/Angene.sln" --configuration Release --no-restore
     - name: Publish
       run: dotnet publish "CS/Angene/Angene.sln" -c Release -r linux-x64 -p:AngenePlatform=Linux -o "Build\Angene\Lin" -p:WarningLevel=0
-    - name: Zip Linux build
-      run: zip -r AngeneLin.zip Build/Angene/Lin
     - uses: actions/upload-artifact@v4
       with:
         name: AngeneLinux
-        path: AngeneLin.zip
-        compression-level: 0
+        path: Build/Angene/Lin
+        compression-level: 9
