@@ -14,6 +14,7 @@ using static Angene.Vulkan.Interop.Enumerators;
 using static Angene.Vulkan.Interop.Structs;
 using static Angene.Vulkan.Interop.VulkanMemoryAllocator;
 using static Angene.Windows.Dxgi.DxgiEnums;
+using Angene.Graphics.Vulkan;
 
 namespace Angene.Graphics
 {

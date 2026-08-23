@@ -19,6 +19,7 @@ using Angene.Windows.D3D11;
 using static Angene.Vulkan.Interop.Enumerators;
 using static Angene.Vulkan.Interop.Structs;
 using static Angene.Linux.X11.XLib;
+using Angene.Graphics.Vulkan;
 
 namespace Angene.Main
 {
@@ -151,7 +152,7 @@ namespace Angene.Main
             {
                 Logger.LogDebug("[Engine.cs | XInitThreads] Initializing X11 threads..", LoggingTarget.Engine);
 
-                int result = Methods.XInitThreads();
+                int result = Linux.X11.XLib.Methods.XInitThreads();
                 if (result == 0)
                     Logger.LogCritical("[Engine.cs | XInitThreads] Failed to initialize X11 threads. Please check your installation.", LoggingTarget.Engine, new AngeneException("Failed to initialize X11 threads. Installation is corrupt or incomplete."), true);
 
@@ -167,7 +168,7 @@ namespace Angene.Main
             IntPtr focused_window;
             int revert_to;
 
-            Methods.XGetInputFocus(display, (nuint*)&focused_window, &revert_to);
+            Linux.X11.XLib.Methods.XGetInputFocus(display, (nuint*)&focused_window, &revert_to);
 
             return (focused_window == window);
         }
@@ -183,7 +184,7 @@ namespace Angene.Main
 #if LINUX
             if (Instance.SharedX11Display != null)
             {
-                Methods.XCloseDisplay(Instance.SharedX11Display);
+                Linux.X11.XLib.Methods.XCloseDisplay(Instance.SharedX11Display);
                 Instance.SharedX11Display = null;
             }
 #endif

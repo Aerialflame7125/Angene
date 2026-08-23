@@ -1,23 +1,23 @@
-using Angene.Windows.Slang;
+using Angene.Graphics.SlangShader;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static Angene.Windows.Slang.LayoutRules;
-using static Angene.Windows.Slang.Methods;
-using static Angene.Windows.Slang.SlangBindingType;
-using static Angene.Windows.Slang.SlangDeclKind;
-using static Angene.Windows.Slang.SlangLayoutRules;
-using static Angene.Windows.Slang.SlangModifierID;
-using static Angene.Windows.Slang.SlangParameterCategory;
-using static Angene.Windows.Slang.SlangParameterCategory;
-using static Angene.Windows.Slang.SlangScalarType;
-using static Angene.Windows.Slang.SlangTypeKind;
-using static Angene.Windows.Slang.SpecializationArg.Kind;
-using static Angene.Windows.Slang.TypeReflection.Kind;
+using static Angene.Graphics.SlangShader.LayoutRules;
+using static Angene.Graphics.SlangShader.Methods;
+using static Angene.Graphics.SlangShader.SlangBindingType;
+using static Angene.Graphics.SlangShader.SlangDeclKind;
+using static Angene.Graphics.SlangShader.SlangLayoutRules;
+using static Angene.Graphics.SlangShader.SlangModifierID;
+using static Angene.Graphics.SlangShader.SlangParameterCategory;
+using static Angene.Graphics.SlangShader.SlangParameterCategory;
+using static Angene.Graphics.SlangShader.SlangScalarType;
+using static Angene.Graphics.SlangShader.SlangTypeKind;
+using static Angene.Graphics.SlangShader.SpecializationArg.Kind;
+using static Angene.Graphics.SlangShader.TypeReflection.Kind;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Angene.Windows.Slang; // Slang "slang-2026.14.1"
+namespace Angene.Graphics.SlangShader; // Slang "slang-2026.14.1"
 
 public enum SlangSeverity
 {

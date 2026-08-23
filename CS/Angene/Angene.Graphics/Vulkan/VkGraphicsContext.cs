@@ -16,7 +16,9 @@ using Angene.Essentials;
 using static Angene.Essentials.Types;
 using Angene.Essentials.GraphicsContexts;
 using Angene.Math.Vectors;
+using System;
 
+namespace Angene.Graphics.Vulkan;
 public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 {
     private IntPtr _vkInstance;
@@ -153,9 +155,9 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     {
                         sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
                         pApplicationName = (sbyte*)appNamePtr,
-                        applicationVersion = (uint)Math.Round(currentAppInfo.AppVersion),
+                        applicationVersion = (uint)System.Math.Round(currentAppInfo.AppVersion),
                         pEngineName = (sbyte*)engineNamePtr,
-                        engineVersion = (uint)Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
+                        engineVersion = (uint)System.Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
                         apiVersion = (uint)((1 << 22) | (3 << 12) | 0)
                     };
                 }
@@ -168,7 +170,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         pApplicationName = (sbyte*)appNamePtr,
                         applicationVersion = 0,
                         pEngineName = (sbyte*)engineNamePtr,
-                        engineVersion = (uint)Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
+                        engineVersion = (uint)System.Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
                         apiVersion = (uint)((1 << 22) | (3 << 12) | 0)
                     };
                 }
@@ -370,7 +372,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             };
 
             VmaAllocator* localAllocator;
-            result = Methods.vmaCreateAllocator(&allocatorInfo, &localAllocator);
+            result = vmaCreateAllocator(&allocatorInfo, &localAllocator);
             if (result != VkResult.VK_SUCCESS)
                 throw new Exception($"Failed to create VMA allocator: {result}");
 

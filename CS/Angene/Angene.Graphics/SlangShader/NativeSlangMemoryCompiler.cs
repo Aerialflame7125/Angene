@@ -1,5 +1,5 @@
 ﻿using Angene.Common.Settings;
-using Angene.Windows.Slang;
+using Angene.Graphics.SlangShader;
 using Org.BouncyCastle.Asn1.X509;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
