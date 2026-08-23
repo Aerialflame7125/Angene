@@ -1,7 +1,7 @@
 using Angene.Common;
 using Angene.Graphics;
 using Angene.Windows;
-using Angene.X11.Interop;
+using Angene.Linux.X11;
 using static Angene.Vulkan.Interop.Methods;
 using static Angene.Vulkan.Interop.Structs;
 using static Angene.Vulkan.Interop.Enumerators;

@@ -18,7 +18,7 @@ using Angene.Windows;
 using Angene.Windows.D3D11;
 using static Angene.Vulkan.Interop.Enumerators;
 using static Angene.Vulkan.Interop.Structs;
-using static Angene.X11.Interop.XLib;
+using static Angene.Linux.X11.XLib;
 
 namespace Angene.Main
 {
@@ -158,6 +158,18 @@ namespace Angene.Main
                 InitializedXThreads = true;
                 Logger.LogDebug("[Engine.cs | XInitThreads] Successfully initialized X11 threads.", LoggingTarget.Engine);
             }
+        }
+        public unsafe bool isXWindowFocused(object _windowHandle)
+        {
+            IntPtr window = ((X11WindowHandle)_windowHandle).Window;
+            _XDisplay* display = ((X11WindowHandle)_windowHandle).Display;
+
+            IntPtr focused_window;
+            int revert_to;
+
+            Methods.XGetInputFocus(display, (nuint*)&focused_window, &revert_to);
+
+            return (focused_window == window);
         }
 #endif
         

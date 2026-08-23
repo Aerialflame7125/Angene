@@ -13,8 +13,9 @@ using Angene.Graphics;
 using Angene.Platform;
 using Angene.Vulkan.Interop;
 using Angene.Windows;
-using Angene.X11.Interop;
-using static Angene.X11.Interop.XLib;
+using Angene.Linux.X11;
+using static Angene.Essentials.Types;
+using static Angene.Linux.X11.XLib;
 
 namespace Angene.Main
 {
@@ -793,11 +794,36 @@ namespace Angene.Main
                 nuint root = XLib.Methods.XDefaultRootWindow(((X11WindowHandle)Handle).Display);
                 XLib.Methods.XSendEvent(((X11WindowHandle)Handle).Display, root, 0,
                     (nint)(SubstructureNotifyMask | SubstructureRedirectMask), &xev);
+                
             }
             finally
             {
                 Marshal.FreeHGlobal((IntPtr)wmstate);
                 Marshal.FreeHGlobal((IntPtr)statefullscreen);
+            }
+        }
+        public unsafe void lockCursor(bool locked, LinuxWindowType windowType)
+        {
+            if (locked && windowType == LinuxWindowType.X11)
+            {
+                int res = XLib.Methods.XGrabPointer(((X11WindowHandle)Handle).Display, (nuint)((X11WindowHandle)Handle).Window, 0, (uint)(XEventMask.PointerMotionMask | XEventMask.ButtonPressMask | XEventMask.ButtonReleaseMask | XEventMask.FocusChangeMask), 1, 1, 0, 0, (nuint)0ul);
+                
+                if (res != 0)
+                    Logger.LogError("[Window] X Server refused grab call.", LoggingTarget.Engine);
+                XLib.Methods.XSync(((X11WindowHandle)Handle).Display, 0);
+            }
+            else if (!locked && windowType == LinuxWindowType.X11)
+            {
+                XLib.Methods.XUngrabPointer(((X11WindowHandle)Handle).Display, 0);
+                XLib.Methods.XSync(((X11WindowHandle)Handle).Display, 0);
+            }
+            else if (locked && windowType == LinuxWindowType.Wayland)
+            {
+                
+            }
+            else if (!locked && windowType == LinuxWindowType.Wayland)
+            {
+                
             }
         }
 #endif

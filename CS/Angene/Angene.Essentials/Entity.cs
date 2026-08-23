@@ -29,7 +29,6 @@ namespace Angene.Essentials
             set => AddComponent(value);
         }
 
-
         // Script instances and components attached to this entity
         private List<object> _scripts;
         private Dictionary<Type, object> _components;
@@ -45,7 +44,7 @@ namespace Angene.Essentials
             set => _parentScene ??= value; 
         }
 
-
+#region Constructors
         // Internal enabled state (use Lifecycle.SetEntityEnabled to change)
         internal bool _enabled;
 
@@ -63,22 +62,63 @@ namespace Angene.Essentials
             Lifecycle.ScriptBinding.HandleEntityCreated(this);
         }
 
-/*
-        public Entity(Vec2 Pos, string _name = "New Object")
+        public Entity(Entity e)
         {
             Id = _nextId++;
-            name = _name;
+            name = e.name;
             _scripts = new List<object>();
+            _components = new Dictionary<Type, object>();
+            foreach (IScreenPlay script in e._scripts)
+                AddScript(script);
+            foreach (var kvp in e._components)
+                _components[kvp.Key] = kvp.Value;
             childEntities = new List<Entity>();
             _parent = null;
-            transformType = TransformType.Transform2D;
-
             _enabled = true;
 
             // Register with lifecycle system
             Lifecycle.ScriptBinding.HandleEntityCreated(this);
         }
-*/
+
+        public Entity(Entity e, Entity extraData)
+        {
+            Id = _nextId++;
+            name = e.name;
+
+            _scripts = new List<object>();
+            _components = new Dictionary<Type, object>();
+
+            foreach (var script in e._scripts)
+                AddScript(script);
+            foreach (var kvp in e._components)
+                _components[kvp.Key] = kvp.Value;
+
+            foreach (var script in extraData._scripts)
+                AddScript(script);
+            foreach (var kvp in extraData._components)
+                _components[kvp.Key] = kvp.Value;
+
+            childEntities = new List<Entity>();
+            _parent = null;
+            _enabled = true;
+
+            Lifecycle.ScriptBinding.HandleEntityCreated(this);
+        }
+
+        public Entity(Vec2 Pos, float Rot, Vec2 Scale, string _name = "New Object")
+        {
+            Id = _nextId++;
+            name = _name;
+            _scripts = new List<object>();
+            _components = new Dictionary<Type, object>();
+            childEntities = new List<Entity>();
+            _parent = null;
+            AddComponent(new Transform2D(Pos, Rot, Scale));
+            _enabled = true;
+
+            // Register with lifecycle system
+            Lifecycle.ScriptBinding.HandleEntityCreated(this);
+        }
         public Entity(Vec3 Pos, Vec3 Rot, Vec3 Scale, string _name = "New Object")
         {
             Id = _nextId++;
@@ -94,7 +134,19 @@ namespace Angene.Essentials
             Lifecycle.ScriptBinding.HandleEntityCreated(this);
         }
 
-        /* COMPONENTS */
+        public Entity Instantiate(Entity extraData = null)
+        {
+            if (extraData != null)
+            {
+                return new Entity(this, extraData);
+            }
+            else
+            {
+                return new Entity(this);
+            }
+        }
+#endregion
+#region Components
 
         /// <summary>
         /// Construct and add a new component of type T using its parameterless constructor.
@@ -191,8 +243,8 @@ namespace Angene.Essentials
         {
             return _components.Values;
         }
-
-        /* SCRIPTS */
+#endregion
+#region Scripts
 
         /// <summary>
         /// Add a script component to this entity.
@@ -282,9 +334,8 @@ namespace Angene.Essentials
             }
             return null;
         }
-
-        /* Properties */
-
+#endregion
+#region Properties
         /// <summary>
         /// Set the enabled state of this entity.
         /// This will trigger OnEnable/OnDisable lifecycle callbacks.
@@ -354,7 +405,8 @@ namespace Angene.Essentials
         {
             return _parent;
         }
-
+#endregion
+#region Ops
         public void Remove() => Destroy();
 
         /// <summary>
@@ -405,5 +457,6 @@ namespace Angene.Essentials
         {
             return !(left == right);
         }
+#endregion
     }
 }

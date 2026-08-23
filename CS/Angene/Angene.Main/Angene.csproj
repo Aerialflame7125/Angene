@@ -61,7 +61,7 @@
 	  <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
 	  <ProjectReference Include="..\Angene.Graphics\Angene.Graphics.csproj" />
 	  <ProjectReference Include="..\Angene.Management\Angene.Management.csproj" />
-	  <ProjectReference Include="..\Angene.X11\Angene.X11.csproj" />
+	  <ProjectReference Include="..\Angene.Linux\Angene.Linux.csproj" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(OS)' == 'Windows_NT'">

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Angene.Common;
 using Angene.Essentials;
 using Angene.Essentials.Components;
@@ -87,10 +88,14 @@ namespace Game
             float delta = (float)dt;
 
             // --- Look (arrow keys) ---
-            if (KeyDetection.IsKeyDown((uint)CursorKeys.Left)) _yaw -= LookSpeed * delta;
-            if (KeyDetection.IsKeyDown((uint)CursorKeys.Right)) _yaw += LookSpeed * delta;
-            if (KeyDetection.IsKeyDown((uint)CursorKeys.Up)) _pitch += LookSpeed * delta;
-            if (KeyDetection.IsKeyDown((uint)CursorKeys.Down)) _pitch -= LookSpeed * delta;
+            if (KeyDetection.IsKeyDown((uint)CursorKeys.Left))
+                _yaw -= LookSpeed * delta;
+            if (KeyDetection.IsKeyDown((uint)CursorKeys.Right))
+                _yaw += LookSpeed * delta;
+            if (KeyDetection.IsKeyDown((uint)CursorKeys.Up))
+                _pitch += LookSpeed * delta;
+            if (KeyDetection.IsKeyDown((uint)CursorKeys.Down))
+                _pitch -= LookSpeed * delta;
             _pitch = Math.Clamp(_pitch, -PitchLimit, PitchLimit);
 
             Vec3 forward = new Vec3(

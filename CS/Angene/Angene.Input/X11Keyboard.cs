@@ -1,7 +1,7 @@
 using System;
 using Angene.Essentials;
-using Angene.X11.Interop;
-using static Angene.X11.Interop.XLib;
+using Angene.Linux.X11;
+using static Angene.Linux.X11.XLib;
 using System.Collections.Generic;
 
 namespace Angene.Input

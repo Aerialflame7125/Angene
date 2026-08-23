@@ -32,6 +32,37 @@ public class Transform3D
     }
 }
 
+public class Transform2D {
+    public Vec2 pos = new(0.0f, 0.0f);
+    public float rot = 0f;
+    public Vec2 scale = new(1.0f, 1.0f);
+
+    public Matrix4x4 GetMatrix()
+    {
+        Matrix4x4 scaleMat = Matrix4x4.Scale(scale.X, scale.Y, 1.0f);
+        Matrix4x4 rotMat = Matrix4x4.RotationZ(rot);
+        Matrix4x4 transMat = Matrix4x4.Translation(pos.X, pos.Y, 0.0f);
+
+        return scaleMat * rotMat * transMat;
+    }
+
+    public Transform2D() {}
+
+    public Transform2D(Transform2D buh)
+    {
+        pos = buh.pos;
+        rot = buh.rot;
+        scale = buh.scale;
+    }
+
+    public Transform2D(Vec2 _pos, float _rot, Vec2 _scale)
+    {
+        pos = _pos;
+        rot = _rot;
+        scale = _scale;
+    }
+}
+
 public class Mesh
 {
     public IntPtr vertexBuffer;

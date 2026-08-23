@@ -60,6 +60,7 @@ namespace Game.Scenes
 
         private Entity _cameraEntity;
         private Entity _cubeEntity;
+        private Entity _cubeEntity1;
         private Dictionary<string, FaceColor> _materials;
 
         private Angene.Audio.MiniAudio.MiniAudio mAudio = new Angene.Audio.MiniAudio.MiniAudio();
@@ -129,6 +130,7 @@ namespace Game.Scenes
                 isPrimary = true,
             });
             Entities.Add(_cameraEntity);
+            
 
             var controller = _cameraEntity.AddScript<CameraControllerScript>();
             controller.Initialize(_cameraEntity);
@@ -137,6 +139,8 @@ namespace Game.Scenes
             _cubeEntity = new Entity(new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "Cube");
             Entities.Add(_cubeEntity);
 
+            _cubeEntity1 = _cubeEntity.Instantiate(new Entity(new Vec3(0f, 3f, 0f), new Vec3(0, 0, 0), new Vec3(2, 2, 1), "Cube1"));
+            Entities.Add(_cubeEntity1);
             // --- Pipeline (position + color vertex layout, matches Shaders.cs) ---
             var vertexShader = Engine.Instance.ShaderCache[1] as VkShader;
             var fragmentShader = Engine.Instance.ShaderCache[2] as VkShader;
@@ -166,42 +170,59 @@ namespace Game.Scenes
             Logger.LogInfo($"[MiniAudio] Linked native version: {new string((sbyte*)Angene.Audio.MiniAudio.Interop.Methods.ma_version_string())}", LoggingTarget.Engine);
             mAudio.Play("cake.mp3");
             Logger.LogInfo("[CameraTestScene] Initialized.", LoggingTarget.Graphics);
+            _window.lockCursor(true);
         }
 
         public void OnMessage(IntPtr msgPtr) { }
         IntPtr vertexBuffer = IntPtr.Zero;
+        IntPtr vertexBuffer1 = IntPtr.Zero;
 
         public void Render()
         {
             if (_gfx == null) return;
-            if (vertexBuffer != IntPtr.Zero)
-                _gfx.DestroyBuffer(vertexBuffer);
-
             var camTransform = _cameraEntity.GetComponent<Transform3D>();
             var vCam = _cameraEntity.GetComponent<VulkanCamera>();
             var cubeTransform = _cubeEntity.GetComponent<Transform3D>();
+            var cube1Transform = _cubeEntity1.GetComponent<Transform3D>();
 
             Matrix4x4 model = cubeTransform.GetMatrix();
+            Matrix4x4 model1 = cube1Transform.GetMatrix();
             Matrix4x4 view = vCam.LookTo(camTransform.pos, vCam.forward, vCam.up);
             Matrix4x4 modelView = view * model;
+            Matrix4x4 model1View = view * model1;
             Matrix4x4 proj = vCam.Perspective(vCam.fov, vCam.aspectRatio, vCam.nearPlane, vCam.farPlane);
 
             float[] vertexData = BuildSortedNdcVertexBuffer(modelView, proj, out int vertexCount);
+            float[] vertexData1 = BuildSortedNdcVertexBuffer(model1View, proj, out int vertexCount1);
 
             byte[] vertexBytes = new byte[vertexData.Length * sizeof(float)];
+            byte[] vertexBytes1 = new byte[vertexData1.Length * sizeof(float)];
             Buffer.BlockCopy(vertexData, 0, vertexBytes, 0, vertexBytes.Length);
+            Buffer.BlockCopy(vertexData1, 0, vertexBytes1, 0, vertexBytes1.Length);
 
-            // NOTE: allocates a fresh VMA vertex buffer every frame -- see caveat #3 above.
+            _gfx.BeginFrame(0x00202020);
+
+            if (vertexBuffer != IntPtr.Zero)
+                _gfx.DestroyBuffer(vertexBuffer);
+            if (vertexBuffer1 != IntPtr.Zero)
+                _gfx.DestroyBuffer(vertexBuffer1);
+
             vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
-
-            _gfx.BeginFrame(0x00202020); // dark gray background
+            vertexBuffer1 = _gfx.CreateVertexBuffer(vertexBytes1, strideBytes: 7 * sizeof(float));
 
             _gfx.SetPipeline(_pipeline);
+
+            byte[] combined = new byte[vertexBytes.Length + vertexBytes1.Length];
+            Buffer.BlockCopy(vertexBytes, 0, combined, 0, vertexBytes.Length);
+            Buffer.BlockCopy(vertexBytes1, 0, combined, vertexBytes.Length, vertexBytes1.Length);
+
             _gfx.SetVertexBuffer(vertexBuffer, strideBytes: 7 * sizeof(float));
             _gfx.Draw((uint)vertexCount);
+            
+            _gfx.SetVertexBuffer(vertexBuffer1, strideBytes: 7 * sizeof(float));
+            _gfx.Draw((uint)vertexCount1);
 
             _gfx.EndFrame();
-            
         }
 
         /// <summary>

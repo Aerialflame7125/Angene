@@ -45,7 +45,7 @@ namespace Angene.Input
 #if LINUX
         public unsafe void Update(double dt)
         {
-            if (Engine.Instance.SharedX11Display != null)
+            if (Engine.Instance.SharedX11Display != null && Engine.Instance.OpenWindows.Count > 0 && Engine.Instance.isXWindowFocused(Engine.Instance.OpenWindows[0].Handle))
             {
                 if (X11Keyboard.IsKeyDown())
                 {

@@ -71,5 +71,10 @@ namespace Angene.Essentials
                 this.VulkanPresentMode = VulkanPresentMode;
             }
         }
+        public enum LinuxWindowType
+        {
+            X11,
+            Wayland
+        }
     }
 }

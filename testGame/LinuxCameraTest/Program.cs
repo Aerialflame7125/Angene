@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using static Angene.Vulkan.Interop.Enumerators;
 
 namespace Game
@@ -34,6 +35,20 @@ namespace Game
 
         [UnmanagedCallersOnly]
         public static int Main(IntPtr args, int argc)
+        {
+            try
+            {
+                RunGame(false);
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogCritical("FATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, exception: ex);
+                return 1;
+            }
+        }
+        
+        public static int Main()
         {
             try
             {
@@ -106,6 +121,7 @@ namespace Game
                 Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
                 Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
                 win.RenderFrame();
+                Thread.Sleep(16);
             }
             win.Cleanup();
             Lifecycle.ScriptBinding.ShutdownEngine();
