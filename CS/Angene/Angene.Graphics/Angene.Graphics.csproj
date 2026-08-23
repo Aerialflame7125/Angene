@@ -19,13 +19,15 @@
     	<PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(AngenePlatform)' == 'Windows'">
     <EmbeddedResource Include="Native/win-x64/slang.dll">
       <LogicalName>Angene.Graphics.Native.win-x64.slang.dll</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Native/win-x64/slang-compiler.dll">
       <LogicalName>Angene.Graphics.Native.win-x64.slang-compiler.dll</LogicalName>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup Condition="'$(AngenePlatform)' == 'Linux'">
     <EmbeddedResource Include="Native/linux-x64/libslang.so">
       <LogicalName>Angene.Graphics.Native.linux-x64.libslang.so</LogicalName>
     </EmbeddedResource>
