@@ -17,6 +17,6 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet restore CS/Angene.sln
+      run: dotnet restore CS/Angene/Angene.sln
     - name: Build
-      run: dotnet build --no-restore CS/Angene.sln
+      run: dotnet build --no-restore CS/Angene/Angene.sln
