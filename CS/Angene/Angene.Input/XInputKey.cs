@@ -73,12 +73,26 @@ namespace Angene.Input
                 return (uint)(Keys.IKeyCodePublishingX)keyCode;
             else if (Enum.IsDefined(typeof(Keys.IKeyCodeCurrencyX), keyCode))
                 return (uint)(Keys.IKeyCodeCurrencyX)keyCode;
+            else if (Enum.IsDefined(typeof(Keys.IKeyCodeMouseX), keyCode))
+                return (uint)(Keys.IKeyCodeMouseX)keyCode;
             else
                 return 0;
         }
     }
     public partial struct Keys // i dunno what people will and wont use, so this is yoinked from an xlib header file
     {
+        public enum IKeyCodeMouseX : uint
+        {
+            Button1Left = 1,
+            Button2Middle = 2,
+            Button3Right = 3,
+            Button4ScrUp = 4,
+            Button5ScrDown = 5,
+            Button6 = 6,
+            Button7 = 7,
+            Button8 = 8,
+            Button9 = 9
+        }
         public enum IKeyCodeExtraX : uint
         {
             VoidSymbol                  = 0xffffff,

@@ -68,6 +68,9 @@ namespace Angene.Math.Vectors
         public static Vec3 operator -(Vec3 a, Vec3 b) => new(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
         public static Vec3 operator *(Vec3 v, float s) => new(v.X * s, v.Y * s, v.Z * s);
         public static Vec3 operator /(Vec3 v, float s) => new(v.X / s, v.Y / s, v.Z / s);
+
+        public static implicit operator Vec2(Vec3 d) => new Vec2(d.X, d.Y);
+        public static implicit operator Vec3(Vec2 d) => new Vec3(d.X, d.Y, 0f);
     }
 
     [StructLayout(LayoutKind.Sequential)]

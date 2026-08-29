@@ -4,6 +4,15 @@ namespace Angene.Essentials
 {
     public partial class Types
     {
+        /// <summary>
+        /// RGBA color value
+        /// </summary>
+        public struct FaceColor
+        {
+            public float R, G, B, A;
+            public FaceColor(float r, float g, float b, float a) { R = r; G = g; B = b; A = a; }
+        }
+
         public enum TShaderType : int
         {
             Vertex = 1,

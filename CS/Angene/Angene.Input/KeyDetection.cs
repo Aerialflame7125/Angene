@@ -18,28 +18,27 @@ namespace Angene.Input
         public void Start() { }
         public unsafe void OnMessage(IntPtr msgPtr)
         {
-            if (Engine.Instance.SharedX11Display == null)
+#if WINDOWS
+            if (msgPtr == IntPtr.Zero) return;
+            var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
+            
+            switch (msg.message)
             {
-                if (msgPtr == IntPtr.Zero) return;
-                var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
+                case (uint)WM.KEYDOWN:
+                    uint downKey = (uint)Key.TryNInt(msg.wParam);
+                    if (downKey != 0)
+                        _heldKeys.Add(downKey);
+                    break;
 
-                switch (msg.message)
-                {
-                    case (uint)WM.KEYDOWN:
-                        uint downKey = (uint)Key.TryNInt(msg.wParam);
-                        if (downKey != 0)
-                            _heldKeys.Add(downKey);
-                        break;
-
-                    case (uint)WM.KEYUP:
-                        uint upKey = (uint)Key.TryNInt(msg.wParam);
-                        if (upKey != 0)
-                        {
-                            _heldKeys.Remove(upKey);
-                        }
-                        break;  
-                }
+                case (uint)WM.KEYUP:
+                    uint upKey = (uint)Key.TryNInt(msg.wParam);
+                    if (upKey != 0)
+                    {
+                        _heldKeys.Remove(upKey);
+                    }
+                    break;  
             }
+#endif
         }
 
 #if LINUX

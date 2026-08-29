@@ -18,6 +18,8 @@ using Angene.Windows;
 using Angene.Linux.X11;
 using static Angene.Essentials.Types;
 using static Angene.Linux.X11.XLib;
+using Angene.Essentials.Components;
+using Angene.Math.Vectors;
 
 namespace Angene.Main
 {
@@ -618,12 +620,9 @@ namespace Angene.Main
             {
                 try
                 {
+                    if (graphicsContext is IVkGraphicsContext)
+                        ApplyCameraTransformsVulkan(scene);
                     scene.Render();
-                    foreach (Entity e in scene.Entities)
-                    {
-                        if (e.ParentScene != scene)
-                            e.ParentScene = scene;
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -649,6 +648,44 @@ namespace Angene.Main
             catch (Exception ex)
             {
                 Logger.LogDebug($"Present failed in RenderFrame: {ex.Message}", LoggingTarget.Engine);
+            }
+        }
+
+        /// <summary>
+        /// Applies and computes view/proj once for the given scene and writes to every other entity with a Transform3D.
+        /// Quits early if scene has no MainCamera.
+        /// </summary>
+        /// <param name="scene"></param>
+        public static void ApplyCameraTransformsVulkan(IScene scene)
+        {
+            Entity cam = scene.MainCamera;
+            if (cam == null)
+                return;
+
+            var camTransform = cam.GetComponent<Transform3D>();
+            var vCam = cam.GetComponent<VulkanCamera>();
+
+            if (camTransform == null || vCam == null)
+                return;
+
+            Matrix4x4 view = vCam.LookTo(camTransform.pos, vCam.forward, vCam.up);
+            Matrix4x4 proj = vCam.Perspective(vCam.fov, vCam.aspectRatio, vCam.nearPlane, vCam.farPlane);
+
+            foreach (Entity e in scene.Entities)
+            {
+                if (e.ParentScene != scene)
+                    e.ParentScene = scene;
+
+                if (e == cam)
+                    continue;
+
+                if (!e.TryGetComponent<Transform3D>(out var t))
+                    continue;
+
+                Matrix4x4 modelView = view * t.GetMatrix();
+
+                t.ModelView = modelView;
+                t.Proj = proj;
             }
         }
 

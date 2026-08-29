@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-08-23 19:31:31.754614+00:00)</sup></sub>
+<sub><sup>(generated 2026-08-29 16:21:53.791422+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -1235,6 +1235,7 @@
     * `void AddEntity()`
     * `void RemoveEntity()`
   * **interface IScreenPlay**
+  * **struct FaceColor**
   * **struct LifecycleInfo**
     * `bool HasUpdate`
     * `bool HasLateUpdate`
@@ -1270,6 +1271,8 @@
     * `Vec3 pos`
     * `Vec3 rot`
     * `Vec3 scale`
+    * `Matrix4x4 ModelView`
+    * `Matrix4x4 Proj`
     * `Matrix4x4 GetMatrix()`
   * **class VulkanCamera**
     * `Vec3 forward`
@@ -1280,6 +1283,10 @@
     * `float farPlane`
     * `bool isPrimary`
     * `Matrix4x4 LookAt()`
+    * `void AddTriangle()`
+    * `void AppendVertex()`
+    * `Vec3 TransformPoint()`
+    * `Vec3 ProjectToNdc()`
     * `Matrix4x4 LookTo()`
     * `Matrix4x4 Perspective()`
     * `Matrix4x4 PerspectiveVulkan()`
@@ -4842,6 +4849,7 @@
     * `void Register()`
     * `bool IsButtonDown()`
     * `void Deregister()`
+    * `HashSet<uint> GetDownButtons { get; set; }`
     * `bool IsInWindow()`
   * **enum IKeyCode3270X**
   * **enum IKeyCodeAPLX**
@@ -4874,6 +4882,7 @@
   * **enum IKeyCodeModWin**
   * **enum IKeyCodeModX**
   * **enum IKeyCodeMouseWin**
+  * **enum IKeyCodeMouseX**
   * **enum IKeyCodeMultiKeyX**
   * **enum IKeyCodeNumPadWin**
   * **enum IKeyCodeNumPadX**
@@ -5393,6 +5402,7 @@
     * `void SetEngineMode()`
     * `EngineMode GetEngineMode()`
     * `void RenderFrame()`
+    * `void ApplyCameraTransformsVulkan()`
     * `void Cleanup()`
     * `void Close()`
   * **struct PlatformMessage**

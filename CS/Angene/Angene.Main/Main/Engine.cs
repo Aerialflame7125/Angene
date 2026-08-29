@@ -1,6 +1,4 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -49,7 +47,6 @@ namespace Angene.Main
         List<SlangShaderResources.IShader> shaderTypes = new List<SlangShaderResources.IShader>();
         public Dictionary<int, object> ShaderCache { get; internal set; }
         int shaderCount = 0;
-        List<WindowConfig> WindowCreationQueue = new List<WindowConfig>([]);
         public bool IsCompilingShaders = false;
         public bool ShouldShutdown = false;
 
@@ -121,10 +118,10 @@ namespace Angene.Main
             {
                 Logger.LogDebug("[Engine.cs | CheckSupportedLibraries] Checking for supported libraries on Linux.", LoggingTarget.Engine);
                 string [] AllLibs = new[] { "Graphics", "Vulkan", "Input", "Math", "Audio" };
-                if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.X11.dll")))
+                if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Linux.dll")))
                     supportedLibs.Add("X11");
                 else
-                    Logger.LogWarning("[Engine.cs | CheckSupportedLibraries] Angene.X11.dll is missing. If this is intended, please ignore this message.", LoggingTarget.Engine);
+                    Logger.LogWarning("[Engine.cs | CheckSupportedLibraries] Angene.Linux.dll is missing. If this is intended, please ignore this message.", LoggingTarget.Engine);
 
                 if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Common.dll")))
                     supportedLibs.Add("Common");

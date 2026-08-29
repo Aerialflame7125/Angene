@@ -8,33 +8,14 @@ using Latin1 = Angene.Input.Keys.IKeyCodeLangX.IKeyCodeLatin1X;
 using CursorKeys = Angene.Input.Keys.IKeyCodeCursorControlX;
 using Game.Scenes;
 using Angene.Input;
+using static Angene.Essentials.Types;
 
 namespace Game
 {
-    /// <summary>
-    /// Free-fly camera controller.
-    ///
-    ///   W / S       - move forward / backward
-    ///   A / D       - strafe left / right
-    ///   Space / C   - rise / sink (world space up-down)
-    ///   Left/Right  - yaw (turn)
-    ///   Up/Down     - pitch (look up/down)
-    ///
-    /// Input comes from X11Keyboard (XQueryKeymap polling) rather than Angene.Input's
-    /// KeyDetection -- see X11Keyboard.cs for why that path doesn't carry key data on
-    /// Linux today.
-    ///
-    /// This is attached to the camera Entity as a script. It doesn't own the camera data
-    /// itself -- position lives on that Entity's Transform3D component, and orientation +
-    /// lens settings live on its VulkanCamera component, per "everything camera related is
-    /// a component" in Angene.Essentials.Components. This script only reads input each tick
-    /// and mutates those two components; CameraTestScene.Render() reads them back to build
-    /// the view/projection matrices for the frame.
-    /// </summary>
     public class CameraControllerScript : IScreenPlay
     {
         private Transform3D _transform;
-        private VulkanCamera _camera;
+        internal VulkanCamera _camera;
 
         // Kept outside the components because VulkanCamera stores a raw forward vector,
         // not yaw/pitch angles -- these are the "source of truth" for orientation and we
@@ -47,6 +28,7 @@ namespace Game
         private const float PitchLimit = 1.5f;     // just under 90 degrees, in radians
 
         private KeyDetection keyDetection = new KeyDetection();
+        private MouseDetection mouseDetection = new MouseDetection();
 
         public void Initialize(Entity cameraEntity)
         {
@@ -66,6 +48,7 @@ namespace Game
 
 
             keyDetection.Register(cameraEntity);
+            mouseDetection.Register(cameraEntity);
 
             // Derive the starting yaw/pitch from whatever forward vector was configured
             // when the VulkanCamera component was created, so the very first Update()
@@ -115,6 +98,39 @@ namespace Game
             if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.a)) move -= right;
             if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.space)) move += worldUp;
             if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.c)) move -= worldUp;
+
+            if (MouseDetection.IsInWindow())
+            {
+                (float, float) pos = MouseDetection.GetPosition();
+                bool kleft = false;
+                bool kright = false;
+                bool kmiddle = false;
+                bool kup = false;
+                bool kdown = false;
+                foreach (uint item in MouseDetection.GetDownButtons)
+                {
+                    switch (item)
+                    {
+                        case (uint)Keys.IKeyCodeMouseX.Button1Left:
+                            kleft = true;
+                            break;
+                        case (uint)Keys.IKeyCodeMouseX.Button3Right:
+                            kright = true;
+                            break;
+                        case (uint)Keys.IKeyCodeMouseX.Button2Middle:
+                            kleft = true;
+                            break;
+                        case (uint)Keys.IKeyCodeMouseX.Button4ScrUp:
+                            kup = true;
+                            break;
+                        case (uint)Keys.IKeyCodeMouseX.Button5ScrDown:
+                            kdown = true;
+                            break;
+                    }
+                }
+                Logger.LogDebug($"Mouse X, Y: ({pos.Item1}, {pos.Item2}), Down Keys: left: {kleft}, right: {kright}, middle: {kmiddle}, up: {kup}, down: {kdown}", LoggingTarget.MainGame);
+            }
+
 
             if (move.Length > 0.0001f)
                 _transform.pos += move.Normalized * (MoveSpeed * delta);

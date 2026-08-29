@@ -12,6 +12,7 @@ using Angene.Main;
 using Angene.Math.Vectors;
 using Angene.Graphics.SlangShader;
 using Angene.Essentials.GraphicsContexts;
+using static Angene.Essentials.Types;
 
 namespace Game.Scenes
 {
@@ -61,6 +62,15 @@ namespace Game.Scenes
         private Entity _cameraEntity;
         private Entity _cubeEntity;
         private Entity _cubeEntity1;
+        private float[] vertexData;
+        private float[] vertexData1;
+        private IntPtr vertexBuffer = IntPtr.Zero;
+        private IntPtr vertexBuffer1 = IntPtr.Zero;
+        private byte[] vertexBytes;
+        private byte[] vertexBytes1;
+        private int vertexCount;
+        private int vertexCount1;
+
         private Dictionary<string, FaceColor> _materials;
 
         private Angene.Audio.MiniAudio.MiniAudio mAudio = new Angene.Audio.MiniAudio.MiniAudio();
@@ -170,16 +180,8 @@ namespace Game.Scenes
             Logger.LogInfo($"[MiniAudio] Linked native version: {new string((sbyte*)Angene.Audio.MiniAudio.Interop.Methods.ma_version_string())}", LoggingTarget.Engine);
             mAudio.Play("cake.mp3");
             Logger.LogInfo("[CameraTestScene] Initialized.", LoggingTarget.Graphics);
-            _window.lockCursor(true);
-        }
+            _window.lockCursor(true, Types.LinuxWindowType.X11);
 
-        public void OnMessage(IntPtr msgPtr) { }
-        IntPtr vertexBuffer = IntPtr.Zero;
-        IntPtr vertexBuffer1 = IntPtr.Zero;
-
-        public void Render()
-        {
-            if (_gfx == null) return;
             var camTransform = _cameraEntity.GetComponent<Transform3D>();
             var vCam = _cameraEntity.GetComponent<VulkanCamera>();
             var cubeTransform = _cubeEntity.GetComponent<Transform3D>();
@@ -192,33 +194,44 @@ namespace Game.Scenes
             Matrix4x4 model1View = view * model1;
             Matrix4x4 proj = vCam.Perspective(vCam.fov, vCam.aspectRatio, vCam.nearPlane, vCam.farPlane);
 
-            float[] vertexData = BuildSortedNdcVertexBuffer(modelView, proj, out int vertexCount);
-            float[] vertexData1 = BuildSortedNdcVertexBuffer(model1View, proj, out int vertexCount1);
+            vertexData = BuildSortedNdcVertexBuffer(modelView, proj, out vertexCount);
+            vertexData1 = BuildSortedNdcVertexBuffer(model1View, proj, out vertexCount1);
 
-            byte[] vertexBytes = new byte[vertexData.Length * sizeof(float)];
-            byte[] vertexBytes1 = new byte[vertexData1.Length * sizeof(float)];
+            vertexBytes = new byte[vertexData.Length * sizeof(float)];
+            vertexBytes1 = new byte[vertexData1.Length * sizeof(float)];
+
+            Buffer.BlockCopy(vertexData, 0, vertexBytes, 0, vertexBytes.Length);
+            Buffer.BlockCopy(vertexData1, 0, vertexBytes1, 0, vertexBytes1.Length);
+
+            vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
+            vertexBuffer1 = _gfx.CreateVertexBuffer(vertexBytes1, strideBytes: 7 * sizeof(float));
+        }
+
+        public void OnMessage(IntPtr msgPtr) { }
+        
+
+        public void Render()
+        {
+            if (_gfx == null) return;
+            var cubeTransform  = _cubeEntity.GetComponent<Transform3D>();
+            var cube1Transform = _cubeEntity1.GetComponent<Transform3D>();
+
+            vertexData  = BuildSortedNdcVertexBuffer(cubeTransform.ModelView, cubeTransform.Proj, out vertexCount);
+            vertexData1 = BuildSortedNdcVertexBuffer(cube1Transform.ModelView, cube1Transform.Proj, out vertexCount1);
+
             Buffer.BlockCopy(vertexData, 0, vertexBytes, 0, vertexBytes.Length);
             Buffer.BlockCopy(vertexData1, 0, vertexBytes1, 0, vertexBytes1.Length);
 
             _gfx.BeginFrame(0x00202020);
 
-            if (vertexBuffer != IntPtr.Zero)
-                _gfx.DestroyBuffer(vertexBuffer);
-            if (vertexBuffer1 != IntPtr.Zero)
-                _gfx.DestroyBuffer(vertexBuffer1);
-
-            vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
-            vertexBuffer1 = _gfx.CreateVertexBuffer(vertexBytes1, strideBytes: 7 * sizeof(float));
+            _gfx.UpdateVertexBuffer(vertexBuffer, vertexBytes);
+            _gfx.UpdateVertexBuffer(vertexBuffer1, vertexBytes1);
 
             _gfx.SetPipeline(_pipeline);
 
-            byte[] combined = new byte[vertexBytes.Length + vertexBytes1.Length];
-            Buffer.BlockCopy(vertexBytes, 0, combined, 0, vertexBytes.Length);
-            Buffer.BlockCopy(vertexBytes1, 0, combined, vertexBytes.Length, vertexBytes1.Length);
-
             _gfx.SetVertexBuffer(vertexBuffer, strideBytes: 7 * sizeof(float));
             _gfx.Draw((uint)vertexCount);
-            
+
             _gfx.SetVertexBuffer(vertexBuffer1, strideBytes: 7 * sizeof(float));
             _gfx.Draw((uint)vertexCount1);
 
@@ -237,8 +250,8 @@ namespace Game.Scenes
             {
                 FaceColor color = _materials.TryGetValue(face.material, out var c) ? c : new FaceColor(1, 1, 1, 1);
 
-                AddTriangle(Corners[face.a], Corners[face.b], Corners[face.c], color, modelView, proj, triangles);
-                AddTriangle(Corners[face.a], Corners[face.c], Corners[face.d], color, modelView, proj, triangles);
+                MainCamera.GetScriptByType<CameraControllerScript>()._camera.AddTriangle(Corners[face.a], Corners[face.b], Corners[face.c], color, modelView, proj, triangles);
+                MainCamera.GetScriptByType<CameraControllerScript>()._camera.AddTriangle(Corners[face.a], Corners[face.c], Corners[face.d], color, modelView, proj, triangles);
             }
 
             // Painter's algorithm: farthest (most negative view-space Z) first.
@@ -248,56 +261,13 @@ namespace Game.Scenes
             verts.Append(triangles.Count * 3 * 7);
             foreach (var tri in triangles)
             {
-                AppendVertex(verts, tri.ndc0, tri.color);
-                AppendVertex(verts, tri.ndc1, tri.color);
-                AppendVertex(verts, tri.ndc2, tri.color);
+                MainCamera.GetScriptByType<CameraControllerScript>()._camera.AppendVertex(verts, tri.ndc0, tri.color);
+                MainCamera.GetScriptByType<CameraControllerScript>()._camera.AppendVertex(verts, tri.ndc1, tri.color);
+                MainCamera.GetScriptByType<CameraControllerScript>()._camera.AppendVertex(verts, tri.ndc2, tri.color);
             }
 
             vertexCount = triangles.Count * 3;
             return verts.ToArray();
-        }
-
-        private static void AddTriangle(Vec3 p0, Vec3 p1, Vec3 p2, FaceColor color, Matrix4x4 modelView, Matrix4x4 proj,
-            List<(Vec3, Vec3, Vec3, float, FaceColor)> outTriangles)
-        {
-            Vec3 v0 = TransformPoint(modelView, p0);
-            Vec3 v1 = TransformPoint(modelView, p1);
-            Vec3 v2 = TransformPoint(modelView, p2);
-
-            float depth = (v0.Z + v1.Z + v2.Z) / 3f;
-
-            Vec3 ndc0 = ProjectToNdc(proj, v0);
-            Vec3 ndc1 = ProjectToNdc(proj, v1);
-            Vec3 ndc2 = ProjectToNdc(proj, v2);
-
-            outTriangles.Add((ndc0, ndc1, ndc2, depth, color));
-        }
-
-        private static void AppendVertex(List<float> verts, Vec3 pos, FaceColor color)
-        {
-            verts.Add(pos.X); verts.Add(pos.Y); verts.Add(pos.Z);
-            verts.Add(color.R); verts.Add(color.G); verts.Add(color.B); verts.Add(color.A);
-        }
-
-        // Affine transform (view/model matrices always have row3 = (0,0,0,1), so w stays 1).
-        private static Vec3 TransformPoint(Matrix4x4 m, Vec3 p) => new(
-            m.M00 * p.X + m.M01 * p.Y + m.M02 * p.Z + m.M03,
-            m.M10 * p.X + m.M11 * p.Y + m.M12 * p.Z + m.M13,
-            m.M20 * p.X + m.M21 * p.Y + m.M22 * p.Z + m.M23
-        );
-
-        // Full projective transform + perspective divide (proj matrix has a non-trivial row3).
-        private static Vec3 ProjectToNdc(Matrix4x4 m, Vec3 p)
-        {
-            float x = m.M00 * p.X + m.M01 * p.Y + m.M02 * p.Z + m.M03;
-            float y = m.M10 * p.X + m.M11 * p.Y + m.M12 * p.Z + m.M13;
-            float z = m.M20 * p.X + m.M21 * p.Y + m.M22 * p.Z + m.M23;
-            float w = m.M30 * p.X + m.M31 * p.Y + m.M32 * p.Z + m.M33;
-
-            if (MathF.Abs(w) > 1e-6f)
-                return new Vec3(x / w, y / w, z / w);
-
-            return new Vec3(x, y, z);
         }
 
         public void Cleanup()

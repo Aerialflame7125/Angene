@@ -95,6 +95,7 @@ namespace Angene.Essentials.GraphicsContexts;
         void DestroyBuffer(IntPtr bufferHandle);
         void UpdateBuffer(IntPtr oldBufferHandle, IntPtr newBufferHandle);
         void SetVertexBuffer(IntPtr buffer, uint strideBytes, uint offset = 0);
+        void UpdateVertexBuffer(IntPtr bufferHandle, byte[] data, uint offset = 0);
         void SetIndexBuffer(IntPtr buffer, uint offset = 0);
         void SetPipeline(IntPtr pipeline);
         void Draw(uint vertexCount, uint startVertex = 0);

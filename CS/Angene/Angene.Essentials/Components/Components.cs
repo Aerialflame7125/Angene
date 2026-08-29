@@ -1,4 +1,5 @@
 using Angene.Math.Vectors;
+using static Angene.Essentials.Types;
 
 namespace Angene.Essentials.Components;
 public class Transform3D
@@ -6,6 +7,9 @@ public class Transform3D
     public Vec3 pos = new(0.0f, 0.0f, 0.0f);
     public Vec3 rot = new(0.0f, 0.0f, 0.0f);
     public Vec3 scale = new(1.0f, 1.0f, 1.0f);
+
+    public Matrix4x4 ModelView;
+    public Matrix4x4 Proj;
 
     public Matrix4x4 GetMatrix()
     {
@@ -61,6 +65,9 @@ public class Transform2D {
         rot = _rot;
         scale = _scale;
     }
+
+    public static implicit operator Transform2D(Transform3D d) => new Transform2D((Vec2)d.pos, d.rot.Z, (Vec2)d.scale);
+    public static implicit operator Transform3D(Transform2D d) => new Transform3D((Vec3)d.pos, new Vec3(0f, 0f, d.rot), (Vec3)d.scale);
 }
 
 public class Mesh
@@ -119,6 +126,49 @@ public class VulkanCamera
             M30 = 0,    M31 = 0,    M32 = 0,    M33 = 1
         };
     }
+
+    public void AddTriangle(Vec3 p0, Vec3 p1, Vec3 p2, FaceColor color, Matrix4x4 modelView, Matrix4x4 proj, List<(Vec3, Vec3, Vec3, float, FaceColor)> outTriangles)
+    {
+        Vec3 v0 = TransformPoint(modelView, p0);
+        Vec3 v1 = TransformPoint(modelView, p1);
+        Vec3 v2 = TransformPoint(modelView, p2);
+
+        float depth = (v0.Z + v1.Z + v2.Z) / 3f;
+
+        Vec3 ndc0 = ProjectToNdc(proj, v0);
+        Vec3 ndc1 = ProjectToNdc(proj, v1);
+        Vec3 ndc2 = ProjectToNdc(proj, v2);
+
+        outTriangles.Add((ndc0, ndc1, ndc2, depth, color));
+    }
+
+    public void AppendVertex(List<float> verts, Vec3 pos, FaceColor color)
+    {
+        verts.Add(pos.X); verts.Add(pos.Y); verts.Add(pos.Z);
+        verts.Add(color.R); verts.Add(color.G); verts.Add(color.B); verts.Add(color.A);
+    }
+
+    // Affine transform (view/model matrices always have row3 = (0,0,0,1), so w stays 1).
+    public Vec3 TransformPoint(Matrix4x4 m, Vec3 p) => new(
+        m.M00 * p.X + m.M01 * p.Y + m.M02 * p.Z + m.M03,
+        m.M10 * p.X + m.M11 * p.Y + m.M12 * p.Z + m.M13,
+        m.M20 * p.X + m.M21 * p.Y + m.M22 * p.Z + m.M23
+    );
+
+    // Full projective transform + perspective divide (proj matrix has a non-trivial row3).
+    public Vec3 ProjectToNdc(Matrix4x4 m, Vec3 p)
+    {
+        float x = m.M00 * p.X + m.M01 * p.Y + m.M02 * p.Z + m.M03;
+        float y = m.M10 * p.X + m.M11 * p.Y + m.M12 * p.Z + m.M13;
+        float z = m.M20 * p.X + m.M21 * p.Y + m.M22 * p.Z + m.M23;
+        float w = m.M30 * p.X + m.M31 * p.Y + m.M32 * p.Z + m.M33;
+        
+        if (MathF.Abs(w) > 1e-6f)
+            return new Vec3(x / w, y / w, z / w);
+
+        return new Vec3(x, y, z);
+    }
+
     public Matrix4x4 LookTo(Vec3 eye, Vec3 forward, Vec3 up) => LookAt(eye, eye + forward, up);
 
     public Matrix4x4 Perspective(float fovRadians, float aspectRatio, float nearPlane, float farPlane) => PerspectiveVulkan(fovRadians, aspectRatio, nearPlane, farPlane);

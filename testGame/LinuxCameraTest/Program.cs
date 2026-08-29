@@ -29,26 +29,11 @@ namespace Game
 
     public class Program
     {
-        public static KeyDetection _keyDetection = new KeyDetection();
         public static Instances instances;
         private static DateTime lastFrame;
 
         [UnmanagedCallersOnly]
         public static int Main(IntPtr args, int argc)
-        {
-            try
-            {
-                RunGame(false);
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogCritical("FATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, exception: ex);
-                return 1;
-            }
-        }
-        
-        public static int Main()
         {
             try
             {

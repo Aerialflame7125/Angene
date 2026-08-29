@@ -4,6 +4,8 @@ using Angene.Main;
 using Angene.Management;
 using Angene.Windows;
 using System.Runtime.InteropServices;
+using Angene.Linux.X11;
+using Angene.Graphics;
 
 namespace Angene.Input
 {
@@ -13,27 +15,43 @@ namespace Angene.Input
         private float ypos = 0f;
         private bool isInWindow = false;
 
-        private readonly HashSet<Keys.IKeyCodeMouseWin> _heldButtons = new();
+        private readonly HashSet<uint> _heldButtons = new();
+        private XLib._XEvent xevent;
 
-        public void Start() { }
+        public unsafe void Start()
+        {
+#if LINUX
+            XLib.Methods.XSelectInput(Engine.Instance.SharedX11Display,
+                (nuint)((X11WindowHandle)Engine.Instance.OpenWindows[0].Handle).Window,
+                (IntPtr)(XLib.XEventMask.ExposureMask
+                    | XLib.XEventMask.KeyPressMask
+                    | XLib.XEventMask.PointerMotionMask
+                    | XLib.XEventMask.ButtonPressMask
+                    | XLib.XEventMask.ButtonReleaseMask
+                    | XLib.XEventMask.EnterWindowMask
+                    | XLib.XEventMask.LeaveWindowMask));
+            XLib.Methods.XMapWindow(Engine.Instance.SharedX11Display, (nuint)((X11WindowHandle)Engine.Instance.OpenWindows[0].Handle).Window);
+#endif
+        }
         public void OnMessage(IntPtr msgPtr)
         {
+#if WINDOWS
             if (msgPtr == IntPtr.Zero) return;
             var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
 
             switch (msg.message)
             {
                 case (uint)WM.LBUTTONDOWN:
-                    _heldButtons.Add(Keys.IKeyCodeMouseWin.LMouse);
+                    _heldButtons.Add((uint)Keys.IKeyCodeMouseWin.LMouse);
                     break;
                 case (uint)WM.LBUTTONUP:
-                    _heldButtons.Remove(Keys.IKeyCodeMouseWin.LMouse);
+                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseWin.LMouse);
                     break;
                 case (uint)WM.RBUTTONDOWN:
-                    _heldButtons.Add(Keys.IKeyCodeMouseWin.RMouse);
+                    _heldButtons.Add((uint)Keys.IKeyCodeMouseWin.RMouse);
                     break;
                 case (uint)WM.RBUTTONUP:
-                    _heldButtons.Remove(Keys.IKeyCodeMouseWin.RMouse);
+                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseWin.RMouse);
                     break;
                 case (uint)WM.MOUSEMOVE:
                     xpos = (short)(msg.lParam.ToInt64() & 0xFFFF);
@@ -56,11 +74,106 @@ namespace Angene.Input
                     isInWindow = false;
                     break;
             }
+#endif
         }
 
-        public bool IsButtonDown(Keys.IKeyCodeMouseWin button) => _heldButtons.Contains(button);
+#if LINUX
+        public unsafe void Update(double dt)
+        {
+            if (Engine.Instance.SharedX11Display != null && Engine.Instance.OpenWindows.Count > 0 && Engine.Instance.isXWindowFocused(Engine.Instance.OpenWindows[0].Handle))
+            {
+                while (XLib.Methods.XPending(Engine.Instance.SharedX11Display) > 0)
+                {
+                    XLib._XEvent xeventptr = xevent;
+                    XLib.Methods.XNextEvent(Engine.Instance.SharedX11Display, &xeventptr);
+                    switch (xeventptr.type)
+                    {
+                        case 6: // MotionNotify
+                            xpos = xeventptr.xmotion.x;
+                            ypos = xeventptr.xmotion.y;
+                            break;
+                        case 4: // ButtonPress
+                            switch (xeventptr.xbutton.button)
+                            {
+                                case 1:
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button1Left);
+                                    break;
+                                case 2:
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button2Middle);
+                                    break;
+                                case 3:
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button3Right);
+                                    break;
+                                case 4:
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button4ScrUp);
+                                    break;
+                                case 5:
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button5ScrDown);
+                                    break;
+                                case 6:
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button6);
+                                    break;
+                                case 7:
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button7);
+                                    break;
+                                case 8:
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button8);
+                                    break;
+                                case 9:
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button9);
+                                    break;
+                            }
+                            break;
+                        case 5: // ButtonRelease
+                            switch (xeventptr.xbutton.button)
+                            {
+                                case 1:
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button1Left);
+                                    break;
+                                case 2:
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button2Middle);
+                                    break;
+                                case 3:
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button3Right);
+                                    break;
+                                case 4:
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button4ScrUp);
+                                    break;
+                                case 5:
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button5ScrDown);
+                                    break;
+                                case 6:
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button6);
+                                    break;
+                                case 7:
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button7);
+                                    break;
+                                case 8:
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button8);
+                                    break;
+                                case 9:
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button9);
+                                    break;
+                            }
+                            break;
 
-        public HashSet<Keys.IKeyCodeMouseWin> GetDownButtons() => _heldButtons;
+                        case 7: // EnterNotify
+                            isInWindow = true;
+                            break;
+
+                        case 8: // LeaveNotify
+                            isInWindow = false;
+                            break;
+
+                    }
+                }
+            }
+        }
+#endif
+
+        public bool IsButtonDown(uint button) => _heldButtons.Contains(button);
+
+        public HashSet<uint> GetDownButtons() => _heldButtons;
 
         public (float, float) GetPosition() => (xpos, ypos);
 
@@ -160,7 +273,7 @@ namespace Angene.Input
         /// <param name="key"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static bool IsButtonDown(Keys.IKeyCodeMouseWin button)
+        public static bool IsButtonDown(uint button)
         {
             if (_script == null)
                 throw new InvalidOperationException("MouseDetection not registered. Call MouseDetection.Register() first.");
@@ -181,8 +294,8 @@ namespace Angene.Input
             Logger.LogDebug("[MouseDetection] Unregistered.", LoggingTarget.Engine);
         }
 
-        public static HashSet<Keys.IKeyCodeMouseWin> GetDownButtons => _script?.GetDownButtons() ?? throw new InvalidOperationException("MouseDetection not registered.");
-        public static (float, float) GetPosition() => (_script?.GetPosition() ?? throw new InvalidOperationException("MouseDetection not registered."));
+        public static HashSet<uint> GetDownButtons => _script?.GetDownButtons() ?? throw new InvalidOperationException("MouseDetection not registered.");
+        public static (float, float) GetPosition() => _script?.GetPosition() ?? throw new InvalidOperationException("MouseDetection not registered.");
         public static bool IsInWindow() => _script?.IsInWindow() ?? throw new InvalidOperationException("MouseDetection not registered.");
     }
 }

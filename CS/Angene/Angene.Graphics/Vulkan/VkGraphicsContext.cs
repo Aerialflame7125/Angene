@@ -912,6 +912,29 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         _vmaBuffers.Remove(newBufferHandle);
     }
 
+    public void UpdateVertexBuffer(IntPtr bufferHandle, byte[] data, uint offset = 0)
+    {
+        lock (_allocatorLock)
+        {
+            if (_disposed || shuttingDown || _vmaAllocator == null || !_vmaBuffers.TryGetValue(bufferHandle, out var handle))
+                return;
+
+            VmaAllocationInfo allocInfo;
+            vmaGetAllocationInfo(_vmaAllocator, handle.Allocation, &allocInfo);
+
+            if ((ulong)(offset + data.Length) > allocInfo.size)
+                throw new AngeneException("[VkGraphicsContext | UpdateVertexBuffer] Data exceeds buffer size. Recreate the buffer with a larger size.");
+
+            fixed (byte* pData = data)
+            {
+                Buffer.MemoryCopy(pData, (byte*)allocInfo.pMappedData + offset, data.Length, data.Length);
+            }
+
+            // flush range, just in case
+            vmaFlushAllocation(_vmaAllocator, handle.Allocation, offset, (ulong)data.Length);
+        }
+    }
+
     public IntPtr CreatePipeline(IntPtr vertexShaderModule, IntPtr fragmentShaderModule,
                              VkVertexInputAttributeDescription[] attributes, uint strideBytes)
     {
@@ -1059,6 +1082,16 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         pDynamicStates = pDynamicStates
                     };
 
+                    VkPipelineDepthStencilStateCreateInfo pDepthStencilStateCreateInfo = new VkPipelineDepthStencilStateCreateInfo()
+                    {
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+                        depthTestEnable = 1,
+                        depthWriteEnable = 1,
+                        depthCompareOp = VkCompareOp.VK_COMPARE_OP_LESS_OR_EQUAL,
+                        depthBoundsTestEnable = 0,
+                        stencilTestEnable = 0,
+                    };
+
                     pipelineInfo = new VkGraphicsPipelineCreateInfo
                     {
                         sType = VkStructureType.VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -1066,6 +1099,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         pStages = pStages,
                         pVertexInputState = &vertexInputInfo,
                         pInputAssemblyState = &inputAssembly,
+                        pDepthStencilState = &pDepthStencilStateCreateInfo,
                         pViewportState = &viewportState,
                         pRasterizationState = &rasterizer,
                         pMultisampleState = &multisampling,

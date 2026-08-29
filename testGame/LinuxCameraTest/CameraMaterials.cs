@@ -3,17 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using Angene.Common;
 using Angene.Main;
+using static Angene.Essentials.Types;
 
 namespace Game
 {
-    /// <summary>
-    /// Simple RGBA colour value read out of the material package.
-    /// </summary>
-    public struct FaceColor
-    {
-        public float R, G, B, A;
-        public FaceColor(float r, float g, float b, float a) { R = r; G = g; B = b; A = a; }
-    }
 
     /// <summary>
     /// Loads the cube's six face "materials" out of Assets/CameraMaterials.angpkg via
