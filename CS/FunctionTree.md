@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-08-29 16:21:53.791422+00:00)</sup></sub>
+<sub><sup>(generated 2026-08-30 16:15:46.144499+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -30,6 +30,27 @@
 
   * **class AudioFactory**
     * `IAudioPlayer Create()`
+
+  </details>
+
+  <details><summary><b>Angene.Audio.MiniAudio</b></summary>
+
+  * **enum MiniAudioPlayerType**
+    * `MiniAudioPlayer Instance`
+    * `bool IsPlaying { get; set; }`
+    * `bool IsPaused { get; set; }`
+    * `float Volume { get; set; }`
+    * `bool Looping { get; set; }`
+    * `void Play()`
+    * `void Stop()`
+    * `void Pause()`
+    * `void Resume()`
+    * `void SetVolume()`
+    * `void SetLooping()`
+    * `bool InitMemory()`
+    * `bool InitFile()`
+    * `void StopPlayer()`
+    * `void Dispose()`
 
   </details>
 

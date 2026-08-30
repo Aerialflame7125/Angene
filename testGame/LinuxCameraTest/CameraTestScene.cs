@@ -73,7 +73,7 @@ namespace Game.Scenes
 
         private Dictionary<string, FaceColor> _materials;
 
-        private Angene.Audio.MiniAudio.MiniAudio mAudio = new Angene.Audio.MiniAudio.MiniAudio();
+        private Angene.Audio.MiniAudio mAudio = new Angene.Audio.MiniAudio.MiniAudio();
 
         private List<(Vec3 ndc0, Vec3 ndc1, Vec3 ndc2, float depth, FaceColor color)> triangles = new List<(Vec3 ndc0, Vec3 ndc1, Vec3 ndc2, float depth, FaceColor color)>();
         private List<float> verts = new();

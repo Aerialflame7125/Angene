@@ -11,8 +11,8 @@ namespace Angene.Audio.Common
             ? Windows.WindowsAudioPlayer.FromStream(file.GetAudioStream())
             : Windows.WindowsAudioPlayer.FromBytes(file.GetAudioBytes());
 #else
-            throw new PlatformNotSupportedException(
-                "Angene.Audio has no backend for this platform yet.");
+            return file._loadType == AudioFile.LoadType.streamed
+                ? MiniAudio.MiniAudioPlayer.
 #endif
         }
     }
