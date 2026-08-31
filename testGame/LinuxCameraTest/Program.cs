@@ -46,7 +46,6 @@ namespace Game
                 return 1;
             }
         }
-
         private static void RunGame(bool verbose)
         {
             try

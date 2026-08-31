@@ -11,6 +11,7 @@ using Angene.Essentials.Components;
 using Angene.Main;
 using Angene.Math.Vectors;
 using Angene.Graphics.SlangShader;
+using Angene.Audio;
 using Angene.Essentials.GraphicsContexts;
 using static Angene.Essentials.Types;
 
@@ -73,7 +74,8 @@ namespace Game.Scenes
 
         private Dictionary<string, FaceColor> _materials;
 
-        private Angene.Audio.MiniAudio mAudio = new Angene.Audio.MiniAudio.MiniAudio();
+        private AudioManager _manager;
+
 
         private List<(Vec3 ndc0, Vec3 ndc1, Vec3 ndc2, float depth, FaceColor color)> triangles = new List<(Vec3 ndc0, Vec3 ndc1, Vec3 ndc2, float depth, FaceColor color)>();
         private List<float> verts = new();
@@ -178,7 +180,8 @@ namespace Game.Scenes
                 attributes, 7 * sizeof(float));
             
             Logger.LogInfo($"[MiniAudio] Linked native version: {new string((sbyte*)Angene.Audio.MiniAudio.Interop.Methods.ma_version_string())}", LoggingTarget.Engine);
-            mAudio.Play("cake.mp3");
+            AudioFile file = new("Assets/Audio.angpkg", "00_-_CAKE_Cake_n_Cake_.mp3", AudioFile.LoadType.loadOnInstantiate);
+            _manager = new AudioManager(file, playOnLoad:true, loop: false, volume: 1f);
             Logger.LogInfo("[CameraTestScene] Initialized.", LoggingTarget.Graphics);
             _window.lockCursor(true, Types.LinuxWindowType.X11);
 
@@ -205,6 +208,7 @@ namespace Game.Scenes
 
             vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
             vertexBuffer1 = _gfx.CreateVertexBuffer(vertexBytes1, strideBytes: 7 * sizeof(float));
+            _manager.Play();
         }
 
         public void OnMessage(IntPtr msgPtr) { }

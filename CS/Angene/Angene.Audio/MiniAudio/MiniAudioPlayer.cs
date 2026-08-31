@@ -11,14 +11,13 @@ namespace Angene.Audio.MiniAudio;
 public enum MiniAudioPlayerType
 {
     Memory,
-    File,
     Stream
 }
 
 public unsafe class MiniAudioPlayer : IAudioPlayer
 {
+    private AudioFile _audioFile;
     private MiniAudioPlayerType _type;
-    private string _filePath;
     private byte[] _bytes;
     private Stream _stream;
     private bool _disposed = false;
@@ -81,12 +80,10 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
 #region Constructors
     public MiniAudioPlayer() { }
 
-    private MiniAudioPlayer(MiniAudioPlayerType type, string filePath = "", byte[] bytes = null, Stream stream = null)
+    private MiniAudioPlayer(AudioFile file, MiniAudioPlayerType type)
     {
+        _audioFile = file;
         _type = type;
-        _filePath = filePath;
-        _bytes = bytes;
-        _stream = stream;
         _audioThread = new Thread(AudioLoop)
         {
             IsBackground = true,
@@ -102,15 +99,13 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
         {
             switch (_type)
             {
-                case MiniAudioPlayerType.File:
-                    if (_filePath != "")
-                        InitFile(_filePath);
-                    break;
                 case  MiniAudioPlayerType.Memory:
+                    _bytes = _audioFile.GetAudioBytes();
                     if (_bytes != null)
                         InitMemory(_bytes);
                     break;
                 case MiniAudioPlayerType.Stream:
+                    _stream = _audioFile.GetAudioStream();
                     if (_stream != null)
                     {
                         using var ms = new MemoryStream();
@@ -148,32 +143,21 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
 #endregion
 #region Inits
 
-    public static MiniAudioPlayer InitAudioPlayer(string filePath = "", Stream stream = null, byte[] bytes = null)
+    public static MiniAudioPlayer InitAudioPlayer(AudioFile file, MiniAudioPlayerType type)
     {
-        return new MiniAudioPlayer()
+        return new MiniAudioPlayer(file, type);
     }
     public bool InitMemory(byte[] bytes)
     {
         ma_result result;
-        
-        ma_resource_manager_config _resourceManagerConfig = ma_resource_manager_config_init();
-        _resourceManagerConfig.decodedFormat     = ma_format.ma_format_f32;
-        _resourceManagerConfig.decodedChannels   = 0;
-        _resourceManagerConfig.decodedSampleRate = 48000;
-        ma_resource_manager _resourceManager;
-        
-        result = ma_resource_manager_init(&_resourceManagerConfig, &_resourceManager);
-        if (result != ma_result.MA_SUCCESS) {
-            Logger.LogError("[MiniAudio | ma_resource_manager_init] Failed to initialize resource manager.", LoggingTarget.Engine);
-            return false;
-        }
-        
+
+        _context = (ma_context*)NativeMemory.AllocZeroed(ma_context_sizeof());
         result = ma_context_init(null, 0, null, _context);
         if (result != ma_result.MA_SUCCESS) {
             Logger.LogError("[MiniAudio | ma_context_init] Failed to initialize context.", LoggingTarget.Engine);
             return false;
         }
-        
+
         ma_device_info* _pPlaybackDeviceInfo;
         uint _playbackDeviceCount;
         result = ma_context_get_devices(_context, &_pPlaybackDeviceInfo, &_playbackDeviceCount, null, null);
@@ -185,30 +169,29 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
 
         playbackDeviceCount = _playbackDeviceCount;
         pPlaybackDeviceInfo = _pPlaybackDeviceInfo;
-        
-        // miniaudio log
+
         _log = (ma_log*)NativeMemory.AllocZeroed(144);
         if (ma_log_init(null, _log) != ma_result.MA_SUCCESS)
             Logger.LogError("Failed to init MiniAudio log", LoggingTarget.Engine);
 
-        // values grabbed from miniaudio.h (0.11.25)
         _device = (ma_device*)NativeMemory.AllocZeroed(3776);
         _decoder = (ma_decoder*)NativeMemory.AllocZeroed(552);
 
         fixed (byte* pBytes = bytes)
         {
-            if (ma_decoder_init_memory(pBytes, (nuint)bytes.Length, null, _decoder) != ma_result.MA_SUCCESS)
+            ma_decoder_config decoderConfig = ma_decoder_config_init(ma_format.ma_format_f32, 2, 48000);
+            if (ma_decoder_init_memory(pBytes, (nuint)bytes.Length, &decoderConfig, _decoder) != ma_result.MA_SUCCESS)
             {
                 Logger.LogError("[MiniAudio | InitMemory] Could not load audio file from memory", LoggingTarget.Engine);
                 goto CleanupAndFail;
             }
 
             var deviceConfig = ma_device_config_init(ma_device_type.ma_device_type_playback);
-            deviceConfig.playback.format = resourceManager.config.decodedFormat;
-            deviceConfig.playback.channels = resourceManager.config.decodedChannels;
-            deviceConfig.sampleRate = resourceManager.config.decodedSampleRate;
-            deviceConfig.dataCallback = &data_callback;
-            deviceConfig.pUserData = _decoder;
+            deviceConfig.playback.format   = ma_format.ma_format_f32;
+            deviceConfig.playback.channels = 2;
+            deviceConfig.sampleRate        = 48000;
+            deviceConfig.dataCallback      = &data_callback;
+            deviceConfig.pUserData         = _decoder;
 
             bool contextOk = false;
         #if LINUX
@@ -254,55 +237,15 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
                 Logger.LogError("Failed to open playback device.", LoggingTarget.Engine);
                 goto CleanupAndFail;
             }
-            
-            ma_engine_config engineConfig = ma_engine_config_init();
-            engineConfig.pDevice = _device;
-            engineConfig.pResourceManager = &_resourceManager;
-            engineConfig.noAutoStart = 1;
-
-            ma_engine* _engine = engine;
-            result = ma_engine_init(&engineConfig, _engine);
-            if (result != ma_result.MA_SUCCESS) {
-                Logger.LogError($"[MiniAudio | ma_engine_init] Failed to initialize engine for {pPlaybackDeviceInfo->name}", LoggingTarget.Engine);
-                ma_device_uninit(_device);
-                return false;
-            }
 
             return true;
         }
 
     CleanupAndFail:
-        if (_decoder != null)
-        {
-            ma_decoder_uninit(_decoder);
-            NativeMemory.Free(_decoder);
-            _decoder = null;
-        }
-
-        if (engine != null)
-        {
-            ma_engine_uninit(engine);
-            NativeMemory.Free(engine);
-            engine = null;
-        }
-        if (_device != null)
-        {
-            // if device, free
-            NativeMemory.Free(_device);
-            _device = null;
-        }
-        if (_context != null)
-        {
-            ma_context_uninit(_context);
-            NativeMemory.Free(_context);
-            _context = null;
-        }
-        if (_log != null)
-        {
-            ma_log_uninit(_log);
-            NativeMemory.Free(_log);
-            _log = null;
-        }
+        if (_decoder != null) { ma_decoder_uninit(_decoder); NativeMemory.Free(_decoder); _decoder = null; }
+        if (_device != null) { NativeMemory.Free(_device); _device = null; }
+        if (_context != null) { ma_context_uninit(_context); NativeMemory.Free(_context); _context = null; }
+        if (_log != null) { ma_log_uninit(_log); NativeMemory.Free(_log); _log = null; }
         return false;
     }
         
