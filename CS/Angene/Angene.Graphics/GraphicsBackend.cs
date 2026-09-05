@@ -6,6 +6,7 @@ using Angene.Graphics.SlangShader;
 using Angene.Windows;
 using Angene.Windows.D3D11;
 using Angene.Linux.X11;
+using Angene.Linux.Wayland;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
@@ -15,6 +16,8 @@ using static Angene.Vulkan.Interop.Structs;
 using static Angene.Vulkan.Interop.VulkanMemoryAllocator;
 using static Angene.Windows.Dxgi.DxgiEnums;
 using Angene.Graphics.Vulkan;
+using static Angene.Linux.Wayland.XdgShell;
+using static Angene.Linux.Wayland.WaylandClient;
 
 namespace Angene.Graphics
 {
@@ -29,6 +32,26 @@ namespace Angene.Graphics
             Display = display;
             Window = window;
             TitlePtr = titlePtr;
+        }
+    }
+
+    public unsafe class WaylandWindowHandle
+    {
+        public IntPtr* Display { get; }
+        public sbyte* TitlePtr { get; }
+        public wl_surface* Surface { get; }
+        public xdg_surface* Xdg_surface { get; }
+        public xdg_toplevel* Toplevel { get; }
+        public IntPtr Compositor { get; }
+
+        public WaylandWindowHandle(IntPtr* display, sbyte* titlePtr, wl_surface* surface, xdg_surface* xdg_surface, xdg_toplevel* toplevel, IntPtr compositor)
+        {
+            Display = display;
+            TitlePtr = titlePtr;
+            Toplevel = toplevel;
+            Xdg_surface = xdg_surface;
+            Surface = surface;
+            Compositor = compositor;
         }
     }
 

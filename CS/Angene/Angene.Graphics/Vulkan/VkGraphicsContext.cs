@@ -117,6 +117,9 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             _hwnd = MWinHandle.Hwnd;
         else if (windowHandle is X11WindowHandle XWinHandle)
             _hwnd = XWinHandle.Window;
+        else if (windowHandle is WaylandWindowHandle WayWinHandle)
+            _hwnd = WayWinHandle.Window;
+
         _w = width;
         _h = height;
         _scene = Scene;
@@ -177,7 +180,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 #endregion
 #region Extensions
                 // Extensions //
-                var requiredLinux = new List<string> { "VK_KHR_surface", "VK_KHR_xlib_surface", "VK_KHR_get_surface_capabilities2", "VK_EXT_surface_maintenance1"};
+                var requiredLinux = new List<string> { "VK_KHR_surface", "VK_KHR_xlib_surface", "VK_KHR_wayland_surface", "VK_KHR_get_surface_capabilities2", "VK_EXT_surface_maintenance1"};
                 var requiredWindows = new List<string> { "VK_KHR_surface", "VK_KHR_win32_surface", "VK_KHR_get_surface_capabilities2"};
                 var optional = new List<string> { "VK_EXT_debug_utils" };
 
@@ -201,7 +204,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 }
 
                 var toEnable = new List<string>();
-                if (windowHandle is X11WindowHandle)
+                if (windowHandle is X11WindowHandle || windowHandle is WaylandWindowHandle)
                 {
                     foreach (var r in requiredLinux)
                     {
@@ -304,8 +307,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             _debugMessenger = debugMessenger;
 #endregion
 #region Surface Creation (_vkSurfaceKHR)
-#region XLib
-                if (windowHandle is X11WindowHandle xWindowHandle)
+#region XLib & Wayland
+                if (windowHandle is X11WindowHandle a)
                 {
                     IntPtr surface = IntPtr.Zero;
                     VkXlibSurfaceCreateInfoKHR create_info = new VkXlibSurfaceCreateInfoKHR
@@ -313,7 +316,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         sType = VkStructureType.VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
                         pNext = null,
                         flags = 0,
-                        dpy = (void**)xWindowHandle.Display,
+                        dpy = (void**)a.Display,
                         window = (nuint)_hwnd
                     };
 
@@ -326,6 +329,28 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     }
                     _vkSurfaceKHR = surface;
                 }
+                else if (windowHandle is WaylandWindowHandle b)
+                {
+                    IntPtr surface = IntPtr.Zero;
+                    VkWaylandSurfaceCreateInfoKHR create_info = new VkWaylandSurfaceCreateInfoKHR
+                    {
+                        sType = VkStructureType.VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,
+                        pNext = null,
+                        flags = 0,
+                        dpy = (void**)b.Display,
+                        window = (nuint)_hwnd
+                    };
+
+                    functionPointerName = Marshal.StringToHGlobalAnsi("vkCreateWaylandSurfaceKHR");
+
+                    result = vkCreateWaylandSurfaceKHR(instanceHandle, &create_info, null, &surface);
+                    if (result != VkResult.VK_SUCCESS)
+                    {
+                        throw new Exceptions.FailedToInitializeVulkanException($"Failed to create Vulkan surface: {result}");
+                    }
+                    _vkSurfaceKHR = surface;
+                }
+
 #endregion
 #region Windows
                 else if (windowHandle is MicrosoftWindowHandle MWindowHandle)

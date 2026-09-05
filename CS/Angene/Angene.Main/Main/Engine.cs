@@ -20,6 +20,7 @@ using static Angene.Vulkan.Interop.Enumerators;
 using static Angene.Vulkan.Interop.Structs;
 using static Angene.Linux.X11.XLib;
 using Angene.Graphics.Vulkan;
+using static Angene.Linux.Wayland.WaylandClient;
 
 namespace Angene.Main
 {
@@ -56,6 +57,9 @@ namespace Angene.Main
         public IntPtr SharedD3D11Device { get; internal set; } = IntPtr.Zero;
         public IntPtr SharedD3D11Context { get; internal set; } = IntPtr.Zero;
         public unsafe _XDisplay* SharedX11Display { get; internal set; } = null;
+        public unsafe IntPtr* SharedWaylandDisplay { get; internal set; } = null;
+        public unsafe IntPtr* SharedWaylandCompositor {get; internal set; } = null;
+        public unsafe IntPtr* SharedWmBase { get; internal set; } = null;
         public bool InitializedXThreads { get; internal set; } = false;
 
         public Types.AppInfo currentAppInfo { get; internal set; }

@@ -19419,4 +19419,17 @@ public class Structs
 
                 public nuint window;
     }
+
+    public unsafe partial struct VkWaylandSurfaceCreateInfoKHR
+    {
+        public Enumerators.VkStructureType sType;
+
+                public void* pNext;
+
+                public uint flags;
+
+                public void** dpy;
+
+                public nuint window;
+    }
 }

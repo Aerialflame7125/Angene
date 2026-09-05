@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-08-31 01:30:30.610682+00:00)</sup></sub>
+<sub><sup>(generated 2026-09-05 16:57:51.994669+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -4924,6 +4924,133 @@
 
 
 ## Angene.Linux
+
+  <details><summary><b>Angene.Linux.Wayland</b></summary>
+
+  * **enum wl_data_device_error**
+  * **enum wl_data_device_manager_dnd_action**
+  * **enum wl_data_offer_error**
+  * **enum wl_data_source_error**
+  * **enum wl_display_error**
+  * **enum wl_fixes_error**
+    * `int WL_MARSHAL_FLAG_DESTROY`
+    * `void wl_surface_commit()`
+  * **enum wl_keyboard_key_state**
+  * **enum wl_keyboard_keymap_format**
+  * **enum wl_output_mode**
+  * **enum wl_output_subpixel**
+  * **enum wl_output_transform**
+  * **enum wl_pointer_axis**
+  * **enum wl_pointer_axis_relative_direction**
+  * **enum wl_pointer_axis_source**
+  * **enum wl_pointer_button_state**
+  * **enum wl_pointer_error**
+  * **enum wl_seat_capability**
+  * **enum wl_seat_error**
+  * **enum wl_shell_error**
+  * **enum wl_shell_surface_fullscreen_method**
+  * **enum wl_shell_surface_resize**
+  * **enum wl_shell_surface_transient**
+  * **enum wl_shm_error**
+  * **enum wl_shm_format**
+  * **enum wl_shm_pool_error**
+  * **enum wl_subcompositor_error**
+  * **enum wl_subsurface_error**
+  * **enum wl_surface_error**
+  * **enum xdg_popup_error**
+    * `int xdg_wm_base_add_listener()`
+    * `void xdg_wm_base_set_user_data()`
+    * `uint xdg_wm_base_get_version()`
+    * `void xdg_wm_base_destroy()`
+    * `void xdg_wm_base_pong()`
+    * `void xdg_positioner_set_user_data()`
+    * `uint xdg_positioner_get_version()`
+    * `void xdg_positioner_destroy()`
+    * `void xdg_positioner_set_size()`
+    * `void xdg_positioner_set_anchor_rect()`
+    * `void xdg_positioner_set_anchor()`
+    * `void xdg_positioner_set_gravity()`
+    * `void xdg_positioner_set_constraint_adjustment()`
+    * `void xdg_positioner_set_offset()`
+    * `void xdg_positioner_set_reactive()`
+    * `void xdg_positioner_set_parent_size()`
+    * `void xdg_positioner_set_parent_configure()`
+    * `int xdg_surface_add_listener()`
+    * `void xdg_surface_set_user_data()`
+    * `uint xdg_surface_get_version()`
+    * `void xdg_surface_destroy()`
+    * `void xdg_surface_set_window_geometry()`
+    * `void xdg_surface_ack_configure()`
+    * `int xdg_toplevel_add_listener()`
+    * `void xdg_toplevel_set_user_data()`
+    * `uint xdg_toplevel_get_version()`
+    * `void xdg_toplevel_destroy()`
+    * `void xdg_toplevel_set_parent()`
+    * `void xdg_toplevel_set_title()`
+    * `void xdg_toplevel_set_app_id()`
+    * `void xdg_toplevel_show_window_menu()`
+    * `void xdg_toplevel_move()`
+    * `void xdg_toplevel_resize()`
+    * `void xdg_toplevel_set_max_size()`
+    * `void xdg_toplevel_set_min_size()`
+    * `void xdg_toplevel_set_maximized()`
+    * `void xdg_toplevel_unset_maximized()`
+    * `void xdg_toplevel_set_fullscreen()`
+    * `void xdg_toplevel_unset_fullscreen()`
+    * `void xdg_toplevel_set_minimized()`
+    * `int xdg_popup_add_listener()`
+    * `void xdg_popup_set_user_data()`
+    * `uint xdg_popup_get_version()`
+    * `void xdg_popup_destroy()`
+    * `void xdg_popup_grab()`
+    * `void xdg_popup_reposition()`
+  * **enum xdg_positioner_anchor**
+  * **enum xdg_positioner_constraint_adjustment**
+  * **enum xdg_positioner_error**
+  * **enum xdg_positioner_gravity**
+  * **enum xdg_surface_error**
+  * **enum xdg_toplevel_error**
+  * **enum xdg_toplevel_resize_edge**
+  * **enum xdg_toplevel_state**
+  * **enum xdg_toplevel_wm_capabilities**
+  * **enum xdg_wm_base_error**
+  * **struct timespec**
+  * **struct wl_argument**
+  * **struct wl_array**
+    * `int Version`
+    * `int MethodCount`
+    * `int EventCount`
+  * **struct wl_buffer**
+  * **struct wl_callback**
+  * **struct wl_compositor**
+  * **struct wl_data_device**
+  * **struct wl_data_device_manager**
+  * **struct wl_data_offer**
+  * **struct wl_data_source**
+  * **struct wl_display**
+  * **struct wl_fixes**
+  * **struct wl_keyboard**
+  * **struct wl_output**
+  * **struct wl_pointer**
+  * **struct wl_proxy**
+  * **struct wl_region**
+  * **struct wl_registry**
+  * **struct wl_seat**
+  * **struct wl_shell**
+  * **struct wl_shell_surface**
+  * **struct wl_shm**
+  * **struct wl_shm_pool**
+  * **struct wl_subcompositor**
+  * **struct wl_subsurface**
+  * **struct wl_surface**
+  * **struct wl_touch**
+  * **struct xdg_popup**
+  * **struct xdg_positioner**
+  * **struct xdg_surface**
+  * **struct xdg_toplevel**
+  * **struct xdg_wm_base**
+
+  </details>
 
   <details><summary><b>Angene.Linux.X11</b></summary>
 

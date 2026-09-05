@@ -3192,5 +3192,8 @@ public static unsafe partial class Methods
     public static extern VkResult vkCreateXlibSurfaceKHR(IntPtr instance, VkXlibSurfaceCreateInfoKHR* pCreateInfo, VkAllocationCallbacks* pAllocator, IntPtr* pSurface);
 
     [DllImport(LibLoader.VulkanLibName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    public static extern VkResult vkCreateWaylandSurfaceKHR(IntPtr instance, VkWaylandSurfaceCreateInfoKHR* pCreateInfo, VkAllocationCallbacks* pAllocator, IntPtr* pSurface);
+    
+    [DllImport(LibLoader.VulkanLibName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint vkGetPhysicalDeviceXlibPresentationSupportKHR(IntPtr physicalDevice, uint queueFamilyIndex, void** dpy, nuint visualID);
 }

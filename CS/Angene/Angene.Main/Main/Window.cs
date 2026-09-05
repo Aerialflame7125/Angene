@@ -18,6 +18,11 @@ using Angene.Windows;
 using Angene.Linux.X11;
 using static Angene.Essentials.Types;
 using static Angene.Linux.X11.XLib;
+using Angene.Linux.Wayland;
+using static Angene.Linux.Wayland.XdgShell;
+using static Angene.Linux.Wayland.XdgShell.Methods;
+using static Angene.Linux.Wayland.WaylandClient;
+using static Angene.Linux.Wayland.WaylandClient.Methods;
 using Angene.Essentials.Components;
 using Angene.Math.Vectors;
 
@@ -732,6 +737,69 @@ namespace Angene.Main
                 return new X11WindowHandle(Engine.Instance.SharedX11Display, (IntPtr)window, titlePtr);
             }
         }
+
+        //Wayland
+        private unsafe WaylandWindowHandle CreateWindowWayland(WindowConfig config, bool cTI, string cTS, object type)
+        {
+            if (cTI && cTS != null && type != null)
+            {
+                Logger.LogError("Websocket streaming is not supported on Linux yet.", LoggingTarget.Engine);
+                return new WaylandWindowHandle(null, IntPtr.Zero, null, null, null, null);
+            }
+            else
+            {
+                if (Engine.Instance.SharedWaylandDisplay == null)
+                {
+                    Engine.Instance.SharedWaylandDisplay = wl_display_connect(null);
+                    if (Engine.Instance.SharedWaylandDisplay == null)
+                    {
+                        Logger.LogCritical("Failed to open Wayland display. Ensure that the DISPLAY environment variable is set correctly.", LoggingTarget.Engine, new AngeneException("Failed to open X11 display."), true);
+                    }
+                }
+                WaylandGlobalDelegate _globalDelegate = OnRegistryGlobal;
+                WaylandGlobalRemoveDelegate _globalRemoveDelegate = OnRegistryGlobalRemove;
+
+                IntPtr registry = (IntPtr)wl_display_get_registry(Engine.Instance.SharedWaylandDisplay);
+                wl_registry_listener registry_listener = new wl_registry_listener();
+                registry_listener.global = (delegate* unmanaged[Cdecl]<void*, wl_registry*, uint, sbyte*, uint, void>)Marshal.GetFunctionPointerForDelegate(_globalDelegate);
+                registry_listener.global_remove = (delegate* unmanaged[Cdecl]<void*, wl_registry*, uint, void>)Marshal.GetFunctionPointerForDelegate(_globalRemoveDelegate);
+                wl_registry_add_listener(registry, ref registry_listener, IntPtr.Zero);
+                wl_display_roundtrip(Engine.Instance.SharedWaylandDisplay);
+
+                IntPtr compositor = IntPtr.Zero;
+                wl_surface* surface = wl_compositor_create_surface(compositor);
+                xdg_surface* xdg_surface = xdg_wm_base_get_xdg_surface(null, surface);
+                xdg_toplevel* toplevel = xdg_surface_get_toplevel(xdg_surface);
+
+                sbyte* titlePtr = ToSBytePtr(config.Title);
+                
+                xdg_toplevel_set_title(toplevel, titlePtr);
+
+                // Say we can handle closing or some shit
+                sbyte* deleteName = ToSBytePtr("WM_DELETE_WINDOW");
+                sbyte* pingName = ToSBytePtr("_NET_WM_PING");
+                
+                nuint* protocols = stackalloc nuint[2];
+                protocols[0] = wmDeleteAtom;
+                protocols[1] = wmPingAtom;
+                Marshal.FreeHGlobal((IntPtr)deleteName);
+                Marshal.FreeHGlobal((IntPtr)pingName);
+
+                wl_surface_commit(surface);
+
+                return new WaylandWindowHandle(Engine.Instance.SharedWaylandDisplay, titlePtr, surface, xdg_surface, toplevel, compositor);
+            }
+        }
+
+        private void OnRegistryGlobal(IntPtr data, IntPtr registry, uint name, [MarshalAs(UnmanagedType.LPStr)] string @interface, uint version)
+        {
+            Logger.LogDebug($"[Wayland] Found Global Interface: {@interface}, Version: {version}, Name: {name}", LoggingTarget.Engine);
+        }
+
+        private void OnRegistryGlobalRemove(IntPtr data, IntPtr registry, uint name)
+        {
+            Logger.LogDebug($"[Wayland] Global Removed: {name}", LoggingTarget.Engine);
+        }
 #endif
         public unsafe static sbyte* ToSBytePtr(string myString)
         {
@@ -906,6 +974,10 @@ namespace Angene.Main
                 }
 
                 Engine.Instance.FlushPendingCloses();
+            }
+            if (Handle is WaylandWindowHandle _Wayhandle)
+            {
+                
             }
 #elif WINDOWS
             if (Handle is MicrosoftWindowHandle han)
