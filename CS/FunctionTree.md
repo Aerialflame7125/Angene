@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-09-07 01:11:20.655551+00:00)</sup></sub>
+<sub><sup>(generated 2026-09-07 19:27:27.707507+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -4919,6 +4919,9 @@
   * **enum IKeyCodeXKBExtensionLinux**
   * **enum WlSeatCapability**
   * **struct Keys**
+    * `uint WL_KEYBOARD_KEY_STATE_RELEASED`
+    * `uint WL_KEYBOARD_KEY_STATE_PRESSED`
+    * `uint WL_KEYBOARD_KEY_STATE_REPEATED`
   * **struct UnmanagedString**
     * `IntPtr Ptr`
   * **struct wl_pointer_listener**
@@ -5499,6 +5502,7 @@
     * `void Write()`
   * **class Engine**
     * `string[] supportedLibs`
+    * `List<Window> _systemWindowHandles { get; set; }`
     * `bool IsCompilingShaders`
     * `bool ShouldShutdown`
     * `IntPtr SharedD3D11Device { get; set; }`

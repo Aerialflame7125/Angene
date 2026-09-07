@@ -765,6 +765,8 @@ namespace Angene.Main
                 Engine.Instance._xdgWmBasePtr = wl_registry_bind((IntPtr)registry, name,
                     (wl_interface*)XdgShell.Methods.XdgWmBaseInterface, System.Math.Min(version, 1));
             }
+
+            Engine.Instance.InvokeWaylandRegistryChanged((IntPtr)registry, name, (IntPtr)@interface, version);
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
@@ -881,6 +883,8 @@ namespace Angene.Main
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         private static unsafe void OnXdgToplevelConfigure(void* data, xdg_toplevel* toplevel, int width, int height, wl_array* states)
         {
+            // No-op for now. width/height are the compositor's suggested size (0,0 means "you decide").
+            // Later: store these and apply them via graphicsContext.Resize() if you want to honor compositor resize requests.
         }
         
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
@@ -936,8 +940,14 @@ namespace Angene.Main
                 Cleanup();
                 Logger.LogDebug("Cleaning up window resources.", LoggingTarget.Engine);
                 User32.DestroyWindow(handle.Hwnd);
-                if (Engine.Instance.HasFinishedInit)
+                if (Engine.Instance.HasFinishedInit && !Engine.Instance._systemWindowHandles.Contains(this))
                     Engine.Instance.ShouldShutdown = true;
+                if (Engine.Instance._systemWindowHandles.Contains(this))
+                {
+                    Engine.Instance._systemWindowHandles.Remove(this);
+                    if (Engine.Instance._systemWindowHandles.Count == 0)
+                        Engine.Instance.HasFinishedInit = true;
+                }
 #endif
             }
             else if (Handle is X11WindowHandle x11Handle && x11Handle.Display != null && x11Handle.Window != IntPtr.Zero)
@@ -958,8 +968,14 @@ namespace Angene.Main
                     XLib.Methods.XUnlockDisplay(x11Handle.Display);
                 }
 
-                if (Engine.Instance.HasFinishedInit)
+                if (Engine.Instance.HasFinishedInit && !Engine.Instance._systemWindowHandles.Contains(this))
                     Engine.Instance.ShouldShutdown = true;
+                if (Engine.Instance._systemWindowHandles.Contains(this))
+                {
+                    Engine.Instance._systemWindowHandles.Remove(this);
+                    if (Engine.Instance._systemWindowHandles.Count == 0)
+                        Engine.Instance.HasFinishedInit = true;
+                }
             }
             else if (Handle is WaylandWindowHandle waylandHandle && Engine.Instance._xdgWmBasePtr != IntPtr.Zero &&
                      Engine.Instance._compositorPtr != IntPtr.Zero)
@@ -978,9 +994,15 @@ namespace Angene.Main
                 if (waylandHandle.ToplevelUserDataHandle.IsAllocated) waylandHandle.ToplevelUserDataHandle.Free();
                 if (waylandHandle.SurfaceListenerPtr != IntPtr.Zero) Marshal.FreeHGlobal(waylandHandle.SurfaceListenerPtr);
                 if (waylandHandle.ToplevelListenerPtr != IntPtr.Zero) Marshal.FreeHGlobal(waylandHandle.ToplevelListenerPtr);
-    
-                if (Engine.Instance.HasFinishedInit)
+
+                if (Engine.Instance.HasFinishedInit && !Engine.Instance._systemWindowHandles.Contains(this))
                     Engine.Instance.ShouldShutdown = true;
+                if (Engine.Instance._systemWindowHandles.Contains(this))
+                {
+                    Engine.Instance._systemWindowHandles.Remove(this);
+                    if (Engine.Instance._systemWindowHandles.Count == 0)
+                        Engine.Instance.HasFinishedInit = true;
+                }
             }
             else if (Handle is string strHandle)
             {

@@ -46,6 +46,7 @@ namespace Angene.Main
     {
         public string[] supportedLibs;
         List<SlangShaderResources.IShader> shaderTypes = new List<SlangShaderResources.IShader>();
+        public List<Window> _systemWindowHandles { get; internal set; } = new List<Window>();
         public Dictionary<int, object> ShaderCache { get; internal set; }
         int shaderCount = 0;
         public bool IsCompilingShaders = false;
@@ -64,6 +65,7 @@ namespace Angene.Main
         public IntPtr _compositorPtr { get; internal set; } = IntPtr.Zero;
         public IntPtr _xdgWmBasePtr { get; internal set; } = IntPtr.Zero;
         public bool InitializedXThreads { get; internal set; } = false;
+        public event Action<IntPtr, uint, IntPtr, uint> OnWaylandRegistryChanged; // cancer.
 
         public Types.AppInfo currentAppInfo { get; internal set; }
         internal List<Window> PendingWindowCloses { get; } = new();
@@ -78,6 +80,11 @@ namespace Angene.Main
         }
 
         public static Engine Instance { get; } = new Engine();
+
+        internal unsafe void InvokeWaylandRegistryChanged(IntPtr registry, uint name, IntPtr @interface, uint version)
+        {
+            OnWaylandRegistryChanged?.Invoke(registry, name, @interface, version);
+        }
 
         // Check supported libraries
         private static string[] CheckSupportedLibraries()
@@ -289,9 +296,10 @@ namespace Angene.Main
                     _D3DW.X = -10000; _D3DW.Y = -10000;
                     _D3DW.Style = WindowManagement.WindowStyle.PopupWindow;
                     _D3DW.ShowOnCreate = true;
-                    _D3DW.Title = "D3D11 Dummy Window | Ignore.";
+                    _D3DW.Title = "Angene Shader Compilation";
                     _D3DW.renderMode = RenderType.D3D11;
                     _D3dwindow = new(_D3DW);
+                    _systemWindowHandles.Add(_D3dwindow);
                     _D3Dgraphicscontext = _D3dwindow.Graphics as IDX11GraphicsContext;
                     if (_D3Dgraphicscontext == null)
                         Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy D3D11 window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on D3D11 Window."), true);
@@ -317,9 +325,10 @@ namespace Angene.Main
                     _VkW.Width = 100; _VkW.Height = 100;
                     _VkW.X = -10000; _VkW.Y = -10000;
                     _VkW.ShowOnCreate = true;
-                    _VkW.Title = "Vulkan Dummy Window | Ignore.";
+                    _VkW.Title = "Angene Shader Compilation";
                     _VkW.renderMode = RenderType.Vulkan;
                     _Vkwindow = new (_VkW);
+                    _systemWindowHandles.Add(_Vkwindow);
                     _Vkgraphicscontext = _Vkwindow.Graphics as VkGraphicsContext; // Vulkan n stuff
                     if (_Vkgraphicscontext == null)
                         Logger.LogCritical("[Engine.cs | StartShaderCompilation] Dummy Vulkan window is not using the correct backend. Failing.", LoggingTarget.MainConstructor, new AngeneException("Incorrect backend on Vulkan Window."), true);
@@ -344,8 +353,6 @@ namespace Angene.Main
                     StartShaderCompilation(shaderTypes, shaderCount, null, null, _Vkgraphicscontext.Handle, _Vkwindow, verbose);
                 }
             }
-
-            HasFinishedInit = true;
         }
 
         private void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int _shaderCount, IntPtr? _D3DDevicePtr, Window? _D3DCompilationWindow, IntPtr? _VkDevicePtr, Window? _VkCompilationWindow, bool verbose = false)
@@ -361,6 +368,7 @@ namespace Angene.Main
                 _wD3D.Title = "Angene Shader Compilation";
                 _wD3D.renderMode = RenderType.GDI;
                 Window _WindowInstanceD3D = new Window(_wD3D);
+                Engine.Instance._systemWindowHandles.Add(_WindowInstanceD3D);
 
                 IScene D3DScene = new Dx11ShaderCompilationScene(_shaderTypes, _shaderCount, (IntPtr)_D3DDevicePtr, _D3DCompilationWindow, _WindowInstanceD3D.Handle, _WindowInstanceD3D, verbose);
                 _WindowInstanceD3D.SetScene(D3DScene);
@@ -377,6 +385,7 @@ namespace Angene.Main
                 _wVk.Title = "Angene Shader Compilation";
                 _wVk.renderMode = RenderType.Vulkan;
                 Window _WindowInstanceVk = new Window(_wVk);
+                Engine.Instance._systemWindowHandles.Add(_WindowInstanceVk);
 
                 IScene Vkscene = new VulkanShaderCompilationScene(_shaderTypes, _shaderCount, (IntPtr)_VkDevicePtr, _VkCompilationWindow, verbose, _WindowInstanceVk);
                 _WindowInstanceVk.SetScene(Vkscene);

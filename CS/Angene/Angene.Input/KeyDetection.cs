@@ -38,24 +38,24 @@ namespace Angene.Input
             switch (msg.message)
             {
                 case (uint)WM.KEYDOWN:
-                    uint downKey = (uint)Key.TryNInt(msg.wParam);
+                    uint downKey = (uint)KeyResolver.TryNInt(msg.wParam);
                     if (downKey != 0)
                         _heldKeys.Add(downKey);
                     break;
 
                 case (uint)WM.KEYUP:
-                    uint upKey = (uint)Key.TryNInt(msg.wParam);
+                    uint upKey = (uint)KeyResolver.TryNInt(msg.wParam);
                     if (upKey != 0)
                     {
                         _heldKeys.Remove(upKey);
                     }
                     break;  
             }
-            if (_heldKeys.Contains((uint)Keys.IKeyCodeModWin.RAlt) && _heldKeys.Contains((uint)Keys.IKeyCodeModWin.Return)
+            if (_heldKeys.Contains((uint)Keys.IKeyCodeModWin.RAlt) && _heldKeys.Contains((uint)Keys.IKeyCodeModWin.Return))
             {
                 if (!holdingFullscreen)
                 {
-                    Engine.Instance.OpenWindows[0].set_fullscreen();
+                    //Engine.Instance.OpenWindows[0].set_fullscreen();
                     Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
                     holdingFullscreen = true;
                 }
@@ -141,139 +141,139 @@ namespace Angene.Input
                     holdingFullscreen = false;
                 }
             }
+        }
 #endif
 
-            public bool IsKeyDown(uint key) => _heldKeys.Contains(key);
+        public bool IsKeyDown(uint key) => _heldKeys.Contains(key);
 
-            public HashSet<uint> GetDownKeys() => _heldKeys;
+        public HashSet<uint> GetDownKeys() => _heldKeys;
 
-            public void Render()
-            {
-            }
-
-            public void Cleanup()
-            {
-            }
-        }
-
-        public class KeyDetection
+        public void Render()
         {
-            private static KeyDetectionScript? _script;
-
-            /// <summary>
-            /// Collection of all entities that have KeyDetection instances on them.
-            /// </summary>
-            public List<Entity> Instances = new List<Entity>();
-
-            /// <summary>
-            /// Takes default ManagementScene object entities of all open windows and registers a new KeyDetection Entity on them.
-            /// NOTICE: This method is not recommended for performance. It WILL iterate through all open windows and ManagementScene objects.
-            /// </summary>
-            public void Register(bool waylandkeys)
-            {
-                if (_script != null)
-                {
-                    Logger.LogWarning("[KeyDetection] Already registered — skipping duplicate Register() call.",
-                        LoggingTarget.Engine);
-                    return;
-                }
-
-                foreach (Window w in Engine.Instance.OpenWindows)
-                {
-                    Entity DetectionEntity = new Entity("KeyDetection");
-                    _script = new KeyDetectionScript(waylandkeys);
-                    ManagementScene? a = w.ManagementScene as ManagementScene;
-                    Entity b = a.AddEntity(DetectionEntity);
-                    Instances.Add(b);
-                    b.AddScript(_script);
-                }
-
-                Logger.LogDebug($"[KeyDetection] Added {Engine.Instance.OpenWindows.Count} new Entities",
-                    LoggingTarget.Engine);
-            }
-
-            /// <summary>
-            /// Takes in entity that the user specifies and registers a new KeyDetection object on it.
-            /// If you wish to not create a new entity yourself, use Register().
-            /// </summary>
-            /// <param name="entity"></param>
-            /// <exception cref="ArgumentNullException"></exception>
-            public void Register(Entity entity, bool waylandkeys)
-            {
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity));
-
-                if (_script != null)
-                {
-                    Logger.LogWarning("[KeyDetection] Already registered — skipping duplicate Register() call.",
-                        LoggingTarget.Engine);
-                    return;
-                }
-
-                _script = new KeyDetectionScript(waylandkeys);
-                entity.AddScript(_script);
-                Instances.Add(entity);
-
-                Logger.LogDebug($"[KeyDetection] Registered on entity '{entity.name}'.",
-                    LoggingTarget.Engine);
-            }
-
-            /// <summary>
-            /// Registers KeyDetection on the default entity of the provided management scene.
-            /// The scene provided must be instantiated and attached to runtime for registering to work.
-            /// This scene should be a scene of the user's choice, otherwise use Register(Entity) instead.
-            /// </summary>
-            /// <param name="managementScene"></param>
-            /// <exception cref="ArgumentNullException"></exception>
-            public void Register(ManagementScene managementScene, bool waylandkeys)
-            {
-                if (managementScene == null)
-                    throw new ArgumentNullException(nameof(managementScene));
-
-                Entity? defaultEnt = managementScene.GetDefaultEntity();
-                if (defaultEnt == null)
-                {
-                    Logger.LogError("[KeyDetection] GetDefaultEntity() returned null. " +
-                                    "Please refer to Angene spec. (Is the management scene instantiated?)",
-                        LoggingTarget.Engine);
-                    return;
-                }
-
-                Register(defaultEnt, waylandkeys);
-            }
-
-            /// <summary>
-            /// Checks if the specified key is currently held down. Requires KeyDetection to be registered first.
-            /// </summary>
-            /// <param name="key"></param>
-            /// <returns></returns>
-            /// <exception cref="InvalidOperationException"></exception>
-            public static bool IsKeyDown(uint key)
-            {
-                if (_script == null)
-                    throw new InvalidOperationException(
-                        "KeyDetection not registered. Call KeyDetection.Register() first.");
-
-                return _script.IsKeyDown(key);
-            }
-
-            /// <summary>
-            /// Nullifies script instance, deregistering it from lifetime.
-            /// </summary>
-            public void Deregister()
-            {
-                foreach (Entity e in Instances)
-                {
-                    e.RemoveScript(_script);
-                }
-
-                _script = null;
-                Logger.LogDebug("[KeyDetection] Unregistered.", LoggingTarget.Engine);
-            }
-
-            public static HashSet<uint> GetDownKeys => _script?.GetDownKeys() ??
-                                                       throw new InvalidOperationException(
-                                                           "KeyDetection not registered.");
         }
+
+        public void Cleanup()
+        {
+        }
+    }
+
+    public class KeyDetection
+    {
+        private static KeyDetectionScript? _script;
+
+        /// <summary>
+        /// Collection of all entities that have KeyDetection instances on them.
+        /// </summary>
+        public List<Entity> Instances = new List<Entity>();
+
+        /// <summary>
+        /// Takes default ManagementScene object entities of all open windows and registers a new KeyDetection Entity on them.
+        /// NOTICE: This method is not recommended for performance. It WILL iterate through all open windows and ManagementScene objects.
+        /// </summary>
+        public void Register(bool waylandkeys)
+        {
+            if (_script != null)
+            {
+                Logger.LogWarning("[KeyDetection] Already registered — skipping duplicate Register() call.",
+                    LoggingTarget.Engine);
+                return;
+            }
+
+            foreach (Window w in Engine.Instance.OpenWindows)
+            {
+                Entity DetectionEntity = new Entity("KeyDetection");
+                _script = new KeyDetectionScript(waylandkeys);
+                ManagementScene? a = w.ManagementScene as ManagementScene;
+                Entity b = a.AddEntity(DetectionEntity);
+                Instances.Add(b);
+                b.AddScript(_script);
+            }
+
+            Logger.LogDebug($"[KeyDetection] Added {Engine.Instance.OpenWindows.Count} new Entities",
+                LoggingTarget.Engine);
+        }
+
+        /// <summary>
+        /// Takes in entity that the user specifies and registers a new KeyDetection object on it.
+        /// If you wish to not create a new entity yourself, use Register().
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public void Register(Entity entity, bool waylandkeys)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            if (_script != null)
+            {
+                Logger.LogWarning("[KeyDetection] Already registered — skipping duplicate Register() call.",
+                    LoggingTarget.Engine);
+                return;
+            }
+
+            _script = new KeyDetectionScript(waylandkeys);
+            entity.AddScript(_script);
+            Instances.Add(entity);
+
+            Logger.LogDebug($"[KeyDetection] Registered on entity '{entity.name}'.",
+                LoggingTarget.Engine);
+        }
+
+        /// <summary>
+        /// Registers KeyDetection on the default entity of the provided management scene.
+        /// The scene provided must be instantiated and attached to runtime for registering to work.
+        /// This scene should be a scene of the user's choice, otherwise use Register(Entity) instead.
+        /// </summary>
+        /// <param name="managementScene"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public void Register(ManagementScene managementScene, bool waylandkeys)
+        {
+            if (managementScene == null)
+                throw new ArgumentNullException(nameof(managementScene));
+
+            Entity? defaultEnt = managementScene.GetDefaultEntity();
+            if (defaultEnt == null)
+            {
+                Logger.LogError("[KeyDetection] GetDefaultEntity() returned null. " +
+                                "Please refer to Angene spec. (Is the management scene instantiated?)",
+                    LoggingTarget.Engine);
+                return;
+            }
+
+            Register(defaultEnt, waylandkeys);
+        }
+
+        /// <summary>
+        /// Checks if the specified key is currently held down. Requires KeyDetection to be registered first.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static bool IsKeyDown(uint key)
+        {
+            if (_script == null)
+                throw new InvalidOperationException(
+                    "KeyDetection not registered. Call KeyDetection.Register() first.");
+
+            return _script.IsKeyDown(key);
+        }
+
+        /// <summary>
+        /// Nullifies script instance, deregistering it from lifetime.
+        /// </summary>
+        public void Deregister()
+        {
+            foreach (Entity e in Instances)
+            {
+                e.RemoveScript(_script);
+            }
+
+            _script = null;
+            Logger.LogDebug("[KeyDetection] Unregistered.", LoggingTarget.Engine);
+        }
+
+        public static HashSet<uint> GetDownKeys => _script?.GetDownKeys() ??
+                                                   throw new InvalidOperationException(
+                                                       "KeyDetection not registered.");
     }
 }

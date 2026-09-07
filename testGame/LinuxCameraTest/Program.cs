@@ -80,6 +80,8 @@ namespace Game
                 {
                     foreach (Window window in Engine.Instance.OpenWindows)
                         window.RenderFrame();
+                    
+                    Engine.Instance.FlushPendingCloses();
                 }
                 Logger.LogImportant("Shader precompilation finished.", LoggingTarget.MainGame);
 
