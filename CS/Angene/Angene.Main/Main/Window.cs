@@ -45,6 +45,10 @@ namespace Angene.Main
 
         public object PrimaryCamera { get; private set; } = null;
         public object[] Cameras { get; private set; }
+        
+        private static IntPtr _registryListenerPtr;
+        private static IntPtr _shellListenerPtr;
+        private IntPtr wl_seat;
 
         public int Width { get; }
         public int Height { get; }
@@ -383,11 +387,20 @@ namespace Angene.Main
                 Logger.LogCritical("Windows library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("Windows library was not found at init. Installation is corrupt or incomplete."), true);
             return CreateWindowWindows(config, cTI, cTS, type);
 #elif LINUX
-            if (!Engine.Instance.InitializedXThreads)
-                Engine.Instance.XInitThreads();
-            if (!Engine.Instance.supportedLibs.Contains("X11"))
-                Logger.LogCritical("X11 library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("X11 library was not found at init. Installation is corrupt or incomplete."), true);
-            return CreateWindowX11(config, cTI, cTS, type);
+            if (!config.UseWayland)
+            {
+                if (!Engine.Instance.InitializedXThreads)
+                    Engine.Instance.XInitThreads();
+                if (!Engine.Instance.supportedLibs.Contains("Linux"))
+                    Logger.LogCritical("X11 library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("X11 library was not found at init. Installation is corrupt or incomplete."), true);
+                return CreateWindowX11(config, cTI, cTS, type);
+            }
+            else
+            {
+                if (!Engine.Instance.supportedLibs.Contains("Linux"))
+                    Logger.LogCritical("X11 library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("X11 library was not found at init. Installation is corrupt or incomplete."), true);
+                return CreateWindowWayland(config, cTI, cTS, type);
+            }
 #endif
             return null; // shuts up the compiler
         }
@@ -739,66 +752,143 @@ namespace Angene.Main
         }
 
         //Wayland
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static unsafe void OnRegistryGlobal(void* data, wl_registry* registry, uint name, sbyte* @interface, uint version) 
+        {
+            string interfaceName = Marshal.PtrToStringAnsi((IntPtr)@interface);
+            // base
+            if (interfaceName == "wl_compositor") {
+                Engine.Instance._compositorPtr = wl_registry_bind((IntPtr)registry, name,
+                    (wl_interface*)GetWlCompositorInterface(), System.Math.Min(version, 4));
+            } 
+            else if (interfaceName == "xdg_wm_base") {
+                Engine.Instance._xdgWmBasePtr = wl_registry_bind((IntPtr)registry, name,
+                    (wl_interface*)XdgShell.Methods.XdgWmBaseInterface, System.Math.Min(version, 1));
+            }
+        }
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static unsafe void OnRegistryGlobalRemove(void* data, wl_registry* registry, uint name) 
+        {
+            Logger.LogDebug($"[Wayland] Global Removed: {name}", LoggingTarget.Engine);
+        }
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static unsafe void OnXdgPing(void* data, xdg_wm_base* shell, uint serial) 
+        {
+            xdg_wm_base_pong(shell, serial);
+        }
+        
+        private sealed class WaylandConfigState
+        {
+            public unsafe wl_surface* Surface;
+            public bool Acked;
+        }
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static unsafe void OnXdgSurfaceConfigure(void* data, xdg_surface* xdgSurface, uint serial)
+        {
+            var handle = GCHandle.FromIntPtr((IntPtr)data);
+            var state = (WaylandConfigState)handle.Target;
+
+            xdg_surface_ack_configure(xdgSurface, serial);
+            wl_surface_commit((IntPtr)state.Surface);
+            state.Acked = true;
+        }
+
         private unsafe WaylandWindowHandle CreateWindowWayland(WindowConfig config, bool cTI, string cTS, object type)
         {
             if (cTI && cTS != null && type != null)
             {
                 Logger.LogError("Websocket streaming is not supported on Linux yet.", LoggingTarget.Engine);
-                return new WaylandWindowHandle(null, IntPtr.Zero, null, null, null, null);
+                return new WaylandWindowHandle(null, null, null, null, null, IntPtr.Zero, GCHandle.Alloc(0), GCHandle.Alloc(0), IntPtr.Zero, IntPtr.Zero);
             }
-            else
+
+            if (Engine.Instance.SharedWaylandDisplay == null)
             {
+                Engine.Instance.SharedWaylandDisplay = wl_display_connect(null);
                 if (Engine.Instance.SharedWaylandDisplay == null)
                 {
-                    Engine.Instance.SharedWaylandDisplay = wl_display_connect(null);
-                    if (Engine.Instance.SharedWaylandDisplay == null)
-                    {
-                        Logger.LogCritical("Failed to open Wayland display. Ensure that the DISPLAY environment variable is set correctly.", LoggingTarget.Engine, new AngeneException("Failed to open X11 display."), true);
-                    }
+                    Logger.LogCritical("Failed to connect to Wayland display. Ensure WAYLAND_DISPLAY is set.", LoggingTarget.Engine, new AngeneException("Failed to open Wayland display."), true);
                 }
-                WaylandGlobalDelegate _globalDelegate = OnRegistryGlobal;
-                WaylandGlobalRemoveDelegate _globalRemoveDelegate = OnRegistryGlobalRemove;
+            }
+
+            if (_registryListenerPtr == IntPtr.Zero)
+            {
+                var registryListener = new wl_registry_listener {
+                    global = &OnRegistryGlobal,
+                    global_remove = &OnRegistryGlobalRemove
+                };
+                _registryListenerPtr = Marshal.AllocHGlobal(sizeof(wl_registry_listener));
+                Marshal.StructureToPtr(registryListener, _registryListenerPtr, false);
 
                 IntPtr registry = (IntPtr)wl_display_get_registry(Engine.Instance.SharedWaylandDisplay);
-                wl_registry_listener registry_listener = new wl_registry_listener();
-                registry_listener.global = (delegate* unmanaged[Cdecl]<void*, wl_registry*, uint, sbyte*, uint, void>)Marshal.GetFunctionPointerForDelegate(_globalDelegate);
-                registry_listener.global_remove = (delegate* unmanaged[Cdecl]<void*, wl_registry*, uint, void>)Marshal.GetFunctionPointerForDelegate(_globalRemoveDelegate);
-                wl_registry_add_listener(registry, ref registry_listener, IntPtr.Zero);
+                wl_proxy_add_listener(registry, _registryListenerPtr, null);
+                wl_display_roundtrip(Engine.Instance.SharedWaylandDisplay);
+            }
+
+            if (Engine.Instance._compositorPtr == IntPtr.Zero) throw new Exception("Compositor not found!");
+
+            wl_surface* surface = (wl_surface*)wl_compositor_create_surface(Engine.Instance._compositorPtr);
+            xdg_surface* xdg_surface = xdg_wm_base_get_xdg_surface((xdg_wm_base*)Engine.Instance._xdgWmBasePtr, surface);
+            xdg_toplevel* toplevel = xdg_surface_get_toplevel(xdg_surface);
+
+            if (_shellListenerPtr == IntPtr.Zero)
+            {
+                var shellListener = new xdg_wm_base_listener { ping = &OnXdgPing };
+                _shellListenerPtr = Marshal.AllocHGlobal(sizeof(xdg_wm_base_listener));
+                Marshal.StructureToPtr(shellListener, _shellListenerPtr, false);
+                xdg_wm_base_add_listener((xdg_wm_base*)Engine.Instance._xdgWmBasePtr, (xdg_wm_base_listener*)_shellListenerPtr, null);
+            }
+
+            var configState = new WaylandConfigState { Surface = surface };
+            var configStateHandle = GCHandle.Alloc(configState);
+
+            var surfaceListener = new xdg_surface_listener { configure = &OnXdgSurfaceConfigure };
+            IntPtr surfaceListenerPtr = Marshal.AllocHGlobal(sizeof(xdg_surface_listener));
+            Marshal.StructureToPtr(surfaceListener, surfaceListenerPtr, false);
+            xdg_surface_add_listener(xdg_surface, (xdg_surface_listener*)surfaceListenerPtr,
+                (void*)GCHandle.ToIntPtr(configStateHandle));
+            
+            var handleRef = GCHandle.Alloc(this);
+            void* userData = (void*)GCHandle.ToIntPtr(handleRef);
+
+            var toplevelListener = new xdg_toplevel_listener
+            {
+                configure = &OnXdgToplevelConfigure,
+                close = &OnXdgToplevelClose
+            };
+            IntPtr toplevelListenerPtr = Marshal.AllocHGlobal(sizeof(xdg_toplevel_listener));
+            Marshal.StructureToPtr(toplevelListener, toplevelListenerPtr, false);
+            xdg_toplevel_add_listener(toplevel, (xdg_toplevel_listener*)toplevelListenerPtr, userData);
+            
+            sbyte* titlePtr = ToSBytePtr(config.Title);
+            xdg_toplevel_set_title(toplevel, titlePtr);
+
+            wl_surface_commit((IntPtr)surface);
+            
+            int guard = 0;
+            Logger.LogDebug($"Waiting for configure, guard={guard}", LoggingTarget.Engine);
+            while (!configState.Acked && guard++ < 200)
                 wl_display_roundtrip(Engine.Instance.SharedWaylandDisplay);
 
-                IntPtr compositor = IntPtr.Zero;
-                wl_surface* surface = wl_compositor_create_surface(compositor);
-                xdg_surface* xdg_surface = xdg_wm_base_get_xdg_surface(null, surface);
-                xdg_toplevel* toplevel = xdg_surface_get_toplevel(xdg_surface);
+            if (!configState.Acked)
+                Logger.LogCritical("Timed out waiting for initial xdg_surface configure.", LoggingTarget.Engine, new AngeneException("Wayland configure timeout."), true);
 
-                sbyte* titlePtr = ToSBytePtr(config.Title);
-                
-                xdg_toplevel_set_title(toplevel, titlePtr);
-
-                // Say we can handle closing or some shit
-                sbyte* deleteName = ToSBytePtr("WM_DELETE_WINDOW");
-                sbyte* pingName = ToSBytePtr("_NET_WM_PING");
-                
-                nuint* protocols = stackalloc nuint[2];
-                protocols[0] = wmDeleteAtom;
-                protocols[1] = wmPingAtom;
-                Marshal.FreeHGlobal((IntPtr)deleteName);
-                Marshal.FreeHGlobal((IntPtr)pingName);
-
-                wl_surface_commit(surface);
-
-                return new WaylandWindowHandle(Engine.Instance.SharedWaylandDisplay, titlePtr, surface, xdg_surface, toplevel, compositor);
-            }
+            return new WaylandWindowHandle(Engine.Instance.SharedWaylandDisplay, titlePtr, surface, xdg_surface, toplevel, Engine.Instance._compositorPtr, configStateHandle, handleRef, surfaceListenerPtr, toplevelListenerPtr);
         }
-
-        private void OnRegistryGlobal(IntPtr data, IntPtr registry, uint name, [MarshalAs(UnmanagedType.LPStr)] string @interface, uint version)
+        
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static unsafe void OnXdgToplevelConfigure(void* data, xdg_toplevel* toplevel, int width, int height, wl_array* states)
         {
-            Logger.LogDebug($"[Wayland] Found Global Interface: {@interface}, Version: {version}, Name: {name}", LoggingTarget.Engine);
         }
-
-        private void OnRegistryGlobalRemove(IntPtr data, IntPtr registry, uint name)
+        
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static unsafe void OnXdgToplevelClose(void* data, xdg_toplevel* toplevel)
         {
-            Logger.LogDebug($"[Wayland] Global Removed: {name}", LoggingTarget.Engine);
+            var handle = GCHandle.FromIntPtr((IntPtr)data);
+            if (handle.Target is Window w)
+                w.Close();
         }
 #endif
         public unsafe static sbyte* ToSBytePtr(string myString)
@@ -846,10 +936,8 @@ namespace Angene.Main
                 Cleanup();
                 Logger.LogDebug("Cleaning up window resources.", LoggingTarget.Engine);
                 User32.DestroyWindow(handle.Hwnd);
-                if (Engine.Instance.OpenWindows.Count == 0 && !Engine.Instance.oneTimeShouldShutdownBypass)
+                if (Engine.Instance.HasFinishedInit)
                     Engine.Instance.ShouldShutdown = true;
-                else if (Engine.Instance.OpenWindows.Count == 0 && Engine.Instance.oneTimeShouldShutdownBypass)
-                    Engine.Instance.oneTimeShouldShutdownBypass = false;
 #endif
             }
             else if (Handle is X11WindowHandle x11Handle && x11Handle.Display != null && x11Handle.Window != IntPtr.Zero)
@@ -870,10 +958,29 @@ namespace Angene.Main
                     XLib.Methods.XUnlockDisplay(x11Handle.Display);
                 }
 
-                if (Engine.Instance.OpenWindows.Count == 0 && !Engine.Instance.oneTimeShouldShutdownBypass)
+                if (Engine.Instance.HasFinishedInit)
                     Engine.Instance.ShouldShutdown = true;
-                else if (Engine.Instance.OpenWindows.Count == 0 && Engine.Instance.oneTimeShouldShutdownBypass)
-                    Engine.Instance.oneTimeShouldShutdownBypass = false;
+            }
+            else if (Handle is WaylandWindowHandle waylandHandle && Engine.Instance._xdgWmBasePtr != IntPtr.Zero &&
+                     Engine.Instance._compositorPtr != IntPtr.Zero)
+            {
+                WindowMap.Remove(waylandHandle);
+                Engine.Instance.OpenWindows.Remove(this);
+                Logger.LogDebug("Cleaning up window resources.", LoggingTarget.Engine);
+                Cleanup();
+
+                xdg_toplevel_destroy(waylandHandle.Toplevel);
+                xdg_surface_destroy(waylandHandle.Xdg_surface);
+                wl_proxy_destroy((IntPtr*)waylandHandle.Surface);
+                wl_display_flush(waylandHandle.Display);
+
+                if (waylandHandle.ConfigStateHandle.IsAllocated) waylandHandle.ConfigStateHandle.Free();
+                if (waylandHandle.ToplevelUserDataHandle.IsAllocated) waylandHandle.ToplevelUserDataHandle.Free();
+                if (waylandHandle.SurfaceListenerPtr != IntPtr.Zero) Marshal.FreeHGlobal(waylandHandle.SurfaceListenerPtr);
+                if (waylandHandle.ToplevelListenerPtr != IntPtr.Zero) Marshal.FreeHGlobal(waylandHandle.ToplevelListenerPtr);
+    
+                if (Engine.Instance.HasFinishedInit)
+                    Engine.Instance.ShouldShutdown = true;
             }
             else if (Handle is string strHandle)
             {
@@ -916,7 +1023,7 @@ namespace Angene.Main
         }
         public unsafe void lockCursor(bool locked, LinuxWindowType windowType)
         {
-            if (locked && windowType == LinuxWindowType.X11)
+            if (locked && windowType == LinuxWindowType.X11 && Handle is X11WindowHandle)
             {
                 int res = XLib.Methods.XGrabPointer(((X11WindowHandle)Handle).Display, (nuint)((X11WindowHandle)Handle).Window, 0, (uint)(XEventMask.PointerMotionMask | XEventMask.ButtonPressMask | XEventMask.ButtonReleaseMask | XEventMask.FocusChangeMask), 1, 1, 0, 0, (nuint)0ul);
                 
@@ -924,16 +1031,16 @@ namespace Angene.Main
                     Logger.LogError("[Window] X Server refused grab call.", LoggingTarget.Engine);
                 XLib.Methods.XSync(((X11WindowHandle)Handle).Display, 0);
             }
-            else if (!locked && windowType == LinuxWindowType.X11)
+            else if (!locked && windowType == LinuxWindowType.X11 && Handle is X11WindowHandle)
             {
                 XLib.Methods.XUngrabPointer(((X11WindowHandle)Handle).Display, 0);
                 XLib.Methods.XSync(((X11WindowHandle)Handle).Display, 0);
             }
-            else if (locked && windowType == LinuxWindowType.Wayland)
+            else if (locked && windowType == LinuxWindowType.Wayland && Handle is WaylandWindowHandle)
             {
                 
             }
-            else if (!locked && windowType == LinuxWindowType.Wayland)
+            else if (!locked && windowType == LinuxWindowType.Wayland && Handle is WaylandWindowHandle)
             {
                 
             }
@@ -972,12 +1079,15 @@ namespace Angene.Main
                         foreach (var i in injectedCalls)
                             i(xevent.type);
                 }
-
-                Engine.Instance.FlushPendingCloses();
             }
-            if (Handle is WaylandWindowHandle _Wayhandle)
+            if (Handle is WaylandWindowHandle _wayHandle)
             {
-                
+                while (wl_display_prepare_read(_wayHandle.Display) != 0)
+                    wl_display_dispatch_pending(_wayHandle.Display);
+
+                wl_display_flush(_wayHandle.Display);
+                wl_display_read_events(_wayHandle.Display);
+                wl_display_dispatch_pending(_wayHandle.Display);
             }
 #elif WINDOWS
             if (Handle is MicrosoftWindowHandle han)
@@ -1001,10 +1111,10 @@ namespace Angene.Main
 
                     User32.TranslateMessage(ref msg);
                     User32.DispatchMessageW(ref msg);
-                    Engine.Instance.FlushPendingCloses();
                 }
             }
 #endif
+            Engine.Instance.FlushPendingCloses();
             return !Engine.Instance.ShouldShutdown;
         }
 

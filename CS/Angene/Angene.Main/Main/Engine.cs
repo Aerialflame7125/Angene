@@ -60,26 +60,16 @@ namespace Angene.Main
         public unsafe IntPtr* SharedWaylandDisplay { get; internal set; } = null;
         public unsafe IntPtr* SharedWaylandCompositor {get; internal set; } = null;
         public unsafe IntPtr* SharedWmBase { get; internal set; } = null;
+        public unsafe IntPtr _wlSeat { get; internal set; } = IntPtr.Zero;
+        public IntPtr _compositorPtr { get; internal set; } = IntPtr.Zero;
+        public IntPtr _xdgWmBasePtr { get; internal set; } = IntPtr.Zero;
         public bool InitializedXThreads { get; internal set; } = false;
 
         public Types.AppInfo currentAppInfo { get; internal set; }
         internal List<Window> PendingWindowCloses { get; } = new();
         public List<Window> OpenWindows { get; private set; } = new List<Window>();
         public Settings settingsInstance = new Settings();
-
-        private bool otssb = true;
-        public bool oneTimeShouldShutdownBypass
-        {
-            get
-            {
-                return otssb;
-            }
-            set
-            {
-                if (value == false && otssb == true)
-                    otssb = false;
-            }
-        }
+        public bool HasFinishedInit { get; internal set; } = false;
 
         private Engine()
         {
@@ -123,7 +113,7 @@ namespace Angene.Main
                 Logger.LogDebug("[Engine.cs | CheckSupportedLibraries] Checking for supported libraries on Linux.", LoggingTarget.Engine);
                 string [] AllLibs = new[] { "Graphics", "Vulkan", "Input", "Math", "Audio" };
                 if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Linux.dll")))
-                    supportedLibs.Add("X11");
+                    supportedLibs.Add("Linux");
                 else
                     Logger.LogWarning("[Engine.cs | CheckSupportedLibraries] Angene.Linux.dll is missing. If this is intended, please ignore this message.", LoggingTarget.Engine);
 
@@ -354,6 +344,8 @@ namespace Angene.Main
                     StartShaderCompilation(shaderTypes, shaderCount, null, null, _Vkgraphicscontext.Handle, _Vkwindow, verbose);
                 }
             }
+
+            HasFinishedInit = true;
         }
 
         private void StartShaderCompilation(List<SlangShaderResources.IShader> _shaderTypes, int _shaderCount, IntPtr? _D3DDevicePtr, Window? _D3DCompilationWindow, IntPtr? _VkDevicePtr, Window? _VkCompilationWindow, bool verbose = false)

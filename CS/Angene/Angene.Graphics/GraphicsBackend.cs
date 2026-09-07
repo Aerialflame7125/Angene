@@ -43,8 +43,14 @@ namespace Angene.Graphics
         public xdg_surface* Xdg_surface { get; }
         public xdg_toplevel* Toplevel { get; }
         public IntPtr Compositor { get; }
+        public GCHandle ConfigStateHandle { get; }
+        public GCHandle ToplevelUserDataHandle { get; }
+        public IntPtr SurfaceListenerPtr { get; }
+        public IntPtr ToplevelListenerPtr { get; }
 
-        public WaylandWindowHandle(IntPtr* display, sbyte* titlePtr, wl_surface* surface, xdg_surface* xdg_surface, xdg_toplevel* toplevel, IntPtr compositor)
+        public WaylandWindowHandle(IntPtr* display, sbyte* titlePtr, wl_surface* surface, xdg_surface* xdg_surface,
+            xdg_toplevel* toplevel, IntPtr compositor, GCHandle configStateHandle, GCHandle toplevelUserDataHandle,
+            IntPtr surfaceListenerPtr, IntPtr toplevelListenerPtr)
         {
             Display = display;
             TitlePtr = titlePtr;
@@ -52,6 +58,10 @@ namespace Angene.Graphics
             Xdg_surface = xdg_surface;
             Surface = surface;
             Compositor = compositor;
+            ConfigStateHandle = configStateHandle;
+            ToplevelUserDataHandle = toplevelUserDataHandle;
+            SurfaceListenerPtr = surfaceListenerPtr;
+            ToplevelListenerPtr = toplevelListenerPtr;
         }
     }
 

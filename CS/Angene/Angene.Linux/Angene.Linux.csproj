@@ -7,6 +7,11 @@
 	<Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(AngenePlatform)' == 'Linux'">
+      <EmbeddedResource Include="Native/linux-x64/libxdg-shell-client.so">
+          <LogicalName>Angene.Linux.Native.linux-x64.libxdg-shell-client.so</LogicalName>
+      </EmbeddedResource>
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
   </ItemGroup>

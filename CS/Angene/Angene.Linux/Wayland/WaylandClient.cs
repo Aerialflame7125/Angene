@@ -484,8 +484,8 @@ namespace Angene.Linux.Wayland
 
         public unsafe partial struct wl_seat_listener
         {
-            public delegate* unmanaged[Cdecl]<void*, wl_seat*, uint, void> capabilities;
-            public delegate* unmanaged[Cdecl]<void*, wl_seat*, sbyte*, void> name;
+            public delegate* unmanaged[Cdecl]<void*, IntPtr, uint, void> capabilities;
+            public delegate* unmanaged[Cdecl]<void*, IntPtr, sbyte*, void> name;
         }
 
         public enum wl_pointer_error : uint
@@ -550,12 +550,12 @@ namespace Angene.Linux.Wayland
 
         public unsafe partial struct wl_keyboard_listener
         {
-            public delegate* unmanaged[Cdecl]<void*, wl_keyboard*, uint, int, uint, void> keymap;
-            public delegate* unmanaged[Cdecl]<void*, wl_keyboard*, uint, wl_surface*, wl_array*, void> enter;
-            public delegate* unmanaged[Cdecl]<void*, wl_keyboard*, uint, wl_surface*, void> leave;
-            public delegate* unmanaged[Cdecl]<void*, wl_keyboard*, uint, uint, uint, uint, void> key;
-            public delegate* unmanaged[Cdecl]<void*, wl_keyboard*, uint, uint, uint, uint, uint, void> modifiers;
-            public delegate* unmanaged[Cdecl]<void*, wl_keyboard*, int, int, void> repeat_info;
+            public delegate* unmanaged[Cdecl]<void*, IntPtr, uint, int, uint, void> keymap;
+            public delegate* unmanaged[Cdecl]<void*, IntPtr, uint, wl_surface*, wl_array*, void> enter;
+            public delegate* unmanaged[Cdecl]<void*, IntPtr, uint, wl_surface*, void> leave;
+            public delegate* unmanaged[Cdecl]<void*, IntPtr, uint, uint, uint, uint, void> key;
+            public delegate* unmanaged[Cdecl]<void*, IntPtr, uint, uint, uint, uint, uint, void> modifiers;
+            public delegate* unmanaged[Cdecl]<void*, IntPtr, int, int, void> repeat_info;
         }
 
         public unsafe partial struct wl_touch_listener
@@ -623,8 +623,7 @@ namespace Angene.Linux.Wayland
             WL_FIXES_ERROR_INVALID_ACK_REMOVE = 0,
         }
 
-        // TODO: placeholder interfaces
-        public static wl_interface* wl_registry_interface = CreateInterfaceStub("wl_registry", 1);
+        public static wl_interface* wl_registry_interface = (wl_interface*)Methods.GetWlRegistryInterface();
 
         internal static wl_interface* CreateInterfaceStub(string name, int version)
         {
@@ -665,22 +664,22 @@ namespace Angene.Linux.Wayland
             public static extern void wl_proxy_wrapper_destroy(void* proxy_wrapper);
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern IntPtr* wl_proxy_marshal_constructor(IntPtr* proxy, uint opcode, wl_interface* @interface, __arglist);
+            public static extern IntPtr wl_proxy_marshal_constructor(IntPtr proxy, uint opcode, wl_interface* @interface, __arglist);
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern IntPtr* wl_proxy_marshal_constructor_versioned(IntPtr* proxy, uint opcode, wl_interface* @interface, uint version, __arglist);
+            public static extern IntPtr wl_proxy_marshal_constructor_versioned(IntPtr proxy, uint opcode, wl_interface* @interface, uint version, __arglist);
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern IntPtr* wl_proxy_marshal_array_constructor(IntPtr* proxy, uint opcode, wl_argument* args, wl_interface* @interface);
+            public static extern IntPtr wl_proxy_marshal_array_constructor(IntPtr proxy, uint opcode, wl_argument* args, wl_interface* @interface);
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern IntPtr* wl_proxy_marshal_array_constructor_versioned(IntPtr* proxy, uint opcode, wl_argument* args, wl_interface* @interface, uint version);
+            public static extern IntPtr wl_proxy_marshal_array_constructor_versioned(IntPtr proxy, uint opcode, wl_argument* args, wl_interface* @interface, uint version);
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern void wl_proxy_destroy(IntPtr* proxy);
-
-            [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern int wl_proxy_add_listener(IntPtr* proxy, delegate* unmanaged[Cdecl]<void>* implementation, void* data);
+            
+            [DllImport("libwayland-client", CallingConvention = CallingConvention.Cdecl)]
+            public static extern int wl_proxy_add_listener(IntPtr proxy, IntPtr implementation, void* data);
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern void* wl_proxy_get_listener(IntPtr* proxy);
@@ -798,29 +797,102 @@ namespace Angene.Linux.Wayland
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern void wl_display_set_max_buffer_size(IntPtr* display, nuint max_buffer_size);
-
-            [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl)]
-            public static extern int wl_registry_add_listener(IntPtr registry, ref wl_registry_listener listener, IntPtr data);
+            
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl)]
             public static extern int wl_display_roundtrip(IntPtr display);
 
-            [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr wl_compositor_create_surface(IntPtr compositor);
+            public static wl_interface* wl_surface_interface = (wl_interface*)Methods.GetWlSurfaceInterface();
+            
+            public static IntPtr GetWlSurfaceInterface()
+            {
+                if (NativeLibrary.TryLoad("libwayland-client.so.0", out IntPtr handle))
+                {
+                    if (NativeLibrary.TryGetExport(handle, "wl_surface_interface", out IntPtr interfacePtr))
+                        return interfacePtr;
+                }
+                throw new EntryPointNotFoundException("Could not resolve wl_surface_interface symbol.");
+            }
+
+            public const uint WL_COMPOSITOR_CREATE_SURFACE = 0;
+
+            public static unsafe IntPtr wl_compositor_create_surface(IntPtr compositor)
+            {
+                wl_argument* args = stackalloc wl_argument[1];
+                args[0].o = IntPtr.Zero; // new_id placeholder
+
+                IntPtr* id = wl_proxy_marshal_array_flags(
+                    (IntPtr*)compositor,
+                    WL_COMPOSITOR_CREATE_SURFACE,
+                    wl_surface_interface,
+                    wl_proxy_get_version((IntPtr*)compositor),
+                    0,
+                    args);
+                return (IntPtr)id;
+            }
 
             public const int WL_MARSHAL_FLAG_DESTROY = 1 << 0;
 
+            public const uint WL_REGISTRY_BIND = 0;
+
+            public static unsafe IntPtr wl_registry_bind(IntPtr registry, uint name, wl_interface* @interface, uint version)
+            {
+                wl_argument* args = stackalloc wl_argument[4];
+                args[0].u = name;                      // uint: global name
+                args[1].s = (IntPtr)@interface->Name;   // string: interface name (already a byte* in your struct)
+                args[2].u = version;                   // uint: version
+                args[3].o = IntPtr.Zero;                // new_id: id slot, filled in by the marshal call
+
+                IntPtr* id = wl_proxy_marshal_array_flags((IntPtr*)registry, WL_REGISTRY_BIND, @interface, version, 0, args);
+                return (IntPtr)id;
+            }
+
+            private const int RTLD_NOW = 2;
+            
+            public static IntPtr GetWlCompositorInterface()
+            {
+                if (NativeLibrary.TryLoad("libwayland-client.so.0", out IntPtr handle))
+                {
+                    if (NativeLibrary.TryGetExport(handle, "wl_compositor_interface", out IntPtr interfacePtr))
+                    {              
+                        return interfacePtr;
+                    }
+                }
+                throw new EntryPointNotFoundException("Could not resolve wl_compositor_interface symbol.");
+            }
+            
+            public static IntPtr GetWlSeatInterface()                                                    
+            {                                                                                                  
+                if (NativeLibrary.TryLoad("libwayland-client.so.0", out IntPtr handle))                        
+                {                                                                                              
+                    if (NativeLibrary.TryGetExport(handle, "wl_seat_interface", out IntPtr interfacePtr))
+                    {                                                                                          
+                        return interfacePtr;                                                                   
+                    }                                                                                          
+                }                                                                                              
+                throw new EntryPointNotFoundException("Could not resolve wl_seat_interface symbol.");    
+            }                                                                                                  
+            
+            public static IntPtr GetWlRegistryInterface()
+            {
+                if (NativeLibrary.TryLoad("libwayland-client.so.0", out IntPtr handle))
+                {
+                    if (NativeLibrary.TryGetExport(handle, "wl_registry_interface", out IntPtr interfacePtr))
+                    {
+                        return interfacePtr;
+                    }
+                }
+                throw new EntryPointNotFoundException("Could not resolve wl_registry_interface symbol.");
+            }
+            
             public static IntPtr* wl_display_get_registry(IntPtr* wl_display)
             {
                 if (wl_display == null)
                     throw new ArgumentNullException(nameof(wl_display));
 
-                // Opcode 1 corresponds to WL_DISPLAY_GET_REGISTRY in the protocol specification
                 const uint WL_DISPLAY_GET_REGISTRY = 1;
 
-                // Version to advertise for the new registry proxy; matches the display proxy's own version.
                 uint version = wl_proxy_get_version(wl_display);
 
-                // Single new-id argument slot; libwayland fills in the actual object, so this is a placeholder.
                 wl_argument* args = stackalloc wl_argument[1];
                 args[0].o = IntPtr.Zero;
 
@@ -834,12 +906,12 @@ namespace Angene.Linux.Wayland
                 );
             }
 
-            public static void wl_surface_commit(IntPtr wl_surface)
+            public static unsafe void wl_surface_commit(IntPtr wl_surface)
             {
                 if (wl_surface == IntPtr.Zero)
                     throw new ArgumentNullException(nameof(wl_surface));
 
-                wl_proxy_marshal(&wl_surface, 6);
+                wl_proxy_marshal((IntPtr*)wl_surface, 6);
             }
         }
     }

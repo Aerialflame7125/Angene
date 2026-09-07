@@ -1,5 +1,8 @@
+using System.Runtime.InteropServices;
 using static Angene.Linux.Wayland.WaylandClient;
 using static Angene.Linux.Wayland.WaylandClient.Methods;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Angene.Linux.Wayland
 {
@@ -168,17 +171,16 @@ namespace Angene.Linux.Wayland
                 public delegate* unmanaged[Cdecl]<void*, xdg_popup*, uint, void> repositioned;
         }
 
-        // TODO: placeholder interfaces
-        public static wl_interface* xdg_positioner_interface = CreateInterfaceStub("xdg_positioner", 1);
-        public static wl_interface* xdg_surface_interface = CreateInterfaceStub("xdg_surface", 1);
-        public static wl_interface* xdg_toplevel_interface = CreateInterfaceStub("xdg_toplevel", 1);
-        public static wl_interface* xdg_popup_interface = CreateInterfaceStub("xdg_popup", 1);
+        public static wl_interface* xdg_positioner_interface = (wl_interface*)Methods.XdgPositionerInterface;
+        public static wl_interface* xdg_surface_interface = (wl_interface*)Methods.XdgSurfaceInterface;
+        public static wl_interface* xdg_toplevel_interface = (wl_interface*)Methods.XdgToplevelInterface;
+        public static wl_interface* xdg_popup_interface = (wl_interface*)Methods.XdgPopupInterface;
 
         public static unsafe partial class Methods
         {
             public static int xdg_wm_base_add_listener(xdg_wm_base* xdg_wm_base, xdg_wm_base_listener* listener, void* data)
             {
-                return wl_proxy_add_listener(unchecked((IntPtr*)(xdg_wm_base)), unchecked((delegate* unmanaged[Cdecl]<void>*)(listener)), data);
+                return wl_proxy_add_listener(unchecked((IntPtr)xdg_wm_base), unchecked((IntPtr)listener), data);
             }
 
             public static void xdg_wm_base_set_user_data(xdg_wm_base* xdg_wm_base, void* user_data)
@@ -318,7 +320,7 @@ namespace Angene.Linux.Wayland
 
             public static int xdg_surface_add_listener(xdg_surface* xdg_surface, xdg_surface_listener* listener, void* data)
             {
-                return wl_proxy_add_listener(unchecked((IntPtr*)(xdg_surface)), unchecked((delegate* unmanaged[Cdecl]<void>*)(listener)), data);
+                return wl_proxy_add_listener(unchecked((IntPtr)(xdg_surface)), unchecked((IntPtr)(listener)), data);
             }
 
             public static void xdg_surface_set_user_data(xdg_surface* xdg_surface, void* user_data)
@@ -382,7 +384,7 @@ namespace Angene.Linux.Wayland
 
             public static int xdg_toplevel_add_listener(xdg_toplevel* xdg_toplevel, xdg_toplevel_listener* listener, void* data)
             {
-                return wl_proxy_add_listener(unchecked((IntPtr*)(xdg_toplevel)), unchecked((delegate* unmanaged[Cdecl]<void>*)(listener)), data);
+                return wl_proxy_add_listener(unchecked((IntPtr)(xdg_toplevel)), unchecked((IntPtr)(listener)), data);
             }
 
             public static void xdg_toplevel_set_user_data(xdg_toplevel* xdg_toplevel, void* user_data)
@@ -498,7 +500,7 @@ namespace Angene.Linux.Wayland
 
             public static int xdg_popup_add_listener(xdg_popup* xdg_popup, xdg_popup_listener* listener, void* data)
             {
-                return wl_proxy_add_listener(unchecked((IntPtr*)(xdg_popup)), unchecked((delegate* unmanaged[Cdecl]<void>*)(listener)), data);
+                return wl_proxy_add_listener(unchecked((IntPtr)(xdg_popup)), unchecked((IntPtr)(listener)), data);
             }
 
             public static void xdg_popup_set_user_data(xdg_popup* xdg_popup, void* user_data)
@@ -535,6 +537,75 @@ namespace Angene.Linux.Wayland
                 __args[0].o = (IntPtr)(positioner);
                 __args[1].u = token;
                 _ = wl_proxy_marshal_array_flags((IntPtr*)(xdg_popup), 2, null, wl_proxy_get_version((IntPtr*)(xdg_popup)), 0, __args);
+            }
+            
+            private static readonly string LibPath = Path.Combine(Path.GetTempPath(), "Angene", "libxdg", "Native", "linux-x64", "libxdg-shell-client.so");
+            private static IntPtr _libHandle = IntPtr.Zero;
+            private static readonly object _lock = new();
+
+            private static IntPtr _positionerPtr;
+            private static IntPtr _surfacePtr;
+            private static IntPtr _toplevelPtr;
+            private static IntPtr _popupPtr;
+            private static IntPtr _wmBasePtr;
+            
+            public static IntPtr XdgPositionerInterface => GetExport(ref _positionerPtr, "xdg_positioner_interface");
+            public static IntPtr XdgSurfaceInterface    => GetExport(ref _surfacePtr, "xdg_surface_interface");
+            public static IntPtr XdgToplevelInterface   => GetExport(ref _toplevelPtr, "xdg_toplevel_interface");
+            public static IntPtr XdgPopupInterface      => GetExport(ref _popupPtr, "xdg_popup_interface");
+            public static IntPtr XdgWmBaseInterface     => GetExport(ref _wmBasePtr, "xdg_wm_base_interface");
+
+            private static IntPtr GetExport(ref IntPtr cacheField, string symbolName)
+            {
+                if (cacheField == IntPtr.Zero)
+                {
+                    lock (_lock)
+                    {
+                        if (cacheField == IntPtr.Zero)
+                        {
+                            IntPtr handle = EnsureLibraryLoaded();
+                            if (!NativeLibrary.TryGetExport(handle, symbolName, out cacheField))
+                            {
+                                throw new EntryPointNotFoundException($"Could not resolve native symbol: '{symbolName}'.");
+                            }
+                        }
+                    }
+                }
+                return cacheField;
+            }
+
+            private static IntPtr EnsureLibraryLoaded()
+            {
+                if (_libHandle != IntPtr.Zero) return _libHandle;
+
+                ExtractNativeDll();
+
+                if (!NativeLibrary.TryLoad(LibPath, out _libHandle))
+                {
+                    throw new DllNotFoundException($"Failed to load native library from path: '{LibPath}'.");
+                }
+
+                return _libHandle;
+            }
+
+            private static void ExtractNativeDll()
+            {
+                if (File.Exists(LibPath)) return;
+
+                string targetDir = Path.GetDirectoryName(LibPath);
+                Directory.CreateDirectory(targetDir);
+
+                var assembly = Assembly.GetExecutingAssembly();
+                string resourceName = $"{assembly.GetName().Name}.Native.linux-x64.libxdg-shell-client.so";
+
+                using Stream stream = assembly.GetManifestResourceStream(resourceName);
+                if (stream == null)
+                {
+                    throw new FileNotFoundException($"Could not find embedded resource: '{resourceName}'");
+                }
+
+                using FileStream fileStream = new FileStream(LibPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.SequentialScan);
+                stream.CopyTo(fileStream);
             }
         }
     }

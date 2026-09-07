@@ -46,6 +46,20 @@ namespace Game
                 return 1;
             }
         }
+        public static int Main()
+        {
+            try
+            {
+                RunGame(false);
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogCritical("FATAL EXCEPTION in Main:", LoggingTarget.MainConstructor, exception: ex);
+                return 1;
+            }
+        }
+        
         private static void RunGame(bool verbose)
         {
             try
@@ -75,9 +89,12 @@ namespace Game
                     Width = 1280,
                     Height = 720,
                     Title = "Angene Camera Test",
-                    renderMode = Angene.Graphics.RenderType.Vulkan
+                    renderMode = Angene.Graphics.RenderType.Vulkan,
+                    UseWayland = true
                 };
+                Logger.LogDebug($"About to create real window. ShouldShutdown={Engine.Instance.ShouldShutdown}, OpenWindows={Engine.Instance.OpenWindows.Count}", LoggingTarget.Engine);
                 Window win = new Window(config);
+                Logger.LogDebug($"Real window created. Entering loop. ShouldShutdown={Engine.Instance.ShouldShutdown}", LoggingTarget.Engine);
 
                 string materialsPackagePath = Path.Combine(AppContext.BaseDirectory, "Assets", "CameraMaterials.angpkg");
                 var scene = new Game.Scenes.CameraTestScene(win, materialsPackagePath);

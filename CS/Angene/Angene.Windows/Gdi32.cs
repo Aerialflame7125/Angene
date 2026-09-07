@@ -78,7 +78,7 @@ namespace Angene.Windows
         public struct BITMAPINFO
         {
             public BITMAPINFOHEADER bmiHeader;
-            public uint bmiColors; // Just enough for the header
+            public uint bmiColors;
         }
 
         [DllImport("gdi32.dll")]
@@ -89,8 +89,8 @@ namespace Angene.Windows
             IntPtr hbm,
             uint start,
             uint cLines,
-            byte[] lpBits,        // instead of IntPtr — marshals your byte[] automatically
-            ref Gdi32.BITMAPINFO lpbmi,  // instead of IntPtr — matches the ref bmi call
+            byte[] lpBits,
+            ref Gdi32.BITMAPINFO lpbmi,
             uint ColorUse
         );
     }

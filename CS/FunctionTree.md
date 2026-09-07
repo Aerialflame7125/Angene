@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-09-05 16:57:51.994669+00:00)</sup></sub>
+<sub><sup>(generated 2026-09-07 01:11:20.655551+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -4853,18 +4853,18 @@
 
   <details><summary><b>Angene.Input</b></summary>
 
-  * **class IKeyCodeLangX**
-  * **class Key**
-    * `uint TryXKeysym()`
-    * `object TryInt()`
-    * `object TryNInt()`
-    * `object TryByte()`
+  * **class IKeyCodeLangLinux**
   * **class KeyDetection**
     * `List<Entity> Instances`
     * `void Register()`
     * `bool IsKeyDown()`
     * `void Deregister()`
     * `HashSet<uint> GetDownKeys { get; set; }`
+  * **class KeyResolver**
+    * `object TryInt()`
+    * `object TryNInt()`
+    * `object TryByte()`
+    * `uint TryLinuxKeysym()`
   * **class MouseDetection**
     * `List<Entity> Instances`
     * `void Register()`
@@ -4872,52 +4872,56 @@
     * `void Deregister()`
     * `HashSet<uint> GetDownButtons { get; set; }`
     * `bool IsInWindow()`
-  * **enum IKeyCode3270X**
-  * **enum IKeyCodeAPLX**
-  * **enum IKeyCodeARX**
+  * **enum IKeyCode3270Linux**
+  * **enum IKeyCodeAPL**
+  * **enum IKeyCodeAR**
   * **enum IKeyCodeASCIIWin**
-  * **enum IKeyCodeAZX**
+  * **enum IKeyCodeAZ**
   * **enum IKeyCodeArrowWin**
   * **enum IKeyCodeBrowserWin**
-  * **enum IKeyCodeCurrencyX**
-  * **enum IKeyCodeCursorControlX**
-  * **enum IKeyCodeExtraX**
+  * **enum IKeyCodeCurrencyLinux**
+  * **enum IKeyCodeCursorControlLinux**
+  * **enum IKeyCodeExtraLinux**
+  * **enum IKeyCodeFuncLinux**
   * **enum IKeyCodeFuncWin**
-  * **enum IKeyCodeFuncX**
-  * **enum IKeyCodeGEX**
-  * **enum IKeyCodeGRX**
+  * **enum IKeyCodeGE**
+  * **enum IKeyCodeGR**
   * **enum IKeyCodeGamePadWin**
-  * **enum IKeyCodeHBX**
-  * **enum IKeyCodeHYX**
-  * **enum IKeyCodeJPKatakanaX**
-  * **enum IKeyCodeJPX**
-  * **enum IKeyCodeKRX**
-  * **enum IKeyCodeLatin1X**
-  * **enum IKeyCodeLatin2X**
-  * **enum IKeyCodeLatin3X**
-  * **enum IKeyCodeLatin4X**
-  * **enum IKeyCodeLatin8X**
-  * **enum IKeyCodeLatin9X**
+  * **enum IKeyCodeHB**
+  * **enum IKeyCodeHY**
+  * **enum IKeyCodeJP**
+  * **enum IKeyCodeJPKatakana**
+  * **enum IKeyCodeKR**
+  * **enum IKeyCodeLatin1**
+  * **enum IKeyCodeLatin2**
+  * **enum IKeyCodeLatin3**
+  * **enum IKeyCodeLatin4**
+  * **enum IKeyCodeLatin8**
+  * **enum IKeyCodeLatin9**
   * **enum IKeyCodeMediaWin**
-  * **enum IKeyCodeMiscX**
+  * **enum IKeyCodeMiscLinux**
+  * **enum IKeyCodeModLinux**
   * **enum IKeyCodeModWin**
-  * **enum IKeyCodeModX**
+  * **enum IKeyCodeMouseLinux**
   * **enum IKeyCodeMouseWin**
-  * **enum IKeyCodeMouseX**
-  * **enum IKeyCodeMultiKeyX**
+  * **enum IKeyCodeMultiKeyLinux**
+  * **enum IKeyCodeNumPadLinux**
   * **enum IKeyCodeNumPadWin**
-  * **enum IKeyCodeNumPadX**
   * **enum IKeyCodeNumWin**
   * **enum IKeyCodeOEMWin**
-  * **enum IKeyCodePublishingX**
-  * **enum IKeyCodeRUX**
+  * **enum IKeyCodePublishingLinux**
+  * **enum IKeyCodeRU**
+  * **enum IKeyCodeSpecialLinux**
   * **enum IKeyCodeSpecialWin**
-  * **enum IKeyCodeSpecialX**
-  * **enum IKeyCodeTHX**
-  * **enum IKeyCodeTechnicalX**
-  * **enum IKeyCodeVNX**
-  * **enum IKeyCodeXKBExtensionX**
+  * **enum IKeyCodeTH**
+  * **enum IKeyCodeTechnicalLinux**
+  * **enum IKeyCodeVN**
+  * **enum IKeyCodeXKBExtensionLinux**
+  * **enum WlSeatCapability**
   * **struct Keys**
+  * **struct UnmanagedString**
+    * `IntPtr Ptr`
+  * **struct wl_pointer_listener**
 
   </details>
 
@@ -4933,8 +4937,13 @@
   * **enum wl_data_source_error**
   * **enum wl_display_error**
   * **enum wl_fixes_error**
+    * `IntPtr GetWlSurfaceInterface()`
+    * `uint WL_COMPOSITOR_CREATE_SURFACE`
     * `int WL_MARSHAL_FLAG_DESTROY`
-    * `void wl_surface_commit()`
+    * `uint WL_REGISTRY_BIND`
+    * `IntPtr GetWlCompositorInterface()`
+    * `IntPtr GetWlSeatInterface()`
+    * `IntPtr GetWlRegistryInterface()`
   * **enum wl_keyboard_key_state**
   * **enum wl_keyboard_keymap_format**
   * **enum wl_output_mode**
@@ -5004,6 +5013,11 @@
     * `void xdg_popup_destroy()`
     * `void xdg_popup_grab()`
     * `void xdg_popup_reposition()`
+    * `IntPtr XdgPositionerInterface { get; set; }`
+    * `IntPtr XdgSurfaceInterface { get; set; }`
+    * `IntPtr XdgToplevelInterface { get; set; }`
+    * `IntPtr XdgPopupInterface { get; set; }`
+    * `IntPtr XdgWmBaseInterface { get; set; }`
   * **enum xdg_positioner_anchor**
   * **enum xdg_positioner_constraint_adjustment**
   * **enum xdg_positioner_error**
@@ -5489,9 +5503,12 @@
     * `bool ShouldShutdown`
     * `IntPtr SharedD3D11Device { get; set; }`
     * `IntPtr SharedD3D11Context { get; set; }`
+    * `IntPtr _compositorPtr { get; set; }`
+    * `IntPtr _xdgWmBasePtr { get; set; }`
     * `bool InitializedXThreads { get; set; }`
     * `List<Window> OpenWindows { get; set; }`
     * `Settings settingsInstance`
+    * `bool HasFinishedInit { get; set; }`
     * `Engine Instance { get; set; }`
     * `void FlushPendingCloses()`
     * `void Init()`
@@ -5551,6 +5568,7 @@
     * `EngineMode GetEngineMode()`
     * `void RenderFrame()`
     * `void ApplyCameraTransformsVulkan()`
+    * `bool Acked`
     * `void Cleanup()`
     * `void Close()`
   * **struct PlatformMessage**
@@ -5574,6 +5592,7 @@
     * `int Height { get; set; }`
     * `int X { get; set; }`
     * `int Y { get; set; }`
+    * `bool UseWayland { get; set; }`
     * `bool cTI { get; set; }`
     * `string cTS { get; set; }`
     * `string cTT { get; set; }`
@@ -11025,6 +11044,8 @@
     * `int PM_REMOVE`
     * `int CW_USEDEFAULT`
     * `int SW_SHOW`
+  * **class Gdi32**
+    * `uint SRCCOPY`
   * **class Kernel32**
   * **class SWP**
     * `uint NOSIZE`
@@ -11054,6 +11075,21 @@
   * **enum WM**
   * **enum WindowStyle**
   * **enum WindowStyleEx**
+  * **struct BITMAPINFO**
+    * `BITMAPINFOHEADER bmiHeader`
+    * `uint bmiColors`
+  * **struct BITMAPINFOHEADER**
+    * `uint biSize`
+    * `int biWidth`
+    * `int biHeight`
+    * `ushort biPlanes`
+    * `ushort biBitCount`
+    * `uint biCompression`
+    * `uint biSizeImage`
+    * `int biXPelsPerMeter`
+    * `int biYPelsPerMeter`
+    * `uint biClrUsed`
+    * `uint biClrImportant`
   * **struct MSG**
     * `IntPtr hwnd`
     * `uint message`

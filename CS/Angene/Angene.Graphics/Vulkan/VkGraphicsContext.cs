@@ -118,7 +118,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         else if (windowHandle is X11WindowHandle XWinHandle)
             _hwnd = XWinHandle.Window;
         else if (windowHandle is WaylandWindowHandle WayWinHandle)
-            _hwnd = WayWinHandle.Window;
+            _hwnd = (IntPtr)WayWinHandle.Surface;
 
         _w = width;
         _h = height;
@@ -458,9 +458,30 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physicalDevice, _vkSurfaceKHR, &_surfaceCapabilities);
                 if (result != VkResult.VK_SUCCESS)
                     throw new Exceptions.FailedToInitializeVulkanException($"Failed to create swapchain (vkGetPhysicalDeviceSurfaceCapabilitiesKHR): {result}");
-                
+
                 _vkSurfaceCapabilities = _surfaceCapabilities;
-                _vkExtent2D = _surfaceCapabilities.currentExtent;
+
+                VkExtent2D chosenExtent;
+                if (_surfaceCapabilities.currentExtent.width == uint.MaxValue)
+                {
+                    // platform decides
+                    chosenExtent = new VkExtent2D
+                    {
+                        width = (uint)System.Math.Clamp(width,
+                            (int)_surfaceCapabilities.minImageExtent.width,
+                            (int)_surfaceCapabilities.maxImageExtent.width),
+                        height = (uint)System.Math.Clamp(height,
+                            (int)_surfaceCapabilities.minImageExtent.height,
+                            (int)_surfaceCapabilities.maxImageExtent.height)
+                    };
+                    _vkSurfaceCapabilities.currentExtent = chosenExtent;
+                }
+                else
+                {
+                    chosenExtent = _surfaceCapabilities.currentExtent;
+                }
+
+                _vkExtent2D = chosenExtent;
 
                 // get surface format
                 uint surfaceFormatCount;
@@ -495,7 +516,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     minImageCount = contextHelpers.ChooseNumImages(_surfaceCapabilities),
                     imageFormat = SurfaceFormat.format,
                     imageColorSpace = SurfaceFormat.colorSpace,
-                    imageExtent = _surfaceCapabilities.currentExtent,
+                    imageExtent = chosenExtent,
                     imageArrayLayers = 1,
                     imageUsage = (uint)(VkImageUsageFlagBits.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VkImageUsageFlagBits.VK_IMAGE_USAGE_TRANSFER_DST_BIT), // 1 is for basic rendering, 2 is for post processing
                     imageSharingMode = VkSharingMode.VK_SHARING_MODE_EXCLUSIVE,
@@ -509,7 +530,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 IntPtr _localSwapchain = IntPtr.Zero;
                 result = vkCreateSwapchainKHR(_device, &swapchainCreateInfo, null, &_localSwapchain);
                 if (result != VkResult.VK_SUCCESS)
-                    throw new Exceptions.FailedToInitializeVulkanException("Failed to create swapchain (vkCreateSwapchainKHR): {result}");
+                    throw new Exceptions.FailedToInitializeVulkanException($"Failed to create swapchain (vkCreateSwapchainKHR): {result}");
 
                 _vkSwapchainKHR = _localSwapchain;
 #endregion

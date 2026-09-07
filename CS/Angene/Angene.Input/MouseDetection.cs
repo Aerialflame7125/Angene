@@ -96,31 +96,31 @@ namespace Angene.Input
                             switch (xeventptr.xbutton.button)
                             {
                                 case 1:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button1Left);
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button1Left);
                                     break;
                                 case 2:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button2Middle);
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button2Middle);
                                     break;
                                 case 3:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button3Right);
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button3Right);
                                     break;
                                 case 4:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button4ScrUp);
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button4ScrUp);
                                     break;
                                 case 5:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button5ScrDown);
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button5ScrDown);
                                     break;
                                 case 6:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button6);
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button6);
                                     break;
                                 case 7:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button7);
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button7);
                                     break;
                                 case 8:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button8);
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button8);
                                     break;
                                 case 9:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseX.Button9);
+                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button9);
                                     break;
                             }
                             break;
@@ -128,31 +128,31 @@ namespace Angene.Input
                             switch (xeventptr.xbutton.button)
                             {
                                 case 1:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button1Left);
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button1Left);
                                     break;
                                 case 2:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button2Middle);
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button2Middle);
                                     break;
                                 case 3:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button3Right);
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button3Right);
                                     break;
                                 case 4:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button4ScrUp);
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button4ScrUp);
                                     break;
                                 case 5:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button5ScrDown);
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button5ScrDown);
                                     break;
                                 case 6:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button6);
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button6);
                                     break;
                                 case 7:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button7);
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button7);
                                     break;
                                 case 8:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button8);
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button8);
                                     break;
                                 case 9:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseX.Button9);
+                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button9);
                                     break;
                             }
                             break;

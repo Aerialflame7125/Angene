@@ -4,8 +4,8 @@ using Angene.Common;
 using Angene.Essentials;
 using Angene.Essentials.Components;
 using Angene.Math.Vectors;
-using Latin1 = Angene.Input.Keys.IKeyCodeLangX.IKeyCodeLatin1X;
-using CursorKeys = Angene.Input.Keys.IKeyCodeCursorControlX;
+using Latin1 = Angene.Input.Keys.IKeyCodeLangLinux.IKeyCodeLatin1;
+using CursorKeys = Angene.Input.Keys.IKeyCodeCursorControlLinux;
 using Game.Scenes;
 using Angene.Input;
 using static Angene.Essentials.Types;
@@ -28,7 +28,7 @@ namespace Game
         private const float PitchLimit = 1.5f;     // just under 90 degrees, in radians
 
         private KeyDetection keyDetection = new KeyDetection();
-        private MouseDetection mouseDetection = new MouseDetection();
+        //private MouseDetection mouseDetection = new MouseDetection();
 
         public void Initialize(Entity cameraEntity)
         {
@@ -47,8 +47,8 @@ namespace Game
             }
 
 
-            keyDetection.Register(cameraEntity);
-            mouseDetection.Register(cameraEntity);
+            keyDetection.Register(cameraEntity, true);
+            //mouseDetection.Register(cameraEntity);
 
             // Derive the starting yaw/pitch from whatever forward vector was configured
             // when the VulkanCamera component was created, so the very first Update()
@@ -99,6 +99,7 @@ namespace Game
             if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.space)) move += worldUp;
             if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.c)) move -= worldUp;
 
+            /*
             if (MouseDetection.IsInWindow())
             {
                 (float, float) pos = MouseDetection.GetPosition();
@@ -111,26 +112,26 @@ namespace Game
                 {
                     switch (item)
                     {
-                        case (uint)Keys.IKeyCodeMouseX.Button1Left:
+                        case (uint)Keys.IKeyCodeMouseLinux.Button1Left:
                             kleft = true;
                             break;
-                        case (uint)Keys.IKeyCodeMouseX.Button3Right:
+                        case (uint)Keys.IKeyCodeMouseLinux.Button3Right:
                             kright = true;
                             break;
-                        case (uint)Keys.IKeyCodeMouseX.Button2Middle:
+                        case (uint)Keys.IKeyCodeMouseLinux.Button2Middle:
                             kleft = true;
                             break;
-                        case (uint)Keys.IKeyCodeMouseX.Button4ScrUp:
+                        case (uint)Keys.IKeyCodeMouseLinux.Button4ScrUp:
                             kup = true;
                             break;
-                        case (uint)Keys.IKeyCodeMouseX.Button5ScrDown:
+                        case (uint)Keys.IKeyCodeMouseLinux.Button5ScrDown:
                             kdown = true;
                             break;
                     }
                 }
                 Logger.LogDebug($"Mouse X, Y: ({pos.Item1}, {pos.Item2}), Down Keys: left: {kleft}, right: {kright}, middle: {kmiddle}, up: {kup}, down: {kdown}", LoggingTarget.MainGame);
             }
-
+            */
 
             if (move.Length > 0.0001f)
                 _transform.pos += move.Normalized * (MoveSpeed * delta);

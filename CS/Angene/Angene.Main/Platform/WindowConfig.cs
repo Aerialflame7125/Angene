@@ -26,6 +26,9 @@ namespace Angene.Platform
         /// <summary>Y position (CW_USEDEFAULT for system default)</summary>
         public int Y { get; set; } = Consts.CW_USEDEFAULT;
 
+        /// <summary>Bool to use Wayland over X11. Use only in linux environments.</summary>
+        public bool UseWayland { get; set; } = false;
+
         /// <summary>
         /// convertToInterface bool
         /// </summary>
