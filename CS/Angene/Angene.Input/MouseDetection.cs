@@ -1,4 +1,5 @@
-﻿using Angene.Common;
+﻿using System.Diagnostics;
+using Angene.Common;
 using Angene.Essentials;
 using Angene.Main;
 using Angene.Management;
@@ -21,16 +22,21 @@ namespace Angene.Input
         public unsafe void Start()
         {
 #if LINUX
-            XLib.Methods.XSelectInput(Engine.Instance.SharedX11Display,
-                (nuint)((X11WindowHandle)Engine.Instance.OpenWindows[0].Handle).Window,
-                (IntPtr)(XLib.XEventMask.ExposureMask
-                    | XLib.XEventMask.KeyPressMask
-                    | XLib.XEventMask.PointerMotionMask
-                    | XLib.XEventMask.ButtonPressMask
-                    | XLib.XEventMask.ButtonReleaseMask
-                    | XLib.XEventMask.EnterWindowMask
-                    | XLib.XEventMask.LeaveWindowMask));
-            XLib.Methods.XMapWindow(Engine.Instance.SharedX11Display, (nuint)((X11WindowHandle)Engine.Instance.OpenWindows[0].Handle).Window);
+            if (Engine.Instance.OpenWindows[0].Handle is X11WindowHandle handle)
+            {
+                Logger.LogDebug("xselectinput", LoggingTarget.Engine);
+                XLib.Methods.XSelectInput(Engine.Instance.SharedX11Display,
+                    (nuint)handle.Window,
+                    (IntPtr)(XLib.XEventMask.ExposureMask
+                             | XLib.XEventMask.KeyPressMask
+                             | XLib.XEventMask.PointerMotionMask
+                             | XLib.XEventMask.ButtonPressMask
+                             | XLib.XEventMask.ButtonReleaseMask
+                             | XLib.XEventMask.EnterWindowMask
+                             | XLib.XEventMask.LeaveWindowMask));
+                XLib.Methods.XMapWindow(Engine.Instance.SharedX11Display,
+                    (nuint)handle.Window);
+            }
 #endif
         }
         public void OnMessage(IntPtr msgPtr)
@@ -80,7 +86,7 @@ namespace Angene.Input
 #if LINUX
         public unsafe void Update(double dt)
         {
-            if (Engine.Instance.SharedX11Display != null && Engine.Instance.OpenWindows.Count > 0 && Engine.Instance.isXWindowFocused(Engine.Instance.OpenWindows[0].Handle))
+            if (Engine.Instance.OpenWindows[0].Handle is X11WindowHandle && Engine.Instance.SharedX11Display != null)
             {
                 while (XLib.Methods.XPending(Engine.Instance.SharedX11Display) > 0)
                 {
@@ -123,6 +129,7 @@ namespace Angene.Input
                                     _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button9);
                                     break;
                             }
+
                             break;
                         case 5: // ButtonRelease
                             switch (xeventptr.xbutton.button)
@@ -155,6 +162,7 @@ namespace Angene.Input
                                     _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button9);
                                     break;
                             }
+
                             break;
 
                         case 7: // EnterNotify
@@ -167,6 +175,18 @@ namespace Angene.Input
 
                     }
                 }
+            }
+            else if (Engine.Instance.OpenWindows[0].Handle is WaylandWindowHandle)
+            {
+                var currentFrameKeys = new HashSet<uint>(WaylandInputHandler.instance.GetPressedButtons());
+
+                _heldButtons.RemoveWhere(k => !currentFrameKeys.Contains(k));
+                
+                if (currentFrameKeys.Count > 0)
+                    foreach (uint k in currentFrameKeys)
+                        _heldButtons.Add(k);
+                (xpos, ypos) = WaylandInputHandler.instance.GetMousePos();
+                isInWindow = WaylandInputHandler.instance.IsMouseInWindow();
             }
         }
 #endif

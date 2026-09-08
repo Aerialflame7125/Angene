@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-09-07 19:27:27.707507+00:00)</sup></sub>
+<sub><sup>(generated 2026-09-08 02:22:34.275681+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -4917,14 +4917,10 @@
   * **enum IKeyCodeTechnicalLinux**
   * **enum IKeyCodeVN**
   * **enum IKeyCodeXKBExtensionLinux**
-  * **enum WlSeatCapability**
   * **struct Keys**
     * `uint WL_KEYBOARD_KEY_STATE_RELEASED`
     * `uint WL_KEYBOARD_KEY_STATE_PRESSED`
     * `uint WL_KEYBOARD_KEY_STATE_REPEATED`
-  * **struct UnmanagedString**
-    * `IntPtr Ptr`
-  * **struct wl_pointer_listener**
 
   </details>
 
@@ -4934,6 +4930,7 @@
 
   <details><summary><b>Angene.Linux.Wayland</b></summary>
 
+  * **class xkbcommon**
   * **enum wl_data_device_error**
   * **enum wl_data_device_manager_dnd_action**
   * **enum wl_data_offer_error**
@@ -5031,9 +5028,22 @@
   * **enum xdg_toplevel_state**
   * **enum xdg_toplevel_wm_capabilities**
   * **enum xdg_wm_base_error**
+  * **enum xkb_consumed_mode**
+  * **enum xkb_context_flags**
+  * **enum xkb_key_direction**
+  * **enum xkb_keymap_compile_flags**
+  * **enum xkb_keymap_format**
+  * **enum xkb_keymap_serialize_flags**
+  * **enum xkb_keysym_flags**
+  * **enum xkb_log_level**
+  * **enum xkb_rmlvo_builder_flags**
+  * **enum xkb_state_component**
+  * **enum xkb_state_match**
   * **struct timespec**
   * **struct wl_argument**
   * **struct wl_array**
+    * `nuint size`
+    * `nuint alloc`
     * `int Version`
     * `int MethodCount`
     * `int EventCount`
@@ -5491,6 +5501,14 @@
     * `void Clear()`
     * `void Dispose()`
   * **class DiscordRichPresence**
+
+  </details>
+
+  <details><summary><b>Angene.Input</b></summary>
+
+  * **enum WlSeatCapability**
+  * **struct UnmanagedString**
+    * `IntPtr Ptr`
 
   </details>
 

@@ -65,7 +65,6 @@ namespace Angene.Main
         public IntPtr _compositorPtr { get; internal set; } = IntPtr.Zero;
         public IntPtr _xdgWmBasePtr { get; internal set; } = IntPtr.Zero;
         public bool InitializedXThreads { get; internal set; } = false;
-        public event Action<IntPtr, uint, IntPtr, uint> OnWaylandRegistryChanged; // cancer.
 
         public Types.AppInfo currentAppInfo { get; internal set; }
         internal List<Window> PendingWindowCloses { get; } = new();
@@ -80,11 +79,6 @@ namespace Angene.Main
         }
 
         public static Engine Instance { get; } = new Engine();
-
-        internal unsafe void InvokeWaylandRegistryChanged(IntPtr registry, uint name, IntPtr @interface, uint version)
-        {
-            OnWaylandRegistryChanged?.Invoke(registry, name, @interface, version);
-        }
 
         // Check supported libraries
         private static string[] CheckSupportedLibraries()

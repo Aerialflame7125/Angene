@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using Angene.Graphics;
 using Angene.Input;
 using Angene.Linux.Wayland;
 
@@ -18,16 +19,6 @@ namespace Angene.Input
 
         public Action _fullscreenAction = null;
         private bool holdingFullscreen = false;
-        public readonly bool waylandKeys;
-
-        public KeyDetectionScript(bool waylandKeys = false)
-        {
-            this.waylandKeys = waylandKeys;
-        }
-
-        public void Start()
-        {
-        }
 
         public unsafe void OnMessage(IntPtr msgPtr)
         {
@@ -70,32 +61,60 @@ namespace Angene.Input
 #if LINUX
         public unsafe void Update(double dt)
         {
-            if (!waylandKeys)
+            if (Engine.Instance.OpenWindows.Count >= 1)
             {
-                if (Engine.Instance.SharedX11Display != null && Engine.Instance.OpenWindows.Count > 0 &&
-                    Engine.Instance.isXWindowFocused(Engine.Instance.OpenWindows[0].Handle))
+                if (Engine.Instance.OpenWindows[0].Handle is X11WindowHandle handle)
                 {
-                    if (X11Keyboard.IsKeyDown())
+                    if (Engine.Instance.SharedX11Display != null && Engine.Instance.OpenWindows.Count > 0 &&
+                        Engine.Instance.isXWindowFocused(handle))
                     {
-                        List<nuint> rawDownKeys = X11Keyboard.GetPressedKeys();
-                        var currentFrameKeys = new HashSet<uint>();
-
-                        foreach (nuint k in rawDownKeys)
+                        if (X11Keyboard.IsKeyDown())
                         {
-                            uint downKey = KeyResolver.TryLinuxKeysym(k);
-                            if (downKey != 0)
-                                currentFrameKeys.Add(downKey);
+                            List<nuint> rawDownKeys = X11Keyboard.GetPressedKeys();
+                            var currentFrameKeys = new HashSet<uint>();
+
+                            foreach (nuint k in rawDownKeys)
+                            {
+                                uint downKey = KeyResolver.TryLinuxKeysym(k);
+                                if (downKey != 0)
+                                    currentFrameKeys.Add(downKey);
+                            }
+
+                            _heldKeys.RemoveWhere(k => !currentFrameKeys.Contains(k));
+
+                            foreach (uint k in currentFrameKeys)
+                                _heldKeys.Add(k);
+                        }
+                        else
+                        {
+                            _heldKeys.Clear();
                         }
 
-                        _heldKeys.RemoveWhere(k => !currentFrameKeys.Contains(k));
+                        if (_heldKeys.Contains((uint)Keys.IKeyCodeModLinux.Alt_R) &&
+                            _heldKeys.Contains((uint)Keys.IKeyCodeModLinux.Return))
+                        {
+                            if (!holdingFullscreen)
+                            {
+                                Engine.Instance.OpenWindows[0].set_fullscreen();
+                                Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
+                                holdingFullscreen = true;
+                            }
+                        }
+                        else
+                        {
+                            holdingFullscreen = false;
+                        }
+                    }
+                }
+                else if (Engine.Instance.OpenWindows[0].Handle is WaylandWindowHandle)
+                {
+                    var currentFrameKeys = new HashSet<uint>(WaylandInputHandler.instance.GetPressedKeys());
 
+                    _heldKeys.RemoveWhere(k => !currentFrameKeys.Contains(k));
+                    
+                    if (currentFrameKeys.Count > 0)
                         foreach (uint k in currentFrameKeys)
                             _heldKeys.Add(k);
-                    }
-                    else
-                    {
-                        _heldKeys.Clear();
-                    }
 
                     if (_heldKeys.Contains((uint)Keys.IKeyCodeModLinux.Alt_R) &&
                         _heldKeys.Contains((uint)Keys.IKeyCodeModLinux.Return))
@@ -113,48 +132,12 @@ namespace Angene.Input
                     }
                 }
             }
-            else
-            {
-                if (WaylandInputHandler.instance.IsAnyKeyDown())
-                {
-                    List<uint> a = WaylandInputHandler.instance.GetPressedKeys();
-                    foreach (uint b in a)
-                        _heldKeys.Add(b);
-                }
-                else
-                {
-                    _heldKeys.Clear();
-                }
-
-                if (_heldKeys.Contains((uint)Keys.IKeyCodeModLinux.Alt_R) &&
-                    _heldKeys.Contains((uint)Keys.IKeyCodeModLinux.Return))
-                {
-                    if (!holdingFullscreen)
-                    {
-                        Engine.Instance.OpenWindows[0].set_fullscreen();
-                        Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
-                        holdingFullscreen = true;
-                    }
-                }
-                else
-                {
-                    holdingFullscreen = false;
-                }
-            }
         }
 #endif
 
         public bool IsKeyDown(uint key) => _heldKeys.Contains(key);
 
         public HashSet<uint> GetDownKeys() => _heldKeys;
-
-        public void Render()
-        {
-        }
-
-        public void Cleanup()
-        {
-        }
     }
 
     public class KeyDetection
@@ -182,7 +165,7 @@ namespace Angene.Input
             foreach (Window w in Engine.Instance.OpenWindows)
             {
                 Entity DetectionEntity = new Entity("KeyDetection");
-                _script = new KeyDetectionScript(waylandkeys);
+                _script = new KeyDetectionScript();
                 ManagementScene? a = w.ManagementScene as ManagementScene;
                 Entity b = a.AddEntity(DetectionEntity);
                 Instances.Add(b);
@@ -199,7 +182,7 @@ namespace Angene.Input
         /// </summary>
         /// <param name="entity"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public void Register(Entity entity, bool waylandkeys)
+        public void Register(Entity entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
@@ -211,7 +194,7 @@ namespace Angene.Input
                 return;
             }
 
-            _script = new KeyDetectionScript(waylandkeys);
+            _script = new KeyDetectionScript();
             entity.AddScript(_script);
             Instances.Add(entity);
 
@@ -240,7 +223,7 @@ namespace Angene.Input
                 return;
             }
 
-            Register(defaultEnt, waylandkeys);
+            Register(defaultEnt);
         }
 
         /// <summary>

@@ -24,6 +24,7 @@ using static Angene.Linux.Wayland.XdgShell.Methods;
 using static Angene.Linux.Wayland.WaylandClient;
 using static Angene.Linux.Wayland.WaylandClient.Methods;
 using Angene.Essentials.Components;
+using Angene.Input;
 using Angene.Math.Vectors;
 
 namespace Angene.Main
@@ -389,16 +390,18 @@ namespace Angene.Main
 #elif LINUX
             if (!config.UseWayland)
             {
+                Logger.LogDebug($"Creating a new X11 window with name '{config.Title}'..",  LoggingTarget.Engine);
                 if (!Engine.Instance.InitializedXThreads)
                     Engine.Instance.XInitThreads();
                 if (!Engine.Instance.supportedLibs.Contains("Linux"))
-                    Logger.LogCritical("X11 library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("X11 library was not found at init. Installation is corrupt or incomplete."), true);
+                    Logger.LogCritical("Linux library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("X11 library was not found at init. Installation is corrupt or incomplete."), true);
                 return CreateWindowX11(config, cTI, cTS, type);
             }
             else
             {
+                Logger.LogDebug($"Creating a new Wayland window with name '{config.Title}'..",  LoggingTarget.Engine);
                 if (!Engine.Instance.supportedLibs.Contains("Linux"))
-                    Logger.LogCritical("X11 library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("X11 library was not found at init. Installation is corrupt or incomplete."), true);
+                    Logger.LogCritical("Linux library was not found at init. Please check your installation.", LoggingTarget.Engine, new AngeneException("X11 library was not found at init. Installation is corrupt or incomplete."), true);
                 return CreateWindowWayland(config, cTI, cTS, type);
             }
 #endif
@@ -763,10 +766,22 @@ namespace Angene.Main
             } 
             else if (interfaceName == "xdg_wm_base") {
                 Engine.Instance._xdgWmBasePtr = wl_registry_bind((IntPtr)registry, name,
-                    (wl_interface*)XdgShell.Methods.XdgWmBaseInterface, System.Math.Min(version, 1));
+                    (wl_interface*)XdgWmBaseInterface, System.Math.Min(version, 1));
             }
+            
+            // Extensions
+            else if (interfaceName == "wl_seat")
+            {
+                IntPtr _wlSeat =
+                    wl_registry_bind(
+                        (IntPtr)registry,
+                        name,
+                        (WaylandClient.wl_interface*)GetWlSeatInterface(),
+                        System.Math.Min(version, 7));
 
-            Engine.Instance.InvokeWaylandRegistryChanged((IntPtr)registry, name, (IntPtr)@interface, version);
+                WaylandInputHandler.instance.RegisterSeat(
+                    _wlSeat);
+            }
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
@@ -885,6 +900,16 @@ namespace Angene.Main
         {
             // No-op for now. width/height are the compositor's suggested size (0,0 means "you decide").
             // Later: store these and apply them via graphicsContext.Resize() if you want to honor compositor resize requests.
+            var handle = GCHandle.FromIntPtr((IntPtr)data);
+
+            if (handle.Target is not Window window)
+                return;
+
+            // 0,0 means the compositor isn't specifying a size.
+            if (width > 0 && height > 0)
+            {
+                window.graphicsContext?.Resize(width, height);
+            }
         }
         
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]

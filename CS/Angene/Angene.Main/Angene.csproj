@@ -27,6 +27,8 @@
 	<ItemGroup>
 		<!-- Core Engine Files -->
 		<Compile Include="Crypto\AesGcmWrapper.cs" />
+		<Compile Include="Implementations\WaylandInput.cs" />
+		<Compile Include="Implementations\WaylandInputHandler.cs" />
 		<Compile Include="Main\Engine.cs" />
 		<Compile Include="Main\Window.cs" />
 		<Compile Include="Main\LogConsoleWindow.cs" />

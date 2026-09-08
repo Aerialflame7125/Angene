@@ -26,9 +26,11 @@ namespace Game
         private const float MoveSpeed = 3.0f;      // world units / second
         private const float LookSpeed = 1.6f;      // radians / second
         private const float PitchLimit = 1.5f;     // just under 90 degrees, in radians
+        
+        private float mx, my;
 
         private KeyDetection keyDetection = new KeyDetection();
-        //private MouseDetection mouseDetection = new MouseDetection();
+        private MouseDetection mouseDetection = new MouseDetection();
 
         public void Initialize(Entity cameraEntity)
         {
@@ -47,12 +49,9 @@ namespace Game
             }
 
 
-            keyDetection.Register(cameraEntity, true);
-            //mouseDetection.Register(cameraEntity);
-
-            // Derive the starting yaw/pitch from whatever forward vector was configured
-            // when the VulkanCamera component was created, so the very first Update()
-            // doesn't snap the view.
+            keyDetection.Register(cameraEntity);
+            mouseDetection.Register(cameraEntity);
+            
             Vec3 f = _camera.forward;
             _yaw = MathF.Atan2(f.X, f.Z);
             _pitch = MathF.Asin(Math.Clamp(f.Y, -1.0f, 1.0f));
@@ -98,40 +97,38 @@ namespace Game
             if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.a)) move -= right;
             if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.space)) move += worldUp;
             if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.c)) move -= worldUp;
-
-            /*
-            if (MouseDetection.IsInWindow())
+            
+            (float, float) pos = MouseDetection.GetPosition();
+            bool kleft = false;
+            bool kright = false;
+            bool kmiddle = false;
+            bool kup = false;
+            bool kdown = false;
+            
+            foreach (uint item in MouseDetection.GetDownButtons)
             {
-                (float, float) pos = MouseDetection.GetPosition();
-                bool kleft = false;
-                bool kright = false;
-                bool kmiddle = false;
-                bool kup = false;
-                bool kdown = false;
-                foreach (uint item in MouseDetection.GetDownButtons)
+                switch (item)
                 {
-                    switch (item)
-                    {
-                        case (uint)Keys.IKeyCodeMouseLinux.Button1Left:
-                            kleft = true;
-                            break;
-                        case (uint)Keys.IKeyCodeMouseLinux.Button3Right:
-                            kright = true;
-                            break;
-                        case (uint)Keys.IKeyCodeMouseLinux.Button2Middle:
-                            kleft = true;
-                            break;
-                        case (uint)Keys.IKeyCodeMouseLinux.Button4ScrUp:
-                            kup = true;
-                            break;
-                        case (uint)Keys.IKeyCodeMouseLinux.Button5ScrDown:
-                            kdown = true;
-                            break;
-                    }
+                    case (uint)Keys.IKeyCodeMouseLinux.Button1Left:
+                        kleft = true;
+                        break;
+                    case (uint)Keys.IKeyCodeMouseLinux.Button3Right:
+                        kright = true;
+                        break;
+                    case (uint)Keys.IKeyCodeMouseLinux.Button2Middle:
+                        kleft = true;
+                        break;
+                    case (uint)Keys.IKeyCodeMouseLinux.Button4ScrUp:
+                        kup = true;
+                        break;
+                    case (uint)Keys.IKeyCodeMouseLinux.Button5ScrDown:
+                        kdown = true;
+                        break;
                 }
-                Logger.LogDebug($"Mouse X, Y: ({pos.Item1}, {pos.Item2}), Down Keys: left: {kleft}, right: {kright}, middle: {kmiddle}, up: {kup}, down: {kdown}", LoggingTarget.MainGame);
             }
-            */
+            
+            Logger.LogDebug($"Mouse X, Y: ({pos.Item1}, {pos.Item2}), Down Keys: left: {kleft}, right: {kright}, middle: {kmiddle}, up: {kup}, down: {kdown}", LoggingTarget.MainGame);
+            
 
             if (move.Length > 0.0001f)
                 _transform.pos += move.Normalized * (MoveSpeed * delta);

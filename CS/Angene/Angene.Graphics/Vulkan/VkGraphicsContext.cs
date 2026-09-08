@@ -93,6 +93,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private VkPipelineShaderStageCreateInfo[] shaderStages = Array.Empty<VkPipelineShaderStageCreateInfo>();
     private IntPtr[] shaderModules = Array.Empty<IntPtr>();
     private readonly IntPtr _hwnd;
+    private bool _needsRecreateSwapchain = false;
 
     public bool shuttingDown { get; internal set; } = false;
     private readonly int _w, _h;
@@ -1131,8 +1132,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     VkPipelineDepthStencilStateCreateInfo pDepthStencilStateCreateInfo = new VkPipelineDepthStencilStateCreateInfo()
                     {
                         sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-                        depthTestEnable = 1,
-                        depthWriteEnable = 1,
+                        depthTestEnable = 0,
+                        depthWriteEnable = 0,
                         depthCompareOp = VkCompareOp.VK_COMPARE_OP_LESS_OR_EQUAL,
                         depthBoundsTestEnable = 0,
                         stencilTestEnable = 0,
@@ -1213,7 +1214,26 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         VkSurfaceCapabilitiesKHR caps;
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vkPhysicalDevice, _vkSurfaceKHR, &caps);
         _vkSurfaceCapabilities = caps;
-        _vkExtent2D = caps.currentExtent;
+        
+        VkExtent2D chosenExtent;
+        if (caps.currentExtent.width == uint.MaxValue)
+        {
+            int w = _pendingWidth  > 0 ? _pendingWidth  : _w;
+            int h = _pendingHeight > 0 ? _pendingHeight : _h;
+            chosenExtent = new VkExtent2D
+            {
+                width  = (uint)System.Math.Clamp(w, (int)caps.minImageExtent.width,  (int)caps.maxImageExtent.width),
+                height = (uint)System.Math.Clamp(h, (int)caps.minImageExtent.height, (int)caps.maxImageExtent.height)
+            };
+            caps.currentExtent = chosenExtent;
+        }
+        else
+        {
+            chosenExtent = caps.currentExtent;
+        }
+
+        _vkSurfaceCapabilities = caps;
+        _vkExtent2D = chosenExtent;
 
         // Recreate swapchain
         var swapchainInfo = new VkSwapchainCreateInfoKHR
@@ -1233,8 +1253,6 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             clipped = 1
         };
         vkCreateSwapchainKHR(_vkDevice, &swapchainInfo, null, &vkSwapchainKHR);
-        
-        RecreateViewport();
 
         _vkSwapchainKHR = vkSwapchainKHR;
 
@@ -1262,12 +1280,14 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 renderPass = (VkRenderPass*)_vkRenderPass,
                 attachmentCount = 1,
                 pAttachments = (VkImageView**)&imageView,
-                width = caps.currentExtent.width,
-                height = caps.currentExtent.height,
+                width = chosenExtent.width,
+                height = chosenExtent.height,
                 layers = 1
             };
             IntPtr framebuffer;
-            vkCreateFramebuffer(_vkDevice, &fbInfo, null, &framebuffer);
+            VkResult fbResult = vkCreateFramebuffer(_vkDevice, &fbInfo, null, &framebuffer);
+            if (fbResult != VkResult.VK_SUCCESS)
+                throw new Exceptions.FailedToInitializeVulkanException($"Failed to recreate framebuffer: {fbResult}");
             _vkFramebuffers[i] = framebuffer;
         }
 
@@ -1424,6 +1444,12 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             return;
         else if (result != VkResult.VK_SUCCESS && result != VkResult.VK_SUBOPTIMAL_KHR)
             throw new Exception($"Failed to present (vkQueuePresentKHR): {result}");
+
+        if (_needsRecreateSwapchain)
+        {
+            _needsRecreateSwapchain = false;
+            RecreateSwapchain();
+        }
     }
 
     public void Render(int vertices)
@@ -1502,10 +1528,14 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         }
     }
     
+    private int _pendingWidth, _pendingHeight; // new fields
+
     public void Resize(int width, int height)
     {
         if (width == 0 || height == 0) return;
-        RecreateSwapchain();
+        _pendingWidth = width;
+        _pendingHeight = height;
+        _needsRecreateSwapchain = true;
     }
 
     public void Cleanup()

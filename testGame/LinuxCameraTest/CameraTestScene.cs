@@ -35,7 +35,7 @@ namespace Game.Scenes
     ///      (painter's algorithm) every frame using view-space depth before uploading.
     ///   3. CreateVertexBuffer() has no matching "update" or public "destroy" call, so
     ///      rebuilding geometry every frame means allocating a fresh VMA buffer every
-    ///      frame; buffers are only swept on Cleanup(). Fine for a short test session,
+    ///      frame; buffers are only swept on Cleanup(). Fine for a shoswwwwwwwwwwwwwwwrt test session,
     ///      but this leaks GPU memory over a long play session -- flagging it rather than
     ///      hiding it. A real fix would add an UpdateVertexBuffer()/DestroyBuffer() pair
     ///      to IVkGraphicsContext.
@@ -181,7 +181,7 @@ namespace Game.Scenes
             
             Logger.LogInfo($"[MiniAudio] Linked native version: {new string((sbyte*)Angene.Audio.MiniAudio.Interop.Methods.ma_version_string())}", LoggingTarget.Engine);
             AudioFile file = new("Assets/Audio.angpkg", "00_-_CAKE_Cake_n_Cake_.mp3", AudioFile.LoadType.loadOnInstantiate);
-            _manager = new AudioManager(file, playOnLoad:true, loop: false, volume: 1f);
+            _manager = new AudioManager(file, playOnLoad:false, loop: false, volume: 1f);
             Logger.LogInfo("[CameraTestScene] Initialized.", LoggingTarget.Graphics);
             _window.lockCursor(true, Types.LinuxWindowType.X11);
 
@@ -208,11 +208,9 @@ namespace Game.Scenes
 
             vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
             vertexBuffer1 = _gfx.CreateVertexBuffer(vertexBytes1, strideBytes: 7 * sizeof(float));
-            _manager.Play();
         }
 
         public void OnMessage(IntPtr msgPtr) { }
-        
 
         public void Render()
         {

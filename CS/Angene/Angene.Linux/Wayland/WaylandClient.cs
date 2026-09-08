@@ -119,9 +119,9 @@ namespace Angene.Linux.Wayland
         }
 
         public struct wl_array {
-            nuint size;
-            nuint alloc;
-            void *data;
+            public nuint size;
+            public nuint alloc;
+            public void *data;
         };
 
         [StructLayout(LayoutKind.Sequential)]
@@ -663,8 +663,8 @@ namespace Angene.Linux.Wayland
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern void wl_proxy_wrapper_destroy(void* proxy_wrapper);
 
-            [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern IntPtr wl_proxy_marshal_constructor(IntPtr proxy, uint opcode, wl_interface* @interface, __arglist);
+            [DllImport("libwayland-client.so", EntryPoint = "wl_proxy_marshal_constructor", CallingConvention = CallingConvention.Cdecl)]
+            public static extern IntPtr wl_proxy_marshal_constructor(IntPtr proxy, uint opcode, WaylandClient.wl_interface* interfacePtr);
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern IntPtr wl_proxy_marshal_constructor_versioned(IntPtr proxy, uint opcode, wl_interface* @interface, uint version, __arglist);
