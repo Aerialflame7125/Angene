@@ -13,7 +13,7 @@ namespace Angene.Essentials
         void Render() { }
         void Update(double dt) { }
         void LateUpdate(double dt) { }
-        void OnMessage(IntPtr msgPtr) { }
+        void OnMessage(object msgPtr) { }
         void OnDraw() { }
     }
 }

@@ -9,7 +9,9 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using Angene.Graphics;
 using Angene.Input;
+using Angene.Linux;
 using Angene.Linux.Wayland;
+using Angene.Linux.X11;
 
 namespace Angene.Input
 {
@@ -42,7 +44,7 @@ namespace Angene.Input
                     }
                     break;  
             }
-            if (_heldKeys.Contains((uint)Keys.IKeyCodeModWin.RAlt) && _heldKeys.Contains((uint)Keys.IKeyCodeModWin.Return))
+            if (_heldKeys.Contains((uint)WinInputKeys.IKeyCodeModWin.RAlt) && _heldKeys.Contains((uint)WinInputKeys.IKeyCodeModWin.Return))
             {
                 if (!holdingFullscreen)
                 {
@@ -90,8 +92,8 @@ namespace Angene.Input
                             _heldKeys.Clear();
                         }
 
-                        if (_heldKeys.Contains((uint)Keys.IKeyCodeModLinux.Alt_R) &&
-                            _heldKeys.Contains((uint)Keys.IKeyCodeModLinux.Return))
+                        if (_heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Alt_R) &&
+                            _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Return))
                         {
                             if (!holdingFullscreen)
                             {
@@ -116,8 +118,8 @@ namespace Angene.Input
                         foreach (uint k in currentFrameKeys)
                             _heldKeys.Add(k);
 
-                    if (_heldKeys.Contains((uint)Keys.IKeyCodeModLinux.Alt_R) &&
-                        _heldKeys.Contains((uint)Keys.IKeyCodeModLinux.Return))
+                    if (_heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Alt_R) &&
+                        _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Return))
                     {
                         if (!holdingFullscreen)
                         {

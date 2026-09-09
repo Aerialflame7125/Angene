@@ -92,11 +92,9 @@ namespace Game
                     Height = 720,
                     Title = "Angene Camera Test",
                     renderMode = Angene.Graphics.RenderType.Vulkan,
-                    UseWayland = false
+                    UseWayland = true
                 };
-                Logger.LogDebug($"About to create real window. ShouldShutdown={Engine.Instance.ShouldShutdown}, OpenWindows={Engine.Instance.OpenWindows.Count}", LoggingTarget.Engine);
                 Window win = new Window(config);
-                Logger.LogDebug($"Real window created. Entering loop. ShouldShutdown={Engine.Instance.ShouldShutdown}", LoggingTarget.Engine);
 
                 string materialsPackagePath = Path.Combine(AppContext.BaseDirectory, "Assets", "CameraMaterials.angpkg");
                 var scene = new Game.Scenes.CameraTestScene(win, materialsPackagePath);

@@ -45,6 +45,9 @@
 	  <Reference Include="Angene.Graphics">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Graphics.dll</HintPath>
 	  </Reference>
+	  <Reference Include="Angene.Linux">
+	    <HintPath>bin\Debug\net8.0\Angene.Linux.dll</HintPath>
+	  </Reference>
 	  <Reference Include="Angene.Management">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Management.dll</HintPath>
 	  </Reference>
@@ -53,9 +56,6 @@
 	  </Reference>
 	  <Reference Include="Angene.Math">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Math.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Angene.X11">
-	    <HintPath>..\..\Build\Angene\Lin\Angene.X11.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Vulkan">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Vulkan.dll</HintPath>

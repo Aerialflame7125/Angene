@@ -7,6 +7,7 @@ using Angene.Windows;
 using System.Runtime.InteropServices;
 using Angene.Linux.X11;
 using Angene.Graphics;
+using Angene.Linux;
 
 namespace Angene.Input
 {
@@ -17,14 +18,12 @@ namespace Angene.Input
         private bool isInWindow = false;
 
         private readonly HashSet<uint> _heldButtons = new();
-        private XLib._XEvent xevent;
 
         public unsafe void Start()
         {
 #if LINUX
             if (Engine.Instance.OpenWindows[0].Handle is X11WindowHandle handle)
             {
-                Logger.LogDebug("xselectinput", LoggingTarget.Engine);
                 XLib.Methods.XSelectInput(Engine.Instance.SharedX11Display,
                     (nuint)handle.Window,
                     (IntPtr)(XLib.XEventMask.ExposureMask
@@ -39,144 +38,97 @@ namespace Angene.Input
             }
 #endif
         }
-        public void OnMessage(IntPtr msgPtr)
+        
+        private static readonly Dictionary<int, uint> ButtonMap = new()
         {
-#if WINDOWS
-            if (msgPtr == IntPtr.Zero) return;
-            var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
-
-            switch (msg.message)
+            { 1, (uint)X11InputKeys.IKeyCodeMouseLinux.Button1Left },
+            { 2, (uint)X11InputKeys.IKeyCodeMouseLinux.Button2Middle },
+            { 3, (uint)X11InputKeys.IKeyCodeMouseLinux.Button3Right },
+            { 4, (uint)X11InputKeys.IKeyCodeMouseLinux.Button4ScrUp },
+            { 5, (uint)X11InputKeys.IKeyCodeMouseLinux.Button5ScrDown },
+            { 6, (uint)X11InputKeys.IKeyCodeMouseLinux.Button6 },
+            { 7, (uint)X11InputKeys.IKeyCodeMouseLinux.Button7 },
+            { 8, (uint)X11InputKeys.IKeyCodeMouseLinux.Button8 },
+            { 9, (uint)X11InputKeys.IKeyCodeMouseLinux.Button9 },
+        };
+        private readonly object _sync = new object();
+        public void OnMessage(object msgObj)
+        {
+            if (msgObj is IntPtr msgPtr)
             {
-                case (uint)WM.LBUTTONDOWN:
-                    _heldButtons.Add((uint)Keys.IKeyCodeMouseWin.LMouse);
-                    break;
-                case (uint)WM.LBUTTONUP:
-                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseWin.LMouse);
-                    break;
-                case (uint)WM.RBUTTONDOWN:
-                    _heldButtons.Add((uint)Keys.IKeyCodeMouseWin.RMouse);
-                    break;
-                case (uint)WM.RBUTTONUP:
-                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseWin.RMouse);
-                    break;
-                case (uint)WM.MOUSEMOVE:
-                    xpos = (short)(msg.lParam.ToInt64() & 0xFFFF);
-                    ypos = (short)((msg.lParam.ToInt64() >> 16) & 0xFFFF);
-                    if (!isInWindow)
-                    {
-                        isInWindow = true;
-                        // trackmouseevent because windows is fucking stinky and wont send mouseleave without it
-                        var tme = new WindowManagement.TRACKMOUSEEVENT
+                if (msgPtr == IntPtr.Zero) return;
+                var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
+
+                switch (msg.message)
+                {
+                    case (uint)WM.LBUTTONDOWN:
+                        _heldButtons.Add((uint)WinInputKeys.IKeyCodeMouseWin.LMouse);
+                        break;
+                    case (uint)WM.LBUTTONUP:
+                        _heldButtons.Remove((uint)WinInputKeys.IKeyCodeMouseWin.LMouse);
+                        break;
+                    case (uint)WM.RBUTTONDOWN:
+                        _heldButtons.Add((uint)WinInputKeys.IKeyCodeMouseWin.RMouse);
+                        break;
+                    case (uint)WM.RBUTTONUP:
+                        _heldButtons.Remove((uint)WinInputKeys.IKeyCodeMouseWin.RMouse);
+                        break;
+                    case (uint)WM.MOUSEMOVE:
+                        xpos = (short)(msg.lParam.ToInt64() & 0xFFFF);
+                        ypos = (short)((msg.lParam.ToInt64() >> 16) & 0xFFFF);
+                        if (!isInWindow)
                         {
-                            cbSize = (uint)Marshal.SizeOf<WindowManagement.TRACKMOUSEEVENT>(),
-                            dwFlags = 0x00000002, // TME_LEAVE
-                            hwndTrack = msg.hwnd,
-                            dwHoverTime = 0
-                        };
-                        User32.TrackMouseEvent(ref tme);
-                    }
-                    break;
-                case (uint)WM.MOUSELEAVE:
-                    isInWindow = false;
-                    break;
+                            isInWindow = true;
+                            // trackmouseevent because windows is fucking stinky and wont send mouseleave without it
+                            var tme = new WindowManagement.TRACKMOUSEEVENT
+                            {
+                                cbSize = (uint)Marshal.SizeOf<WindowManagement.TRACKMOUSEEVENT>(),
+                                dwFlags = 0x00000002, // TME_LEAVE
+                                hwndTrack = msg.hwnd,
+                                dwHoverTime = 0
+                            };
+                            User32.TrackMouseEvent(ref tme);
+                        }
+                        break;
+                    case (uint)WM.MOUSELEAVE:
+                        isInWindow = false;
+                        break;
+                }
             }
-#endif
+            if (msgObj is XLib._XEvent ev)
+            {
+                switch (ev.type)
+                {
+                    case 6: // MotionNotify
+                        xpos = ev.xmotion.x;
+                        ypos = ev.xmotion.y;
+                        break;
+
+                    case 4: // ButtonPress
+                        if (ButtonMap.TryGetValue((int)ev.xbutton.button, out var addCode))
+                            _heldButtons.Add(addCode);
+                        break;
+
+                    case 5: // ButtonRelease
+                        if (ButtonMap.TryGetValue((int)ev.xbutton.button, out var remCode))
+                            _heldButtons.Remove(remCode);
+                        break;
+
+                    case 7: // EnterNotify
+                        isInWindow = true;
+                        break;
+
+                    case 8: // LeaveNotify
+                        isInWindow = false;
+                        break;
+                }
+            }
         }
 
 #if LINUX
-        public unsafe void Update(double dt)
+        public void Update(double dt)
         {
-            if (Engine.Instance.OpenWindows[0].Handle is X11WindowHandle && Engine.Instance.SharedX11Display != null)
-            {
-                while (XLib.Methods.XPending(Engine.Instance.SharedX11Display) > 0)
-                {
-                    XLib._XEvent xeventptr = xevent;
-                    XLib.Methods.XNextEvent(Engine.Instance.SharedX11Display, &xeventptr);
-                    switch (xeventptr.type)
-                    {
-                        case 6: // MotionNotify
-                            xpos = xeventptr.xmotion.x;
-                            ypos = xeventptr.xmotion.y;
-                            break;
-                        case 4: // ButtonPress
-                            switch (xeventptr.xbutton.button)
-                            {
-                                case 1:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button1Left);
-                                    break;
-                                case 2:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button2Middle);
-                                    break;
-                                case 3:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button3Right);
-                                    break;
-                                case 4:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button4ScrUp);
-                                    break;
-                                case 5:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button5ScrDown);
-                                    break;
-                                case 6:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button6);
-                                    break;
-                                case 7:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button7);
-                                    break;
-                                case 8:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button8);
-                                    break;
-                                case 9:
-                                    _heldButtons.Add((uint)Keys.IKeyCodeMouseLinux.Button9);
-                                    break;
-                            }
-
-                            break;
-                        case 5: // ButtonRelease
-                            switch (xeventptr.xbutton.button)
-                            {
-                                case 1:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button1Left);
-                                    break;
-                                case 2:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button2Middle);
-                                    break;
-                                case 3:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button3Right);
-                                    break;
-                                case 4:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button4ScrUp);
-                                    break;
-                                case 5:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button5ScrDown);
-                                    break;
-                                case 6:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button6);
-                                    break;
-                                case 7:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button7);
-                                    break;
-                                case 8:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button8);
-                                    break;
-                                case 9:
-                                    _heldButtons.Remove((uint)Keys.IKeyCodeMouseLinux.Button9);
-                                    break;
-                            }
-
-                            break;
-
-                        case 7: // EnterNotify
-                            isInWindow = true;
-                            break;
-
-                        case 8: // LeaveNotify
-                            isInWindow = false;
-                            break;
-
-                    }
-                }
-            }
-            else if (Engine.Instance.OpenWindows[0].Handle is WaylandWindowHandle)
+            if (Engine.Instance.OpenWindows.Count > 0 && Engine.Instance.OpenWindows[0].Handle is WaylandWindowHandle)
             {
                 var currentFrameKeys = new HashSet<uint>(WaylandInputHandler.instance.GetPressedButtons());
 

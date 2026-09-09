@@ -432,7 +432,7 @@ namespace Angene.Main
             _done = false;
             Engine.Instance.IsCompilingShaders = true;
         }
-        public void OnMessage(nint msgPtr) { }
+        public void OnMessage(object msgPtr) { }
         public void Render()
         {
             if (_shaderNum < _shaderCount)
@@ -631,7 +631,7 @@ namespace Angene.Main
             _done = false;
             Engine.Instance.IsCompilingShaders = true;
         }
-        public void OnMessage(nint msgPtr) { } // Not needed for this scene
+        public void OnMessage(object msgPtr) { } // Not needed for this scene
 
         public void Render()
         {

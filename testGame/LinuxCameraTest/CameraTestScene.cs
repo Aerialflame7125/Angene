@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Angene.Essentials;
 using Angene.Essentials.Components;
 using Angene.Main;
@@ -112,7 +113,7 @@ namespace Game.Scenes
         public void Initialize()
         {
             Instance = this;
-
+            
             _gfx = _window.Graphics as IVkGraphicsContext;
             if (_gfx == null)
             {
@@ -210,7 +211,12 @@ namespace Game.Scenes
             vertexBuffer1 = _gfx.CreateVertexBuffer(vertexBytes1, strideBytes: 7 * sizeof(float));
         }
 
-        public void OnMessage(IntPtr msgPtr) { }
+        public void OnMessage(object msgPtr)
+        {
+            foreach (Entity e in Entities)
+                foreach (IScreenPlay isp in e.GetScripts())
+                    isp.OnMessage(msgPtr);
+        }
 
         public void Render()
         {

@@ -753,8 +753,8 @@ namespace Angene.Main
                 return new X11WindowHandle(Engine.Instance.SharedX11Display, (IntPtr)window, titlePtr);
             }
         }
-
-        //Wayland
+        
+#region Wayland
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         private static unsafe void OnRegistryGlobal(void* data, wl_registry* registry, uint name, sbyte* @interface, uint version) 
         {
@@ -919,6 +919,7 @@ namespace Angene.Main
             if (handle.Target is Window w)
                 w.Close();
         }
+#endregion
 #endif
         public unsafe static sbyte* ToSBytePtr(string myString)
         {
@@ -1121,6 +1122,9 @@ namespace Angene.Main
                         target.Close();
                         continue;
                     }
+
+                    foreach (IScene scene in Scenes)
+                        scene.OnMessage(xevent);
 
                     if (injectedCalls != null)
                         foreach (var i in injectedCalls)

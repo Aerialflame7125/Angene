@@ -81,7 +81,7 @@ namespace Angene.Management
             }
         }
 
-        public void OnMessage(nint msgPtr)
+        public void OnMessage(object msgPtr)
         {
             foreach (var entity in Entities)
             {

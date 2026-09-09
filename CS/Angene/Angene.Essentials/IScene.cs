@@ -27,7 +27,7 @@ namespace Angene.Essentials
 
         void Initialize(); //On Scene Init
 
-        void OnMessage(IntPtr msgPtr); //On WM Message from Windows.
+        void OnMessage(object msgPtr); //On WM Message from Windows.
 
         void Render() { } // Final render in scene
 

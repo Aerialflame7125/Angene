@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-09-08 02:22:34.275681+00:00)</sup></sub>
+<sub><sup>(generated 2026-09-09 01:31:46.501669+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -1220,7 +1220,7 @@
     * `Action? OnDraw`
     * `Action? OnDisable`
     * `Action? OnDestroy`
-    * `Action<IntPtr>? OnMessage`
+    * `Action<object>? OnMessage`
     * `Action? Render`
     * `Action? Cleanup`
     * `bool AwakeCalled`
@@ -4853,7 +4853,6 @@
 
   <details><summary><b>Angene.Input</b></summary>
 
-  * **class IKeyCodeLangLinux**
   * **class KeyDetection**
     * `List<Entity> Instances`
     * `void Register()`
@@ -4872,55 +4871,6 @@
     * `void Deregister()`
     * `HashSet<uint> GetDownButtons { get; set; }`
     * `bool IsInWindow()`
-  * **enum IKeyCode3270Linux**
-  * **enum IKeyCodeAPL**
-  * **enum IKeyCodeAR**
-  * **enum IKeyCodeASCIIWin**
-  * **enum IKeyCodeAZ**
-  * **enum IKeyCodeArrowWin**
-  * **enum IKeyCodeBrowserWin**
-  * **enum IKeyCodeCurrencyLinux**
-  * **enum IKeyCodeCursorControlLinux**
-  * **enum IKeyCodeExtraLinux**
-  * **enum IKeyCodeFuncLinux**
-  * **enum IKeyCodeFuncWin**
-  * **enum IKeyCodeGE**
-  * **enum IKeyCodeGR**
-  * **enum IKeyCodeGamePadWin**
-  * **enum IKeyCodeHB**
-  * **enum IKeyCodeHY**
-  * **enum IKeyCodeJP**
-  * **enum IKeyCodeJPKatakana**
-  * **enum IKeyCodeKR**
-  * **enum IKeyCodeLatin1**
-  * **enum IKeyCodeLatin2**
-  * **enum IKeyCodeLatin3**
-  * **enum IKeyCodeLatin4**
-  * **enum IKeyCodeLatin8**
-  * **enum IKeyCodeLatin9**
-  * **enum IKeyCodeMediaWin**
-  * **enum IKeyCodeMiscLinux**
-  * **enum IKeyCodeModLinux**
-  * **enum IKeyCodeModWin**
-  * **enum IKeyCodeMouseLinux**
-  * **enum IKeyCodeMouseWin**
-  * **enum IKeyCodeMultiKeyLinux**
-  * **enum IKeyCodeNumPadLinux**
-  * **enum IKeyCodeNumPadWin**
-  * **enum IKeyCodeNumWin**
-  * **enum IKeyCodeOEMWin**
-  * **enum IKeyCodePublishingLinux**
-  * **enum IKeyCodeRU**
-  * **enum IKeyCodeSpecialLinux**
-  * **enum IKeyCodeSpecialWin**
-  * **enum IKeyCodeTH**
-  * **enum IKeyCodeTechnicalLinux**
-  * **enum IKeyCodeVN**
-  * **enum IKeyCodeXKBExtensionLinux**
-  * **struct Keys**
-    * `uint WL_KEYBOARD_KEY_STATE_RELEASED`
-    * `uint WL_KEYBOARD_KEY_STATE_PRESSED`
-    * `uint WL_KEYBOARD_KEY_STATE_REPEATED`
 
   </details>
 
@@ -4931,6 +4881,18 @@
   <details><summary><b>Angene.Linux.Wayland</b></summary>
 
   * **class xkbcommon**
+  * **enum ABS_SND_PROFILE**
+  * **enum AbsoluteAxes**
+  * **enum Autorepeat**
+  * **enum DeviceProps**
+  * **enum EventTypes**
+  * **enum KeysAndButtons**
+  * **enum LEDEvents**
+  * **enum MiscEvents**
+  * **enum RelativeAxes**
+  * **enum Sounds**
+  * **enum SwitchEvents**
+  * **enum SynEvents**
   * **enum wl_data_device_error**
   * **enum wl_data_device_manager_dnd_action**
   * **enum wl_data_offer_error**
@@ -5039,6 +5001,7 @@
   * **enum xkb_rmlvo_builder_flags**
   * **enum xkb_state_component**
   * **enum xkb_state_match**
+  * **struct WaylandInputKeys**
   * **struct timespec**
   * **struct wl_argument**
   * **struct wl_array**
@@ -5081,9 +5044,43 @@
 
   <details><summary><b>Angene.Linux.X11</b></summary>
 
+  * **class IKeyCodeLangLinux**
   * **class XLib**
     * `long SubstructureNotifyMask`
     * `long SubstructureRedirectMask`
+  * **enum IKeyCode3270Linux**
+  * **enum IKeyCodeAPL**
+  * **enum IKeyCodeAR**
+  * **enum IKeyCodeAZ**
+  * **enum IKeyCodeCurrencyLinux**
+  * **enum IKeyCodeCursorControlLinux**
+  * **enum IKeyCodeExtraLinux**
+  * **enum IKeyCodeFuncLinux**
+  * **enum IKeyCodeGE**
+  * **enum IKeyCodeGR**
+  * **enum IKeyCodeHB**
+  * **enum IKeyCodeHY**
+  * **enum IKeyCodeJP**
+  * **enum IKeyCodeJPKatakana**
+  * **enum IKeyCodeKR**
+  * **enum IKeyCodeLatin1**
+  * **enum IKeyCodeLatin2**
+  * **enum IKeyCodeLatin3**
+  * **enum IKeyCodeLatin4**
+  * **enum IKeyCodeLatin8**
+  * **enum IKeyCodeLatin9**
+  * **enum IKeyCodeMiscLinux**
+  * **enum IKeyCodeModLinux**
+  * **enum IKeyCodeMouseLinux**
+  * **enum IKeyCodeMultiKeyLinux**
+  * **enum IKeyCodeNumPadLinux**
+  * **enum IKeyCodePublishingLinux**
+  * **enum IKeyCodeRU**
+  * **enum IKeyCodeSpecialLinux**
+  * **enum IKeyCodeTH**
+  * **enum IKeyCodeTechnicalLinux**
+  * **enum IKeyCodeVN**
+  * **enum IKeyCodeXKBExtensionLinux**
   * **enum XEventMask**
     * `int number`
   * **enum XIMCaretDirection**
@@ -5099,6 +5096,10 @@
   * **enum XOrientation**
     * `int num_orientation`
     * `int num_font`
+  * **struct X11InputKeys**
+    * `uint WL_KEYBOARD_KEY_STATE_RELEASED`
+    * `uint WL_KEYBOARD_KEY_STATE_PRESSED`
+    * `uint WL_KEYBOARD_KEY_STATE_REPEATED`
   * **struct XArc**
     * `short x`
     * `short y`
@@ -11094,6 +11095,18 @@
     * `uint NOACTIVATE`
   * **class WindowManagement**
   * **enum EM**
+  * **enum IKeyCodeASCIIWin**
+  * **enum IKeyCodeArrowWin**
+  * **enum IKeyCodeBrowserWin**
+  * **enum IKeyCodeFuncWin**
+  * **enum IKeyCodeGamePadWin**
+  * **enum IKeyCodeMediaWin**
+  * **enum IKeyCodeModWin**
+  * **enum IKeyCodeMouseWin**
+  * **enum IKeyCodeNumPadWin**
+  * **enum IKeyCodeNumWin**
+  * **enum IKeyCodeOEMWin**
+  * **enum IKeyCodeSpecialWin**
   * **enum WM**
   * **enum WindowStyle**
   * **enum WindowStyleEx**
@@ -11152,6 +11165,7 @@
     * `string lpszMenuName`
     * `string lpszClassName`
     * `IntPtr hIconSm`
+  * **struct WinInputKeys**
   * **struct WindowTransparency**
     * `bool Enabled`
     * `byte Alpha`

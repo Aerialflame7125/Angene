@@ -4,10 +4,12 @@ using Angene.Common;
 using Angene.Essentials;
 using Angene.Essentials.Components;
 using Angene.Math.Vectors;
-using Latin1 = Angene.Input.Keys.IKeyCodeLangLinux.IKeyCodeLatin1;
-using CursorKeys = Angene.Input.Keys.IKeyCodeCursorControlLinux;
+using Latin1 = Angene.Linux.X11.X11InputKeys.IKeyCodeLangLinux.IKeyCodeLatin1;
+using CursorKeys = Angene.Linux.X11.X11InputKeys.IKeyCodeCursorControlLinux;
+using static Angene.Linux.Wayland.WaylandInputKeys;
 using Game.Scenes;
 using Angene.Input;
+using Angene.Linux.Wayland;
 using static Angene.Essentials.Types;
 
 namespace Game
@@ -109,26 +111,25 @@ namespace Game
             {
                 switch (item)
                 {
-                    case (uint)Keys.IKeyCodeMouseLinux.Button1Left:
+                    case (uint)WaylandInputKeys.KeysAndButtons.BTN_LEFT:
                         kleft = true;
                         break;
-                    case (uint)Keys.IKeyCodeMouseLinux.Button3Right:
+                    case (uint)WaylandInputKeys.KeysAndButtons.BTN_RIGHT:
                         kright = true;
                         break;
-                    case (uint)Keys.IKeyCodeMouseLinux.Button2Middle:
-                        kleft = true;
+                    case (uint)WaylandInputKeys.KeysAndButtons.BTN_MIDDLE:
+                        kmiddle = true;
                         break;
-                    case (uint)Keys.IKeyCodeMouseLinux.Button4ScrUp:
+                    /*
+                    case (uint)WaylandInputKeys.KeysAndButtons.Button4ScrUp:
                         kup = true;
                         break;
-                    case (uint)Keys.IKeyCodeMouseLinux.Button5ScrDown:
+                    case (uint)WaylandInputKeys.KeysAndButtons.Button5ScrDown:
                         kdown = true;
                         break;
+                    */
                 }
             }
-            
-            Logger.LogDebug($"Mouse X, Y: ({pos.Item1}, {pos.Item2}), Down Keys: left: {kleft}, right: {kright}, middle: {kmiddle}, up: {kup}, down: {kdown}", LoggingTarget.MainGame);
-            
 
             if (move.Length > 0.0001f)
                 _transform.pos += move.Normalized * (MoveSpeed * delta);
