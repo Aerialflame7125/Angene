@@ -643,7 +643,7 @@ namespace Angene.Linux.Wayland
             public static extern void wl_event_queue_destroy(IntPtr* queue);
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern IntPtr* wl_proxy_marshal_flags(IntPtr* proxy, uint opcode, wl_interface* @interface, uint version, uint flags, __arglist);
+            public static extern IntPtr* wl_proxy_marshal_flags(IntPtr* proxy, uint opcode, wl_interface* @interface, uint version, uint flags);
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern IntPtr* wl_proxy_marshal_array_flags(IntPtr* proxy, uint opcode, wl_interface* @interface, uint version, uint flags, wl_argument* args);
@@ -667,7 +667,7 @@ namespace Angene.Linux.Wayland
             public static extern IntPtr wl_proxy_marshal_constructor(IntPtr proxy, uint opcode, WaylandClient.wl_interface* interfacePtr);
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern IntPtr wl_proxy_marshal_constructor_versioned(IntPtr proxy, uint opcode, wl_interface* @interface, uint version, __arglist);
+            public static extern IntPtr wl_proxy_marshal_constructor_versioned(IntPtr proxy, uint opcode, wl_interface* @interface, uint version);
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern IntPtr wl_proxy_marshal_array_constructor(IntPtr proxy, uint opcode, wl_argument* args, wl_interface* @interface);
@@ -797,9 +797,6 @@ namespace Angene.Linux.Wayland
 
             [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern void wl_display_set_max_buffer_size(IntPtr* display, nuint max_buffer_size);
-            
-            [DllImport("libwayland-client.so.0", CallingConvention = CallingConvention.Cdecl)]
-            public static extern int wl_display_roundtrip(IntPtr display);
 
             public static wl_interface* wl_surface_interface = (wl_interface*)Methods.GetWlSurfaceInterface();
             
@@ -882,6 +879,32 @@ namespace Angene.Linux.Wayland
                     }
                 }
                 throw new EntryPointNotFoundException("Could not resolve wl_registry_interface symbol.");
+            }
+            
+            public static IntPtr GetWlRegionInterface()
+            {
+                if (NativeLibrary.TryLoad("libwayland-client.so.0", out IntPtr handle))
+                {
+                    if (NativeLibrary.TryGetExport(handle, "wl_region_interface", out IntPtr interfacePtr))
+                    {
+                        return interfacePtr;
+                    }
+                }
+                throw new EntryPointNotFoundException("Could not resolve wl_region_interface symbol.");
+            }
+            
+            private const uint WL_SEAT_GET_POINTER_OPCODE = 0;
+            public static void* wl_pointer_interface; 
+            
+            public static wl_pointer* wl_seat_get_pointer(wl_seat* seat)
+            {
+                // We pass the global metadata blueprint for what a wl_pointer is 
+                // alongside opcode 0 to tell the compositor to initialize a mouse channel.
+                return (wl_pointer*)wl_proxy_marshal_constructor(
+                    (IntPtr)seat, 
+                    WL_SEAT_GET_POINTER_OPCODE, 
+                    (wl_interface*)wl_pointer_interface
+                );
             }
             
             public static IntPtr* wl_display_get_registry(IntPtr* wl_display)

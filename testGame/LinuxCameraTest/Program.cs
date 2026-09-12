@@ -114,10 +114,10 @@ namespace Game
         {
             while (!Engine.Instance.ShouldShutdown)
             {
-                bool a = win.ProcessMessages(win.Handle);
+                    bool a = win.ProcessMessages(win.Handle);
 
-                dt = (DateTime.Now - lastFrame).TotalSeconds;
-                lastFrame = DateTime.Now;
+                    dt = (DateTime.Now - lastFrame).TotalSeconds;
+                    lastFrame = DateTime.Now;
 
                 Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
                 Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);

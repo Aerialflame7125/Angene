@@ -12,6 +12,7 @@ using Angene.Input;
 using Angene.Linux;
 using Angene.Linux.Wayland;
 using Angene.Linux.X11;
+using static Angene.Linux.X11.XLib;
 
 namespace Angene.Input
 {
@@ -21,79 +22,74 @@ namespace Angene.Input
 
         public Action _fullscreenAction = null;
         private bool holdingFullscreen = false;
+        private bool anyKeyDown = false;
 
-        public unsafe void OnMessage(IntPtr msgPtr)
+        public unsafe void OnMessage(object msgPtr)
         {
 #if WINDOWS
-            if (msgPtr == IntPtr.Zero) return;
-            var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
-            
-            switch (msg.message)
+            if (msgPtr is IntPtr winmsgptr)
             {
-                case (uint)WM.KEYDOWN:
-                    uint downKey = (uint)KeyResolver.TryNInt(msg.wParam);
-                    if (downKey != 0)
-                        _heldKeys.Add(downKey);
-                    break;
-
-                case (uint)WM.KEYUP:
-                    uint upKey = (uint)KeyResolver.TryNInt(msg.wParam);
-                    if (upKey != 0)
-                    {
-                        _heldKeys.Remove(upKey);
-                    }
-                    break;  
-            }
-            if (_heldKeys.Contains((uint)WinInputKeys.IKeyCodeModWin.RAlt) && _heldKeys.Contains((uint)WinInputKeys.IKeyCodeModWin.Return))
-            {
-                if (!holdingFullscreen)
+                var msg = Marshal.PtrToStructure<WindowManagement.MSG>(winmsgptr);
+                
+                switch (msg.message)
                 {
-                    //Engine.Instance.OpenWindows[0].set_fullscreen();
-                    Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
-                    holdingFullscreen = true;
+                    case (uint)WM.KEYDOWN:
+                        uint downKey = (uint)KeyResolver.TryNInt(msg.wParam);
+                        if (downKey != 0)
+                            _heldKeys.Add(downKey);
+                        break;
+
+                    case (uint)WM.KEYUP:
+                        uint upKey = (uint)KeyResolver.TryNInt(msg.wParam);
+                        if (upKey != 0)
+                        {
+                            _heldKeys.Remove(upKey);
+                        }
+                        break;  
+                }
+                if (_heldKeys.Contains((uint)WinInputKeys.IKeyCodeModWin.RAlt) && _heldKeys.Contains((uint)WinInputKeys.IKeyCodeModWin.Return))
+                {
+                    if (!holdingFullscreen)
+                    {
+                        //Engine.Instance.OpenWindows[0].set_fullscreen();
+                        Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
+                        holdingFullscreen = true;
+                    }
+                }
+                else
+                {
+                    holdingFullscreen = false;
                 }
             }
-            else
-            {
-                holdingFullscreen = false;
-            }
 #endif
-        }
-
 #if LINUX
-        public unsafe void Update(double dt)
-        {
-            if (Engine.Instance.OpenWindows.Count >= 1)
+            if (msgPtr is _XEvent msg)
             {
-                if (Engine.Instance.OpenWindows[0].Handle is X11WindowHandle handle)
+                foreach (Window win in Engine.Instance.OpenWindows)
                 {
-                    if (Engine.Instance.SharedX11Display != null && Engine.Instance.OpenWindows.Count > 0 &&
-                        Engine.Instance.isXWindowFocused(handle))
+                    IntPtr XWin;
+                    int revertTo;
+                    Methods.XGetInputFocus(Engine.Instance.SharedX11Display, (nuint*)&XWin, &revertTo);
+
+                    nuint keysym = XLib.Methods.XKeycodeToKeysym(Engine.Instance.SharedX11Display, (byte)msg.xkey.keycode, 0);
+                    if (win.Handle is X11WindowHandle handle && XWin == handle.Window)
                     {
-                        if (X11Keyboard.IsKeyDown())
+                        switch (msg.type)
                         {
-                            List<nuint> rawDownKeys = X11Keyboard.GetPressedKeys();
-                            var currentFrameKeys = new HashSet<uint>();
-
-                            foreach (nuint k in rawDownKeys)
-                            {
-                                uint downKey = KeyResolver.TryLinuxKeysym(k);
+                            case 2: // KeyPress
+                                uint downKey = KeyResolver.TryLinuxKeysym(keysym);
                                 if (downKey != 0)
-                                    currentFrameKeys.Add(downKey);
-                            }
-
-                            _heldKeys.RemoveWhere(k => !currentFrameKeys.Contains(k));
-
-                            foreach (uint k in currentFrameKeys)
-                                _heldKeys.Add(k);
-                        }
-                        else
-                        {
-                            _heldKeys.Clear();
+                                    _heldKeys.Add(downKey);
+                                break;
+                            case 3: // KeyRelease
+                                uint upKey = KeyResolver.TryLinuxKeysym(keysym);
+                                if (upKey != 0)
+                                    _heldKeys.Remove(upKey);
+                                break;
                         }
 
                         if (_heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Alt_R) &&
-                            _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Return))
+                        _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Return))
                         {
                             if (!holdingFullscreen)
                             {
@@ -108,15 +104,28 @@ namespace Angene.Input
                         }
                     }
                 }
-                else if (Engine.Instance.OpenWindows[0].Handle is WaylandWindowHandle)
+            }
+#endif
+        }
+
+#if LINUX
+        public unsafe void Update(double dt)
+        {
+            if (Engine.Instance.OpenWindows.Count >= 1)
+            {
+                if (Engine.Instance.OpenWindows[0].Handle is WaylandWindowHandle)
                 {
                     var currentFrameKeys = new HashSet<uint>(WaylandInputHandler.instance.GetPressedKeys());
 
                     _heldKeys.RemoveWhere(k => !currentFrameKeys.Contains(k));
                     
                     if (currentFrameKeys.Count > 0)
+                    {
                         foreach (uint k in currentFrameKeys)
                             _heldKeys.Add(k);
+                    }
+                    else
+                        _heldKeys.Clear();
 
                     if (_heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Alt_R) &&
                         _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Return))
@@ -134,10 +143,17 @@ namespace Angene.Input
                     }
                 }
             }
+
+            if (_heldKeys.Count > 0)
+                anyKeyDown = true;
+            else
+                anyKeyDown = false;
         }
 #endif
 
         public bool IsKeyDown(uint key) => _heldKeys.Contains(key);
+
+        public bool IsAnyKeyDown() => anyKeyDown;
 
         public HashSet<uint> GetDownKeys() => _heldKeys;
     }
@@ -155,7 +171,7 @@ namespace Angene.Input
         /// Takes default ManagementScene object entities of all open windows and registers a new KeyDetection Entity on them.
         /// NOTICE: This method is not recommended for performance. It WILL iterate through all open windows and ManagementScene objects.
         /// </summary>
-        public void Register(bool waylandkeys)
+        public void Register()
         {
             if (_script != null)
             {
@@ -241,6 +257,15 @@ namespace Angene.Input
                     "KeyDetection not registered. Call KeyDetection.Register() first.");
 
             return _script.IsKeyDown(key);
+        }
+
+        public static bool IsAnyKeyDown()
+        {
+            if (_script == null)
+                throw new InvalidOperationException(
+                    "KeyDetection not registered. Call KeyDetection.Register() first.");
+
+            return _script.IsAnyKeyDown();
         }
 
         /// <summary>

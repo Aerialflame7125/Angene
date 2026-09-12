@@ -72,6 +72,8 @@ namespace Angene.Main
         public nuint wmDeleteAtom, wmPingAtom;
 #endif
         private static bool s_classRegistered;
+        private static IntPtr pointer_constraints;
+        private static IntPtr rel_mgr;
 
         [Obsolete("This method is deprecated. Please use the 'WindowConfig' constructor instead.", true)]
         public Window(string Name, int width, int height)
@@ -764,7 +766,8 @@ namespace Angene.Main
                 Engine.Instance._compositorPtr = wl_registry_bind((IntPtr)registry, name,
                     (wl_interface*)GetWlCompositorInterface(), System.Math.Min(version, 4));
             } 
-            else if (interfaceName == "xdg_wm_base") {
+            else if (interfaceName == "xdg_wm_base")
+            {
                 Engine.Instance._xdgWmBasePtr = wl_registry_bind((IntPtr)registry, name,
                     (wl_interface*)XdgWmBaseInterface, System.Math.Min(version, 1));
             }
@@ -781,6 +784,18 @@ namespace Angene.Main
 
                 WaylandInputHandler.instance.RegisterSeat(
                     _wlSeat);
+            }
+            else if (interfaceName == "zwp_pointer_constraints_v1")
+            {
+                pointer_constraints = wl_registry_bind(
+                    (IntPtr)registry, name, (wl_interface*)WaylandZWP.Methods.GetInterface("zwp_pointer_constraints_v1"), version
+                );
+            }
+            else if (interfaceName == "zwp_relative_pointer_manager_v1")
+            {
+                rel_mgr = wl_registry_bind(
+                    (IntPtr)registry, name, (wl_interface*)WaylandZWP.Methods.GetInterface("zwp_relative_pointer_manager_v1"), version
+                );
             }
         }
 
@@ -1040,38 +1055,48 @@ namespace Angene.Main
 #if LINUX
         public unsafe void set_fullscreen()
         {
-            _XEvent xev = new _XEvent();
-
-            sbyte* wmstate = ToSBytePtr("_NET_WM_STATE");
-            sbyte* statefullscreen = ToSBytePtr("_NET_WM_STATE_FULLSCREEN");
-
-            try
+            if (Handle is X11WindowHandle XHandle)
             {
-                IntPtr wm_state = (IntPtr)XLib.Methods.XInternAtom(((X11WindowHandle)Handle).Display, wmstate, 0);
-                IntPtr fs = (IntPtr)XLib.Methods.XInternAtom(((X11WindowHandle)Handle).Display, statefullscreen, 0);
+                _XEvent xev = new _XEvent();
 
-                xev.type = 33; // ClientMessage
-                xev.xclient.window = (nuint)((X11WindowHandle)Handle).Window;
-                xev.xclient.message_type = (nuint)wm_state;
-                xev.xclient.format = 32;
-                xev.xclient.data.l[0] = 2; // _NET_WM_STATE_TOGGLE
-                xev.xclient.data.l[1] = fs;
-                xev.xclient.data.l[2] = 0;
+                sbyte* wmstate = ToSBytePtr("_NET_WM_STATE");
+                sbyte* statefullscreen = ToSBytePtr("_NET_WM_STATE_FULLSCREEN");
 
-                nuint root = XLib.Methods.XDefaultRootWindow(((X11WindowHandle)Handle).Display);
-                XLib.Methods.XSendEvent(((X11WindowHandle)Handle).Display, root, 0,
-                    (nint)(SubstructureNotifyMask | SubstructureRedirectMask), &xev);
-                
+                try
+                {
+                    IntPtr wm_state = (IntPtr)XLib.Methods.XInternAtom(XHandle.Display, wmstate, 0);
+                    IntPtr fs = (IntPtr)XLib.Methods.XInternAtom(XHandle.Display, statefullscreen, 0);
+
+                    xev.type = 33; // ClientMessage
+                    xev.xclient.window = (nuint)XHandle.Window;
+                    xev.xclient.message_type = (nuint)wm_state;
+                    xev.xclient.format = 32;
+                    xev.xclient.data.l[0] = 2; // _NET_WM_STATE_TOGGLE
+                    xev.xclient.data.l[1] = fs;
+                    xev.xclient.data.l[2] = 0;
+
+                    nuint root = XLib.Methods.XDefaultRootWindow(XHandle.Display);
+                    XLib.Methods.XSendEvent(XHandle.Display, root, 0,
+                        (nint)(SubstructureNotifyMask | SubstructureRedirectMask), &xev);
+                    
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal((IntPtr)wmstate);
+                    Marshal.FreeHGlobal((IntPtr)statefullscreen);
+                }
             }
-            finally
+            else if (Handle is WaylandWindowHandle WaylandHandle)
             {
-                Marshal.FreeHGlobal((IntPtr)wmstate);
-                Marshal.FreeHGlobal((IntPtr)statefullscreen);
+                xdg_toplevel_set_fullscreen(WaylandHandle.Toplevel, null);
             }
         }
-        public unsafe void lockCursor(bool locked, LinuxWindowType windowType)
+
+        unsafe WaylandZWP.zwp_locked_pointer_v1* locked_ptr;
+        unsafe WaylandZWP.zwp_relative_pointer_v1* rel_ptr;
+        public unsafe void lockCursor(bool locked)
         {
-            if (locked && windowType == LinuxWindowType.X11 && Handle is X11WindowHandle)
+            if (locked && Handle is X11WindowHandle)
             {
                 int res = XLib.Methods.XGrabPointer(((X11WindowHandle)Handle).Display, (nuint)((X11WindowHandle)Handle).Window, 0, (uint)(XEventMask.PointerMotionMask | XEventMask.ButtonPressMask | XEventMask.ButtonReleaseMask | XEventMask.FocusChangeMask), 1, 1, 0, 0, (nuint)0ul);
                 
@@ -1079,18 +1104,33 @@ namespace Angene.Main
                     Logger.LogError("[Window] X Server refused grab call.", LoggingTarget.Engine);
                 XLib.Methods.XSync(((X11WindowHandle)Handle).Display, 0);
             }
-            else if (!locked && windowType == LinuxWindowType.X11 && Handle is X11WindowHandle)
+            else if (!locked && Handle is X11WindowHandle)
             {
                 XLib.Methods.XUngrabPointer(((X11WindowHandle)Handle).Display, 0);
                 XLib.Methods.XSync(((X11WindowHandle)Handle).Display, 0);
             }
-            else if (locked && windowType == LinuxWindowType.Wayland && Handle is WaylandWindowHandle)
+            else if (locked && Handle is WaylandWindowHandle wayWindowHandle1)
             {
+                IntPtr seat = WaylandClient.Methods.GetWlSeatInterface(); 
+                wl_pointer* wl_ptr = WaylandClient.Methods.wl_seat_get_pointer((wl_seat*)seat);
+
+                rel_ptr =
+                    WaylandZWP.Methods.zwp_relative_pointer_manager_v1_get_relative_pointer((WaylandZWP.zwp_relative_pointer_manager_v1*)rel_mgr, wl_ptr);
                 
+                wl_region *region = null; // Optional bounds
+                locked_ptr =
+                    WaylandZWP.Methods.zwp_pointer_constraints_v1_lock_pointer(
+                        (WaylandZWP.zwp_pointer_constraints_v1*)pointer_constraints, wayWindowHandle1.Surface, wl_ptr, region,
+                        (uint)WaylandZWP.zwp_pointer_constraints_v1_lifetime.ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
             }
-            else if (!locked && windowType == LinuxWindowType.Wayland && Handle is WaylandWindowHandle)
+            else if (!locked && Handle is WaylandWindowHandle wayWindowHandle2)
             {
-                
+                WaylandZWP.Methods.zwp_locked_pointer_v1_destroy(locked_ptr);
+                locked_ptr = null;
+                WaylandZWP.Methods.zwp_relative_pointer_v1_destroy(rel_ptr);
+                rel_ptr = null;
+
+                WaylandClient.Methods.wl_surface_commit((IntPtr)wayWindowHandle2.Surface);
             }
         }
 #endif

@@ -46,7 +46,7 @@
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Graphics.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Linux">
-	    <HintPath>bin\Debug\net8.0\Angene.Linux.dll</HintPath>
+	    <HintPath>..\..\Build\Angene\Lin\Angene.Linux.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Management">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Management.dll</HintPath>

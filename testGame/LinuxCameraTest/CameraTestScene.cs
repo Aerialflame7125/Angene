@@ -184,7 +184,7 @@ namespace Game.Scenes
             AudioFile file = new("Assets/Audio.angpkg", "00_-_CAKE_Cake_n_Cake_.mp3", AudioFile.LoadType.loadOnInstantiate);
             _manager = new AudioManager(file, playOnLoad:false, loop: false, volume: 1f);
             Logger.LogInfo("[CameraTestScene] Initialized.", LoggingTarget.Graphics);
-            _window.lockCursor(true, Types.LinuxWindowType.X11);
+            _window.lockCursor(true);
 
             var camTransform = _cameraEntity.GetComponent<Transform3D>();
             var vCam = _cameraEntity.GetComponent<VulkanCamera>();
