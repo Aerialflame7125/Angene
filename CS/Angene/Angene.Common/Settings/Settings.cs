@@ -29,7 +29,7 @@ namespace Angene.Common.Settings
 
             Register("Main.VersionFloat", 0.3f, v => v is float);
 
-            Register("Main.Version", "Angene v0.3 | Galvanized Square Steel");
+            Register("Main.Version", "Angene v0.4 | Purple Fungi");
 
             Register("Main.getIsGameAllowedForWebsockets", false,
                 v => v is bool);
