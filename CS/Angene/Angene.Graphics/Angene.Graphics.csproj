@@ -7,23 +7,30 @@
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Windows`))' == 'true'">
-  	<DefineConstants>WINDOWS</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Linux`))' == 'true'">
-  	<DefineConstants>LINUX</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
+    <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
     <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
     <ProjectReference Include="..\Angene.Vulkan\Angene.Vulkan.csproj" />
-    <ProjectReference Include="..\Angene.X11\Angene.X11.csproj" />
+    <ProjectReference Include="..\Angene.Linux\Angene.Linux.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     	<PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(AngenePlatform)' == 'Windows'">
+    <EmbeddedResource Include="Native/win-x64/slang.dll">
+      <LogicalName>Angene.Graphics.Native.win-x64.slang.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Native/win-x64/slang-compiler.dll">
+      <LogicalName>Angene.Graphics.Native.win-x64.slang-compiler.dll</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup Condition="'$(AngenePlatform)' == 'Linux'">
+    <EmbeddedResource Include="Native/linux-x64/libslang.so">
+      <LogicalName>Angene.Graphics.Native.linux-x64.libslang.so</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

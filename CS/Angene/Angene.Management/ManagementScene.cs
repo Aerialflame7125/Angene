@@ -11,9 +11,11 @@ namespace Angene.Management
 
         public List<Entity> Entities { get; internal set; } = new List<Entity>();
 
+        public Entity MainCamera => null;
+
         Entity defaultEnt;
 
-        public ManagementScene(string Token) => Entities.Add(new Entity(-100, -100, Token));
+        public ManagementScene(string Token) => Entities.Add(new Entity(Token));
 
         public Entity AddEntity(Entity entity)
         {
@@ -79,7 +81,7 @@ namespace Angene.Management
             }
         }
 
-        public void OnMessage(nint msgPtr)
+        public void OnMessage(object msgPtr)
         {
             foreach (var entity in Entities)
             {

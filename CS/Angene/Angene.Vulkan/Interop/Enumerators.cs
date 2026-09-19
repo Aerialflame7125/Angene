@@ -3661,7 +3661,6 @@ public class Enumerators
         VK_HOST_IMAGE_COPY_MEMCPY_EXT = VK_HOST_IMAGE_COPY_MEMCPY_BIT,
         VK_HOST_IMAGE_COPY_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF,
     }
-
     public enum VkPresentModeKHR : uint
     {
         VK_PRESENT_MODE_IMMEDIATE_KHR = 0,
@@ -3674,7 +3673,6 @@ public class Enumerators
         VK_PRESENT_MODE_FIFO_LATEST_READY_EXT = VK_PRESENT_MODE_FIFO_LATEST_READY_KHR,
         VK_PRESENT_MODE_MAX_ENUM_KHR = 0x7FFFFFFF,
     }
-
     public enum VkColorSpaceKHR : uint
     {
         VK_COLOR_SPACE_SRGB_NONLINEAR_KHR = 0,

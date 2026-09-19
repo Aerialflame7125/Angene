@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Angene.Common;
+using Angene.Essentials.Components;
+using Angene.Math.Vectors;
 
 namespace Angene.Essentials
 {
@@ -15,33 +17,43 @@ namespace Angene.Essentials
         // Unique identifier for this entity
         private static int _nextId = 0;
         public int Id { get; private set; }
-
-        // Transform
-        public float x;
-        public float y;
-        public float z;
+        public static Entity Instance = new Entity();
 
         // Identity
         public string name;
 
-        // Script instances attached to this entity
+        // Transform
+        public Transform3D Transform
+        {
+            get => GetComponent<Transform3D>() ?? AddComponent<Transform3D>();
+            set => AddComponent(value);
+        }
+
+        // Script instances and components attached to this entity
         private List<object> _scripts;
+        private Dictionary<Type, object> _components;
         
         // Entity hierarchy (now safe because Entity is a class)
         public List<Entity> childEntities { get; private set; }
         private Entity? _parent;
+        private IScene _parentScene = null;
 
+        public IScene ParentScene 
+        {
+            get => _parentScene;
+            set => _parentScene ??= value; 
+        }
+
+#region Constructors
         // Internal enabled state (use Lifecycle.SetEntityEnabled to change)
         internal bool _enabled;
 
-        public Entity(float _x, float _y, string _name = "New Object")
+        public Entity(string _name = "New Object")
         {
             Id = _nextId++;
-            x = _x;
-            y = _y;
-            z = 0;
             name = _name;
             _scripts = new List<object>();
+            _components = new Dictionary<Type, object>();
             childEntities = new List<Entity>();
             _parent = null;
             _enabled = true;
@@ -49,6 +61,190 @@ namespace Angene.Essentials
             // Register with lifecycle system
             Lifecycle.ScriptBinding.HandleEntityCreated(this);
         }
+
+        public Entity(Entity e)
+        {
+            Id = _nextId++;
+            name = e.name;
+            _scripts = new List<object>();
+            _components = new Dictionary<Type, object>();
+            foreach (IScreenPlay script in e._scripts)
+                AddScript(script);
+            foreach (var kvp in e._components)
+                _components[kvp.Key] = kvp.Value;
+            childEntities = new List<Entity>();
+            _parent = null;
+            _enabled = true;
+
+            // Register with lifecycle system
+            Lifecycle.ScriptBinding.HandleEntityCreated(this);
+        }
+
+        public Entity(Entity e, Entity extraData)
+        {
+            Id = _nextId++;
+            name = e.name;
+
+            _scripts = new List<object>();
+            _components = new Dictionary<Type, object>();
+
+            foreach (var script in e._scripts)
+                AddScript(script);
+            foreach (var kvp in e._components)
+                _components[kvp.Key] = kvp.Value;
+
+            foreach (var script in extraData._scripts)
+                AddScript(script);
+            foreach (var kvp in extraData._components)
+                _components[kvp.Key] = kvp.Value;
+
+            childEntities = new List<Entity>();
+            _parent = null;
+            _enabled = true;
+
+            Lifecycle.ScriptBinding.HandleEntityCreated(this);
+        }
+
+        public Entity(Vec2 Pos, float Rot, Vec2 Scale, string _name = "New Object")
+        {
+            Id = _nextId++;
+            name = _name;
+            _scripts = new List<object>();
+            _components = new Dictionary<Type, object>();
+            childEntities = new List<Entity>();
+            _parent = null;
+            AddComponent(new Transform2D(Pos, Rot, Scale));
+            _enabled = true;
+
+            // Register with lifecycle system
+            Lifecycle.ScriptBinding.HandleEntityCreated(this);
+        }
+        public Entity(Vec3 Pos, Vec3 Rot, Vec3 Scale, string _name = "New Object")
+        {
+            Id = _nextId++;
+            name = _name;
+            _scripts = new List<object>();
+            _components = new Dictionary<Type, object>();
+            childEntities = new List<Entity>();
+            _parent = null;
+            AddComponent(new Transform3D(Pos, Rot, Scale));
+            _enabled = true;
+
+            // Register with lifecycle system
+            Lifecycle.ScriptBinding.HandleEntityCreated(this);
+        }
+
+        public Entity Instantiate(Entity extraData = null)
+        {
+            if (extraData != null)
+            {
+                return new Entity(this, extraData);
+            }
+            else
+            {
+                return new Entity(this);
+            }
+        }
+#endregion
+#region Components
+
+        /// <summary>
+        /// Construct and add a new component of type T using its parameterless constructor.
+        /// </summary>
+        public T AddComponent<T>() where T : class, new()
+        {
+            return AddComponent(new T());
+        }
+
+        /// <summary>
+        /// Add an already-constructed component instance (use this when the component
+        /// needs constructor args, e.g. new Mesh(vertexBuffer, indexBuffer)).
+        /// If a component of this exact type already exists, it is replaced.
+        /// </summary>
+        public T AddComponent<T>(T instance) where T : class
+        {
+            if (instance == null)
+            {
+                Logger.LogError(
+                    $"Attempted to add null component to entity '{name}'",
+                    LoggingTarget.Engine
+                );
+                return instance!;
+            }
+ 
+            var type = typeof(T);
+ 
+            if (_components.ContainsKey(type))
+            {
+                Logger.LogWarning(
+                    $"Entity '{name}' already has a component of type '{type.Name}'; overwriting.",
+                    LoggingTarget.Engine
+                );
+            }
+ 
+            _components[type] = instance;
+ 
+            Logger.LogDebug(
+                $"Component '{type.Name}' added to entity '{name}'",
+                LoggingTarget.Engine
+            );
+ 
+            return instance;
+        }
+        
+        /// <summary>
+        /// Get the component of type T attached to this entity, or null if it has none.
+        /// </summary>
+        public T? GetComponent<T>() where T : class
+        {
+            return _components.TryGetValue(typeof(T), out var component) ? component as T : null;
+        }
+ 
+        /// <summary>
+        /// Try-pattern version of GetComponent, avoids a separate null check at the call site.
+        /// </summary>
+        public bool TryGetComponent<T>(out T? component) where T : class
+        {
+            component = GetComponent<T>();
+            return component != null;
+        }
+ 
+        /// <summary>
+        /// Check whether this entity has a component of type T.
+        /// </summary>
+        public bool HasComponent<T>() where T : class
+        {
+            return _components.ContainsKey(typeof(T));
+        }
+ 
+        /// <summary>
+        /// Remove the component of type T from this entity, if present.
+        /// </summary>
+        public bool RemoveComponent<T>() where T : class
+        {
+            var removed = _components.Remove(typeof(T));
+ 
+            if (removed)
+            {
+                Logger.LogDebug(
+                    $"Component '{typeof(T).Name}' removed from entity '{name}'",
+                    LoggingTarget.Engine
+                );
+            }
+ 
+            return removed;
+        }
+ 
+        /// <summary>
+        /// Get all components attached to this entity (e.g. for a render system that
+        /// needs to know "does this entity have a Mesh + Transform3D?").
+        /// </summary>
+        public IReadOnlyCollection<object> GetComponents()
+        {
+            return _components.Values;
+        }
+#endregion
+#region Scripts
 
         /// <summary>
         /// Add a script component to this entity.
@@ -85,6 +281,7 @@ namespace Angene.Essentials
             );
         }
 
+
         /// <summary>
         /// Remove a script from this entity.
         /// Note: This does not trigger lifecycle callbacks - the script is simply detached.
@@ -113,7 +310,7 @@ namespace Angene.Essentials
         /// If script not found, returns null.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public T GetScriptByType<T>()
+        public T? GetScriptByType<T>()
         {
             foreach (var script in _scripts )
             {
@@ -122,7 +319,7 @@ namespace Angene.Essentials
                     return (T)script;
                 }
             }
-            return default(T);
+            return default;
         }
 
         /// <summary>
@@ -137,7 +334,8 @@ namespace Angene.Essentials
             }
             return null;
         }
-
+#endregion
+#region Properties
         /// <summary>
         /// Set the enabled state of this entity.
         /// This will trigger OnEnable/OnDisable lifecycle callbacks.
@@ -207,7 +405,8 @@ namespace Angene.Essentials
         {
             return _parent;
         }
-
+#endregion
+#region Ops
         public void Remove() => Destroy();
 
         /// <summary>
@@ -258,5 +457,6 @@ namespace Angene.Essentials
         {
             return !(left == right);
         }
+#endregion
     }
 }

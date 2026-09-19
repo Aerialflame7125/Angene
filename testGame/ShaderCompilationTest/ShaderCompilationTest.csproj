@@ -26,22 +26,28 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <Reference Include="Angene">
-	    <HintPath>..\..\Build\Angene.dll</HintPath>
+	    <HintPath>..\..\Build\Angene\Angene.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Common">
-	    <HintPath>..\..\Build\Angene.Common.dll</HintPath>
+	    <HintPath>..\..\Build\Angene\Angene.Common.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Essentials">
-	    <HintPath>..\..\Build\Angene.Essentials.dll</HintPath>
+	    <HintPath>..\..\Build\Angene\Angene.Essentials.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Graphics">
-	    <HintPath>..\..\Build\Angene.Graphics.dll</HintPath>
+	    <HintPath>..\..\Build\Angene\Angene.Graphics.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Management">
-	    <HintPath>..\..\Build\Angene.Management.dll</HintPath>
+	    <HintPath>..\..\Build\Angene\Angene.Management.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Windows">
-	    <HintPath>..\..\Build\Angene.Windows.dll</HintPath>
+	    <HintPath>..\..\Build\Angene\Angene.Windows.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Audio">
+	    <HintPath>..\..\Build\Angene\Angene.Audio.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Angene.Vulkan">
+	    <HintPath>..\..\Build\Angene\Angene.Vulkan.dll</HintPath>
 	  </Reference>
 	</ItemGroup>
 

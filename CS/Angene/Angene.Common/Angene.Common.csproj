@@ -7,14 +7,6 @@
     <Configurations>Debug;Release;Publish</Configurations>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Windows`))' == 'true'">
-    <DefineConstants>WINDOWS</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Linux`))' == 'true'">
-    <DefineConstants>LINUX</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>

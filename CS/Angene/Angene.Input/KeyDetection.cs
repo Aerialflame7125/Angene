@@ -1,47 +1,161 @@
 ﻿using Angene.Common;
 using Angene.Essentials;
-using Angene.Input.WinInput;
 using Angene.Main;
 using Angene.Management;
 using Angene.Windows;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using Angene.Graphics;
+using Angene.Input;
+using Angene.Linux;
+using Angene.Linux.Wayland;
+using Angene.Linux.X11;
+using static Angene.Linux.X11.XLib;
 
 namespace Angene.Input
 {
     internal class KeyDetectionScript : IScreenPlay
     {
-        private readonly HashSet<object> _heldKeys = new();
+        private readonly HashSet<uint> _heldKeys = new();
 
-        public void Start() { }
-        public void OnMessage(IntPtr msgPtr)
+        public Action _fullscreenAction = null;
+        private bool holdingFullscreen = false;
+        private bool anyKeyDown = false;
+
+        public unsafe void OnMessage(object msgPtr)
         {
-            if (msgPtr == IntPtr.Zero) return;
-            var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
-
-            switch (msg.message)
+#if WINDOWS
+            if (msgPtr is IntPtr winmsgptr)
             {
-                case (uint)WM.KEYDOWN:
-                    object downKey = Key.TryNInt(msg.wParam);
-                    if (downKey is not 0)
-                        _heldKeys.Add(downKey);
-                    break;
+                var msg = Marshal.PtrToStructure<WindowManagement.MSG>(winmsgptr);
+                
+                switch (msg.message)
+                {
+                    case (uint)WM.KEYDOWN:
+                        uint downKey = (uint)KeyResolver.TryNInt(msg.wParam);
+                        if (downKey != 0)
+                            _heldKeys.Add(downKey);
+                        break;
 
-                case (uint)WM.KEYUP:
-                    object upKey = Key.TryNInt(msg.wParam);
-                    if (upKey is not 0)
-                        _heldKeys.Remove(upKey);
-                    break;
+                    case (uint)WM.KEYUP:
+                        uint upKey = (uint)KeyResolver.TryNInt(msg.wParam);
+                        if (upKey != 0)
+                        {
+                            _heldKeys.Remove(upKey);
+                        }
+                        break;  
+                }
+                if (_heldKeys.Contains((uint)WinInputKeys.IKeyCodeModWin.RAlt) && _heldKeys.Contains((uint)WinInputKeys.IKeyCodeModWin.Return))
+                {
+                    if (!holdingFullscreen)
+                    {
+                        //Engine.Instance.OpenWindows[0].set_fullscreen();
+                        Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
+                        holdingFullscreen = true;
+                    }
+                }
+                else
+                {
+                    holdingFullscreen = false;
+                }
             }
+#endif
+#if LINUX
+            if (msgPtr is _XEvent msg)
+            {
+                foreach (Window win in Engine.Instance.OpenWindows)
+                {
+                    IntPtr XWin;
+                    int revertTo;
+                    Methods.XGetInputFocus(Engine.Instance.SharedX11Display, (nuint*)&XWin, &revertTo);
+
+                    nuint keysym = XLib.Methods.XKeycodeToKeysym(Engine.Instance.SharedX11Display, (byte)msg.xkey.keycode, 0);
+                    if (win.Handle is X11WindowHandle handle && XWin == handle.Window)
+                    {
+                        switch (msg.type)
+                        {
+                            case 2: // KeyPress
+                                uint downKey = KeyResolver.TryLinuxKeysym(keysym);
+                                if (downKey != 0)
+                                    _heldKeys.Add(downKey);
+                                break;
+                            case 3: // KeyRelease
+                                uint upKey = KeyResolver.TryLinuxKeysym(keysym);
+                                if (upKey != 0)
+                                    _heldKeys.Remove(upKey);
+                                break;
+                        }
+
+                        if (_heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Alt_R) &&
+                        _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Return))
+                        {
+                            if (!holdingFullscreen)
+                            {
+                                Engine.Instance.OpenWindows[0].set_fullscreen();
+                                Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
+                                holdingFullscreen = true;
+                            }
+                        }
+                        else
+                        {
+                            holdingFullscreen = false;
+                        }
+                    }
+                }
+            }
+#endif
         }
 
-        public bool IsKeyDown(object key) => _heldKeys.Contains(key);
+#if LINUX
+        public unsafe void Update(double dt)
+        {
+            if (Engine.Instance.OpenWindows.Count >= 1)
+            {
+                if (Engine.Instance.OpenWindows[0].Handle is WaylandWindowHandle)
+                {
+                    var currentFrameKeys = new HashSet<uint>(WaylandInputHandler.instance.GetPressedKeys());
 
-        public HashSet<Object> GetDownKeys() => _heldKeys;
-        
-        public void Render() { }
-        public void Cleanup() { }
+                    _heldKeys.RemoveWhere(k => !currentFrameKeys.Contains(k));
+                    
+                    if (currentFrameKeys.Count > 0)
+                    {
+                        foreach (uint k in currentFrameKeys)
+                            _heldKeys.Add(k);
+                    }
+                    else
+                        _heldKeys.Clear();
+
+                    if (_heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Alt_R) &&
+                        _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Return))
+                    {
+                        if (!holdingFullscreen)
+                        {
+                            Engine.Instance.OpenWindows[0].set_fullscreen();
+                            Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
+                            holdingFullscreen = true;
+                        }
+                    }
+                    else
+                    {
+                        holdingFullscreen = false;
+                    }
+                }
+            }
+
+            if (_heldKeys.Count > 0)
+                anyKeyDown = true;
+            else
+                anyKeyDown = false;
+        }
+#endif
+
+        public bool IsKeyDown(uint key) => _heldKeys.Contains(key);
+
+        public bool IsAnyKeyDown() => anyKeyDown;
+
+        public HashSet<uint> GetDownKeys() => _heldKeys;
     }
 
     public class KeyDetection
@@ -68,7 +182,7 @@ namespace Angene.Input
 
             foreach (Window w in Engine.Instance.OpenWindows)
             {
-                Entity DetectionEntity = new Entity(0, 0, "KeyDetection");
+                Entity DetectionEntity = new Entity("KeyDetection");
                 _script = new KeyDetectionScript();
                 ManagementScene? a = w.ManagementScene as ManagementScene;
                 Entity b = a.AddEntity(DetectionEntity);
@@ -76,7 +190,8 @@ namespace Angene.Input
                 b.AddScript(_script);
             }
 
-            Logger.LogDebug($"[KeyDetection] Added {Engine.Instance.OpenWindows.Count} new Entities", LoggingTarget.Engine);
+            Logger.LogDebug($"[KeyDetection] Added {Engine.Instance.OpenWindows.Count} new Entities",
+                LoggingTarget.Engine);
         }
 
         /// <summary>
@@ -112,7 +227,7 @@ namespace Angene.Input
         /// </summary>
         /// <param name="managementScene"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public void Register(ManagementScene managementScene)
+        public void Register(ManagementScene managementScene, bool waylandkeys)
         {
             if (managementScene == null)
                 throw new ArgumentNullException(nameof(managementScene));
@@ -121,7 +236,8 @@ namespace Angene.Input
             if (defaultEnt == null)
             {
                 Logger.LogError("[KeyDetection] GetDefaultEntity() returned null. " +
-                    "Please refer to Angene spec. (Is the management scene instantiated?)", LoggingTarget.Engine);
+                                "Please refer to Angene spec. (Is the management scene instantiated?)",
+                    LoggingTarget.Engine);
                 return;
             }
 
@@ -134,12 +250,22 @@ namespace Angene.Input
         /// <param name="key"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static bool IsKeyDown(object key)
+        public static bool IsKeyDown(uint key)
         {
             if (_script == null)
-                throw new InvalidOperationException("KeyDetection not registered. Call KeyDetection.Register() first.");
+                throw new InvalidOperationException(
+                    "KeyDetection not registered. Call KeyDetection.Register() first.");
 
             return _script.IsKeyDown(key);
+        }
+
+        public static bool IsAnyKeyDown()
+        {
+            if (_script == null)
+                throw new InvalidOperationException(
+                    "KeyDetection not registered. Call KeyDetection.Register() first.");
+
+            return _script.IsAnyKeyDown();
         }
 
         /// <summary>
@@ -151,10 +277,13 @@ namespace Angene.Input
             {
                 e.RemoveScript(_script);
             }
+
             _script = null;
             Logger.LogDebug("[KeyDetection] Unregistered.", LoggingTarget.Engine);
         }
 
-        public static HashSet<object> GetDownKeys => _script?.GetDownKeys() ?? throw new InvalidOperationException("KeyDetection not registered.");
+        public static HashSet<uint> GetDownKeys => _script?.GetDownKeys() ??
+                                                   throw new InvalidOperationException(
+                                                       "KeyDetection not registered.");
     }
 }

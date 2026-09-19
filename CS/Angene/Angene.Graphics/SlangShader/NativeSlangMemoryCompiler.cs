@@ -1,5 +1,5 @@
 ﻿using Angene.Common.Settings;
-using Angene.Windows.Slang;
+using Angene.Graphics.SlangShader;
 using Org.BouncyCastle.Asn1.X509;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
@@ -180,6 +180,7 @@ namespace Angene.Graphics.SlangShader
         public static byte[] CompileShaderFromMemoryToFile(string sourceCode, string entryPoint, string stage, string outputPath, ToShaderType toType)
         {
             // Initialize
+            
             byte[] code = null;
             if (toType == null)
                 throw new Exceptions.FailedToCompileShaderException("toType is null and invalid. Skipping shader.");

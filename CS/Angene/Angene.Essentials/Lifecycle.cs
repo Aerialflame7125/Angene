@@ -27,7 +27,7 @@ namespace Angene.Essentials
         public Action? OnDraw;
         public Action? OnDisable;
         public Action? OnDestroy;
-        public Action<IntPtr>? OnMessage;
+        public Action<object>? OnMessage;
         public Action? Render;
         public Action? Cleanup;
 

@@ -1,4 +1,5 @@
 ﻿using Angene.Audio;
+using Angene.Audio.MiniAudio;
 
 namespace Angene.Audio.Common
 {
@@ -6,14 +7,9 @@ namespace Angene.Audio.Common
     {
         public static IAudioPlayer Create(AudioFile file)
         {
-#if WINDOWS
-        return file._loadType == AudioFile.LoadType.streamed
-            ? Windows.WindowsAudioPlayer.FromStream(file.GetAudioStream())
-            : Windows.WindowsAudioPlayer.FromBytes(file.GetAudioBytes());
-#else
-            throw new PlatformNotSupportedException(
-                "Angene.Audio has no backend for this platform yet.");
-#endif
+            return file._loadType == AudioFile.LoadType.streamed
+                ? MiniAudio.MiniAudioPlayer.InitAudioPlayer(file, MiniAudioPlayerType.Stream)
+                : MiniAudio.MiniAudioPlayer.InitAudioPlayer(file, MiniAudioPlayerType.Memory);
         }
     }
 }

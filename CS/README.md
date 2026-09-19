@@ -3,7 +3,7 @@
 # Angene
 
 (pronounced 'engine')
-Last updated 2026/07/25
+Last updated 2026/09/18
 
 The C# library/variant of Angene. If you want to see the tree for the engine, refer to FunctionTree.md
 
@@ -41,7 +41,7 @@ WindowConfig conf = new WindowConfig();
 conf.Title = "Angene | Demo Code";
 conf.Transparency = Win32.WindowTransparency.SemiTransparent; // Not required, nice touch though
 conf.Width = 1280; conf.Height = 720;
-config.renderType = RenderType.DX11
+config.renderType = RenderType.DX11 // Or RenderType.Vulkan/GDI
 window = new Window(conf);
 Logger.LogDebug("New window, yaey!", LoggingTarget.Engine);
 ```
@@ -106,43 +106,29 @@ There are more examples of this logger, above shows the calls. Below is the hier
 * LogDebug
 This logger already pre-writes a new file to a folder called "Log", picking everything up from the engine and game stack. Debug is written here instead of window when log window instance exists.
 
-## Windows message loop (Win32)
+## Message loop
 
 Please, please, please, do not forget the message loop.
 The message loop is what keeps the entire lifecycle in check, as well as triggering every tick.
 This is left open for the developer in case they want anything in between ticks or draw. Use the below as a template if you want:
 
 ```cs
-private static void RunWindowsMessageLoop(ref double dt)
+private static void RunMessageLoop(ref double dt, Window win, IScene scene)
 {
-    bool running = true;
-    while (running)
+    while (!Engine.Instance.ShouldShutdown)
     {
-        while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
-        {
-            if (msg.message == (uint)WM.QUIT)
-            {
-                running = false;
-                break;
-            }
-            User32.TranslateMessage(ref msg);
-            User32.DispatchMessageW(ref msg);
-        }
-        if (!running) break;
-        dt = (DateTime.Now - lastFrame).TotalSeconds;
-        lastFrame = DateTime.Now;
-        foreach (var win in Engine.Instance.OpenWindows)
-        {
-            foreach (var scene in win.Scenes)
-            {
-                Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
-                Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
-            }
-            win.RenderFrame();
-            win._screenPlay?.LateUpdate(dt);
-        }
+            bool a = win.ProcessMessages(win.Handle);
+
+            dt = (DateTime.Now - lastFrame).TotalSeconds;
+            lastFrame = DateTime.Now;
+
+        Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
+        Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
+        win.RenderFrame();
         Thread.Sleep(16);
     }
+    win.Cleanup();
+    Lifecycle.ScriptBinding.ShutdownEngine();
 }
 ```
 
@@ -267,9 +253,11 @@ The scene spec is simple, very few things to add.
 ```cs
 public class DemoScene : IScene
 {
-  // The following 3 vars are not required, but are recommended.
-  public object Instance {get; private set;} 
-  public List<Entity> entities {get; private set;}
+  // The following 4 vars are required.
+  public static object Instance { get; private set; }
+  public List<Entity> Entities { get; private set; } = new List<Entity>();
+  public string Name => "CameraTestScene";
+  public Entity MainCamera => _cameraEntity;
   public Window _window;
 
   internal DemoScene(Window window) // Again, not needed by spec, but useful.
@@ -280,7 +268,7 @@ public class DemoScene : IScene
 
   public void Initialize()
   {
-    entities = new List<Entity>();
+    Instance = this;
     Logger.LogInfo($"Running on {PlatformDetection.CurrentPlatform}", LoggingTarget.MainGame);
     // ... do entity mumbo jumbo here i guess
   }
@@ -316,9 +304,15 @@ You (the developer) have a plethora of options for the window, and I honestly re
 Here is a really basic window config, along with instantiation:
 
 ```cs
-WindowConfig winconf = new WindowConfig();
-winconf.Title = "Angene | Demo";
-winconf.Width = 1280; winconf.Height = 720;
+WindowConfig winconf = new WindowConfig()
+{
+    Title = "Angene | Demo",
+    Width = 1280,
+    Height = 720,
+    renderMode = Angene.Graphics.RenderType.Vulkan, // Or Angene.Graphics.RenderType.D3D11/GDI
+    UseWayland = true
+};
+
 Window win = new Window(winconf);
 ```
 
@@ -405,14 +399,6 @@ The CPP host file is really picky on namespaces, so here is an example:
 	<!-- Copy dependencies to output -->
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 </PropertyGroup>
-
-<!-- Platform-specific defines -->
-<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-	<DefineConstants>WINDOWS</DefineConstants>
-</PropertyGroup>
-<PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-	<DefineConstants>LINUX</DefineConstants>
-</PropertyGroup>
 ```
 
 This literally is the simplest you need if you want to at least compile.
@@ -475,15 +461,15 @@ Again just an example, but the arguments are as follows. If a log directory is n
 // 7/25/26
 Ever since D3D11, prior to actually rendering or creating Windows with initializing the WindowConfig add this to somewhere before creating your windows:
 ```cs
-Logger.LogImportant("Waiting for shader precompilation to finish...", LoggingTarget.MainGame);
 while (Engine.Instance.IsCompilingShaders)
 {
-    PumpOpenWindows();
-    Thread.Sleep(16);
+    foreach (Window window in Engine.Instance.OpenWindows)
+        window.RenderFrame();
+    
+    Engine.Instance.FlushPendingCloses();
 }
 Logger.LogImportant("Shader precompilation finished.", LoggingTarget.MainGame);
 ```
-
 
 ## Audio
 
@@ -492,19 +478,16 @@ Audio is really strange, but I attempted to have this as simple as possible. You
 ```cs
 // In scene Initialize() or inside a script:
 
-var audio = new AudioFile(
-  packagePath: "assets.angpkg",
-  path: "audio/music/myAudioFile.wav", // currently at writing (2/28/26), only support wav files.
-  loadType: AudioFile.LoadType.loadOnInstantiate // Loads on scene/script instantiation, other enum values are listed in tree for Angene.Audio.
-  );
+AudioFile file = new("Assets/Audio.angpkg", "00_-_CAKE_Cake_n_Cake_.mp3", AudioFile.LoadType.loadOnInstantiate); // As of writing, is just an example of reading from (projPath/Audio.angpkg) for the audio (00_-_CAKE_Cake_n_Cake_.mp3)
+
 ```
 
 Then create an audio manager, this is handled in its own thread to save the original game threads:
 
 ```cs
-var audioManager = new AudioManager(
-  file: audio,
-  playOnLoad: true, // Play the audio once the file is loaded
+AudioManager _manager = new AudioManager(
+  file, 
+  playOnLoad:false, // Play the audio once the file is loaded
   loop: true, // Your choice of looping the audio when it finishes
   volume: 0.3f // A float value between 0 and 1, no higher or lower.
 );
@@ -662,7 +645,9 @@ An example of all of these is in [testGame/MathTest](https://github.com/Aerialfl
 ## Key Detection
   
 ```cs
-bool held = KeyDetection.IsKeyDown(key);
+private KeyDetection keyDetection = new KeyDetection();
+keyDetection.Register(new Entity(new Vec2(0, 0), 0,  new Vec2(0, 0), "Inputs")); // dont ever do this please, do this to already instantiated entities.
+bool held = KeyDetection.IsKeyDown((uint)key);
 
 uint bg = held ? 0x003A6E3Au : 0x00222233u;
 uint fg = held ? 0x0000FF00u : 0x00AAAAAAu;
@@ -693,6 +678,7 @@ public class DX11ExampleScene : IScene
 
   private readonly Window _window;
   private IDX11GraphicsContext _gfx;
+  public Entity MainCamera => null;
 
   private IntPtr _vertexBuffer;
   private IntPtr _inputLayout;
@@ -756,7 +742,12 @@ public class DX11ExampleScene : IScene
       _inputLayout = _gfx.CreateInputLayout(elements, _vertexShader.byteCode);
   }
 
-  public void OnMessage(IntPtr msgPtr) { }
+  public void OnMessage(object msgPtr)
+    {
+        foreach (Entity e in Entities)
+            foreach (IScreenPlay isp in e.GetScripts())
+                isp.OnMessage(msgPtr);
+    }
 
   public void Render() { }
 
@@ -776,8 +767,118 @@ public class DX11ExampleScene : IScene
 I know, its a really long exerpt; it's a page taken out of ShaderCompileTestScene.
 It's a beautiful sight aint it? I plan to get this smaller as time goes on for rendering.
 
-## Dx11Shader classes
-Okay, it's the meat and bones of DirectX, stay with me here.
+## Vulkan
+This was almost equal the amount of pain I suffered through DX11. Lets walk through this one too!
+```cs
+public unsafe class CameraTestScene : IScene
+{
+    public static object Instance { get; private set; }
+    public List<Entity> Entities { get; private set; } = new List<Entity>();
+    public string Name => "CameraTestScene";
+
+    public Entity MainCamera => _cameraEntity;
+
+    internal readonly Window _window;
+    private IVkGraphicsContext _gfx;
+
+    private IntPtr _vertexShaderModule;
+    private IntPtr _fragmentShaderModule;
+    private IntPtr _pipeline;
+
+    private Entity _cameraEntity;
+    private Entity _objectEntity;
+    private float[] vertexData;
+    private IntPtr vertexBuffer = IntPtr.Zero;
+    private byte[] vertexBytes;
+    private int vertexCount;
+
+    public CameraTestScene(Window window, string materialsPackagePath)
+    {
+        _window = window ?? throw new ArgumentNullException(nameof(window));
+    }
+
+    public void Initialize()
+    {
+        Instance = this;
+        
+        _gfx = _window.Graphics as IVkGraphicsContext;
+        if (_gfx == null)
+        {
+            Logger.LogCritical("[CameraTestScene] Window is not using the Vulkan backend.", LoggingTarget.Graphics, new Exception("Window is not using the Vulkan rendering backend."));
+            return;
+        }
+        
+        var vertexShader = Engine.Instance.ShaderCache[1] as VkShader;
+        var fragmentShader = Engine.Instance.ShaderCache[2] as VkShader;
+
+        if (vertexShader.NativeShaderModule == IntPtr.Zero || fragmentShader.NativeShaderModule == IntPtr.Zero)
+            throw new Exception("Shader module handle is zero!");
+
+        var attributes = new VkVertexInputAttributeDescription[]
+        {
+            new VkVertexInputAttributeDescription
+            {
+                location = 0, binding = 0,
+                format = VkFormat.VK_FORMAT_R32G32B32_SFLOAT,
+                offset = 0
+            },
+            new VkVertexInputAttributeDescription
+            {
+                location = 1, binding = 0,
+                format = VkFormat.VK_FORMAT_R32G32B32A32_SFLOAT,
+                offset = 12
+            },
+        };
+
+        _pipeline = _gfx.CreatePipeline(vertexShader.NativeShaderModule, fragmentShader.NativeShaderModule,
+            attributes, 7 * sizeof(float));
+
+        Logger.LogInfo("[CameraTestScene] Initialized.", LoggingTarget.Graphics);
+        
+        var vCam = _cameraEntity.GetComponent<VulkanCamera>();
+
+        Matrix4x4 view = vCam.LookTo(camTransform.pos, vCam.forward, vCam.up);
+        Matrix4x4 proj = vCam.Perspective(vCam.fov, vCam.aspectRatio, vCam.nearPlane, vCam.farPlane);
+
+        vertexData = BuildSortedNdcVertexBuffer(modelView, proj, out vertexCount);
+        vertexBytes = new byte[vertexData.Length * sizeof(float)];
+        Buffer.BlockCopy(vertexData, 0, vertexBytes, 0, vertexBytes.Length);
+        vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float)); // Example of camera offset if you do have models
+    }
+
+    public void OnMessage(object msgPtr)
+    {
+        foreach (Entity e in Entities)
+            foreach (IScreenPlay isp in e.GetScripts())
+                isp.OnMessage(msgPtr);
+    }
+
+    public void Render()
+    {
+        if (_gfx == null) return;
+        var cubeTransform  = _objectEntity.GetComponent<Transform3D>(); // Entities for rendering need to have a Transform2D/3D
+        vertexData  = BuildSortedNdcVertexBuffer(cubeTransform.ModelView, cubeTransform.Proj, out vertexCount);
+        Buffer.BlockCopy(vertexData, 0, vertexBytes, 0, vertexBytes.Length);
+        _gfx.BeginFrame(0x00202020);
+        _gfx.UpdateVertexBuffer(vertexBuffer, vertexBytes);
+        _gfx.SetPipeline(_pipeline);
+        _gfx.SetVertexBuffer(vertexBuffer, strideBytes: 7 * sizeof(float));
+        _gfx.Draw((uint)vertexCount);
+
+        _gfx.EndFrame();
+    }
+
+    public void Cleanup()
+    {
+        // Cleanup is handled by Vk context.
+    }
+}
+```
+This is almost 1:1 also ripped from LinuxCameraTest. As a reminder, Vulkan is not a supported backend for Windows as of now due to ram leaks and general performance problems.
+I also plan to optimize this as time goes on.
+
+## Shader classes
+Okay, it's the meat and bones of graphics, stay with me here.
 I tried to get this to a point that even I can understand it, so please be patient with them.
 (I did not crash both of my GPUs twice while making this btw)
 ```cs
@@ -792,7 +893,7 @@ public class TestVertexShader : SlangShaderResources.IShader
   public bool compileToFile { get; } = true;
   public bool IsDisposed { get; private set; }
 
-  SlangShaderResources.ShaderOrigin SlangShaderResources.IShader.Origin => SlangShaderResources.ShaderOrigin.Dx11;
+  SlangShaderResources.ShaderOrigin SlangShaderResources.IShader.Origin => SlangShaderResources.ShaderOrigin.Dx11; // Or SlangShaderResources.ShaderOrigin.Vulkan
 
   public string Code => @"struct VSInput
 {
@@ -817,7 +918,7 @@ VSOutput main(VSInput input)
 
   public byte[] byteCode => null;
 
-  public void Bind() { /* binding is handled by IDX11GraphicsContext.SetShader */ }
+  public void Bind() { /* binding is handled by IDX11GraphicsContext.SetShader or IVkGraphicsContext.SetVertexBuffer/SetIndexBuffer */ }
 
   public string OutputDebugInfo(bool log = true)
   {
@@ -855,7 +956,7 @@ float4 main(PSInput input) : SV_TARGET
 
   public byte[] byteCode => null;
 
-  SlangShaderResources.ShaderOrigin SlangShaderResources.IShader.Origin => SlangShaderResources.ShaderOrigin.Dx11;
+  SlangShaderResources.ShaderOrigin SlangShaderResources.IShader.Origin => SlangShaderResources.ShaderOrigin.Dx11; // Again, or SlangShaderResources.ShaderOrigin.Vulkan
 
   public void Bind() { }
 
@@ -878,6 +979,8 @@ This is an example of a Pixel shader and a Vertex shader. Notice some distinctio
 This sucked to get working, but Slang is the primary compiler that is responsible for compiling and the library is about 30 MB. I'm not happy about it either.
 The Slang interop is currently only on the windows platform, for I plan to get this added for Linux too. MacOS users can respectfully, not get this engine.
 
+
+
 # QnA
 
   ## Have you [vibecoded](http://vibe-coded.urbanup.com/18530338) any part of this engine?
@@ -886,37 +989,22 @@ The Slang interop is currently only on the windows platform, for I plan to get t
   If you need to know which parts are vibe coded, I will list them here:
 
   ### Angene.Math
-
   * Angene.Math
-
     * Rand
   * Angene.Math.Defs
-
     * IComputeBackend
     * IComputeJob
   * Angene.Math.GPU
-
     * Math
   * Angene.Math.Interpolation
-
     * Mathf
   * Angene.Math.Vectors
-
     * Vectors
 
   ### Angene.Common
 
   * Globals
-
     * IRenderer3D (Partial, literally just a header to differentiate renderer types.)
-
-  ### Angene.Audio
-
-  * All of the above.
-
-    * I state this because the entire audio library is vibecoded. Windows audio formats suck and are horrible to work with.
-    * If you wish to fact check me, just remember that the audio libraries are all in CPP and C, requiring importing.
-    * Another thing, Windows audio derives from older versions that still exist in newer systems (Windows 11) still completely being deprecated and dead code. Microslop has yet to remove these older versions, causing discrepancies in what library users should use.
 
   ### Angene (main library)
 
@@ -936,10 +1024,8 @@ The Slang interop is currently only on the windows platform, for I plan to get t
 
   Also, this entire readme is written by hand before you ask. I'm not going to document a game engine I am working on with AI. What kind of person do you take me for?
 
-  ## Why is this Windows-Only (for now)?
-
-  This engine is windows only because of how I just couldn't find documentation. Not to mention, I started this project on Windows 10 and will continue working on it in Windows.
-Before yall Linux nerds and soul-less Fedora users come in here and rip on me for not using "ThE BEsT OpERaTiNG sYsTEm eVeR!" Just remember that C# is made by Microsoft, not to mention Visual-fucking-Studio is not on any Linux system other than of-fucking course MacOS. (other than VSCode, but respectfully I'm not using VSC for C#.)
+  ### Angene.Graphics
+  * Parts of Vulkan (Very little, only for clarification on my end and less headaches when debugging raw bindings.)
 
   ## Who all is working on this?
 

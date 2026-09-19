@@ -1,10 +1,13 @@
-﻿using Angene.Common;
+﻿using System.Diagnostics;
+using Angene.Common;
 using Angene.Essentials;
-using Angene.Input.WinInput;
 using Angene.Main;
 using Angene.Management;
 using Angene.Windows;
 using System.Runtime.InteropServices;
+using Angene.Linux.X11;
+using Angene.Graphics;
+using Angene.Linux;
 
 namespace Angene.Input
 {
@@ -14,54 +17,135 @@ namespace Angene.Input
         private float ypos = 0f;
         private bool isInWindow = false;
 
-        private readonly HashSet<Keys.IKeyCodeMouse> _heldButtons = new();
+        private readonly HashSet<uint> _heldButtons = new();
 
-        public void Start() { }
-        public void OnMessage(IntPtr msgPtr)
+        public unsafe void Start()
         {
-            if (msgPtr == IntPtr.Zero) return;
-            var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
-
-            switch (msg.message)
+#if LINUX
+            if (Engine.Instance.OpenWindows[0].Handle is X11WindowHandle handle)
             {
-                case (uint)WM.LBUTTONDOWN:
-                    _heldButtons.Add(WinInput.Keys.IKeyCodeMouse.LMouse);
-                    break;
-                case (uint)WM.LBUTTONUP:
-                    _heldButtons.Remove(WinInput.Keys.IKeyCodeMouse.LMouse);
-                    break;
-                case (uint)WM.RBUTTONDOWN:
-                    _heldButtons.Add(WinInput.Keys.IKeyCodeMouse.RMouse);
-                    break;
-                case (uint)WM.RBUTTONUP:
-                    _heldButtons.Remove(WinInput.Keys.IKeyCodeMouse.RMouse);
-                    break;
-                case (uint)WM.MOUSEMOVE:
-                    xpos = (short)(msg.lParam.ToInt64() & 0xFFFF);
-                    ypos = (short)((msg.lParam.ToInt64() >> 16) & 0xFFFF);
-                    if (!isInWindow)
-                    {
-                        isInWindow = true;
-                        // trackmouseevent because windows is fucking stinky and wont send mouseleave without it
-                        var tme = new WindowManagement.TRACKMOUSEEVENT
+                XLib.Methods.XSelectInput(Engine.Instance.SharedX11Display,
+                    (nuint)handle.Window,
+                    (IntPtr)(XLib.XEventMask.ExposureMask
+                             | XLib.XEventMask.KeyPressMask
+                             | XLib.XEventMask.PointerMotionMask
+                             | XLib.XEventMask.ButtonPressMask
+                             | XLib.XEventMask.ButtonReleaseMask
+                             | XLib.XEventMask.EnterWindowMask
+                             | XLib.XEventMask.LeaveWindowMask));
+                XLib.Methods.XMapWindow(Engine.Instance.SharedX11Display,
+                    (nuint)handle.Window);
+            }
+#endif
+        }
+        
+        private static readonly Dictionary<int, uint> ButtonMap = new()
+        {
+            { 1, (uint)X11InputKeys.IKeyCodeMouseLinux.Button1Left },
+            { 2, (uint)X11InputKeys.IKeyCodeMouseLinux.Button2Middle },
+            { 3, (uint)X11InputKeys.IKeyCodeMouseLinux.Button3Right },
+            { 4, (uint)X11InputKeys.IKeyCodeMouseLinux.Button4ScrUp },
+            { 5, (uint)X11InputKeys.IKeyCodeMouseLinux.Button5ScrDown },
+            { 6, (uint)X11InputKeys.IKeyCodeMouseLinux.Button6 },
+            { 7, (uint)X11InputKeys.IKeyCodeMouseLinux.Button7 },
+            { 8, (uint)X11InputKeys.IKeyCodeMouseLinux.Button8 },
+            { 9, (uint)X11InputKeys.IKeyCodeMouseLinux.Button9 },
+        };
+        private readonly object _sync = new object();
+        public void OnMessage(object msgObj)
+        {
+            if (msgObj is IntPtr msgPtr)
+            {
+                if (msgPtr == IntPtr.Zero) return;
+                var msg = Marshal.PtrToStructure<WindowManagement.MSG>(msgPtr);
+
+                switch (msg.message)
+                {
+                    case (uint)WM.LBUTTONDOWN:
+                        _heldButtons.Add((uint)WinInputKeys.IKeyCodeMouseWin.LMouse);
+                        break;
+                    case (uint)WM.LBUTTONUP:
+                        _heldButtons.Remove((uint)WinInputKeys.IKeyCodeMouseWin.LMouse);
+                        break;
+                    case (uint)WM.RBUTTONDOWN:
+                        _heldButtons.Add((uint)WinInputKeys.IKeyCodeMouseWin.RMouse);
+                        break;
+                    case (uint)WM.RBUTTONUP:
+                        _heldButtons.Remove((uint)WinInputKeys.IKeyCodeMouseWin.RMouse);
+                        break;
+                    case (uint)WM.MOUSEMOVE:
+                        xpos = (short)(msg.lParam.ToInt64() & 0xFFFF);
+                        ypos = (short)((msg.lParam.ToInt64() >> 16) & 0xFFFF);
+                        if (!isInWindow)
                         {
-                            cbSize = (uint)Marshal.SizeOf<WindowManagement.TRACKMOUSEEVENT>(),
-                            dwFlags = 0x00000002, // TME_LEAVE
-                            hwndTrack = msg.hwnd,
-                            dwHoverTime = 0
-                        };
-                        User32.TrackMouseEvent(ref tme);
-                    }
-                    break;
-                case (uint)WM.MOUSELEAVE:
-                    isInWindow = false;
-                    break;
+                            isInWindow = true;
+                            // trackmouseevent because windows is fucking stinky and wont send mouseleave without it
+                            var tme = new WindowManagement.TRACKMOUSEEVENT
+                            {
+                                cbSize = (uint)Marshal.SizeOf<WindowManagement.TRACKMOUSEEVENT>(),
+                                dwFlags = 0x00000002, // TME_LEAVE
+                                hwndTrack = msg.hwnd,
+                                dwHoverTime = 0
+                            };
+                            User32.TrackMouseEvent(ref tme);
+                        }
+                        break;
+                    case (uint)WM.MOUSELEAVE:
+                        isInWindow = false;
+                        break;
+                }
+            }
+            if (msgObj is XLib._XEvent ev)
+            {
+                switch (ev.type)
+                {
+                    case 6: // MotionNotify
+                        xpos = ev.xmotion.x;
+                        ypos = ev.xmotion.y;
+                        break;
+
+                    case 4: // ButtonPress
+                        if (ButtonMap.TryGetValue((int)ev.xbutton.button, out var addCode))
+                            _heldButtons.Add(addCode);
+                        break;
+
+                    case 5: // ButtonRelease
+                        if (ButtonMap.TryGetValue((int)ev.xbutton.button, out var remCode))
+                            _heldButtons.Remove(remCode);
+                        break;
+
+                    case 7: // EnterNotify
+                        isInWindow = true;
+                        break;
+
+                    case 8: // LeaveNotify
+                        isInWindow = false;
+                        break;
+                }
             }
         }
 
-        public bool IsButtonDown(Keys.IKeyCodeMouse button) => _heldButtons.Contains(button);
+#if LINUX
+        public void Update(double dt)
+        {
+            if (Engine.Instance.OpenWindows.Count > 0 && Engine.Instance.OpenWindows[0].Handle is WaylandWindowHandle)
+            {
+                var currentFrameKeys = new HashSet<uint>(WaylandInputHandler.instance.GetPressedButtons());
 
-        public HashSet<Keys.IKeyCodeMouse> GetDownButtons() => _heldButtons;
+                _heldButtons.RemoveWhere(k => !currentFrameKeys.Contains(k));
+                
+                if (currentFrameKeys.Count > 0)
+                    foreach (uint k in currentFrameKeys)
+                        _heldButtons.Add(k);
+                (xpos, ypos) = WaylandInputHandler.instance.GetMousePos();
+                isInWindow = WaylandInputHandler.instance.IsMouseInWindow();
+            }
+        }
+#endif
+
+        public bool IsButtonDown(uint button) => _heldButtons.Contains(button);
+
+        public HashSet<uint> GetDownButtons() => _heldButtons;
 
         public (float, float) GetPosition() => (xpos, ypos);
 
@@ -95,7 +179,7 @@ namespace Angene.Input
 
             foreach (Window w in Engine.Instance.OpenWindows)
             {
-                Entity DetectionEntity = new Entity(0, 0, "MouseDetection");
+                Entity DetectionEntity = new Entity("MouseDetection");
                 _script = new MouseDetectionScript();
                 ManagementScene? a = w.ManagementScene as ManagementScene;
                 Entity b = a.AddEntity(DetectionEntity);
@@ -161,7 +245,7 @@ namespace Angene.Input
         /// <param name="key"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static bool IsButtonDown(Keys.IKeyCodeMouse button)
+        public static bool IsButtonDown(uint button)
         {
             if (_script == null)
                 throw new InvalidOperationException("MouseDetection not registered. Call MouseDetection.Register() first.");
@@ -182,8 +266,8 @@ namespace Angene.Input
             Logger.LogDebug("[MouseDetection] Unregistered.", LoggingTarget.Engine);
         }
 
-        public static HashSet<Keys.IKeyCodeMouse> GetDownButtons => _script?.GetDownButtons() ?? throw new InvalidOperationException("MouseDetection not registered.");
-        public static (float, float) GetPosition() => (_script?.GetPosition() ?? throw new InvalidOperationException("MouseDetection not registered."));
+        public static HashSet<uint> GetDownButtons => _script?.GetDownButtons() ?? throw new InvalidOperationException("MouseDetection not registered.");
+        public static (float, float) GetPosition() => _script?.GetPosition() ?? throw new InvalidOperationException("MouseDetection not registered.");
         public static bool IsInWindow() => _script?.IsInWindow() ?? throw new InvalidOperationException("MouseDetection not registered.");
     }
 }

@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import os
 import re
 import argparse
@@ -180,9 +181,13 @@ def main():
     # Write the combined content to a single file if --one-file is specified
     if args.one_file and backbuffer is not None:
         try:
-            with open(out_path / "combined.md", 'w', encoding='utf-8') as out_f:
+            if os.path.exists(str(out_path) + "FunctionTree.md"):
+                print("FunctionTree.md already exists, deleting.")
+                os.remove(str(out_path) + "FunctionTree.md")
+            with open(out_path / "FunctionTree.md", 'w', encoding='utf-8') as out_f:
+                out_f.write(f"<sub><sup>(generated {datetime.now(timezone.utc)})</sup></sub>\n\n")
                 out_f.write(backbuffer)
-            print(f"Success. Combined tree written to {out_path / 'combined.md'}")
+            print(f"Success. Combined tree written to {out_path / 'FunctionTree.md'}")
         except Exception as e:
             print(f"Failed to write combined file: {e}")
 

@@ -7,14 +7,6 @@
     <Configurations>Debug;Release;Publish</Configurations>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Windows`))' == 'true'">
-  	<DefineConstants>WINDOWS</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Linux`))' == 'true'">
-  	<DefineConstants>LINUX</DefineConstants>
-  </PropertyGroup>
-
   <Target Name="MoveBinariesToBuild" AfterTargets="Build">
     <ItemGroup>
       <BinariesToMove Include="$(TargetDir)*.dll; $(TargetDir)*.exe" />
@@ -31,6 +23,8 @@
 	</Target>
   <ItemGroup>
     <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
-    <ProjectReference Include="..\Angene.Graphics\Angene.Graphics.csproj" />
+    <ProjectReference Include="..\Angene.Vulkan\Angene.Vulkan.csproj" />
+    <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
+    <ProjectReference Include="..\Angene.Math\Angene.Math.csproj" />
   </ItemGroup>
 </Project>
