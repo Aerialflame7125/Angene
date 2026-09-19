@@ -3,6 +3,7 @@ using Angene.Essentials;
 using System;
 using System.Collections.Generic;
 using Angene.Essentials.GraphicsContexts;
+using Angene.Math.Vectors;
 #if Windows
 using Angene.Graphics.DX11;
 #endif
@@ -27,11 +28,22 @@ namespace Angene.Essentials
 
         void Initialize(); //On Scene Init
 
-        void OnMessage(object msgPtr); //On WM Message from Windows.
+        void OnMessage(object msgPtr); //On WM Message.
 
         void Render() { } // Final render in scene
 
         void Cleanup(); // Scene cleanup
+    }
+
+    public static class SceneExtensions // Implicit inheritance
+    {
+        public static Matrix4x4 GetWorldMatrix(this IScene scene, Entity e)
+        {
+            Matrix4x4 local = e.Transform.GetMatrix();
+            Entity? parent = e.GetParent();
+            
+            return parent == null ? local : GetWorldMatrix(scene, parent) * local;
+        }
     }
 
     /// <summary>

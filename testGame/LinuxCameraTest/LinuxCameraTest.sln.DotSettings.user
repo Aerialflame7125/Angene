@@ -9,4 +9,9 @@
   &lt;Assembly Path="/home/goldship/Documents/GitHub/Angene/testGame/LinuxCameraTest/bin/Debug/net8.0/Angene.Graphics.dll" /&gt;
   &lt;Assembly Path="/home/goldship/Documents/GitHub/Angene/testGame/LinuxCameraTest/bin/Debug/net8.0/Angene.Essentials.dll" /&gt;
   &lt;Assembly Path="/home/goldship/Documents/GitHub/Angene/testGame/LinuxCameraTest/bin/Debug/net8.0/Angene.Common.dll" /&gt;
-&lt;/AssemblyExplorer&gt;</s:String></wpf:ResourceDictionary>
+  &lt;Assembly Path="/home/goldship/Documents/GitHub/Angene/Build/Angene/Lin/Angene.Linux.dll" /&gt;
+&lt;/AssemblyExplorer&gt;</s:String>
+	
+	
+	
+	</wpf:ResourceDictionary>

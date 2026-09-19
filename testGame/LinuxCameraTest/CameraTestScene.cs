@@ -13,6 +13,7 @@ using Angene.Main;
 using Angene.Math.Vectors;
 using Angene.Graphics.SlangShader;
 using Angene.Audio;
+using Angene.Essentials.DefaultEntities;
 using Angene.Essentials.GraphicsContexts;
 using static Angene.Essentials.Types;
 
@@ -49,7 +50,6 @@ namespace Game.Scenes
         private Dictionary<string, FaceColor> _materials;
 
         private AudioManager _manager;
-
 
         private List<(Vec3 ndc0, Vec3 ndc1, Vec3 ndc2, float depth, FaceColor color)> triangles = new List<(Vec3 ndc0, Vec3 ndc1, Vec3 ndc2, float depth, FaceColor color)>();
         private List<float> verts = new();
@@ -115,10 +115,10 @@ namespace Game.Scenes
             controller.Initialize(_cameraEntity);
 
             // --- Cube entity: just needs a Transform3D, geometry is generated in Render() ---
-            _cubeEntity = new Entity(new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "Cube");
+            _cubeEntity = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "Cube");
             Entities.Add(_cubeEntity);
 
-            _cubeEntity1 = _cubeEntity.Instantiate(new Entity(new Vec3(0f, 3f, 0f), new Vec3(0, 0, 0), new Vec3(2, 2, 1), "Cube1"));
+            _cubeEntity1 = Cube.Instantiate(_gfx, new Vec3(0f, 3f, 0f), new Vec3(0, 0, 0), new Vec3(2, 2, 1), "Cube1");
             Entities.Add(_cubeEntity1);
             // --- Pipeline (position + color vertex layout, matches Shaders.cs) ---
             var vertexShader = Engine.Instance.ShaderCache[1] as VkShader;
@@ -150,30 +150,6 @@ namespace Game.Scenes
             AudioFile file = new("Assets/Audio.angpkg", "00_-_CAKE_Cake_n_Cake_.mp3", AudioFile.LoadType.loadOnInstantiate);
             _manager = new AudioManager(file, playOnLoad:false, loop: false, volume: 1f);
             Logger.LogInfo("[CameraTestScene] Initialized.", LoggingTarget.Graphics);
-
-            var camTransform = _cameraEntity.GetComponent<Transform3D>();
-            var vCam = _cameraEntity.GetComponent<VulkanCamera>();
-            var cubeTransform = _cubeEntity.GetComponent<Transform3D>();
-            var cube1Transform = _cubeEntity1.GetComponent<Transform3D>();
-
-            Matrix4x4 model = cubeTransform.GetMatrix();
-            Matrix4x4 model1 = cube1Transform.GetMatrix();
-            Matrix4x4 view = vCam.LookTo(camTransform.pos, vCam.forward, vCam.up);
-            Matrix4x4 modelView = view * model;
-            Matrix4x4 model1View = view * model1;
-            Matrix4x4 proj = vCam.Perspective(vCam.fov, vCam.aspectRatio, vCam.nearPlane, vCam.farPlane);
-
-            vertexData = BuildSortedNdcVertexBuffer(modelView, proj, out vertexCount);
-            vertexData1 = BuildSortedNdcVertexBuffer(model1View, proj, out vertexCount1);
-
-            vertexBytes = new byte[vertexData.Length * sizeof(float)];
-            vertexBytes1 = new byte[vertexData1.Length * sizeof(float)];
-
-            Buffer.BlockCopy(vertexData, 0, vertexBytes, 0, vertexBytes.Length);
-            Buffer.BlockCopy(vertexData1, 0, vertexBytes1, 0, vertexBytes1.Length);
-
-            vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float));
-            vertexBuffer1 = _gfx.CreateVertexBuffer(vertexBytes1, strideBytes: 7 * sizeof(float));
         }
 
         public void OnMessage(object msgPtr)
@@ -186,57 +162,51 @@ namespace Game.Scenes
         public void Render()
         {
             if (_gfx == null) return;
-            var cubeTransform  = _cubeEntity.GetComponent<Transform3D>();
-            var cube1Transform = _cubeEntity1.GetComponent<Transform3D>();
 
-            vertexData  = BuildSortedNdcVertexBuffer(cubeTransform.ModelView, cubeTransform.Proj, out vertexCount);
-            vertexData1 = BuildSortedNdcVertexBuffer(cube1Transform.ModelView, cube1Transform.Proj, out vertexCount1);
-
-            Buffer.BlockCopy(vertexData, 0, vertexBytes, 0, vertexBytes.Length);
-            Buffer.BlockCopy(vertexData1, 0, vertexBytes1, 0, vertexBytes1.Length);
-
+            Transform3D camT = MainCamera.Transform;
+            VulkanCamera cam = MainCamera.GetComponent<VulkanCamera>()!;
+            Matrix4x4 view = cam.LookTo(camT.pos, cam.forward, cam.up);
+            Matrix4x4 proj = cam.Perspective(cam.fov, cam.aspectRatio, cam.nearPlane, cam.farPlane);
+            
+            List<(Entity e, Matrix4x4 mv)> cubes = Entities.Where(e => e.HasComponent<Mesh>()).Select(e => (e, mv: view * this.GetWorldMatrix(e)))
+                .OrderBy(t => cam.TransformPoint(t.mv, new Vec3(0, 0, 0)).Z).ToList();
+            
             _gfx.BeginFrame(0x00202020);
-
-            _gfx.UpdateVertexBuffer(vertexBuffer, vertexBytes);
-            _gfx.UpdateVertexBuffer(vertexBuffer1, vertexBytes1);
-
             _gfx.SetPipeline(_pipeline);
 
-            _gfx.SetVertexBuffer(vertexBuffer, strideBytes: 7 * sizeof(float));
-            _gfx.Draw((uint)vertexCount);
-
-            _gfx.SetVertexBuffer(vertexBuffer1, strideBytes: 7 * sizeof(float));
-            _gfx.Draw((uint)vertexCount1);
+            foreach ((Entity e, Matrix4x4 mv) in cubes)
+            {
+                Mesh mesh = e.GetComponent<Mesh>()!;
+                float[] data = BuildSortedNdcVertexBuffer(cam, mv, proj, out mesh.vertexCount);
+                Buffer.BlockCopy(data, 0, mesh.bytes, 0, data.Length * sizeof(float));
+                
+                _gfx.UpdateVertexBuffer(mesh.vertexBuffer, mesh.bytes);
+                _gfx.SetVertexBuffer(mesh.vertexBuffer, strideBytes: 7 * sizeof(float));
+                _gfx.Draw((uint)mesh.vertexCount);
+            }
 
             _gfx.EndFrame();
         }
 
-        /// <summary>
-        /// Builds the cube's 12 triangles (36 verts, position + color interleaved),
-        /// transformed into NDC space and sorted back-to-front by view-space depth so
-        /// the un-depth-tested Vulkan backend still draws faces in the right order.
-        /// </summary>
-        private float[] BuildSortedNdcVertexBuffer(Matrix4x4 modelView, Matrix4x4 proj, out int vertexCount)
+        private float[] BuildSortedNdcVertexBuffer(VulkanCamera cam, Matrix4x4 modelView, Matrix4x4 proj, out int vertexCount)
         {
             triangles.Clear();
             foreach (var face in Faces)
             {
                 FaceColor color = _materials.TryGetValue(face.material, out var c) ? c : new FaceColor(1, 1, 1, 1);
-
-                MainCamera.GetScriptByType<CameraControllerScript>()._camera.AddTriangle(Corners[face.a], Corners[face.b], Corners[face.c], color, modelView, proj, triangles);
-                MainCamera.GetScriptByType<CameraControllerScript>()._camera.AddTriangle(Corners[face.a], Corners[face.c], Corners[face.d], color, modelView, proj, triangles);
+                cam.AddTriangle(Corners[face.a], Corners[face.b], Corners[face.c], color, modelView, proj, triangles);
+                cam.AddTriangle(Corners[face.a], Corners[face.c], Corners[face.d], color, modelView, proj, triangles);
             }
 
-            // Painter's algorithm: farthest (most negative view-space Z) first.
             triangles.Sort((t1, t2) => t1.depth.CompareTo(t2.depth));
 
             verts.Clear();
-            verts.Append(triangles.Count * 3 * 7);
+            verts.Capacity = Math.Max(verts.Capacity, triangles.Count * 3 * 7);
             foreach (var tri in triangles)
             {
-                MainCamera.GetScriptByType<CameraControllerScript>()._camera.AppendVertex(verts, tri.ndc0, tri.color);
-                MainCamera.GetScriptByType<CameraControllerScript>()._camera.AppendVertex(verts, tri.ndc1, tri.color);
-                MainCamera.GetScriptByType<CameraControllerScript>()._camera.AppendVertex(verts, tri.ndc2, tri.color);
+                cam.AppendVertex(verts, tri.ndc0, tri.color);
+                cam.AppendVertex(verts, tri.ndc1, tri.color);
+                cam.AppendVertex(verts, tri.ndc2, tri.color);
             }
 
             vertexCount = triangles.Count * 3;

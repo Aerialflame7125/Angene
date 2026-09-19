@@ -72,23 +72,28 @@ public class Transform2D {
 
 public class Mesh
 {
+    public byte[] bytes = new byte[36 * 7 * sizeof(float)];
     public IntPtr vertexBuffer;
     public IntPtr indexBuffer;
-    public uint indexCount;
+    public int indexCount;
+    public int vertexCount;
 
     public Mesh(Mesh buh)
     {
         vertexBuffer = buh.vertexBuffer;
         indexBuffer = buh.indexBuffer;
         indexCount = buh.indexCount;
+        vertexCount = buh.vertexCount;
     }
 
-    public Mesh(IntPtr _vertexBuffer, IntPtr _indexBuffer, uint _indexCount = 0)
+    public Mesh(IntPtr _vertexBuffer, IntPtr _indexBuffer, int _indexCount = 0, int _vertexCount = 0)
     {
         vertexBuffer = _vertexBuffer;
         indexBuffer = _indexBuffer;
         indexCount = _indexCount;
+        vertexCount = _vertexCount;
     }
+    public Mesh() { }
 }
 
 public class VulkanCamera

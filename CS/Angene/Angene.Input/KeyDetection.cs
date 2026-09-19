@@ -51,59 +51,45 @@ namespace Angene.Input
                 {
                     if (!holdingFullscreen)
                     {
-                        //Engine.Instance.OpenWindows[0].set_fullscreen();
+                        //Engine.Instance.OpenWindows[0].set_fullscreen(true);
                         Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
                         holdingFullscreen = true;
                     }
-                }
-                else
-                {
-                    holdingFullscreen = false;
+                    else
+                    {
+                        //Engine.Instance.OpenWindows[0].set_fullscreen(false);
+                        holdingFullscreen = false;
+                    }
                 }
             }
 #endif
 #if LINUX
             if (msgPtr is _XEvent msg)
             {
+                if (msg.type != 2 && msg.type != 3) return;
+                
+                bool ours = false;
                 foreach (Window win in Engine.Instance.OpenWindows)
                 {
-                    IntPtr XWin;
-                    int revertTo;
-                    Methods.XGetInputFocus(Engine.Instance.SharedX11Display, (nuint*)&XWin, &revertTo);
-
-                    nuint keysym = XLib.Methods.XKeycodeToKeysym(Engine.Instance.SharedX11Display, (byte)msg.xkey.keycode, 0);
-                    if (win.Handle is X11WindowHandle handle && XWin == handle.Window)
+                    if (win.Handle is X11WindowHandle h && h.Window == (IntPtr)msg.xkey.window)
                     {
-                        switch (msg.type)
-                        {
-                            case 2: // KeyPress
-                                uint downKey = KeyResolver.TryLinuxKeysym(keysym);
-                                if (downKey != 0)
-                                    _heldKeys.Add(downKey);
-                                break;
-                            case 3: // KeyRelease
-                                uint upKey = KeyResolver.TryLinuxKeysym(keysym);
-                                if (upKey != 0)
-                                    _heldKeys.Remove(upKey);
-                                break;
-                        }
-
-                        if (_heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Alt_R) &&
-                        _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Return))
-                        {
-                            if (!holdingFullscreen)
-                            {
-                                Engine.Instance.OpenWindows[0].set_fullscreen();
-                                Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
-                                holdingFullscreen = true;
-                            }
-                        }
-                        else
-                        {
-                            holdingFullscreen = false;
-                        }
+                        ours = true;
+                        break;
                     }
                 }
+
+                if (!ours) return;
+
+                nuint keysym = XLib.Methods.XKeycodeToKeysym(Engine.Instance.SharedX11Display, (byte)msg.xkey.keycode, 0);
+                uint key = KeyResolver.TryLinuxKeysym(keysym);
+                if (key == 0) return;
+
+                if (msg.type == 2)
+                    _heldKeys.Add(key);
+                else
+                    _heldKeys.Remove(key);
+
+                CheckFullscreenCombo();
             }
 #endif
         }
@@ -127,20 +113,7 @@ namespace Angene.Input
                     else
                         _heldKeys.Clear();
 
-                    if (_heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Alt_R) &&
-                        _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Return))
-                    {
-                        if (!holdingFullscreen)
-                        {
-                            Engine.Instance.OpenWindows[0].set_fullscreen();
-                            Logger.LogDebug("Setting fullscreen status", LoggingTarget.Engine);
-                            holdingFullscreen = true;
-                        }
-                    }
-                    else
-                    {
-                        holdingFullscreen = false;
-                    }
+                    CheckFullscreenCombo();
                 }
             }
 
@@ -148,6 +121,26 @@ namespace Angene.Input
                 anyKeyDown = true;
             else
                 anyKeyDown = false;
+        }
+
+        private bool _comboWasDown = false;
+        private bool _isFullscreen = false;
+
+        private void CheckFullscreenCombo()
+        {
+            bool comboDown =
+                _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Alt_R) &&
+                _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Return);
+
+            // Only fire on the frame the combo becomes pressed
+            if (comboDown && !_comboWasDown)
+            {
+                _isFullscreen = !_isFullscreen;
+                Engine.Instance.OpenWindows[0].set_fullscreen(_isFullscreen);
+                Logger.LogDebug($"Setting fullscreen status: {_isFullscreen}", LoggingTarget.Engine);
+            }
+
+            _comboWasDown = comboDown;
         }
 #endif
 

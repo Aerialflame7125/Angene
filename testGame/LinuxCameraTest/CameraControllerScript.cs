@@ -51,7 +51,7 @@ namespace Game
             }
 
 
-            keyDetection.Register(new Entity(new Vec2(0, 0), 0,  new Vec2(0, 0), "Inputs"));
+            keyDetection.Register(cameraEntity);
             mouseDetection.Register(cameraEntity);
             
             Vec3 f = _camera.forward;

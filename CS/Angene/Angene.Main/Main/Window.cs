@@ -1027,7 +1027,7 @@ namespace Angene.Main
         }
 
 #if LINUX
-        public unsafe void set_fullscreen()
+        public unsafe void set_fullscreen(bool fullscreen = true)
         {
             if (Handle is X11WindowHandle XHandle)
             {
@@ -1045,7 +1045,10 @@ namespace Angene.Main
                     xev.xclient.window = (nuint)XHandle.Window;
                     xev.xclient.message_type = (nuint)wm_state;
                     xev.xclient.format = 32;
-                    xev.xclient.data.l[0] = 2; // _NET_WM_STATE_TOGGLE
+                    if (fullscreen)
+                        xev.xclient.data.l[0] = 1; // _NET_WM_STATE_TOGGLE
+                    else
+                        xev.xclient.data.l[0] = 0;
                     xev.xclient.data.l[1] = fs;
                     xev.xclient.data.l[2] = 0;
 
@@ -1062,7 +1065,10 @@ namespace Angene.Main
             }
             else if (Handle is WaylandWindowHandle WaylandHandle)
             {
-                xdg_toplevel_set_fullscreen(WaylandHandle.Toplevel, null);
+                if (fullscreen)
+                    xdg_toplevel_set_fullscreen(WaylandHandle.Toplevel, null);
+                else
+                    xdg_toplevel_unset_fullscreen(WaylandHandle.Toplevel);
             }
         }
 

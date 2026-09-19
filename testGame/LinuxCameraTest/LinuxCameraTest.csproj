@@ -25,13 +25,6 @@
 		<DefineConstants>LINUX</DefineConstants>
 	</PropertyGroup>
 
-	<!-- Ship the material package next to the built game -->
-	<ItemGroup>
-		<None Include="Assets\CameraMaterials.angpkg">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
-
 	<ItemGroup>
 	  <Reference Include="Angene">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.dll</HintPath>

@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-09-19 05:00:03.914771+00:00)</sup></sub>
+<sub><sup>(generated 2026-09-19 16:03:59.459318+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -1194,7 +1194,6 @@
     * `Entity Instance`
     * `string name`
     * `List<Entity> childEntities { get; set; }`
-    * `Entity Instantiate()`
     * `IReadOnlyCollection<object> GetComponents()`
     * `void AddScript()`
     * `void RemoveScript()`
@@ -1227,6 +1226,8 @@
     * `bool Enabled`
     * `bool StartCalled`
     * `bool Destroyed`
+  * **class SceneExtensions**
+    * `Matrix4x4 GetWorldMatrix()`
   * **class ScriptBinding**
     * `List<Action> destroyEngineList`
     * `void Tick()`
@@ -1280,9 +1281,11 @@
     * `Matrix4x4 Perspective()`
     * `Matrix4x4 PerspectiveD3D11()`
   * **class Mesh**
+    * `byte[] bytes`
     * `IntPtr vertexBuffer`
     * `IntPtr indexBuffer`
-    * `uint indexCount`
+    * `int indexCount`
+    * `int vertexCount`
   * **class Transform2D**
     * `Vec2 pos`
     * `float rot`
@@ -1311,6 +1314,13 @@
     * `Matrix4x4 LookTo()`
     * `Matrix4x4 Perspective()`
     * `Matrix4x4 PerspectiveVulkan()`
+
+  </details>
+
+  <details><summary><b>Angene.Essentials.DefaultEntities</b></summary>
+
+  * **class Cube**
+    * `Entity Instantiate()`
 
   </details>
 

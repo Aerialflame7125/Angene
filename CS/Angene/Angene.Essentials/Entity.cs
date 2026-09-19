@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
 using Angene.Common;
 using Angene.Essentials.Components;
 using Angene.Math.Vectors;
@@ -62,6 +64,7 @@ namespace Angene.Essentials
             Lifecycle.ScriptBinding.HandleEntityCreated(this);
         }
 
+        /*
         public Entity(Entity e)
         {
             Id = _nextId++;
@@ -70,8 +73,35 @@ namespace Angene.Essentials
             _components = new Dictionary<Type, object>();
             foreach (IScreenPlay script in e._scripts)
                 AddScript(script);
-            foreach (var kvp in e._components)
-                _components[kvp.Key] = kvp.Value;
+            foreach (KeyValuePair<Type, object> a in e._components)
+            {
+                var inst = Activator.CreateInstance(a.Key);
+                PropertyInfo[] properties = a.Key.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var property in properties)
+                {
+                    if (property.CanRead && property.CanWrite)
+                    {
+                        if (property.Name == "Transform3D" || property.Name == "Transform2D" || property.Name == "name")
+                        {
+                            continue;
+                        }
+                        object value = property.GetValue(a.Value);
+                        property.SetValue(inst, value);
+                    }
+                }
+                FieldInfo[] fields = a.Key.GetFields(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var field in fields)
+                {
+                    if (field.Name == "Transform3D" || field.Name == "Transform2D" || field.Name == "name")
+                    {
+                        continue;
+                    }
+                    object value = field.GetValue(a.Value);
+                    field.SetValue(inst, value);
+                }
+                
+                AddComponentBoxed(inst.GetType(), inst);
+            }
             childEntities = new List<Entity>();
             _parent = null;
             _enabled = true;
@@ -90,13 +120,61 @@ namespace Angene.Essentials
 
             foreach (var script in e._scripts)
                 AddScript(script);
-            foreach (var kvp in e._components)
-                _components[kvp.Key] = kvp.Value;
+            
+            foreach (KeyValuePair<Type, object> a in e._components)
+            {
+                var inst = Activator.CreateInstance(a.Key);
+                PropertyInfo[] properties = a.Key.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var property in properties)
+                {
+                    if (property.CanRead && property.CanWrite)
+                    {
+                        if (property.Name == "Transform3D" || property.Name == "Transform2D" || property.Name == "name")
+                        {
+                            continue;
+                        }
+                        object value = property.GetValue(a.Value);
+                        property.SetValue(inst, value);
+                    }
+                }
+                FieldInfo[] fields = a.Key.GetFields(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var field in fields)
+                {
+                    if (field.Name == "Transform3D" || field.Name == "Transform2D" || field.Name == "name")
+                    {
+                        continue;
+                    }
+                    object value = field.GetValue(a.Value);
+                    field.SetValue(inst, value);
+                }
+                
+                AddComponentBoxed(inst.GetType(), inst);
+            }
 
             foreach (var script in extraData._scripts)
                 AddScript(script);
-            foreach (var kvp in extraData._components)
-                _components[kvp.Key] = kvp.Value;
+            
+            foreach (KeyValuePair<Type, object> a in extraData._components)
+            {
+                var inst = Activator.CreateInstance(a.Key);
+                PropertyInfo[] properties = a.Key.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var property in properties)
+                {
+                    if (property.CanRead && property.CanWrite)
+                    {
+                        object value = property.GetValue(a.Value);
+                        property.SetValue(inst, value);
+                    }
+                }
+                FieldInfo[] fields = a.Key.GetFields(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var field in fields)
+                {
+                    object value = field.GetValue(a.Value);
+                    field.SetValue(inst, value);
+                }
+                
+                AddComponentBoxed(inst.GetType(), inst);
+            }
 
             childEntities = new List<Entity>();
             _parent = null;
@@ -104,6 +182,13 @@ namespace Angene.Essentials
 
             Lifecycle.ScriptBinding.HandleEntityCreated(this);
         }
+
+        private void AddComponentBoxed(Type t, object inst)
+        {
+            _components[t] = inst;
+            Logger.LogDebug($"Component '{t.Name}' added to entity '{name}'", LoggingTarget.Engine);
+        }
+        */
 
         public Entity(Vec2 Pos, float Rot, Vec2 Scale, string _name = "New Object")
         {
@@ -132,18 +217,6 @@ namespace Angene.Essentials
 
             // Register with lifecycle system
             Lifecycle.ScriptBinding.HandleEntityCreated(this);
-        }
-
-        public Entity Instantiate(Entity extraData = null)
-        {
-            if (extraData != null)
-            {
-                return new Entity(this, extraData);
-            }
-            else
-            {
-                return new Entity(this);
-            }
         }
 #endregion
 #region Components
