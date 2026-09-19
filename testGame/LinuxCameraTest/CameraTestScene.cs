@@ -18,33 +18,6 @@ using static Angene.Essentials.Types;
 
 namespace Game.Scenes
 {
-    /// <summary>
-    /// Renders a single 6-face cube and lets the person fly a camera around it with
-    /// WASD + arrow keys, to exercise Angene.Essentials' camera components
-    /// (Transform3D + VulkanCamera) end to end on the Vulkan/Linux backend.
-    ///
-    /// IMPORTANT CAVEATS (found while wiring this up against the current ECSWork source):
-    ///   1. VkGraphicsContext's single shared pipeline layout is created with
-    ///      pushConstantRangeCount = 0 and never binds a descriptor set, so there is no
-    ///      GPU-side path today to upload a view/projection matrix. This scene instead
-    ///      transforms every vertex on the CPU (Model * View * Projection + perspective
-    ///      divide) using Transform3D/VulkanCamera each frame, and uploads already-NDC
-    ///      positions. See Shaders.cs for the pass-through vertex shader this expects.
-    ///   2. There is no depth buffer/depth test anywhere in the Vulkan backend
-    ///      (no VkFormat_D32 image, no pDepthStencilState on the pipeline). To still get
-    ///      correct occlusion, this scene sorts the cube's 12 triangles back-to-front
-    ///      (painter's algorithm) every frame using view-space depth before uploading.
-    ///   3. CreateVertexBuffer() has no matching "update" or public "destroy" call, so
-    ///      rebuilding geometry every frame means allocating a fresh VMA buffer every
-    ///      frame; buffers are only swept on Cleanup(). Fine for a shoswwwwwwwwwwwwwwwrt test session,
-    ///      but this leaks GPU memory over a long play session -- flagging it rather than
-    ///      hiding it. A real fix would add an UpdateVertexBuffer()/DestroyBuffer() pair
-    ///      to IVkGraphicsContext.
-    ///   4. The Vulkan backend has no sampler/descriptor-set/texture support at all yet,
-    ///      so "material" here means a per-face vertex color loaded from a real .angpkg
-    ///      package (Assets/CameraMaterials.angpkg via Angene.Main.Package) rather than a
-    ///      sampled image -- see CameraMaterials.cs for why.
-    /// </summary>
     public unsafe class CameraTestScene : IScene
     {
         public static object Instance { get; private set; }
@@ -123,13 +96,6 @@ namespace Game.Scenes
 
             _materials = CameraMaterials.Load(_materialsPackagePath);
 
-            // NOTE: deliberately not using Angene.Input.KeyDetection here. It marshals
-            // OnMessage's IntPtr as a Win32 WindowManagement.MSG and switches on
-            // WM.KEYDOWN/WM.KEYUP, and on Linux, Engine.ProcessMessages() never forwards
-            // individual X11 key events to any scene/script's OnMessage() in the first
-            // place (it only special-cases the WM_DELETE_WINDOW ClientMessage). See
-            // X11Keyboard.cs -- CameraControllerScript polls XQueryKeymap directly instead.
-
             // --- Camera entity: Transform3D (position) + VulkanCamera (lens/orientation) ---
             _cameraEntity = new Entity(new Vec3(0f, 1.5f, -4f), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "MainCamera");
             _cameraEntity.AddComponent(new VulkanCamera
@@ -184,7 +150,6 @@ namespace Game.Scenes
             AudioFile file = new("Assets/Audio.angpkg", "00_-_CAKE_Cake_n_Cake_.mp3", AudioFile.LoadType.loadOnInstantiate);
             _manager = new AudioManager(file, playOnLoad:false, loop: false, volume: 1f);
             Logger.LogInfo("[CameraTestScene] Initialized.", LoggingTarget.Graphics);
-            _window.lockCursor(true);
 
             var camTransform = _cameraEntity.GetComponent<Transform3D>();
             var vCam = _cameraEntity.GetComponent<VulkanCamera>();

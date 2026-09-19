@@ -223,8 +223,7 @@ namespace Angene.Main
             if (scene is Management.ManagementScene && ManagementScene == null)
             {
                 Logger.LogDebug("Recieved a new ManagementScene call. Verifying...", LoggingTarget.Engine);
-                // Silently add without logging, but check signatures.
-                List<Entity> e = scene.GetEntities(); // If this throws a new Entity of 'ManagementCheck$o7' (creating entity of this name would fail), then we have passed.
+                List<Entity> e = scene.GetEntities(); // If this throws a new Entity of the one time code then we have passed.
                 if (e != null && e.Count == 1)
                 {
                     if (e[0].name == Engine.Instance.settingsInstance.GetSetting("Main.OTT").ToString())
@@ -306,8 +305,6 @@ namespace Angene.Main
             {
                 try
                 {
-                    // Minimal JSON parse without needing System.Text.Json or Newtonsoft
-                    // Pulls out "type", "keyCode", "button", "x", "y"
                     string type = ExtractJsonString(json, "type");
                     int keyCode = ExtractJsonInt(json, "keyCode");
                     int button = ExtractJsonInt(json, "button");
@@ -326,7 +323,6 @@ namespace Angene.Main
 
                     if (message == 0) return;
 
-                    // Pack x/y into lParam the same way Win32 does: high word = y, low word = x
                     IntPtr lParam = new IntPtr((y << 16) | (x & 0xFFFF));
                     IntPtr wParam = new IntPtr(keyCode);
 
@@ -674,11 +670,6 @@ namespace Angene.Main
             }
         }
 
-        /// <summary>
-        /// Applies and computes view/proj once for the given scene and writes to every other entity with a Transform3D.
-        /// Quits early if scene has no MainCamera.
-        /// </summary>
-        /// <param name="scene"></param>
         public static void ApplyCameraTransformsVulkan(IScene scene)
         {
             Entity cam = scene.MainCamera;
@@ -784,18 +775,6 @@ namespace Angene.Main
 
                 WaylandInputHandler.instance.RegisterSeat(
                     _wlSeat);
-            }
-            else if (interfaceName == "zwp_pointer_constraints_v1")
-            {
-                pointer_constraints = wl_registry_bind(
-                    (IntPtr)registry, name, (wl_interface*)WaylandZWP.Methods.GetInterface("zwp_pointer_constraints_v1"), version
-                );
-            }
-            else if (interfaceName == "zwp_relative_pointer_manager_v1")
-            {
-                rel_mgr = wl_registry_bind(
-                    (IntPtr)registry, name, (wl_interface*)WaylandZWP.Methods.GetInterface("zwp_relative_pointer_manager_v1"), version
-                );
             }
         }
 
@@ -913,14 +892,11 @@ namespace Angene.Main
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         private static unsafe void OnXdgToplevelConfigure(void* data, xdg_toplevel* toplevel, int width, int height, wl_array* states)
         {
-            // No-op for now. width/height are the compositor's suggested size (0,0 means "you decide").
-            // Later: store these and apply them via graphicsContext.Resize() if you want to honor compositor resize requests.
             var handle = GCHandle.FromIntPtr((IntPtr)data);
 
             if (handle.Target is not Window window)
                 return;
 
-            // 0,0 means the compositor isn't specifying a size.
             if (width > 0 && height > 0)
             {
                 window.graphicsContext?.Resize(width, height);
@@ -938,11 +914,9 @@ namespace Angene.Main
 #endif
         public unsafe static sbyte* ToSBytePtr(string myString)
         {
-            // 1. Allocate space and copy the string data to unmanaged memory
             IntPtr unmanagedPtr = Marshal.StringToHGlobalAnsi(myString);
             sbyte* sbytePtr = (sbyte*)unmanagedPtr.ToPointer();
 
-            // 2. Cast directly to an sbyte*
             return sbytePtr;
         }
 
@@ -1092,8 +1066,8 @@ namespace Angene.Main
             }
         }
 
-        unsafe WaylandZWP.zwp_locked_pointer_v1* locked_ptr;
-        unsafe WaylandZWP.zwp_relative_pointer_v1* rel_ptr;
+        IntPtr locked_ptr;
+        IntPtr rel_ptr;
         public unsafe void lockCursor(bool locked)
         {
             if (locked && Handle is X11WindowHandle)
@@ -1109,28 +1083,11 @@ namespace Angene.Main
                 XLib.Methods.XUngrabPointer(((X11WindowHandle)Handle).Display, 0);
                 XLib.Methods.XSync(((X11WindowHandle)Handle).Display, 0);
             }
-            else if (locked && Handle is WaylandWindowHandle wayWindowHandle1)
+            else if (Handle is WaylandWindowHandle wayWindowHandle1)
             {
-                IntPtr seat = WaylandClient.Methods.GetWlSeatInterface(); 
-                wl_pointer* wl_ptr = WaylandClient.Methods.wl_seat_get_pointer((wl_seat*)seat);
-
-                rel_ptr =
-                    WaylandZWP.Methods.zwp_relative_pointer_manager_v1_get_relative_pointer((WaylandZWP.zwp_relative_pointer_manager_v1*)rel_mgr, wl_ptr);
-                
-                wl_region *region = null; // Optional bounds
-                locked_ptr =
-                    WaylandZWP.Methods.zwp_pointer_constraints_v1_lock_pointer(
-                        (WaylandZWP.zwp_pointer_constraints_v1*)pointer_constraints, wayWindowHandle1.Surface, wl_ptr, region,
-                        (uint)WaylandZWP.zwp_pointer_constraints_v1_lifetime.ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
-            }
-            else if (!locked && Handle is WaylandWindowHandle wayWindowHandle2)
-            {
-                WaylandZWP.Methods.zwp_locked_pointer_v1_destroy(locked_ptr);
-                locked_ptr = null;
-                WaylandZWP.Methods.zwp_relative_pointer_v1_destroy(rel_ptr);
-                rel_ptr = null;
-
-                WaylandClient.Methods.wl_surface_commit((IntPtr)wayWindowHandle2.Surface);
+                // all of my implementation attempts failed, my last resort is shipping another compiled binary in Native and id rather not.
+                throw new AngeneException(
+                    $"[Window | lockCursor] Attempt to lockCursor on window {wayWindowHandle1.TitlePtr->ToString()} failed: There is currently no branch for locking the cursor.");
             }
         }
 #endif

@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-09-12 00:50:29.269080+00:00)</sup></sub>
+<sub><sup>(generated 2026-09-19 05:00:03.914771+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -5006,6 +5006,58 @@
   * **enum xkb_state_match**
   * **enum zwp_pointer_constraints_v1_error**
   * **enum zwp_pointer_constraints_v1_lifetime**
+    * `void zwp_pointer_constraints_v1_set_user_data()`
+    * `uint zwp_pointer_constraints_v1_get_version()`
+    * `void zwp_pointer_constraints_v1_destroy()`
+    * `IntPtr zwp_pointer_constraints_v1_lock_pointer()`
+    * `IntPtr zwp_pointer_constraints_v1_confine_pointer()`
+    * `int zwp_locked_pointer_v1_add_listener()`
+    * `void zwp_locked_pointer_v1_set_user_data()`
+    * `uint zwp_locked_pointer_v1_get_version()`
+    * `void zwp_locked_pointer_v1_destroy()`
+    * `void zwp_locked_pointer_v1_set_cursor_position_hint()`
+    * `void zwp_locked_pointer_v1_set_region()`
+    * `int zwp_confined_pointer_v1_add_listener()`
+    * `void zwp_confined_pointer_v1_set_user_data()`
+    * `uint zwp_confined_pointer_v1_get_version()`
+    * `void zwp_confined_pointer_v1_destroy()`
+    * `void zwp_confined_pointer_v1_set_region()`
+    * `int ZWP_POINTER_CONSTRAINTS_V1_DESTROY`
+    * `int ZWP_POINTER_CONSTRAINTS_V1_LOCK_POINTER`
+    * `int ZWP_POINTER_CONSTRAINTS_V1_CONFINE_POINTER`
+    * `int ZWP_POINTER_CONSTRAINTS_V1_DESTROY_SINCE_VERSION`
+    * `int ZWP_POINTER_CONSTRAINTS_V1_LOCK_POINTER_SINCE_VERSION`
+    * `int ZWP_POINTER_CONSTRAINTS_V1_CONFINE_POINTER_SINCE_VERSION`
+    * `int ZWP_LOCKED_POINTER_V1_DESTROY`
+    * `int ZWP_LOCKED_POINTER_V1_SET_CURSOR_POSITION_HINT`
+    * `int ZWP_LOCKED_POINTER_V1_SET_REGION`
+    * `int ZWP_LOCKED_POINTER_V1_LOCKED_SINCE_VERSION`
+    * `int ZWP_LOCKED_POINTER_V1_UNLOCKED_SINCE_VERSION`
+    * `int ZWP_LOCKED_POINTER_V1_DESTROY_SINCE_VERSION`
+    * `int ZWP_LOCKED_POINTER_V1_SET_CURSOR_POSITION_HINT_SINCE_VERSION`
+    * `int ZWP_LOCKED_POINTER_V1_SET_REGION_SINCE_VERSION`
+    * `int ZWP_CONFINED_POINTER_V1_DESTROY`
+    * `int ZWP_CONFINED_POINTER_V1_SET_REGION`
+    * `int ZWP_CONFINED_POINTER_V1_CONFINED_SINCE_VERSION`
+    * `int ZWP_CONFINED_POINTER_V1_UNCONFINED_SINCE_VERSION`
+    * `int ZWP_CONFINED_POINTER_V1_DESTROY_SINCE_VERSION`
+    * `int ZWP_CONFINED_POINTER_V1_SET_REGION_SINCE_VERSION`
+    * `void zwp_relative_pointer_manager_v1_set_user_data()`
+    * `uint zwp_relative_pointer_manager_v1_get_version()`
+    * `void zwp_relative_pointer_manager_v1_destroy()`
+    * `IntPtr zwp_relative_pointer_manager_v1_get_relative_pointer()`
+    * `int zwp_relative_pointer_v1_add_listener()`
+    * `void zwp_relative_pointer_v1_set_user_data()`
+    * `uint zwp_relative_pointer_v1_get_version()`
+    * `void zwp_relative_pointer_v1_destroy()`
+    * `int ZWP_RELATIVE_POINTER_MANAGER_V1_DESTROY`
+    * `int ZWP_RELATIVE_POINTER_MANAGER_V1_GET_RELATIVE_POINTER`
+    * `int ZWP_RELATIVE_POINTER_MANAGER_V1_DESTROY_SINCE_VERSION`
+    * `int ZWP_RELATIVE_POINTER_MANAGER_V1_GET_RELATIVE_POINTER_SINCE_VERSION`
+    * `int ZWP_RELATIVE_POINTER_V1_DESTROY`
+    * `int ZWP_RELATIVE_POINTER_V1_RELATIVE_MOTION_SINCE_VERSION`
+    * `int ZWP_RELATIVE_POINTER_V1_DESTROY_SINCE_VERSION`
+    * `IntPtr GetInterface()`
   * **struct WaylandInputKeys**
   * **struct timespec**
   * **struct wl_argument**
@@ -5044,62 +5096,6 @@
   * **struct xdg_surface**
   * **struct xdg_toplevel**
   * **struct xdg_wm_base**
-  * **struct zwp_confined_pointer_v1**
-  * **struct zwp_locked_pointer_v1**
-  * **struct zwp_pointer_constraints_v1**
-  * **struct zwp_relative_pointer_manager_v1**
-  * **struct zwp_relative_pointer_v1**
-    * `void zwp_pointer_constraints_v1_set_user_data()`
-    * `uint zwp_pointer_constraints_v1_get_version()`
-    * `void zwp_pointer_constraints_v1_destroy()`
-    * `int zwp_locked_pointer_v1_add_listener()`
-    * `void zwp_locked_pointer_v1_set_user_data()`
-    * `uint zwp_locked_pointer_v1_get_version()`
-    * `void zwp_locked_pointer_v1_destroy()`
-    * `void zwp_locked_pointer_v1_set_cursor_position_hint()`
-    * `void zwp_locked_pointer_v1_set_region()`
-    * `int zwp_confined_pointer_v1_add_listener()`
-    * `void zwp_confined_pointer_v1_set_user_data()`
-    * `uint zwp_confined_pointer_v1_get_version()`
-    * `void zwp_confined_pointer_v1_destroy()`
-    * `void zwp_confined_pointer_v1_set_region()`
-    * `int ZWP_POINTER_CONSTRAINTS_V1_DESTROY`
-    * `int ZWP_POINTER_CONSTRAINTS_V1_LOCK_POINTER`
-    * `int ZWP_POINTER_CONSTRAINTS_V1_CONFINE_POINTER`
-    * `int ZWP_POINTER_CONSTRAINTS_V1_DESTROY_SINCE_VERSION`
-    * `int ZWP_POINTER_CONSTRAINTS_V1_LOCK_POINTER_SINCE_VERSION`
-    * `int ZWP_POINTER_CONSTRAINTS_V1_CONFINE_POINTER_SINCE_VERSION`
-    * `int ZWP_LOCKED_POINTER_V1_DESTROY`
-    * `int ZWP_LOCKED_POINTER_V1_SET_CURSOR_POSITION_HINT`
-    * `int ZWP_LOCKED_POINTER_V1_SET_REGION`
-    * `int ZWP_LOCKED_POINTER_V1_LOCKED_SINCE_VERSION`
-    * `int ZWP_LOCKED_POINTER_V1_UNLOCKED_SINCE_VERSION`
-    * `int ZWP_LOCKED_POINTER_V1_DESTROY_SINCE_VERSION`
-    * `int ZWP_LOCKED_POINTER_V1_SET_CURSOR_POSITION_HINT_SINCE_VERSION`
-    * `int ZWP_LOCKED_POINTER_V1_SET_REGION_SINCE_VERSION`
-    * `int ZWP_CONFINED_POINTER_V1_DESTROY`
-    * `int ZWP_CONFINED_POINTER_V1_SET_REGION`
-    * `int ZWP_CONFINED_POINTER_V1_CONFINED_SINCE_VERSION`
-    * `int ZWP_CONFINED_POINTER_V1_UNCONFINED_SINCE_VERSION`
-    * `int ZWP_CONFINED_POINTER_V1_DESTROY_SINCE_VERSION`
-    * `int ZWP_CONFINED_POINTER_V1_SET_REGION_SINCE_VERSION`
-    * `void zwp_relative_pointer_manager_v1_set_user_data()`
-    * `uint zwp_relative_pointer_manager_v1_get_version()`
-    * `void zwp_relative_pointer_manager_v1_destroy()`
-    * `int zwp_relative_pointer_v1_add_listener()`
-    * `void zwp_relative_pointer_v1_set_user_data()`
-    * `uint zwp_relative_pointer_v1_get_version()`
-    * `void zwp_relative_pointer_v1_destroy()`
-    * `int ZWP_RELATIVE_POINTER_MANAGER_V1_DESTROY`
-    * `int ZWP_RELATIVE_POINTER_MANAGER_V1_GET_RELATIVE_POINTER`
-    * `int ZWP_RELATIVE_POINTER_MANAGER_V1_DESTROY_SINCE_VERSION`
-    * `int ZWP_RELATIVE_POINTER_MANAGER_V1_GET_RELATIVE_POINTER_SINCE_VERSION`
-    * `int ZWP_RELATIVE_POINTER_V1_DESTROY`
-    * `int ZWP_RELATIVE_POINTER_V1_RELATIVE_MOTION_SINCE_VERSION`
-    * `int ZWP_RELATIVE_POINTER_V1_DESTROY_SINCE_VERSION`
-    * `IntPtr GetInterface()`
-    * `string Name { get; set; }`
-    * `string Annotation { get; set; }`
 
   </details>
 

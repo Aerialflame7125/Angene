@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Drawing; // Requires System.Drawing.Common NuGet
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 
