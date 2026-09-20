@@ -66,7 +66,13 @@ namespace Angene.Input
 #if LINUX
             if (msgPtr is _XEvent msg)
             {
-                if (msg.type != 2 && msg.type != 3) return;
+                if (msg.type != 2 && msg.type != 3 && msg.type != 10) return;
+                if (msg.type == 10)
+                {
+                    _heldKeys.Clear();
+                    _comboWasDown = false;
+                    return;
+                }
                 
                 bool ours = false;
                 foreach (Window win in Engine.Instance.OpenWindows)
@@ -80,7 +86,7 @@ namespace Angene.Input
 
                 if (!ours) return;
 
-                nuint keysym = XLib.Methods.XKeycodeToKeysym(Engine.Instance.SharedX11Display, (byte)msg.xkey.keycode, 0);
+                nuint keysym = Methods.XKeycodeToKeysym(Engine.Instance.SharedX11Display, (byte)msg.xkey.keycode, 0);
                 uint key = KeyResolver.TryLinuxKeysym(keysym);
                 if (key == 0) return;
 
@@ -89,7 +95,7 @@ namespace Angene.Input
                 else
                     _heldKeys.Remove(key);
 
-                CheckFullscreenCombo();
+                CheckFullscreenCombo(Window.ResolveWindowMapTargetFromXEvent(msg));
             }
 #endif
         }
@@ -126,7 +132,7 @@ namespace Angene.Input
         private bool _comboWasDown = false;
         private bool _isFullscreen = false;
 
-        private void CheckFullscreenCombo()
+        private void CheckFullscreenCombo(Window win = null)
         {
             bool comboDown =
                 _heldKeys.Contains((uint)X11InputKeys.IKeyCodeModLinux.Alt_R) &&
@@ -136,7 +142,10 @@ namespace Angene.Input
             if (comboDown && !_comboWasDown)
             {
                 _isFullscreen = !_isFullscreen;
-                Engine.Instance.OpenWindows[0].set_fullscreen(_isFullscreen);
+                if (win != null)
+                    win.set_fullscreen(_isFullscreen);
+                else
+                    Engine.Instance.OpenWindows[0].set_fullscreen(_isFullscreen);
                 Logger.LogDebug($"Setting fullscreen status: {_isFullscreen}", LoggingTarget.Engine);
             }
 

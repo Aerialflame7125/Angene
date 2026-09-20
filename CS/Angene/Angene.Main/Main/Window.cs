@@ -726,7 +726,7 @@ namespace Angene.Main
                 sbyte* titlePtr = ToSBytePtr(config.Title);
                 
                 XLib.Methods.XStoreName(Engine.Instance.SharedX11Display, window, titlePtr);
-                XLib.Methods.XSelectInput(Engine.Instance.SharedX11Display, window, (IntPtr)(XLib.XEventMask.KeyPressMask|XLib.XEventMask.KeyReleaseMask|XLib.XEventMask.ButtonPressMask|XLib.XEventMask.ButtonReleaseMask|XLib.XEventMask.PointerMotionMask|XLib.XEventMask.StructureNotifyMask));
+                XLib.Methods.XSelectInput(Engine.Instance.SharedX11Display, window, (IntPtr)(XLib.XEventMask.KeyPressMask|XLib.XEventMask.KeyReleaseMask|XLib.XEventMask.ButtonPressMask|XLib.XEventMask.ButtonReleaseMask|XLib.XEventMask.PointerMotionMask|XLib.XEventMask.StructureNotifyMask|XEventMask.FocusChangeMask));
                 XLib.Methods.XMapWindow(Engine.Instance.SharedX11Display, window);
 
                 // Say we can handle closing or some shit
@@ -1098,6 +1098,12 @@ namespace Angene.Main
         }
 #endif
 
+        public static Window ResolveWindowMapTargetFromXEvent(_XEvent e)
+        {
+            IntPtr eventWindowID = (IntPtr)e.xany.window;
+            return WindowMap.Values.FirstOrDefault(w => w.Handle is X11WindowHandle h && h.Window == eventWindowID);
+        }
+        
         /// <summary>
         /// Process Window messages.
         /// Returns false when Quit/Destroy is received and cleans up.
@@ -1120,14 +1126,24 @@ namespace Angene.Main
                         continue;
 
                     if (xevent.type == 33 /* ClientMessage */ &&
-                        xevent.xclient.data.l[0] == (IntPtr)target.wmDeleteAtom)
+                        xevent.xclient.data.l[0] == (IntPtr)target.wmDeleteAtom || xevent.xclient.data.l[0] == (IntPtr)target.wmPingAtom)
                     {
                         target.Close();
                         continue;
                     }
 
+                    if (xevent.type == 22 /* ConfigureNotify */)
+                    {
+                        int w = xevent.xconfigure.width;
+                        int h = xevent.xconfigure.height;
+                        if (w > 0 && h > 0)
+                            target.graphicsContext?.Resize(w, h);
+                    }
+
                     foreach (IScene scene in Scenes)
                         scene.OnMessage(xevent);
+                    
+                    ManagementScene.OnMessage(xevent);
 
                     if (injectedCalls != null)
                         foreach (var i in injectedCalls)

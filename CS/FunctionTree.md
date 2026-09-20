@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-09-19 16:03:59.459318+00:00)</sup></sub>
+<sub><sup>(generated 2026-09-20 15:32:03.194420+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -5661,6 +5661,7 @@
     * `bool Acked`
     * `void Cleanup()`
     * `void Close()`
+    * `Window ResolveWindowMapTargetFromXEvent()`
   * **struct PlatformMessage**
     * `IntPtr hwnd`
     * `uint message`
