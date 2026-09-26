@@ -206,7 +206,7 @@ namespace Angene.Main
                 w.ReallyClose();
         }
 
-        public void Init(Types.AppInfo appInfo, bool verbose = false, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        public void Init(Types.AppInfo appInfo, bool verbose = false, Assembly callingAssembly = null, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
             Logger.Instance.Init(verbose);
             supportedLibs = CheckSupportedLibraries();
@@ -228,7 +228,10 @@ namespace Angene.Main
             {
                 try
                 {
-                    shaderTypes = Assembly.GetCallingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null).Select(t => (SlangShaderResources.IShader)Activator.CreateInstance(t)).ToList();
+                    if (callingAssembly != null)
+                        shaderTypes = callingAssembly.GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null).Select(t => (SlangShaderResources.IShader)Activator.CreateInstance(t)).ToList();
+                    else
+                        shaderTypes = Assembly.GetCallingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null).Select(t => (SlangShaderResources.IShader)Activator.CreateInstance(t)).ToList();
                     shaderCount = shaderTypes.Count();
                 }
                 catch(Exception e)

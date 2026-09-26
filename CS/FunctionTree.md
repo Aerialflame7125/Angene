@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-09-20 15:32:03.194420+00:00)</sup></sub>
+<sub><sup>(generated 2026-09-26 20:24:10.378340+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -5614,6 +5614,8 @@
     * `void Initialize()`
     * `void OnMessage()`
     * `void Render()`
+  * **class EntryPoint**
+    * `EntryPoint Instance`
   * **class Framebuffer**
     * `int Width { get; set; }`
     * `int Height { get; set; }`
@@ -5621,6 +5623,12 @@
     * `void Clear()`
     * `void Dispose()`
     * `List<WebSocket> ActiveClients`
+  * **class Instances**
+    * `Engine engine { get; set; }`
+    * `Settings settings { get; set; }`
+    * `bool verbose { get; set; }`
+    * `void MakeInstances()`
+    * `void RunMessageLoop()`
   * **class LogConsoleWindow**
     * `void AppendLine()`
   * **class ManifestEntry**

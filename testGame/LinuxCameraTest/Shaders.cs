@@ -6,15 +6,6 @@ using static Angene.Essentials.GraphicsContexts.SlangShaderResources;   // Requi
 
 namespace Game
 {
-    // NOTE ON THE CAMERA MATH:
-    // Angene's Vulkan backend (as of this branch) creates a single pipeline layout with
-    // pushConstantRangeCount = 0 and never binds a descriptor set, so there is currently no
-    // GPU-side path to upload a view/projection matrix into these shaders. Instead,
-    // CameraTestScene multiplies every vertex by Model * View * Projection on the CPU each
-    // frame (using Angene.Essentials.Components.VulkanCamera + Transform3D), performs the
-    // perspective divide itself, and uploads already-NDC positions. That's why this vertex
-    // shader just forwards the incoming position through as clip-space with w = 1 — the
-    // "transform" work has already happened before the vertex buffer was built.
     public class Shaders
     {
         [Precompile]

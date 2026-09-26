@@ -30,6 +30,7 @@
 		<Compile Include="Implementations\WaylandInput.cs" />
 		<Compile Include="Implementations\WaylandInputHandler.cs" />
 		<Compile Include="Main\Engine.cs" />
+		<Compile Include="Main\EntryPoint.cs" />
 		<Compile Include="Main\Window.cs" />
 		<Compile Include="Main\LogConsoleWindow.cs" />
 		<Compile Include="Main\PkgHandler.cs" />
