@@ -254,7 +254,7 @@ namespace Angene.Graphics
     // Factory for creating platform-specific graphics contexts
     public static unsafe class GraphicsContextFactory
     {
-        public static IGraphicsContext Create(object windowHandle, int width, int height, int renderMode, IScene openScene, AppInfo currentAppInfo, IntPtr existingDevice = default, IntPtr existingContext = default, Dictionary<int, object> shaderStages = null)
+        public static IGraphicsContext Create(object windowHandle, int width, int height, int renderMode, IScene openScene, AppInfo currentAppInfo, IntPtr existingDevice = default, IntPtr existingContext = default, Dictionary<int, object> shaderStages = null, bool useOpenXR = false)
         {
             if (renderMode == 0)
 #if WINDOWS
@@ -272,7 +272,7 @@ namespace Angene.Graphics
                 throw new Exceptions.FailedToCreateGraphicsBackendException("There currently is not an IGraphicsContext definition for OpenGL.");
             if (renderMode == 3)
             {
-                return new VkGraphicsContext(windowHandle, width, height, shaderStages, openScene, currentAppInfo);
+                return new VkGraphicsContext(windowHandle, width, height, shaderStages, openScene, currentAppInfo, useOpenXR);
             }
 
             Common.Logger.LogCritical(

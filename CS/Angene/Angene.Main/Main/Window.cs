@@ -120,18 +120,18 @@ namespace Angene.Main
 #if WINDOWS
                     graphicsContext = Engine.Instance.SharedD3D11Device != IntPtr.Zero
                         ? GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo,
-                            Engine.Instance.SharedD3D11Device, Engine.Instance.SharedD3D11Context)
-                        : GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo);
+                            Engine.Instance.SharedD3D11Device, Engine.Instance.SharedD3D11Context, useOpenXR: config.UsingOpenXR)
+                        : GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo, useOpenXR: config.UsingOpenXR);
 #endif
                 }
                 else if (config.renderMode == RenderType.Vulkan)
                 {
-                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo,
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo, useOpenXR: config.UsingOpenXR,
                         shaderStages: Engine.Instance.ShaderCache);
                 }
                 else
                 {
-                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo);
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo, useOpenXR: config.UsingOpenXR);
                 }
             }
 #if WINDOWS

@@ -17,6 +17,7 @@ using static Angene.Essentials.Types;
 using Angene.Essentials.GraphicsContexts;
 using Angene.Math.Vectors;
 using System;
+using System.Reflection;
 
 namespace Angene.Graphics.Vulkan;
 public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
@@ -99,6 +100,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private readonly int _w, _h;
     VkGraphicscontextHelpers contextHelpers = new VkGraphicscontextHelpers();
     private readonly object _allocatorLock = new object();
+    public List<string> ExtraExtensions = new List<string>() {};
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     private static uint DebugCallback(
@@ -112,7 +114,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         return 0;
     }
 
-    public VkGraphicsContext(object windowHandle, int width, int height, Dictionary<int, object> shaders, IScene Scene, Types.AppInfo? currentAppInfo = null)
+    public VkGraphicsContext(object windowHandle, int width, int height, Dictionary<int, object> shaders, IScene Scene, Types.AppInfo? currentAppInfo = null, bool UseOpenXR = false)
     {
         if (windowHandle is MicrosoftWindowHandle MWinHandle)
             _hwnd = MWinHandle.Hwnd;
@@ -179,6 +181,39 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     };
                 }
 #endregion
+#region OpenXR
+                if (UseOpenXR)
+                {
+                    if (!Common.Settings.Settings.Instance.GetSetting<string[]>("Main.SupportedLibraries")
+                        .Contains("Extensions.XR"))
+                        throw new Exceptions.FailedToInitializeVulkanException("OpenXR is labeled to be used but the library is missing. Please check your installation.");
+
+                    Assembly assem =
+                        Assembly.LoadFrom(
+                            Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll");
+
+                    Type type = assem.GetType("Angene.Extensions.XR.OpenXR");
+                    if (type == null)
+                        throw new Exceptions.FailedToInitializeVulkanException(
+                            "Class 'OpenXR' was unable to be found within assembly 'Angene.Extensions.XR'. Please check your installation.");
+
+                    MethodInfo method = type.GetMethod("CreateInstanceS1", BindingFlags.Static | BindingFlags.Public);
+                    if (method == null)
+                        throw new Exceptions.FailedToInitializeVulkanException(
+                            "Method 'CreateInstanceS1' was unable to be found within assembly 'Angene.Extensions.XR'. Please check your installation.");
+
+                    object[] parameters = new object[] { (IVkGraphicsContext)this, currentAppInfo };
+
+                    try { method.Invoke(null, parameters); } // instance, params for future reference
+                    catch (TargetInvocationException ex) when (ex.InnerException != null)
+                    {
+                        System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                    } 
+                    
+                    var xrExts = (string[])type.GetField("instanceExtensions")?.GetValue(null);
+                    if (xrExts != null) ExtraExtensions.AddRange(xrExts);
+                }
+#endregion
 #region Extensions
                 // Extensions //
                 var requiredLinux = new List<string> { "VK_KHR_surface", "VK_KHR_xlib_surface", "VK_KHR_wayland_surface", "VK_KHR_get_surface_capabilities2", "VK_EXT_surface_maintenance1"};
@@ -227,6 +262,12 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 {
                     if (available.Contains(o))
                         toEnable.Add(o);
+                }
+
+                foreach (var e in ExtraExtensions)
+                {
+                    if (available.Contains(e))
+                        toEnable.Add(e);
                 }
 
                 byte[][] extBytes = toEnable.Select(s => Encoding.UTF8.GetBytes(s + "\0")).ToArray();

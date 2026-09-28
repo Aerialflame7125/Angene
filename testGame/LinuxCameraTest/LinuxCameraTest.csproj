@@ -35,6 +35,9 @@
 	  <Reference Include="Angene.Essentials">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Essentials.dll</HintPath>
 	  </Reference>
+	  <Reference Include="Angene.Extensions.XR">
+	    <HintPath>..\..\Build\Angene\Lin\Angene.Extensions.XR.dll</HintPath>
+	  </Reference>
 	  <Reference Include="Angene.Graphics">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Graphics.dll</HintPath>
 	  </Reference>

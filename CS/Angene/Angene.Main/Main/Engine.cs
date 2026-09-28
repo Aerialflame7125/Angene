@@ -79,7 +79,7 @@ namespace Angene.Main
         }
 
         public static Engine Instance { get; } = new Engine();
-
+        
         // Check supported libraries
         private static string[] CheckSupportedLibraries()
         {
@@ -88,7 +88,7 @@ namespace Angene.Main
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Logger.LogDebug("[Engine.cs | CheckSupportedLibraries] Checking for supported libraries on Windows.", LoggingTarget.Engine);
-                string[] AllLibs = new[] { "Graphics", "Vulkan", "D3D11", "Input", "Math", "Audio" };
+                string[] AllLibs = new[] { "Graphics", "Vulkan", "D3D11", "Input", "Math", "Audio", "Extensions.XR" };
                 // Manual checks, most important.
                 if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Windows.dll")))
                     supportedLibs.Add("Windows");
@@ -112,7 +112,7 @@ namespace Angene.Main
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 Logger.LogDebug("[Engine.cs | CheckSupportedLibraries] Checking for supported libraries on Linux.", LoggingTarget.Engine);
-                string [] AllLibs = new[] { "Graphics", "Vulkan", "Input", "Math", "Audio" };
+                string [] AllLibs = new[] { "Graphics", "Vulkan", "Input", "Math", "Audio",　"Extensions.XR" };
                 if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Linux.dll")))
                     supportedLibs.Add("Linux");
                 else
@@ -205,11 +205,12 @@ namespace Angene.Main
             foreach (var w in toClose)
                 w.ReallyClose();
         }
-
+        
         public void Init(Types.AppInfo appInfo, bool verbose = false, Assembly callingAssembly = null, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
             Logger.Instance.Init(verbose);
             supportedLibs = CheckSupportedLibraries();
+            Settings.Instance.SetSetting("Main.SupportedLibraries", supportedLibs);
             bool skipGraphics = false;
             currentAppInfo = appInfo;
             
