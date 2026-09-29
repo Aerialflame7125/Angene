@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-09-29 02:23:46.260615+00:00)</sup></sub>
+<sub><sup>(generated 2026-09-29 13:29:44.388210+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -1263,6 +1263,12 @@
     * `bool HasLateUpdate`
     * `bool HasOnDraw`
     * `bool HasStart`
+  * **struct QueueFamilyIndices**
+    * `uint? graphicsFamily`
+    * `uint? presentFamily`
+    * `bool isComplete()`
+  * **struct XrSwapchain**
+    * `void DestroySwapchain()`
 
   </details>
 
@@ -1590,6 +1596,7 @@
     * `XrStructureType type`
     * `XrResult futureResult`
     * `XrFutureStateEXT state`
+    * `IntPtr session`
     * `uint isUserPresent`
     * `uint supportsUserPresence`
   * **enum XrGeospatialTrackerStateANDROID**
@@ -3089,6 +3096,7 @@
     * `uint vertexCountOutput`
     * `uint indexCapacityInput`
     * `uint indexCountOutput`
+    * `IntPtr session`
     * `XrViewConfigurationType viewConfigurationType`
     * `uint viewIndex`
     * `XrColor4f colorScale`
@@ -3484,6 +3492,13 @@
     * `uint subsumedUniqueIdCount`
     * `ulong anchorEntityId`
   * **struct XrGeospatialTrackerANDROID**
+  * **struct XrGraphicsBindingVulkanKHR**
+    * `XrStructureType type`
+    * `IntPtr instance`
+    * `IntPtr physicalDevice`
+    * `IntPtr device`
+    * `uint queueFamilyIndex`
+    * `uint queueIndex`
   * **struct XrGraphicsRequirementsD3D11KHR**
     * `XrStructureType type`
   * **struct XrHandCapsuleFB**
@@ -3597,6 +3612,7 @@
   * **struct XrRect2Di**
     * `XrOffset2Di offset`
     * `XrExtent2Di extent`
+    * `IntPtr swapchain`
     * `XrRect2Di imageRect`
     * `uint imageArrayIndex`
     * `XrStructureType type`
@@ -3609,6 +3625,7 @@
     * `XrExtent2Df size`
     * `uint lostEventCount`
     * `long lossTime`
+    * `IntPtr session`
     * `XrSessionState state`
     * `long time`
     * `XrReferenceSpaceType referenceSpaceType`
@@ -3794,6 +3811,7 @@
     * `uint velocityCount`
     * `ulong layerFlags`
     * `XrEyeVisibility eyeVisibility`
+    * `IntPtr swapchain`
     * `uint imageArrayIndex`
     * `XrQuaternionf orientation`
     * `XrSwapchainSubImage subImage`
@@ -4111,6 +4129,7 @@
     * `XrStructureType type`
     * `ulong trackedKeyboardId`
     * `ulong flags`
+    * `IntPtr session`
     * `XrLocalizationMapStateML state`
     * `XrLocalizationMapML map`
     * `XrLocalizationMapConfidenceML confidence`
@@ -4851,22 +4870,6 @@
     * `_chars_e__FixedBuffer chars`
   * **struct _reserved_e__FixedBuffer**
     * `uint e0`
-
-  </details>
-
-  <details><summary><b>Angene.Graphics.Vulkan</b></summary>
-
-  * **struct QueueFamilyIndices**
-    * `uint? graphicsFamily`
-    * `uint? presentFamily`
-    * `bool isComplete()`
-    * `QueueFamilyIndices? findQueueFamilies()`
-    * `VkSurfaceFormatKHR ChooseSurfaceFormatAndColorSpace()`
-    * `IntPtr CreateImageView()`
-    * `VkPresentModeKHR ChoosePresentationMode()`
-    * `uint ChooseNumImages()`
-    * `void SelectPhysicalDeviceAndLogicalDevice()`
-    * `void CreateDevice()`
 
   </details>
 

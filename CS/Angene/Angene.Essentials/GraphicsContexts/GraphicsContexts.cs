@@ -84,6 +84,8 @@ namespace Angene.Essentials.GraphicsContexts;
         // IGraphicsContext
         IntPtr Handle => (IntPtr)VkDevice;
         IntPtr ContextHandle => (IntPtr)VkInstance;
+        
+        public Types.QueueFamilyIndices? queueFamilyIndices { get; }
 
         // Resource creation
         IntPtr CreateVertexBuffer(byte[] data, uint strideBytes);

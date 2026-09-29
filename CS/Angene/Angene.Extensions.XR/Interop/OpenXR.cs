@@ -45,6 +45,15 @@ namespace Angene.Extensions.XR.Interop
             public DxgiStructs.LUID adapterLuid;
             public D3D11.D3D_FEATURE_LEVEL minFeatureLevel;
         }
+        public struct XrGraphicsBindingVulkanKHR {
+            public XrStructureType type;
+            public void* next;
+            public IntPtr instance;
+            public IntPtr physicalDevice;
+            public IntPtr device;
+            public uint queueFamilyIndex;
+            public uint queueIndex;
+        }
 
         public enum XrResult
         {
@@ -1739,7 +1748,7 @@ namespace Angene.Extensions.XR.Interop
 
         public unsafe partial struct XrSwapchainSubImage
         {
-            public XrSwapchain* swapchain;
+            public IntPtr swapchain;
 
             public XrRect2Di imageRect;
             public uint imageArrayIndex;
@@ -1807,7 +1816,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSession* session;
+            public IntPtr session;
 
             public XrSessionState state;
             public long time;
@@ -1817,7 +1826,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSession* session;
+            public IntPtr session;
 
             public XrReferenceSpaceType referenceSpaceType;
             public long changeTime;
@@ -1830,7 +1839,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSession* session;
+            public IntPtr session;
         }
 
         public unsafe partial struct XrHapticVibration
@@ -1988,7 +1997,7 @@ namespace Angene.Extensions.XR.Interop
             public XrSpace* space;
 
             public XrEyeVisibility eyeVisibility;
-            public XrSwapchain* swapchain;
+            public IntPtr swapchain;
             public uint imageArrayIndex;
 
             public XrQuaternionf orientation;
@@ -2075,7 +2084,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSession* session;
+            public IntPtr session;
 
             public XrViewConfigurationType viewConfigurationType;
             public uint viewIndex;
@@ -4235,7 +4244,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSession* session;
+            public IntPtr session;
 
             public XrLocalizationMapStateML state;
 
@@ -8409,7 +8418,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSession* session;
+            public IntPtr session;
             public uint isUserPresent;
         }
 
@@ -11469,22 +11478,22 @@ namespace Angene.Extensions.XR.Interop
             public static extern XrResult xrEnumerateEnvironmentBlendModes( XrInstance* instance, ulong systemId, XrViewConfigurationType viewConfigurationType, uint environmentBlendModeCapacityInput, uint* environmentBlendModeCountOutput, XrEnvironmentBlendMode* environmentBlendModes);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrCreateSession( XrInstance* instance, XrSessionCreateInfo* createInfo, XrSession** session);
+            public static extern XrResult xrCreateSession( XrInstance* instance, XrSessionCreateInfo* createInfo, IntPtr* session);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrDestroySession( XrSession* session);
+            public static extern XrResult xrDestroySession( IntPtr session);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrEnumerateReferenceSpaces( XrSession* session, uint spaceCapacityInput, uint* spaceCountOutput, XrReferenceSpaceType* spaces);
+            public static extern XrResult xrEnumerateReferenceSpaces( IntPtr session, uint spaceCapacityInput, uint* spaceCountOutput, XrReferenceSpaceType* spaces);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrCreateReferenceSpace( XrSession* session, XrReferenceSpaceCreateInfo* createInfo, XrSpace** space);
+            public static extern XrResult xrCreateReferenceSpace( IntPtr session, XrReferenceSpaceCreateInfo* createInfo, XrSpace** space);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetReferenceSpaceBoundsRect( XrSession* session, XrReferenceSpaceType referenceSpaceType, XrExtent2Df* bounds);
+            public static extern XrResult xrGetReferenceSpaceBoundsRect( IntPtr session, XrReferenceSpaceType referenceSpaceType, XrExtent2Df* bounds);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrCreateActionSpace( XrSession* session, XrActionSpaceCreateInfo* createInfo, XrSpace** space);
+            public static extern XrResult xrCreateActionSpace( IntPtr session, XrActionSpaceCreateInfo* createInfo, XrSpace** space);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern XrResult xrLocateSpace( XrSpace* space, XrSpace* baseSpace, long time, XrSpaceLocation* location);
@@ -11502,46 +11511,46 @@ namespace Angene.Extensions.XR.Interop
             public static extern XrResult xrEnumerateViewConfigurationViews( XrInstance* instance, ulong systemId, XrViewConfigurationType viewConfigurationType, uint viewCapacityInput, uint* viewCountOutput, XrViewConfigurationView* views);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrEnumerateSwapchainFormats( XrSession* session, uint formatCapacityInput, uint* formatCountOutput, long* formats);
+            public static extern XrResult xrEnumerateSwapchainFormats( IntPtr session, uint formatCapacityInput, uint* formatCountOutput, long* formats);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrCreateSwapchain( XrSession* session, XrSwapchainCreateInfo* createInfo, XrSwapchain** swapchain);
+            public static extern XrResult xrCreateSwapchain( IntPtr session, XrSwapchainCreateInfo* createInfo, IntPtr* swapchain);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrDestroySwapchain( XrSwapchain* swapchain);
+            public static extern XrResult xrDestroySwapchain( IntPtr swapchain);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrEnumerateSwapchainImages( XrSwapchain* swapchain, uint imageCapacityInput, uint* imageCountOutput, XrSwapchainImageBaseHeader* images);
+            public static extern XrResult xrEnumerateSwapchainImages( IntPtr swapchain, uint imageCapacityInput, uint* imageCountOutput, XrSwapchainImageBaseHeader* images);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrAcquireSwapchainImage( XrSwapchain* swapchain, XrSwapchainImageAcquireInfo* acquireInfo, uint* index);
+            public static extern XrResult xrAcquireSwapchainImage( IntPtr swapchain, XrSwapchainImageAcquireInfo* acquireInfo, uint* index);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrWaitSwapchainImage( XrSwapchain* swapchain, XrSwapchainImageWaitInfo* waitInfo);
+            public static extern XrResult xrWaitSwapchainImage( IntPtr swapchain, XrSwapchainImageWaitInfo* waitInfo);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrReleaseSwapchainImage( XrSwapchain* swapchain, XrSwapchainImageReleaseInfo* releaseInfo);
+            public static extern XrResult xrReleaseSwapchainImage( IntPtr swapchain, XrSwapchainImageReleaseInfo* releaseInfo);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrBeginSession( XrSession* session, XrSessionBeginInfo* beginInfo);
+            public static extern XrResult xrBeginSession( IntPtr session, XrSessionBeginInfo* beginInfo);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrEndSession( XrSession* session);
+            public static extern XrResult xrEndSession( IntPtr session);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrRequestExitSession( XrSession* session);
+            public static extern XrResult xrRequestExitSession( IntPtr session);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrWaitFrame( XrSession* session, XrFrameWaitInfo* frameWaitInfo, XrFrameState* frameState);
+            public static extern XrResult xrWaitFrame( IntPtr session, XrFrameWaitInfo* frameWaitInfo, XrFrameState* frameState);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrBeginFrame( XrSession* session, XrFrameBeginInfo* frameBeginInfo);
+            public static extern XrResult xrBeginFrame( IntPtr session, XrFrameBeginInfo* frameBeginInfo);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrEndFrame( XrSession* session, XrFrameEndInfo* frameEndInfo);
+            public static extern XrResult xrEndFrame( IntPtr session, XrFrameEndInfo* frameEndInfo);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrLocateViews( XrSession* session, XrViewLocateInfo* viewLocateInfo, XrViewState* viewState, uint viewCapacityInput, uint* viewCountOutput, XrView* views);
+            public static extern XrResult xrLocateViews( IntPtr session, XrViewLocateInfo* viewLocateInfo, XrViewState* viewState, uint viewCapacityInput, uint* viewCountOutput, XrView* views);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern XrResult xrStringToPath( XrInstance* instance, byte* pathString, ulong* path);
@@ -11565,40 +11574,40 @@ namespace Angene.Extensions.XR.Interop
             public static extern XrResult xrSuggestInteractionProfileBindings( XrInstance* instance, XrInteractionProfileSuggestedBinding* suggestedBindings);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrAttachSessionActionSets( XrSession* session, XrSessionActionSetsAttachInfo* attachInfo);
+            public static extern XrResult xrAttachSessionActionSets( IntPtr session, XrSessionActionSetsAttachInfo* attachInfo);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetCurrentInteractionProfile( XrSession* session, ulong topLevelUserPath, XrInteractionProfileState* interactionProfile);
+            public static extern XrResult xrGetCurrentInteractionProfile( IntPtr session, ulong topLevelUserPath, XrInteractionProfileState* interactionProfile);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetActionStateBoolean( XrSession* session, XrActionStateGetInfo* getInfo, XrActionStateBoolean* state);
+            public static extern XrResult xrGetActionStateBoolean( IntPtr session, XrActionStateGetInfo* getInfo, XrActionStateBoolean* state);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetActionStateFloat( XrSession* session, XrActionStateGetInfo* getInfo, XrActionStateFloat* state);
+            public static extern XrResult xrGetActionStateFloat( IntPtr session, XrActionStateGetInfo* getInfo, XrActionStateFloat* state);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetActionStateVector2f( XrSession* session, XrActionStateGetInfo* getInfo, XrActionStateVector2f* state);
+            public static extern XrResult xrGetActionStateVector2f( IntPtr session, XrActionStateGetInfo* getInfo, XrActionStateVector2f* state);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetActionStatePose( XrSession* session, XrActionStateGetInfo* getInfo, XrActionStatePose* state);
+            public static extern XrResult xrGetActionStatePose( IntPtr session, XrActionStateGetInfo* getInfo, XrActionStatePose* state);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrSyncActions( XrSession* session, XrActionsSyncInfo* syncInfo);
+            public static extern XrResult xrSyncActions( IntPtr session, XrActionsSyncInfo* syncInfo);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrEnumerateBoundSourcesForAction( XrSession* session, XrBoundSourcesForActionEnumerateInfo* enumerateInfo, uint sourceCapacityInput, uint* sourceCountOutput, ulong* sources);
+            public static extern XrResult xrEnumerateBoundSourcesForAction( IntPtr session, XrBoundSourcesForActionEnumerateInfo* enumerateInfo, uint sourceCapacityInput, uint* sourceCountOutput, ulong* sources);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetInputSourceLocalizedName( XrSession* session, XrInputSourceLocalizedNameGetInfo* getInfo, uint bufferCapacityInput, uint* bufferCountOutput, byte* buffer);
+            public static extern XrResult xrGetInputSourceLocalizedName( IntPtr session, XrInputSourceLocalizedNameGetInfo* getInfo, uint bufferCapacityInput, uint* bufferCountOutput, byte* buffer);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrApplyHapticFeedback( XrSession* session, XrHapticActionInfo* hapticActionInfo, XrHapticBaseHeader* hapticFeedback);
+            public static extern XrResult xrApplyHapticFeedback( IntPtr session, XrHapticActionInfo* hapticActionInfo, XrHapticBaseHeader* hapticFeedback);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrStopHapticFeedback( XrSession* session, XrHapticActionInfo* hapticActionInfo);
+            public static extern XrResult xrStopHapticFeedback( IntPtr session, XrHapticActionInfo* hapticActionInfo);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrLocateSpaces( XrSession* session, XrSpacesLocateInfo* locateInfo, XrSpaceLocations* spaceLocations);
+            public static extern XrResult xrLocateSpaces( IntPtr session, XrSpacesLocateInfo* locateInfo, XrSpaceLocations* spaceLocations);
             public const ulong XR_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT = 0x00000001;
             public const ulong XR_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT = 0x00000010;
             public const ulong XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT = 0x00000100;

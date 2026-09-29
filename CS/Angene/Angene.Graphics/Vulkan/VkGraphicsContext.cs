@@ -101,6 +101,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     VkGraphicscontextHelpers contextHelpers = new VkGraphicscontextHelpers();
     private readonly object _allocatorLock = new object();
     public List<string> ExtraExtensions = new List<string>() {};
+    public QueueFamilyIndices? queueFamilyIndices { get; internal set; }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     private static uint DebugCallback(
@@ -205,7 +206,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     };
                 }
 #endregion
-#region OpenXR
+#region OpenXR Init
                 if (UseOpenXR)
                 {
                     if (!Common.Settings.Settings.Instance.GetSetting<string[]>("Main.SupportedLibraries")
@@ -458,6 +459,27 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 _vkPhysicalDevice = _physicalDevice;
                 _vkDevice = _device;
                 _vkQueue = _graphicsQueue;
+#endregion
+#region (OPENXR) XRSession (XRSession)
+                QueueFamilyIndices queueFamilyIndices = (QueueFamilyIndices)contextHelpers.findQueueFamilies(_physicalDevice, _vkSurfaceKHR);
+                this.queueFamilyIndices = queueFamilyIndices;
+
+                IntPtr XRSession;
+                if (UseOpenXR)
+                {
+                    Type type = null;
+                    MethodInfo method = null;
+                    Assembly assem = null;
+                    object ret;
+                    (assem, type, method, ret) = CallExternalFunc(
+                        Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll",
+                        "Angene.Extensions.XR.OpenXR",
+                        "CreateSessionS2",
+                        new object[] { _vkInstance, _vkDevice, queueFamilyIndices }
+                    );
+
+                    XRSession = (IntPtr)ret;
+                }
 #endregion
 #region Vulkan Memory Allocator (VMA)
             // 1. Create the allocator once, after you have instance/physicalDevice/device
@@ -848,14 +870,14 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 #endregion
 #region Command Pool (_vkCommandPool)
                 IntPtr commandPool;
-    
-                VkGraphicscontextHelpers.QueueFamilyIndices queueFamilyIndices = (VkGraphicscontextHelpers.QueueFamilyIndices)contextHelpers.findQueueFamilies(_physicalDevice, _vkSurfaceKHR);
+                
                 VkCommandPoolCreateInfo poolInfo = new VkCommandPoolCreateInfo
                 {
                     sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
                     flags = (uint)VkCommandPoolCreateFlagBits.VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
                     queueFamilyIndex = queueFamilyIndices.graphicsFamily.Value
                 };
+                
                 result = vkCreateCommandPool(_device, &poolInfo, null, &commandPool);
 
                 if (result != VkResult.VK_SUCCESS)
@@ -1772,20 +1794,6 @@ public unsafe class VkGraphicscontextHelpers
         vkCmdDraw(commandBuffer, (uint)vertices, 1, 0, 0);
 
     }
-    public struct QueueFamilyIndices {
-        public uint? graphicsFamily = null;
-        public uint? presentFamily = null;
-
-        public bool isComplete() {
-            return graphicsFamily != null && presentFamily != null;
-        }
-
-        public QueueFamilyIndices(uint? graphicsFamily = null, uint? presentFamily = null)
-        {
-            this.graphicsFamily = graphicsFamily;
-            this.presentFamily = presentFamily;
-        }
-    };
     public QueueFamilyIndices? findQueueFamilies(IntPtr device, IntPtr surface)
     {
         QueueFamilyIndices indices = new QueueFamilyIndices();
@@ -1936,7 +1944,7 @@ public unsafe class VkGraphicscontextHelpers
             queueCount = 1,
             pQueuePriorities = &queuePriority
         };
-
+        
         IntPtr deviceExtensionPtr = Marshal.StringToHGlobalAnsi("VK_KHR_swapchain");
         try
         {
@@ -2023,7 +2031,7 @@ public unsafe class VkGraphicscontextHelpers
                 sType = VkStructureType.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                 queueCreateInfoCount = 1,
                 pQueueCreateInfos = &queueCreateInfo,
-                enabledExtensionCount = 1,
+                enabledExtensionCount = (uint)deviceExtensionsList.Length,
                 ppEnabledExtensionNames = &deviceExtension
             };
 

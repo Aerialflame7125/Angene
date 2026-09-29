@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Angene.Common;
 using Angene.Common.Settings;
 using Angene.Essentials;
 using Angene.Essentials.GraphicsContexts;
@@ -11,6 +12,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 {
 #region Vars
     public static XrInstance OpenXRInstance;
+    public static IntPtr OXRSession;
     public static OpenXR Instance;
     public static ulong systemID = 0;
     private static List<string> layerNames = new List<string>() { "XR_APILAYER_LUNARG_core_validation" };
@@ -18,14 +20,21 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
     public static string[] instanceExtensions;
     public static string[] deviceExtensions;
-    private static IVkGraphicsContext vulkanGraphicsContext = null;
     private static IDX11GraphicsContext dx11GraphicsContext = null;
-    private static XrGraphicsRequirementsVulkanKHR VulkanReqs;
     private static XrGraphicsRequirementsD3D11KHR D3D11Reqs;
+    
+    // Vulkan
+    private static IVkGraphicsContext vulkanGraphicsContext = null;
+    private static XrGraphicsRequirementsVulkanKHR VulkanReqs;
+    private static IntPtr VkPhysicalDevice;
+    private static IntPtr VkInstance;
+    private static IntPtr VkDevice;
+    
 #endregion
 #region Instance Creation
-    public static void CreateInstanceS1(object usedContext, Types.AppInfo appInfo)
+    public static void CreateInstanceS1(object usedContext, Types.AppInfo appInfo) // Used in VkGraphicsContext under the section labeled "OpenXR Init".
     {
+        Logger.LogDebug("--- CreateSessionS1 (OpenXR) ---", LoggingTarget.Graphics);
         Instance = new OpenXR();
         switch (usedContext)
         {
@@ -50,6 +59,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                 throw new Exceptions.FailedToInitializeOpenXRException(
                     $"Graphics context of type '{usedContext.GetType()}' is not supported.");
         }
+        Logger.LogDebug("--- END CreateInstanceS1 (OpenXR) ---",  LoggingTarget.Graphics);
     }
 
     private void CreateInstance(Types.AppInfo appInfo)
@@ -184,7 +194,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
             .Split(' ', StringSplitOptions.RemoveEmptyEntries);
     }
     
-    public static (IntPtr, string[]) getVulkanDeviceRequirements()
+    public static (IntPtr, string[]) getVulkanDeviceRequirements() // Used in VkGraphicsContext in device selection
     {
         var getGraphicsDevice = (delegate* unmanaged[Cdecl]<XrInstance, ulong, IntPtr, IntPtr*, XrResult>)
             getXrFunction("xrGetVulkanGraphicsDeviceKHR");
@@ -211,7 +221,124 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                 throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get Vulkan device extensions for OpenXR: '{res}'");
         }
 
+        VkPhysicalDevice = physicalDevice;
+        
         return (physicalDevice, deviceExtensions);
+    }
+#endregion
+#region Session Creation
+    public static IntPtr CreateSessionS2(IntPtr VkInstance, IntPtr VkDevice, uint queueFamilyIndex)
+    {
+        Logger.LogDebug("--- CreateSessionS2 (OpenXR) ---", LoggingTarget.Graphics);
+        IntPtr session;
+
+        XrGraphicsBindingVulkanKHR graphicsBinding = new XrGraphicsBindingVulkanKHR()
+        {
+            type = XrStructureType.XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR,
+            instance = VkInstance,
+            physicalDevice = VkPhysicalDevice,
+            device = VkDevice,
+            queueFamilyIndex = queueFamilyIndex,
+            queueIndex = 0
+        };
+
+        XrSessionCreateInfo sessionCreateInfo = new XrSessionCreateInfo()
+        {
+            type = XrStructureType.XR_TYPE_SESSION_CREATE_INFO,
+            next = &graphicsBinding,
+            createFlags = 0,
+            systemId = systemID
+        };
+
+        fixed (XrInstance* inst = &OpenXRInstance)
+        {
+            XrResult res = xrCreateSession(inst, &sessionCreateInfo, &session);
+            if (res != XrResult.XR_SUCCESS)
+                throw new Exceptions.FailedToInitializeOpenXRException($"Failed to create OpenXR session: {res}");
+        }
+
+        Logger.LogDebug("--- END CreateSessionS2 (OpenXR) ---", LoggingTarget.Graphics);
+        OXRSession = session;
+        return session;
+    }
+#endregion
+#region Swapchain Creation
+    public static (Types.XrSwapchain, Types.XrSwapchain) createSwapchains()
+    {
+        uint configViewsCount = 2;
+        XrViewConfigurationView[] configViews = new XrViewConfigurationView[]
+        {
+            new XrViewConfigurationView()
+            {
+                type = XrStructureType.XR_TYPE_VIEW_CONFIGURATION_VIEW,
+                recommendedSwapchainSampleCount = configViewsCount // ???
+            }
+        };
+
+        XrResult res;
+        fixed (XrInstance* localOXRInstance = &OpenXRInstance)
+        fixed (XrViewConfigurationView* configViewsPtr = configViews)
+        {
+            res = xrEnumerateViewConfigurationViews(localOXRInstance, systemID,
+                XrViewConfigurationType.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, configViewsCount, &configViewsCount,
+                configViewsPtr);
+            if (res != XrResult.XR_SUCCESS)
+                throw new Exceptions.FailedToInitializeOpenXRException(
+                    $"Failed to enumerate view configuration views: {res}");
+        }
+
+
+        uint formatCount = 0;
+        res = xrEnumerateSwapchainFormats(OXRSession, 0, &formatCount, null);
+        if (res != XrResult.XR_SUCCESS)
+            throw new Exceptions.FailedToInitializeOpenXRException($"Failed to enumerate swapchain formats: {res}");
+        
+        long[] formats = new long[formatCount]; // I think this converts
+
+        fixed (long* pformats = formats)
+        {
+            res = xrEnumerateSwapchainFormats(OXRSession, formatCount, &formatCount, pformats);
+            if (res != XrResult.XR_SUCCESS)
+                throw new Exceptions.FailedToInitializeOpenXRException($"Failed to enumerate swapchain formats: {res}");
+        }
+
+        uint chosenFormat = (uint)formats.First();
+
+        foreach (uint format in formats)
+        {
+            if (format == (uint)Vulkan.Interop.Enumerators.VkFormat.VK_FORMAT_R8G8B8A8_SRGB)
+            {
+                chosenFormat = format;
+                break;
+            }
+        }
+
+        IntPtr[] XrSwapchains = new []{ IntPtr.Zero, IntPtr.Zero };
+
+        for (int i = 0; i < 2; i++)
+        {
+            XrSwapchainCreateInfo swapchainCreateInfo = new XrSwapchainCreateInfo()
+            {
+                type = XrStructureType.XR_TYPE_SWAPCHAIN_CREATE_INFO,
+                usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT,
+                format = chosenFormat,
+                sampleCount = (uint)Enumerators.VkSampleCountFlagBits.VK_SAMPLE_COUNT_1_BIT,
+                width = configViews[i].recommendedImageRectWidth,
+                height = configViews[i].recommendedImageRectHeight,
+                faceCount = 1,
+                arraySize = 1,
+                mipCount = 1
+            };
+
+            IntPtr swapchain = IntPtr.Zero;
+            res = xrCreateSwapchain(OXRSession, &swapchainCreateInfo, &swapchain);
+            if (res != XrResult.XR_SUCCESS)
+                throw new Exceptions.FailedToInitializeOpenXRException($"Failed to create swapchain on index '{i}': {res}");
+            
+            XrSwapchains[i] = swapchain;
+        }
+        return (new Types.XrSwapchain(XrSwapchains[0], (Enumerators.VkFormat)chosenFormat, configViews[0].recommendedImageRectWidth, configViews[0].recommendedImageRectHeight), 
+            new Types.XrSwapchain(XrSwapchains[1], (Enumerators.VkFormat)chosenFormat, configViews[1].recommendedImageRectWidth, configViews[1].recommendedImageRectHeight));
     }
 #endregion
 #region Cleanup
@@ -221,6 +348,8 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
         // Instance
         fixed (XrInstance* xrInstancePtr = &OpenXRInstance)
             xrDestroyInstance(xrInstancePtr);
+
+        xrDestroySession(OXRSession);
     }
 #endregion
 #region Helpers

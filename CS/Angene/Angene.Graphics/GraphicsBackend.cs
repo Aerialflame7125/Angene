@@ -20,7 +20,7 @@ using static Angene.Linux.Wayland.XdgShell;
 using static Angene.Linux.Wayland.WaylandClient;
 
 namespace Angene.Graphics
-{
+{ 
     public unsafe class X11WindowHandle
     {
         public XLib._XDisplay* Display { get; }

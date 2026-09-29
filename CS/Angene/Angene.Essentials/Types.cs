@@ -1,9 +1,63 @@
-﻿using static Angene.Vulkan.Interop.Enumerators;
+﻿using System.Reflection;
+using static Angene.Vulkan.Interop.Enumerators;
 
 namespace Angene.Essentials
 {
     public partial class Types
     {
+        public struct QueueFamilyIndices { // For vulkan
+            public uint? graphicsFamily = null;
+            public uint? presentFamily = null;
+
+            public bool isComplete() {
+                return graphicsFamily != null && presentFamily != null;
+            }
+
+            public QueueFamilyIndices(uint? graphicsFamily = null, uint? presentFamily = null)
+            {
+                this.graphicsFamily = graphicsFamily;
+                this.presentFamily = presentFamily;
+            }
+        };
+        
+        public struct XrSwapchain
+        {
+            public XrSwapchain(IntPtr swapchain, VkFormat format, uint width, uint height)
+            {
+                this.swapchain = swapchain;
+                this.format = format;
+                this.width = width;
+                this.height = height;
+            }
+
+            IntPtr swapchain;
+            VkFormat format;
+            uint width;
+            uint height;
+
+            public void DestroySwapchain()
+            {
+                Assembly assem = Assembly.LoadFrom(Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll");
+
+                Type ltype = assem.GetType("Angene.Extensions.XR.Interop.OpenXR");
+                if (ltype == null)
+                    throw new Exception(
+                        "Failed to find Angene.Extensions.XR.Interop.OpenXR in local installation directory. Please check your installation.");
+
+                MethodInfo lmethod = ltype.GetMethod("xrDestroySwapchain", BindingFlags.Static | BindingFlags.Public);
+                if (lmethod == null)
+                    throw new Exception("Method xrDestroySwapchain was unable to be found within assembly Angene.Extensions.Xr.Interop.OpenXR. Please check your installation.");
+
+                object[] parameters = new object[] { swapchain };
+                
+                try { lmethod.Invoke(null, parameters); } // instance, params for future reference
+                catch (TargetInvocationException ex) when (ex.InnerException != null)
+                {
+                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                }
+            }
+        };
+        
         /// <summary>
         /// RGBA color value
         /// </summary>
