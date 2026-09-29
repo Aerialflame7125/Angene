@@ -19,22 +19,32 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     public static string[] instanceExtensions;
     public static string[] deviceExtensions;
     private static IVkGraphicsContext vulkanGraphicsContext = null;
+    private static IDX11GraphicsContext dx11GraphicsContext = null;
     private static XrGraphicsRequirementsVulkanKHR VulkanReqs;
+    private static XrGraphicsRequirementsD3D11KHR D3D11Reqs;
 #endregion
 #region Instance Creation
     public static void CreateInstanceS1(object usedContext, Types.AppInfo appInfo)
     {
+        Instance = new OpenXR();
         switch (usedContext)
         {
             case IVkGraphicsContext vk:
                 vulkanGraphicsContext = vk;
                 extensionNames.Add("XR_KHR_vulkan_enable");
                 extensionNames.Add("XR_KHR_vulkan_enable2");
-
-                Instance = new OpenXR();
+                
                 Instance.CreateInstance(appInfo);
                 Instance.getSystem();
                 getVulkanInstanceRequirements();
+                break;
+            case IDX11GraphicsContext dx1:
+                dx11GraphicsContext = dx1;
+                extensionNames.Add("XR_KHR_D3D11_enable");
+                
+                Instance.CreateInstance(appInfo);
+                Instance.getSystem();
+                getD3D11InstanceRequirements();
                 break;
             default:
                 throw new Exceptions.FailedToInitializeOpenXRException(
@@ -129,31 +139,59 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
         fixed (XrGraphicsRequirementsVulkanKHR* r = &VulkanReqs)
         {
             var res = getReqs(OpenXRInstance, systemID, r);
-            if (res != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"...{res}");
+            if (res != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get Vulkan Instance requirements for OpenXR: {res}");
         }
 
         uint size;
         var res2 = getExts(OpenXRInstance, systemID, 0, &size, null);
-        if (res2 != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"...{res2}");
+        if (res2 != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get Vulkan Instance requirements for OpenXR: {res2}");
 
         var buf = new byte[size];
         fixed (byte* p = buf)
             res2 = getExts(OpenXRInstance, systemID, size, &size, p);
-        if (res2 != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"...{res2}");
+        if (res2 != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get Vulkan Instance requirements for OpenXR: {res2}");
 
         instanceExtensions = System.Text.Encoding.ASCII
             .GetString(buf, 0, (int)size).TrimEnd('\0')
             .Split(' ', StringSplitOptions.RemoveEmptyEntries);
     }
-
-    private static void getVulkanDeviceRequirements()
+    
+    private static void getD3D11InstanceRequirements()
     {
-        var getGraphicsDevice = (delegate* unmanaged[Cdecl]<XrInstance, ulong, IntPtr, Structs.VkPhysicalDevice*, XrResult>)
+        var getReqs = (delegate* unmanaged[Cdecl]<XrInstance, ulong, XrGraphicsRequirementsD3D11KHR*, XrResult>)
+            getXrFunction("xrGetD3D11GraphicsRequirementsKHR");
+        var getExts = (delegate* unmanaged[Cdecl]<XrInstance, ulong, uint, uint*, byte*, XrResult>)
+            getXrFunction("xrGetD3D11InstanceExtensionsKHR");
+
+        D3D11Reqs = new XrGraphicsRequirementsD3D11KHR { type = XrStructureType.XR_TYPE_GRAPHICS_REQUIREMENTS_D3D11_KHR };
+        fixed (XrGraphicsRequirementsD3D11KHR* r = &D3D11Reqs)
+        {
+            var res = getReqs(OpenXRInstance, systemID, r);
+            if (res != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get D3D11 Instance requirements for OpenXR: {res}");
+        }
+
+        uint size;
+        var res2 = getExts(OpenXRInstance, systemID, 0, &size, null);
+        if (res2 != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get D3D11 Instance requirements for OpenXR: {res2}");
+
+        var buf = new byte[size];
+        fixed (byte* p = buf)
+            res2 = getExts(OpenXRInstance, systemID, size, &size, p);
+        if (res2 != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get D3D11 instance requirements for OpenXR: {res2}");
+
+        instanceExtensions = System.Text.Encoding.ASCII
+            .GetString(buf, 0, (int)size).TrimEnd('\0')
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    }
+    
+    public static (IntPtr, string[]) getVulkanDeviceRequirements()
+    {
+        var getGraphicsDevice = (delegate* unmanaged[Cdecl]<XrInstance, ulong, IntPtr, IntPtr*, XrResult>)
             getXrFunction("xrGetVulkanGraphicsDeviceKHR");
         var getExts = (delegate* unmanaged[Cdecl]<XrInstance, ulong, uint, uint*, byte*, XrResult>)
             getXrFunction("xrGetVulkanDeviceExtensionsKHR");
 
-        Structs.VkPhysicalDevice physicalDevice;
+        IntPtr physicalDevice;
 
         XrResult res = getGraphicsDevice(OpenXRInstance, systemID, vulkanGraphicsContext.VkInstance, &physicalDevice);
         if (res != XrResult.XR_SUCCESS)
@@ -173,9 +211,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                 throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get Vulkan device extensions for OpenXR: '{res}'");
         }
 
-        deviceExtensions = System.Text.Encoding.ASCII
-            .GetString(buf, 0, (int)deviceExtensionsSize).TrimEnd('\0')
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return (physicalDevice, deviceExtensions);
     }
 #endregion
 #region Cleanup

@@ -114,6 +114,30 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         return 0;
     }
 
+    private (Assembly, Type, MethodInfo, object) CallExternalFunc(string assemblyPath, string type, string method, object[] parameters) // last returned object is returned output from method
+    {
+        Assembly assem = Assembly.LoadFrom(assemblyPath);
+
+        Type ltype = assem.GetType(type);
+        if (ltype == null)
+            throw new Exceptions.FailedToInitializeVulkanException(
+                $"Type {type} was unable to be found within assembly {assemblyPath.Split('.').Last()}. Please check your installation.");
+
+        MethodInfo lmethod = ltype.GetMethod(method, BindingFlags.Static | BindingFlags.Public);
+        if (lmethod == null)
+            throw new Exceptions.FailedToInitializeVulkanException(
+                $"Method {method} was unable to be found within assembly {assemblyPath.Split('.').Last()}. Please check your installation.");
+
+        object output = null;
+        try { output = lmethod.Invoke(null, parameters); } // instance, params for future reference
+        catch (TargetInvocationException ex) when (ex.InnerException != null)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+        }
+
+        return (assem, ltype, lmethod, output);
+    }
+
     public VkGraphicsContext(object windowHandle, int width, int height, Dictionary<int, object> shaders, IScene Scene, Types.AppInfo? currentAppInfo = null, bool UseOpenXR = false)
     {
         if (windowHandle is MicrosoftWindowHandle MWinHandle)
@@ -188,27 +212,16 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         .Contains("Extensions.XR"))
                         throw new Exceptions.FailedToInitializeVulkanException("OpenXR is labeled to be used but the library is missing. Please check your installation.");
 
-                    Assembly assem =
-                        Assembly.LoadFrom(
-                            Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll");
-
-                    Type type = assem.GetType("Angene.Extensions.XR.OpenXR");
-                    if (type == null)
-                        throw new Exceptions.FailedToInitializeVulkanException(
-                            "Class 'OpenXR' was unable to be found within assembly 'Angene.Extensions.XR'. Please check your installation.");
-
-                    MethodInfo method = type.GetMethod("CreateInstanceS1", BindingFlags.Static | BindingFlags.Public);
-                    if (method == null)
-                        throw new Exceptions.FailedToInitializeVulkanException(
-                            "Method 'CreateInstanceS1' was unable to be found within assembly 'Angene.Extensions.XR'. Please check your installation.");
-
-                    object[] parameters = new object[] { (IVkGraphicsContext)this, currentAppInfo };
-
-                    try { method.Invoke(null, parameters); } // instance, params for future reference
-                    catch (TargetInvocationException ex) when (ex.InnerException != null)
-                    {
-                        System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                    } 
+                    Type type = null;
+                    MethodInfo method = null;
+                    Assembly assem = null;
+                    object ret;
+                    (assem, type, method, ret) = CallExternalFunc(
+                        Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll",
+                        "Angene.Extensions.XR.OpenXR",
+                        "CreateInstanceS1",
+                        new object[] { (IVkGraphicsContext)this, currentAppInfo }
+                    );
                     
                     var xrExts = (string[])type.GetField("instanceExtensions")?.GetValue(null);
                     if (xrExts != null) ExtraExtensions.AddRange(xrExts);
@@ -421,8 +434,27 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 IntPtr _device = IntPtr.Zero;
                 IntPtr _graphicsQueue = IntPtr.Zero;
                 
-                contextHelpers.SelectPhysicalDeviceAndLogicalDevice(_vkInstance, out _physicalDevice, out _device, out _graphicsQueue);
-
+                if (UseOpenXR)
+                {
+                    Type type = null;
+                    MethodInfo method = null;
+                    Assembly assem = null;
+                    object ret;
+                    (assem, type, method, ret) = CallExternalFunc(
+                        Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll",
+                        "Angene.Extensions.XR.OpenXR",
+                        "getVulkanDeviceRequirements",
+                        new object[] { (IVkGraphicsContext)this, currentAppInfo }
+                    );
+                    
+                    string[] _deviceExtensions = new string[]{};
+                    (_physicalDevice, _deviceExtensions) = (ValueTuple<IntPtr, string[]>)ret;
+                    
+                    contextHelpers.CreateDevice(_physicalDevice, _deviceExtensions, out _device, out _graphicsQueue);
+                }
+                else
+                    contextHelpers.SelectPhysicalDeviceAndLogicalDevice(_vkInstance, out _physicalDevice, out _device, out _graphicsQueue);
+                
                 _vkPhysicalDevice = _physicalDevice;
                 _vkDevice = _device;
                 _vkQueue = _graphicsQueue;
@@ -1935,5 +1967,131 @@ public unsafe class VkGraphicscontextHelpers
         IntPtr queueOut;
         vkGetDeviceQueue(device, (uint)graphicsFamilyIndex, 0, out queueOut);
         graphicsQueue = queueOut;
+    }
+
+    public void CreateDevice(
+        IntPtr physicalDevice,
+        string[] deviceExtensions,
+        out IntPtr device,
+        out IntPtr graphicsQueue
+    )
+    {
+        uint queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, null);
+        if (queueFamilyCount == 0)
+            throw new Exception("Physical device reports no queue families.");
+
+        VkQueueFamilyProperties* queueFamilies = stackalloc VkQueueFamilyProperties[(int)queueFamilyCount];
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies);
+
+        int graphicsFamilyIndex = -1;
+        for (uint i = 0; i < queueFamilyCount; i++)
+        {
+            if ((queueFamilies[i].queueFlags & (uint)VkQueueFlagBits.VK_QUEUE_GRAPHICS_BIT) != 0)
+            {
+                graphicsFamilyIndex = (int)i;
+                break;
+            }
+        }
+
+        if (graphicsFamilyIndex == -1)
+            throw new Exception("Failed to find a valid graphics queue family.");
+        
+        // Create logical device
+        float queuePriority = 1.0f;
+        VkDeviceQueueCreateInfo queueCreateInfo = new VkDeviceQueueCreateInfo
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            queueFamilyIndex = (uint)graphicsFamilyIndex,
+            queueCount = 1,
+            pQueuePriorities = &queuePriority
+        };
+
+        string[] deviceExtensionsList = new string[]{ "VK_KHR_swapchain" };
+        foreach (string extension in deviceExtensions)
+            deviceExtensionsList.Append(extension);
+
+        IntPtr[] deviceExtensionPtrs = null;
+        IntPtr deviceExtensionPtr;
+        deviceExtensionPtr = ConvertToIntPtrArray(deviceExtensionsList, out deviceExtensionPtrs);
+        try
+        {
+            sbyte* deviceExtension = (sbyte*)deviceExtensionPtr;
+
+            VkDeviceCreateInfo deviceCreateInfo = new VkDeviceCreateInfo
+            {
+                sType = VkStructureType.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+                queueCreateInfoCount = 1,
+                pQueueCreateInfos = &queueCreateInfo,
+                enabledExtensionCount = 1,
+                ppEnabledExtensionNames = &deviceExtension
+            };
+
+            IntPtr deviceOut;
+            VkResult result = vkCreateDevice(physicalDevice, &deviceCreateInfo, null, out deviceOut);
+            if (result != VkResult.VK_SUCCESS)
+                throw new Exception($"Failed to create logical device: {result}");
+
+            device = deviceOut;
+        }
+        finally
+        {
+            FreeUnmanagedArray(deviceExtensionPtr, deviceExtensionPtrs);
+        }
+
+        // Retrieve the command queue handle
+        IntPtr queueOut;
+        vkGetDeviceQueue(device, (uint)graphicsFamilyIndex, 0, out queueOut);
+        graphicsQueue = queueOut;
+    }
+    
+    private static IntPtr ConvertToIntPtrArray(string[] managedStrings, out IntPtr[] stringPointers)
+    {
+        if (managedStrings == null)
+        {
+            stringPointers = null;
+            return IntPtr.Zero;
+        }
+        
+        stringPointers = new IntPtr[managedStrings.Length];
+        
+        int arrayMemorySize = IntPtr.Size * managedStrings.Length;
+        IntPtr nativeArrayBuffer = Marshal.AllocHGlobal(arrayMemorySize);
+
+        try
+        {
+            for (int i = 0; i < managedStrings.Length; i++)
+            {
+                stringPointers[i] = Marshal.StringToHGlobalUni(managedStrings[i]);
+            }
+            
+            Marshal.Copy(stringPointers, 0, nativeArrayBuffer, managedStrings.Length);
+            
+            return nativeArrayBuffer;
+        }
+        catch
+        {
+            FreeUnmanagedArray(nativeArrayBuffer, stringPointers);
+            throw;
+        }
+    }
+
+    private static void FreeUnmanagedArray(IntPtr nativeArrayBuffer, IntPtr[] stringPointers)
+    {
+        if (stringPointers != null)
+        {
+            foreach (IntPtr ptr in stringPointers)
+            {
+                if (ptr != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(ptr);
+                }
+            }
+        }
+        
+        if (nativeArrayBuffer != IntPtr.Zero)
+        {
+            Marshal.FreeHGlobal(nativeArrayBuffer);
+        }
     }
 }

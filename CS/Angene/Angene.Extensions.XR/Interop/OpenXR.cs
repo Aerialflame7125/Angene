@@ -3,13 +3,16 @@ using System.CodeDom.Compiler;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Angene.Graphics.DX11;
+using Angene.Windows.D3D11;
+using Angene.Windows.Dxgi;
 using static Angene.Extensions.XR.Interop.OpenXR;
 
 [assembly: GeneratedCode("ClangSharp", "21.1.8.4")]
 
 namespace Angene.Extensions.XR.Interop
 {
-    public class OpenXR
+    public unsafe class OpenXR
     {
         
         public partial struct XrInstance
@@ -34,6 +37,13 @@ namespace Angene.Extensions.XR.Interop
 
         public partial struct XrActionSet
         {
+        }
+        
+        public struct XrGraphicsRequirementsD3D11KHR {
+            public XrStructureType type;
+            public void* next;
+            public DxgiStructs.LUID adapterLuid;
+            public D3D11.D3D_FEATURE_LEVEL minFeatureLevel;
         }
 
         public enum XrResult

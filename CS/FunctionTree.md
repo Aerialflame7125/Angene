@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-09-28 03:13:47.141726+00:00)</sup></sub>
+<sub><sup>(generated 2026-09-29 02:23:46.260615+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -1384,7 +1384,6 @@
 
   <details><summary><b>Angene.Extensions.XR.Interop</b></summary>
 
-  * **class OpenXR**
   * **enum XrActionType**
   * **enum XrAnchorPersistStateANDROID**
     * `XrStructureType type`
@@ -3485,6 +3484,8 @@
     * `uint subsumedUniqueIdCount`
     * `ulong anchorEntityId`
   * **struct XrGeospatialTrackerANDROID**
+  * **struct XrGraphicsRequirementsD3D11KHR**
+    * `XrStructureType type`
   * **struct XrHandCapsuleFB**
     * `_points_e__FixedBuffer points`
     * `float radius`
@@ -4865,6 +4866,7 @@
     * `VkPresentModeKHR ChoosePresentationMode()`
     * `uint ChooseNumImages()`
     * `void SelectPhysicalDeviceAndLogicalDevice()`
+    * `void CreateDevice()`
 
   </details>
 
