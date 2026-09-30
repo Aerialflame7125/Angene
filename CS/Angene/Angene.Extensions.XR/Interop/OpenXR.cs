@@ -14,31 +14,6 @@ namespace Angene.Extensions.XR.Interop
 {
     public unsafe class OpenXR
     {
-        
-        public partial struct XrInstance
-        {
-        }
-
-        public partial struct XrSession
-        {
-        }
-
-        public partial struct XrSpace
-        {
-        }
-
-        public partial struct XrAction
-        {
-        }
-
-        public partial struct XrSwapchain
-        {
-        }
-
-        public partial struct XrActionSet
-        {
-        }
-        
         public struct XrGraphicsRequirementsD3D11KHR {
             public XrStructureType type;
             public void* next;
@@ -1350,7 +1325,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrAction* action;
+            public IntPtr action;
             public ulong subactionPath;
 
             public XrPosef poseInActionSpace;
@@ -1484,7 +1459,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong layerFlags;
-            public XrSpace* space;
+            public IntPtr space;
         }
 
         public unsafe partial struct XrFrameEndInfo
@@ -1513,7 +1488,7 @@ namespace Angene.Extensions.XR.Interop
 
             public XrViewConfigurationType viewConfigurationType;
             public long displayTime;
-            public XrSpace* space;
+            public IntPtr space;
         }
 
         public partial struct XrFovf
@@ -1585,7 +1560,7 @@ namespace Angene.Extensions.XR.Interop
 
         public unsafe partial struct XrActionSuggestedBinding
         {
-            public XrAction* action;
+            public IntPtr action;
             public ulong binding;
         }
 
@@ -1603,7 +1578,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public uint countActionSets;
-            public XrActionSet** actionSets;
+            public IntPtr* actionSets;
         }
 
         public unsafe partial struct XrInteractionProfileState
@@ -1618,7 +1593,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrAction* action;
+            public IntPtr action;
             public ulong subactionPath;
         }
 
@@ -1674,7 +1649,7 @@ namespace Angene.Extensions.XR.Interop
 
         public unsafe partial struct XrActiveActionSet
         {
-            public XrActionSet* actionSet;
+            public IntPtr actionSet;
             public ulong subactionPath;
         }
 
@@ -1690,7 +1665,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrAction* action;
+            public IntPtr action;
         }
 
         public unsafe partial struct XrInputSourceLocalizedNameGetInfo
@@ -1711,7 +1686,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrAction* action;
+            public IntPtr action;
             public ulong subactionPath;
         }
 
@@ -1771,7 +1746,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong layerFlags;
-            public XrSpace* space;
+            public IntPtr space;
             public uint viewCount;
             public XrCompositionLayerProjectionView* views;
         }
@@ -1781,7 +1756,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong layerFlags;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrEyeVisibility eyeVisibility;
 
@@ -1947,10 +1922,10 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
             public uint spaceCount;
-            public XrSpace** spaces;
+            public IntPtr* spaces;
         }
 
         public partial struct XrSpaceLocationData
@@ -1994,7 +1969,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong layerFlags;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrEyeVisibility eyeVisibility;
             public IntPtr swapchain;
@@ -2024,7 +1999,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong layerFlags;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrEyeVisibility eyeVisibility;
 
@@ -2044,7 +2019,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong layerFlags;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrEyeVisibility eyeVisibility;
 
@@ -2111,7 +2086,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong layerFlags;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrEyeVisibility eyeVisibility;
 
@@ -2271,7 +2246,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrPosef pose;
             public long time;
@@ -2365,7 +2340,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrPosef poseInSpace;
             public long time;
@@ -2461,7 +2436,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
         }
 
@@ -2885,7 +2860,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
         }
 
@@ -2909,7 +2884,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong binding;
-            public XrActionSet* actionSet;
+            public IntPtr actionSet;
 
             public float forceThreshold;
 
@@ -2927,7 +2902,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrAction* action;
+            public IntPtr action;
             public ulong binding;
 
             public float onThreshold;
@@ -3071,7 +3046,7 @@ namespace Angene.Extensions.XR.Interop
 
         public unsafe partial struct XrSceneBoundsMSFT
         {
-            public XrSpace* space;
+            public IntPtr space;
             public long time;
             public uint sphereCount;
             public XrSceneSphereBoundMSFT* spheres;
@@ -3151,7 +3126,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
             public uint componentIdCount;
             public XrUuidMSFT* componentIds;
@@ -3571,7 +3546,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrPosef poseInSpace;
             public long time;
@@ -3603,7 +3578,7 @@ namespace Angene.Extensions.XR.Interop
             public ulong requestId;
 
             public XrResult result;
-            public XrSpace* space;
+            public IntPtr space;
             public XrUuid uuid;
         }
 
@@ -3614,7 +3589,7 @@ namespace Angene.Extensions.XR.Interop
             public ulong requestId;
 
             public XrResult result;
-            public XrSpace* space;
+            public IntPtr space;
             public XrUuid uuid;
 
             public XrSpaceComponentTypeFB componentType;
@@ -3795,7 +3770,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong flags;
-            public XrSpace* space;
+            public IntPtr space;
             public XrPassthroughLayerFB* layerHandle;
         }
 
@@ -3805,7 +3780,7 @@ namespace Angene.Extensions.XR.Interop
             public void* next;
             public XrPassthroughLayerFB* layer;
             public XrTriangleMeshFB* mesh;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
 
             public XrPosef pose;
 
@@ -3816,7 +3791,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
 
             public XrPosef pose;
@@ -4303,7 +4278,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
 
             public XrPosef poseInBaseSpace;
             public long time;
@@ -4317,7 +4292,7 @@ namespace Angene.Extensions.XR.Interop
 
             public XrResult futureResult;
             public uint spaceCount;
-            public XrSpace** spaces;
+            public IntPtr* spaces;
         }
 
         public unsafe partial struct XrSpatialAnchorStateML
@@ -4349,7 +4324,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
 
             public XrVector3f center;
             public long time;
@@ -4383,7 +4358,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public uint anchorCount;
-            public XrSpace** anchors;
+            public IntPtr* anchors;
             public ulong expiration;
         }
 
@@ -4650,7 +4625,7 @@ namespace Angene.Extensions.XR.Interop
 
         public unsafe partial struct XrSpaceQueryResultFB
         {
-            public XrSpace* space;
+            public IntPtr space;
             public XrUuid uuid;
         }
 
@@ -4691,7 +4666,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrSpaceStorageLocationFB location;
 
@@ -4702,7 +4677,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrSpaceStorageLocationFB location;
         }
@@ -4714,7 +4689,7 @@ namespace Angene.Extensions.XR.Interop
             public ulong requestId;
 
             public XrResult result;
-            public XrSpace* space;
+            public IntPtr space;
             public XrUuid uuid;
 
             public XrSpaceStorageLocationFB location;
@@ -4727,7 +4702,7 @@ namespace Angene.Extensions.XR.Interop
             public ulong requestId;
 
             public XrResult result;
-            public XrSpace* space;
+            public IntPtr space;
             public XrUuid uuid;
 
             public XrSpaceStorageLocationFB location;
@@ -4742,7 +4717,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public uint spaceCount;
-            public XrSpace** spaces;
+            public IntPtr* spaces;
             public uint userCount;
             public XrSpaceUserFB** users;
         }
@@ -5070,7 +5045,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
         }
 
@@ -5254,7 +5229,7 @@ namespace Angene.Extensions.XR.Interop
             public void* next;
 
             public XrVirtualKeyboardLocationTypeMETA locationType;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrPosef poseInSpace;
         }
@@ -5265,7 +5240,7 @@ namespace Angene.Extensions.XR.Interop
             public void* next;
 
             public XrVirtualKeyboardLocationTypeMETA locationType;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrPosef poseInSpace;
 
@@ -5318,7 +5293,7 @@ namespace Angene.Extensions.XR.Interop
             public void* next;
 
             public XrVirtualKeyboardInputSourceMETA inputSource;
-            public XrSpace* inputSpace;
+            public IntPtr inputSpace;
 
             public XrPosef inputPoseInSpace;
             public ulong inputState;
@@ -5454,7 +5429,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public uint spaceCount;
-            public XrSpace** spaces;
+            public IntPtr* spaces;
 
             public XrSpaceStorageLocationFB location;
         }
@@ -5522,7 +5497,7 @@ namespace Angene.Extensions.XR.Interop
 
         public unsafe partial struct XrSpaceDiscoveryResultMETA
         {
-            public XrSpace* space;
+            public IntPtr space;
             public XrUuid uuid;
         }
 
@@ -5582,7 +5557,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public uint spaceCount;
-            public XrSpace** spaces;
+            public IntPtr* spaces;
         }
 
         public unsafe partial struct XrEventDataSpacesSaveResultMETA
@@ -5599,7 +5574,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public uint spaceCount;
-            public XrSpace** spaces;
+            public IntPtr* spaces;
             public uint uuidCount;
             public XrUuid* uuids;
         }
@@ -6015,7 +5990,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public uint spaceCount;
-            public XrSpace** spaces;
+            public IntPtr* spaces;
             public XrShareSpacesRecipientBaseHeaderMETA* recipientInfo;
         }
 
@@ -6063,7 +6038,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
             public long displayTime;
         }
 
@@ -6326,7 +6301,7 @@ namespace Angene.Extensions.XR.Interop
             public XrVector3f* vertices;
             public uint indexCount;
             public uint* indices;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
 
             public XrPosef pose;
@@ -6339,7 +6314,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong layerFlags;
-            public XrSpace* space;
+            public IntPtr space;
             public XrPassthroughHTC* passthrough;
 
             public XrPassthroughColorHTC color;
@@ -6419,7 +6394,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrPosef poseInSpace;
 
@@ -6492,7 +6467,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
         }
 
@@ -6534,7 +6509,7 @@ namespace Angene.Extensions.XR.Interop
 
         public unsafe partial struct XrActiveActionSetPriorityEXT
         {
-            public XrActionSet* actionSet;
+            public IntPtr actionSet;
             public uint priorityOverride;
         }
 
@@ -6637,7 +6612,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
         }
 
@@ -6900,7 +6875,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
         }
 
         public unsafe partial struct XrSpatialEntityComponentDataLocationBD
@@ -7107,7 +7082,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrPosef pose;
             public long time;
@@ -7634,7 +7609,7 @@ namespace Angene.Extensions.XR.Interop
             public uint enabled;
 
             public XrPosef pose;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
 
             public float mainVolume;
 
@@ -7651,7 +7626,7 @@ namespace Angene.Extensions.XR.Interop
             public uint enabled;
 
             public XrQuaternionf orientation;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
 
             public float mainVolume;
 
@@ -7700,7 +7675,7 @@ namespace Angene.Extensions.XR.Interop
             public uint enabled;
 
             public XrPosef pose;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public uint materialCount;
             public XrSoundObstacleMaterialBD** materials;
         }
@@ -7797,7 +7772,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
             public uint orientationCount;
             public XrPlaneDetectorOrientationEXT* orientations;
@@ -7815,7 +7790,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
         }
 
@@ -7911,7 +7886,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong trackable;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
         }
 
@@ -7942,7 +7917,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
             public long time;
 
             public XrPosef pose;
@@ -8018,7 +7993,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public long time;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
         }
 
         public unsafe partial struct XrEyeTrackerCreateInfoANDROID
@@ -8055,7 +8030,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* anchor;
+            public IntPtr anchor;
         }
 
         public unsafe partial struct XrSystemDeviceAnchorPersistencePropertiesANDROID
@@ -8260,7 +8235,7 @@ namespace Angene.Extensions.XR.Interop
             public XrStructureType type;
             public void* next;
             public ulong layerFlags;
-            public XrSpace* space;
+            public IntPtr space;
 
             public XrPosef pose;
 
@@ -8291,7 +8266,7 @@ namespace Angene.Extensions.XR.Interop
             public XrVector3f origin;
 
             public XrVector3f trajectory;
-            public XrSpace* space;
+            public IntPtr space;
             public long time;
         }
 
@@ -8528,7 +8503,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
 
             public XrPosef boundingBoxCenter;
@@ -8626,7 +8601,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* meshSpace;
+            public IntPtr meshSpace;
             public long meshSpaceLocateTime;
         }
 
@@ -9048,7 +9023,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
 
             public XrVector3f origin;
@@ -9159,7 +9134,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
             public long time;
         }
 
@@ -9485,7 +9460,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
 
             public XrBoxf boundingBox;
@@ -9658,7 +9633,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
             public XrFutureEXT* future;
         }
@@ -9779,7 +9754,7 @@ namespace Angene.Extensions.XR.Interop
             public XrSpatialEntityEXT** entities;
             public uint componentTypeCount;
             public XrSpatialComponentTypeEXT* componentTypes;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
         }
 
@@ -10438,7 +10413,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
             public long time;
 
             public XrSpheref sphere;
@@ -10448,7 +10423,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
             public long time;
 
             public XrBoxf box;
@@ -10458,7 +10433,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
             public long time;
 
             public XrFrustumf frustum;
@@ -10488,7 +10463,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* baseSpace;
+            public IntPtr baseSpace;
             public long time;
 
             public XrPosef pose;
@@ -10875,7 +10850,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
             public long time;
 
             public XrVector3f origin;
@@ -11006,7 +10981,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
             public long time;
 
             public XrPosef pose;
@@ -11032,7 +11007,7 @@ namespace Angene.Extensions.XR.Interop
         {
             public XrStructureType type;
             public void* next;
-            public XrSpace* space;
+            public IntPtr space;
             public long time;
 
             public XrGeospatialPoseANDROID geospatialPose;
@@ -11292,7 +11267,7 @@ namespace Angene.Extensions.XR.Interop
             public void* next;
 
             public XrViewConfigurationType viewConfigurationType;
-            public XrSpace* space;
+            public IntPtr space;
             public XrSpatialContainerEXT* spatialContainer;
         }
 
@@ -11400,11 +11375,43 @@ namespace Angene.Extensions.XR.Interop
 
             public XrViewConfigurationType viewConfigurationType;
         }
+        
+        [StructLayout(LayoutKind.Sequential)]
         public unsafe partial struct XrGraphicsRequirementsVulkanKHR {
-            public XrStructureType    type;
-            public void*              next;
-            public ulong          minApiVersionSupported;
-            public ulong          maxApiVersionSupported;
+            public XrStructureType type;
+            public IntPtr next;
+            public ulong minApiVersionSupported;
+            public ulong maxApiVersionSupported;
+        }
+        
+        public struct XrVulkanGraphicsDeviceGetInfoKHR {
+            public XrStructureType type;
+            public IntPtr next;
+            public ulong systemId;
+            public IntPtr vulkanInstance;
+        }
+        
+        public unsafe struct XrVulkanInstanceCreateInfoKHR
+        {
+            public XrStructureType type;
+            public void* next;
+            public ulong systemId;
+            public ulong createFlags;
+            public IntPtr pfnGetInstanceProcAddr;
+            public void* vulkanCreateInfo;
+            public void* vulkanAllocator;
+        }
+        
+        public unsafe struct XrVulkanDeviceCreateInfoKHR
+        {
+            public XrStructureType type;
+            public void* next;
+            public ulong systemId;
+            public ulong createFlags;
+            public IntPtr pfnGetInstanceProcAddr;
+            public IntPtr vulkanPhysicalDevice;
+            public void* vulkanCreateInfo;
+            public void* vulkanAllocator;
         }
 
         public static unsafe partial class Methods
@@ -11439,46 +11446,46 @@ namespace Angene.Extensions.XR.Interop
             public const ulong XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT = 0x00000004;
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetInstanceProcAddr( XrInstance* instance, byte* name, delegate* unmanaged[Cdecl]<void>* function);
+            public static extern XrResult xrGetInstanceProcAddr( IntPtr instance, byte* name, delegate* unmanaged[Cdecl]<void>* function);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern XrResult xrEnumerateApiLayerProperties( uint propertyCapacityInput, uint* propertyCountOutput, XrApiLayerProperties* properties);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetVulkanGraphicsRequirementsKHR(XrInstance instance, ulong systemId, XrGraphicsRequirementsVulkanKHR* graphicsRequirements);
+            public static extern XrResult xrGetVulkanGraphicsRequirementsKHR(IntPtr instance, ulong systemId, XrGraphicsRequirementsVulkanKHR* graphicsRequirements);
             
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern XrResult xrEnumerateInstanceExtensionProperties( byte* layerName, uint propertyCapacityInput, uint* propertyCountOutput, XrExtensionProperties* properties);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrCreateInstance( XrInstanceCreateInfo* createInfo, XrInstance* instance);
+            public static extern XrResult xrCreateInstance( XrInstanceCreateInfo* createInfo, IntPtr* instance);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrDestroyInstance( XrInstance* instance);
+            public static extern XrResult xrDestroyInstance( IntPtr instance);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetInstanceProperties( XrInstance* instance, XrInstanceProperties* instanceProperties);
+            public static extern XrResult xrGetInstanceProperties( IntPtr instance, XrInstanceProperties* instanceProperties);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrPollEvent( XrInstance* instance, XrEventDataBuffer* eventData);
+            public static extern XrResult xrPollEvent( IntPtr instance, XrEventDataBuffer* eventData);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrResultToString( XrInstance* instance, XrResult value, byte* buffer);
+            public static extern XrResult xrResultToString( IntPtr instance, XrResult value, byte* buffer);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrStructureTypeToString( XrInstance* instance, XrStructureType value, byte* buffer);
+            public static extern XrResult xrStructureTypeToString( IntPtr instance, XrStructureType value, byte* buffer);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetSystem( XrInstance* instance, XrSystemGetInfo* getInfo, ulong* systemId);
+            public static extern XrResult xrGetSystem( IntPtr instance, XrSystemGetInfo* getInfo, ulong* systemId);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetSystemProperties( XrInstance* instance, ulong systemId, XrSystemProperties* properties);
+            public static extern XrResult xrGetSystemProperties( IntPtr instance, ulong systemId, XrSystemProperties* properties);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrEnumerateEnvironmentBlendModes( XrInstance* instance, ulong systemId, XrViewConfigurationType viewConfigurationType, uint environmentBlendModeCapacityInput, uint* environmentBlendModeCountOutput, XrEnvironmentBlendMode* environmentBlendModes);
+            public static extern XrResult xrEnumerateEnvironmentBlendModes( IntPtr instance, ulong systemId, XrViewConfigurationType viewConfigurationType, uint environmentBlendModeCapacityInput, uint* environmentBlendModeCountOutput, XrEnvironmentBlendMode* environmentBlendModes);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrCreateSession( XrInstance* instance, XrSessionCreateInfo* createInfo, IntPtr* session);
+            public static extern XrResult xrCreateSession( IntPtr instance, XrSessionCreateInfo* createInfo, IntPtr* session);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern XrResult xrDestroySession( IntPtr session);
@@ -11487,28 +11494,28 @@ namespace Angene.Extensions.XR.Interop
             public static extern XrResult xrEnumerateReferenceSpaces( IntPtr session, uint spaceCapacityInput, uint* spaceCountOutput, XrReferenceSpaceType* spaces);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrCreateReferenceSpace( IntPtr session, XrReferenceSpaceCreateInfo* createInfo, XrSpace** space);
+            public static extern XrResult xrCreateReferenceSpace( IntPtr session, XrReferenceSpaceCreateInfo* createInfo, IntPtr* space);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern XrResult xrGetReferenceSpaceBoundsRect( IntPtr session, XrReferenceSpaceType referenceSpaceType, XrExtent2Df* bounds);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrCreateActionSpace( IntPtr session, XrActionSpaceCreateInfo* createInfo, XrSpace** space);
+            public static extern XrResult xrCreateActionSpace( IntPtr session, XrActionSpaceCreateInfo* createInfo, IntPtr* space);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrLocateSpace( XrSpace* space, XrSpace* baseSpace, long time, XrSpaceLocation* location);
+            public static extern XrResult xrLocateSpace( IntPtr space, IntPtr baseSpace, long time, XrSpaceLocation* location);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrDestroySpace( XrSpace* space);
+            public static extern XrResult xrDestroySpace( IntPtr space);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrEnumerateViewConfigurations( XrInstance* instance, ulong systemId, uint viewConfigurationTypeCapacityInput, uint* viewConfigurationTypeCountOutput, XrViewConfigurationType* viewConfigurationTypes);
+            public static extern XrResult xrEnumerateViewConfigurations( IntPtr instance, ulong systemId, uint viewConfigurationTypeCapacityInput, uint* viewConfigurationTypeCountOutput, XrViewConfigurationType* viewConfigurationTypes);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrGetViewConfigurationProperties( XrInstance* instance, ulong systemId, XrViewConfigurationType viewConfigurationType, XrViewConfigurationProperties* configurationProperties);
+            public static extern XrResult xrGetViewConfigurationProperties( IntPtr instance, ulong systemId, XrViewConfigurationType viewConfigurationType, XrViewConfigurationProperties* configurationProperties);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrEnumerateViewConfigurationViews( XrInstance* instance, ulong systemId, XrViewConfigurationType viewConfigurationType, uint viewCapacityInput, uint* viewCountOutput, XrViewConfigurationView* views);
+            public static extern XrResult xrEnumerateViewConfigurationViews( IntPtr instance, ulong systemId, XrViewConfigurationType viewConfigurationType, uint viewCapacityInput, uint* viewCountOutput, XrViewConfigurationView* views);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern XrResult xrEnumerateSwapchainFormats( IntPtr session, uint formatCapacityInput, uint* formatCountOutput, long* formats);
@@ -11553,25 +11560,25 @@ namespace Angene.Extensions.XR.Interop
             public static extern XrResult xrLocateViews( IntPtr session, XrViewLocateInfo* viewLocateInfo, XrViewState* viewState, uint viewCapacityInput, uint* viewCountOutput, XrView* views);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrStringToPath( XrInstance* instance, byte* pathString, ulong* path);
+            public static extern XrResult xrStringToPath( IntPtr instance, byte* pathString, ulong* path);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrPathToString( XrInstance* instance, ulong path, uint bufferCapacityInput, uint* bufferCountOutput, byte* buffer);
+            public static extern XrResult xrPathToString( IntPtr instance, ulong path, uint bufferCapacityInput, uint* bufferCountOutput, byte* buffer);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrCreateActionSet( XrInstance* instance, XrActionSetCreateInfo* createInfo, XrActionSet** actionSet);
+            public static extern XrResult xrCreateActionSet( IntPtr instance, XrActionSetCreateInfo* createInfo, IntPtr* actionSet);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrDestroyActionSet( XrActionSet* actionSet);
+            public static extern XrResult xrDestroyActionSet( IntPtr actionSet);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrCreateAction( XrActionSet* actionSet, XrActionCreateInfo* createInfo, XrAction** action);
+            public static extern XrResult xrCreateAction( IntPtr actionSet, XrActionCreateInfo* createInfo, IntPtr* action);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrDestroyAction( XrAction* action);
+            public static extern XrResult xrDestroyAction( IntPtr action);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            public static extern XrResult xrSuggestInteractionProfileBindings( XrInstance* instance, XrInteractionProfileSuggestedBinding* suggestedBindings);
+            public static extern XrResult xrSuggestInteractionProfileBindings( IntPtr instance, XrInteractionProfileSuggestedBinding* suggestedBindings);
 
             [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             public static extern XrResult xrAttachSessionActionSets( IntPtr session, XrSessionActionSetsAttachInfo* attachInfo);

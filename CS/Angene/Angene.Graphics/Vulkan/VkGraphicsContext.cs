@@ -92,7 +92,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private delegate* unmanaged[Cdecl]<IntPtr, IntPtr, VkAllocationCallbacks*, void> _destroyFunc;
     private VkShader[] Shaders = Array.Empty<VkShader>();
     private VkPipelineShaderStageCreateInfo[] shaderStages = Array.Empty<VkPipelineShaderStageCreateInfo>();
-    private IntPtr[] shaderModules = Array.Empty<IntPtr>();
+    private List<IntPtr> shaderModules = new List<IntPtr>();
     private readonly IntPtr _hwnd;
     private bool _needsRecreateSwapchain = false;
 
@@ -176,36 +176,14 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             VkInstanceCreateInfo createInfo;
             VkResult result;
 
-#region App Info (appInfo)
-            try
-            {
-                if (currentAppInfo != null)
-                {
-                    appNamePtr = Marshal.StringToHGlobalAnsi(currentAppInfo.AppName);
-                    appInfo = new VkApplicationInfo
-                    {
-                        sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                        pApplicationName = (sbyte*)appNamePtr,
-                        applicationVersion = (uint)System.Math.Round(currentAppInfo.AppVersion),
-                        pEngineName = (sbyte*)engineNamePtr,
-                        engineVersion = (uint)System.Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
-                        apiVersion = (uint)((1 << 22) | (3 << 12) | 0)
-                    };
-                }
-                else
-                {
-                    appNamePtr = Marshal.StringToHGlobalAnsi("Angene Application");
-                    appInfo = new VkApplicationInfo
-                    {
-                        sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                        pApplicationName = (sbyte*)appNamePtr,
-                        applicationVersion = 0,
-                        pEngineName = (sbyte*)engineNamePtr,
-                        engineVersion = (uint)System.Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
-                        apiVersion = (uint)((1 << 22) | (3 << 12) | 0)
-                    };
-                }
-#endregion
+            // OpenXR
+            ulong maxSupportedOpenXRVer = 0;
+            uint instanceVersion = (uint)((1 << 22) | (3 << 12) | 0);
+            IntPtr vulkanLib = NativeLibrary.Load(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "vulkan-1.dll" : "libvulkan.so.1");
+            IntPtr pfnGipa = NativeLibrary.GetExport(vulkanLib, "vkGetInstanceProcAddr");
+            string xrDll = Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll";
+            
 #region OpenXR Init
                 if (UseOpenXR)
                 {
@@ -224,9 +202,49 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         new object[] { (IVkGraphicsContext)this, currentAppInfo }
                     );
                     
-                    var xrExts = (string[])type.GetField("instanceExtensions")?.GetValue(null);
-                    if (xrExts != null) ExtraExtensions.AddRange(xrExts);
+                    (assem, type, method, ret) = CallExternalFunc(
+                        Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll",
+                        "Angene.Extensions.XR.OpenXR",
+                        "getMinMaxSupportedVulkan",
+                        new object[] { }
+                    );
+                    
+                    (ulong, ulong) rret = (ValueTuple<ulong, ulong>)ret;
+                    maxSupportedOpenXRVer = rret.Item2;
                 }
+#endregion
+#region App Info (appInfo)
+
+                if (maxSupportedOpenXRVer != 0)
+                    instanceVersion = VkGraphicscontextHelpers.XrToVkVersion(maxSupportedOpenXRVer);
+                try
+                {
+                    if (currentAppInfo != null)
+                    {
+                        appNamePtr = Marshal.StringToHGlobalAnsi(currentAppInfo.AppName);
+                        appInfo = new VkApplicationInfo
+                        {
+                            sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                            pApplicationName = (sbyte*)appNamePtr,
+                            applicationVersion = (uint)System.Math.Round(currentAppInfo.AppVersion),
+                            pEngineName = (sbyte*)engineNamePtr,
+                            engineVersion = (uint)System.Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
+                            apiVersion = instanceVersion
+                        };
+                    }
+                    else
+                    {
+                        appNamePtr = Marshal.StringToHGlobalAnsi("Angene Application");
+                        appInfo = new VkApplicationInfo
+                        {
+                            sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                            pApplicationName = (sbyte*)appNamePtr,
+                            applicationVersion = 0,
+                            pEngineName = (sbyte*)engineNamePtr,
+                            engineVersion = (uint)System.Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
+                            apiVersion = instanceVersion
+                        };
+                    }
 #endregion
 #region Extensions
                 // Extensions //
@@ -280,7 +298,11 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
                 foreach (var e in ExtraExtensions)
                 {
-                    if (available.Contains(e))
+                    if (!available.Contains(e))
+                        throw new Exceptions.FailedToInitializeVulkanException(
+                            $"OpenXR-required Vulkan instance extension missing: {e}");
+
+                    if (!toEnable.Contains(e))
                         toEnable.Add(e);
                 }
 
@@ -312,11 +334,18 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                             ppEnabledExtensionNames = (sbyte**)ppEnabledExtensionNames
                         };
 
-                        // vkCreateInstance(...) must be called HERE, inside this fixed block,
-                        // since ppEnabledExtensionNames is only valid within it
-                        result = vkCreateInstance(&createInfo, null, out instanceHandle);
-                        if (result != VkResult.VK_SUCCESS)
-                            throw new Exception($"Failed to create Vulkan instance: {result}");
+                        if (UseOpenXR)
+                        {
+                            var r = CallExternalFunc(xrDll, "Angene.Extensions.XR.OpenXR", "CreateVulkanInstance",
+                                new object[] { (IntPtr)(&createInfo), pfnGipa });
+                            instanceHandle = (IntPtr)r.Item4;
+                        }
+                        else
+                        {
+                            result = vkCreateInstance(&createInfo, null, out instanceHandle);
+                            if (result != VkResult.VK_SUCCESS)
+                                throw new Exception($"Failed to create Vulkan instance: {result}");
+                        }
                     }
                 }
                 finally
@@ -435,23 +464,17 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 IntPtr _device = IntPtr.Zero;
                 IntPtr _graphicsQueue = IntPtr.Zero;
                 
+                uint xrQueueFamily = 0;
                 if (UseOpenXR)
                 {
-                    Type type = null;
-                    MethodInfo method = null;
-                    Assembly assem = null;
-                    object ret;
-                    (assem, type, method, ret) = CallExternalFunc(
-                        Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll",
-                        "Angene.Extensions.XR.OpenXR",
-                        "getVulkanDeviceRequirements",
-                        new object[] { (IVkGraphicsContext)this, currentAppInfo }
-                    );
-                    
-                    string[] _deviceExtensions = new string[]{};
-                    (_physicalDevice, _deviceExtensions) = (ValueTuple<IntPtr, string[]>)ret;
-                    
-                    contextHelpers.CreateDevice(_physicalDevice, _deviceExtensions, out _device, out _graphicsQueue);
+                    _physicalDevice = (IntPtr)CallExternalFunc(xrDll, "Angene.Extensions.XR.OpenXR",
+                        "GetVulkanPhysicalDevice", new object[] { _vkInstance }).Item4;
+
+                    IntPtr pd = _physicalDevice;
+                    contextHelpers.CreateDevice(pd, Array.Empty<string>(),
+                        ci => (IntPtr)CallExternalFunc(xrDll, "Angene.Extensions.XR.OpenXR",
+                            "CreateVulkanDevice", new object[] { pd, ci, pfnGipa }).Item4,
+                        out _device, out _graphicsQueue, out xrQueueFamily);
                 }
                 else
                     contextHelpers.SelectPhysicalDeviceAndLogicalDevice(_vkInstance, out _physicalDevice, out _device, out _graphicsQueue);
@@ -475,7 +498,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll",
                         "Angene.Extensions.XR.OpenXR",
                         "CreateSessionS2",
-                        new object[] { _vkInstance, _vkDevice, queueFamilyIndices }
+                        new object[] { _vkInstance, _vkDevice, UseOpenXR ? xrQueueFamily : queueFamilyIndices.graphicsFamily.Value }
                     );
 
                     XRSession = (IntPtr)ret;
@@ -488,7 +511,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 instance = (VkInstance*)_vkInstance,
                 physicalDevice = (VkPhysicalDevice*)_vkPhysicalDevice,
                 device = (VkDevice*)_vkDevice,
-                vulkanApiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0),
+                vulkanApiVersion = instanceVersion,
                 // pVulkanFunctions = ... required by most bindings, fill with vkGetInstanceProcAddr/vkGetDeviceProcAddr
             };
 
@@ -545,7 +568,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         
                         
                         shader.NativeShaderModule = module;
-                        shaderModules.Append(module);
+                        shaderModules.Add(module);
                     }
                 }
 #endregion
@@ -875,7 +898,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 {
                     sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
                     flags = (uint)VkCommandPoolCreateFlagBits.VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-                    queueFamilyIndex = queueFamilyIndices.graphicsFamily.Value
+                    queueFamilyIndex = UseOpenXR ? xrQueueFamily : queueFamilyIndices.graphicsFamily.Value
                 };
                 
                 result = vkCreateCommandPool(_device, &poolInfo, null, &commandPool);
@@ -1715,6 +1738,14 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
 public unsafe class VkGraphicscontextHelpers
 {
+    public static uint XrToVkVersion(ulong xr)
+    {
+        uint major = (uint)((xr >> 48) & 0xFFFF);
+        uint minor = (uint)((xr >> 32) & 0xFFFF);
+        uint patch = (uint)(xr & 0xFFFFFFFF);
+        return (major << 22) | (minor << 12) | patch;
+    }
+    
     struct CameraPushConstants
     {
         public Matrix4x4 View;
@@ -1980,8 +2011,10 @@ public unsafe class VkGraphicscontextHelpers
     public void CreateDevice(
         IntPtr physicalDevice,
         string[] deviceExtensions,
+        Func<IntPtr, IntPtr> deviceFactory,
         out IntPtr device,
-        out IntPtr graphicsQueue
+        out IntPtr graphicsQueue,
+        out uint queueFamily
     )
     {
         uint queueFamilyCount = 0;
@@ -2014,92 +2047,33 @@ public unsafe class VkGraphicscontextHelpers
             queueCount = 1,
             pQueuePriorities = &queuePriority
         };
-
-        string[] deviceExtensionsList = new string[]{ "VK_KHR_swapchain" };
-        foreach (string extension in deviceExtensions)
-            deviceExtensionsList.Append(extension);
-
-        IntPtr[] deviceExtensionPtrs = null;
-        IntPtr deviceExtensionPtr;
-        deviceExtensionPtr = ConvertToIntPtrArray(deviceExtensionsList, out deviceExtensionPtrs);
+        
+        queueFamily = (uint)graphicsFamilyIndex;
+        IntPtr deviceExtensionPtr = Marshal.StringToHGlobalAnsi("VK_KHR_swapchain");
         try
         {
             sbyte* deviceExtension = (sbyte*)deviceExtensionPtr;
-
             VkDeviceCreateInfo deviceCreateInfo = new VkDeviceCreateInfo
             {
                 sType = VkStructureType.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                 queueCreateInfoCount = 1,
                 pQueueCreateInfos = &queueCreateInfo,
-                enabledExtensionCount = (uint)deviceExtensionsList.Length,
+                enabledExtensionCount = 1,
                 ppEnabledExtensionNames = &deviceExtension
             };
 
-            IntPtr deviceOut;
-            VkResult result = vkCreateDevice(physicalDevice, &deviceCreateInfo, null, out deviceOut);
-            if (result != VkResult.VK_SUCCESS)
-                throw new Exception($"Failed to create logical device: {result}");
-
-            device = deviceOut;
-        }
-        finally
-        {
-            FreeUnmanagedArray(deviceExtensionPtr, deviceExtensionPtrs);
-        }
-
-        // Retrieve the command queue handle
-        IntPtr queueOut;
-        vkGetDeviceQueue(device, (uint)graphicsFamilyIndex, 0, out queueOut);
-        graphicsQueue = queueOut;
-    }
-    
-    private static IntPtr ConvertToIntPtrArray(string[] managedStrings, out IntPtr[] stringPointers)
-    {
-        if (managedStrings == null)
-        {
-            stringPointers = null;
-            return IntPtr.Zero;
-        }
-        
-        stringPointers = new IntPtr[managedStrings.Length];
-        
-        int arrayMemorySize = IntPtr.Size * managedStrings.Length;
-        IntPtr nativeArrayBuffer = Marshal.AllocHGlobal(arrayMemorySize);
-
-        try
-        {
-            for (int i = 0; i < managedStrings.Length; i++)
+            if (deviceFactory != null)
+                device = deviceFactory((IntPtr)(&deviceCreateInfo));
+            else
             {
-                stringPointers[i] = Marshal.StringToHGlobalUni(managedStrings[i]);
-            }
-            
-            Marshal.Copy(stringPointers, 0, nativeArrayBuffer, managedStrings.Length);
-            
-            return nativeArrayBuffer;
-        }
-        catch
-        {
-            FreeUnmanagedArray(nativeArrayBuffer, stringPointers);
-            throw;
-        }
-    }
-
-    private static void FreeUnmanagedArray(IntPtr nativeArrayBuffer, IntPtr[] stringPointers)
-    {
-        if (stringPointers != null)
-        {
-            foreach (IntPtr ptr in stringPointers)
-            {
-                if (ptr != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(ptr);
-                }
+                VkResult result = vkCreateDevice(physicalDevice, &deviceCreateInfo, null, out IntPtr d);
+                if (result != VkResult.VK_SUCCESS) throw new Exception($"Failed to create logical device: {result}");
+                device = d;
             }
         }
-        
-        if (nativeArrayBuffer != IntPtr.Zero)
-        {
-            Marshal.FreeHGlobal(nativeArrayBuffer);
-        }
+        finally { Marshal.FreeHGlobal(deviceExtensionPtr); }
+
+        vkGetDeviceQueue(device, queueFamily, 0, out IntPtr q);
+        graphicsQueue = q;
     }
 }

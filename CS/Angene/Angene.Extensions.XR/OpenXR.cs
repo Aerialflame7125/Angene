@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text;
 using Angene.Common;
 using Angene.Common.Settings;
 using Angene.Essentials;
@@ -11,15 +12,14 @@ namespace Angene.Extensions.XR;
 public unsafe class OpenXR // corresponding to https://amini-allight.org/post/openxr-tutorial-part-1
 {
 #region Vars
-    public static XrInstance OpenXRInstance;
+    public static IntPtr OpenXRInstance;
     public static IntPtr OXRSession;
     public static OpenXR Instance;
     public static ulong systemID = 0;
-    private static List<string> layerNames = new List<string>() { "XR_APILAYER_LUNARG_core_validation" };
-    private static List<string> extensionNames = new List<string>(){ };
+    private List<string> layerNames = new();
+    private List<string> extensionNames = new();
 
     public static string[] instanceExtensions;
-    public static string[] deviceExtensions;
     private static IDX11GraphicsContext dx11GraphicsContext = null;
     private static XrGraphicsRequirementsD3D11KHR D3D11Reqs;
     
@@ -40,8 +40,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
         {
             case IVkGraphicsContext vk:
                 vulkanGraphicsContext = vk;
-                extensionNames.Add("XR_KHR_vulkan_enable");
-                extensionNames.Add("XR_KHR_vulkan_enable2");
+                Instance.extensionNames.Add("XR_KHR_vulkan_enable2");
                 
                 Instance.CreateInstance(appInfo);
                 Instance.getSystem();
@@ -49,7 +48,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                 break;
             case IDX11GraphicsContext dx1:
                 dx11GraphicsContext = dx1;
-                extensionNames.Add("XR_KHR_D3D11_enable");
+                Instance.extensionNames.Add("XR_KHR_D3D11_enable");
                 
                 Instance.CreateInstance(appInfo);
                 Instance.getSystem();
@@ -64,15 +63,15 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
     private void CreateInstance(Types.AppInfo appInfo)
     {
-        XrInstance instance;
+        IntPtr instance = IntPtr.Zero;
         
-        IntPtr[] extensionPtrs = new IntPtr[extensionNames.Count];
-        for (int i = 0; i < extensionNames.Count; i++)
-            extensionPtrs[i] = Marshal.StringToHGlobalAnsi(extensionNames[i]);
+        IntPtr[] extensionPtrs = new IntPtr[Instance.extensionNames.Count];
+        for (int i = 0; i < Instance.extensionNames.Count; i++)
+            extensionPtrs[i] = Marshal.StringToHGlobalAnsi(Instance.extensionNames[i]);
         
-        IntPtr[] layerPtrs = new IntPtr[layerNames.Count];
-        for (int i = 0; i < layerNames.Count; i++)
-            layerPtrs[i] = Marshal.StringToHGlobalAnsi(layerNames[i]);
+        IntPtr[] layerPtrs = new IntPtr[Instance.layerNames.Count];
+        for (int i = 0; i < Instance.layerNames.Count; i++)
+            layerPtrs[i] = Marshal.StringToHGlobalAnsi(Instance.layerNames[i]);
 
         try
         {
@@ -84,9 +83,9 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                     type = XrStructureType.XR_TYPE_INSTANCE_CREATE_INFO,
                     next = null,
                     createFlags = 0,
-                    enabledApiLayerCount = (uint)layerNames.Count,
+                    enabledApiLayerCount = (uint)Instance.layerNames.Count,
                     enabledApiLayerNames = (byte**)layerArrayPtr,
-                    enabledExtensionCount = (uint)extensionNames.Count,
+                    enabledExtensionCount = (uint)Instance.extensionNames.Count,
                     enabledExtensionNames = (byte**)extensionArrayPtr
                 };
 
@@ -105,6 +104,16 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                 if (res != XrResult.XR_SUCCESS)
                     throw new Exceptions.FailedToInitializeOpenXRException(
                         $"Failed to create OpenXR instance: {res}");
+                
+                Logger.LogDebug(
+                    $"xrCreateInstance returned {res}, instance = 0x{(instance):X}",
+                    LoggingTarget.Graphics);
+
+                OpenXRInstance = instance;
+
+                Logger.LogDebug(
+                    $"OpenXRInstance = 0x{(OpenXRInstance):X}",
+                    LoggingTarget.Graphics);
             }
         }
         finally
@@ -114,7 +123,6 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
             foreach (var ptr in layerPtrs)
                 Marshal.FreeHGlobal(ptr);
         }
-        OpenXRInstance = instance;
     }
 
     private void getSystem()
@@ -126,51 +134,124 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
             type = XrStructureType.XR_TYPE_SYSTEM_GET_INFO,
             formFactor = XrFormFactor.XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
         };
+        
+        Logger.LogDebug(
+            $"xrGetSystem instance = 0x{(OpenXRInstance):X}",
+            LoggingTarget.Graphics);
 
-        fixed (XrInstance* xrInstancePtr = &OpenXRInstance)
-        {
-            XrResult res = xrGetSystem(xrInstancePtr, &systemGetInfo, &systemId);
+        XrResult res = xrGetSystem(OpenXRInstance, &systemGetInfo, &systemId);
 
-            if (res != XrResult.XR_SUCCESS)
-                throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get OpenXR system: '{res}'");
-            
-            systemID = systemId;
-        }
+        if (res != XrResult.XR_SUCCESS)
+            throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get OpenXR system: '{res}'");
+        
+        systemID = systemId;
     }
 
+    public static IntPtr CreateVulkanInstance(IntPtr vkInstanceCreateInfo, IntPtr pfnGetInstanceProcAddr)
+    {
+        var fn = (delegate* unmanaged[Cdecl]<IntPtr, XrVulkanInstanceCreateInfoKHR*, IntPtr*, int*, XrResult>)
+            getXrFunction("xrCreateVulkanInstanceKHR");
+
+        var info = new XrVulkanInstanceCreateInfoKHR
+        {
+            type = XrStructureType.XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR,
+            systemId = systemID,
+            pfnGetInstanceProcAddr = pfnGetInstanceProcAddr,
+            vulkanCreateInfo = (void*)vkInstanceCreateInfo
+        };
+
+        IntPtr vkInstance; int vkRes;
+        var res = fn(OpenXRInstance, &info, &vkInstance, &vkRes);
+        if (res != XrResult.XR_SUCCESS || vkRes != 0)
+            throw new Exceptions.FailedToInitializeOpenXRException(
+                $"xrCreateVulkanInstanceKHR failed: xr={res}, vk={vkRes}");
+        return vkInstance;
+    }
+
+    public static IntPtr GetVulkanPhysicalDevice(IntPtr vkInstance)
+    {
+        var fn = (delegate* unmanaged[Cdecl]<IntPtr, XrVulkanGraphicsDeviceGetInfoKHR*, IntPtr*, XrResult>)
+            getXrFunction("xrGetVulkanGraphicsDevice2KHR");
+
+        var info = new XrVulkanGraphicsDeviceGetInfoKHR
+        {
+            type = XrStructureType.XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR,
+            systemId = systemID,
+            vulkanInstance = vkInstance        // the VkInstance, not the XrInstance
+        };
+
+        IntPtr pd;
+        var res = fn(OpenXRInstance, &info, &pd);
+        if (res != XrResult.XR_SUCCESS || pd == IntPtr.Zero)
+            throw new Exceptions.FailedToInitializeOpenXRException($"xrGetVulkanGraphicsDevice2KHR failed: {res}");
+        VkPhysicalDevice = pd;
+        return pd;
+    }
+
+    public static IntPtr CreateVulkanDevice(IntPtr physicalDevice, IntPtr vkDeviceCreateInfo, IntPtr pfnGetInstanceProcAddr)
+    {
+        var fn = (delegate* unmanaged[Cdecl]<IntPtr, XrVulkanDeviceCreateInfoKHR*, IntPtr*, int*, XrResult>)
+            getXrFunction("xrCreateVulkanDeviceKHR");
+
+        var info = new XrVulkanDeviceCreateInfoKHR
+        {
+            type = XrStructureType.XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR,
+            systemId = systemID,
+            pfnGetInstanceProcAddr = pfnGetInstanceProcAddr,
+            vulkanPhysicalDevice = physicalDevice,
+            vulkanCreateInfo = (void*)vkDeviceCreateInfo
+        };
+
+        IntPtr device; int vkRes;
+        var res = fn(OpenXRInstance, &info, &device, &vkRes);
+        if (res != XrResult.XR_SUCCESS || vkRes != 0)
+            throw new Exceptions.FailedToInitializeOpenXRException(
+                $"xrCreateVulkanDeviceKHR failed: xr={res}, vk={vkRes}");
+        return device;
+    }
+    
     private static void getVulkanInstanceRequirements()
     {
-        var getReqs = (delegate* unmanaged[Cdecl]<XrInstance, ulong, XrGraphicsRequirementsVulkanKHR*, XrResult>)
-            getXrFunction("xrGetVulkanGraphicsRequirementsKHR");
-        var getExts = (delegate* unmanaged[Cdecl]<XrInstance, ulong, uint, uint*, byte*, XrResult>)
-            getXrFunction("xrGetVulkanInstanceExtensionsKHR");
+        var getReqs =
+            (delegate* unmanaged[Cdecl]<
+                IntPtr,
+                ulong,
+                XrGraphicsRequirementsVulkanKHR*,
+                XrResult>)
+            getXrFunction("xrGetVulkanGraphicsRequirements2KHR");
 
-        VulkanReqs = new XrGraphicsRequirementsVulkanKHR { type = XrStructureType.XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR };
-        fixed (XrGraphicsRequirementsVulkanKHR* r = &VulkanReqs)
+        VulkanReqs = new XrGraphicsRequirementsVulkanKHR
         {
-            var res = getReqs(OpenXRInstance, systemID, r);
-            if (res != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get Vulkan Instance requirements for OpenXR: {res}");
+            type = XrStructureType.XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR,
+            next = IntPtr.Zero
+        };
+
+        fixed (XrGraphicsRequirementsVulkanKHR* reqs = &VulkanReqs)
+        {
+            XrResult res = getReqs(
+                OpenXRInstance,
+                systemID,
+                reqs);
+
+            if (res != XrResult.XR_SUCCESS)
+            {
+                throw new Exceptions.FailedToInitializeOpenXRException(
+                    $"Failed to get Vulkan requirements for OpenXR: {res}");
+            }
         }
 
-        uint size;
-        var res2 = getExts(OpenXRInstance, systemID, 0, &size, null);
-        if (res2 != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get Vulkan Instance requirements for OpenXR: {res2}");
-
-        var buf = new byte[size];
-        fixed (byte* p = buf)
-            res2 = getExts(OpenXRInstance, systemID, size, &size, p);
-        if (res2 != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get Vulkan Instance requirements for OpenXR: {res2}");
-
-        instanceExtensions = System.Text.Encoding.ASCII
-            .GetString(buf, 0, (int)size).TrimEnd('\0')
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        Logger.LogDebug(
+            $"OpenXR Vulkan API range: " +
+            $"min=0x{VulkanReqs.minApiVersionSupported:X}, " +
+            $"max=0x{VulkanReqs.maxApiVersionSupported:X}",
+            LoggingTarget.Graphics);
     }
     
     private static void getD3D11InstanceRequirements()
     {
-        var getReqs = (delegate* unmanaged[Cdecl]<XrInstance, ulong, XrGraphicsRequirementsD3D11KHR*, XrResult>)
+        var getReqs = (delegate* unmanaged[Cdecl]<IntPtr, ulong, XrGraphicsRequirementsD3D11KHR*, XrResult>)
             getXrFunction("xrGetD3D11GraphicsRequirementsKHR");
-        var getExts = (delegate* unmanaged[Cdecl]<XrInstance, ulong, uint, uint*, byte*, XrResult>)
+        var getExts = (delegate* unmanaged[Cdecl]<IntPtr, ulong, uint, uint*, byte*, XrResult>)
             getXrFunction("xrGetD3D11InstanceExtensionsKHR");
 
         D3D11Reqs = new XrGraphicsRequirementsD3D11KHR { type = XrStructureType.XR_TYPE_GRAPHICS_REQUIREMENTS_D3D11_KHR };
@@ -194,37 +275,6 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
             .Split(' ', StringSplitOptions.RemoveEmptyEntries);
     }
     
-    public static (IntPtr, string[]) getVulkanDeviceRequirements() // Used in VkGraphicsContext in device selection
-    {
-        var getGraphicsDevice = (delegate* unmanaged[Cdecl]<XrInstance, ulong, IntPtr, IntPtr*, XrResult>)
-            getXrFunction("xrGetVulkanGraphicsDeviceKHR");
-        var getExts = (delegate* unmanaged[Cdecl]<XrInstance, ulong, uint, uint*, byte*, XrResult>)
-            getXrFunction("xrGetVulkanDeviceExtensionsKHR");
-
-        IntPtr physicalDevice;
-
-        XrResult res = getGraphicsDevice(OpenXRInstance, systemID, vulkanGraphicsContext.VkInstance, &physicalDevice);
-        if (res != XrResult.XR_SUCCESS)
-            throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get Vulkan graphics device for OpenXR: '{res}'");
-
-        uint deviceExtensionsSize;
-        
-        res = getExts(OpenXRInstance, systemID, 0, &deviceExtensionsSize, null);
-        if (res != XrResult.XR_SUCCESS)
-            throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get Vulkan device extensions for OpenXR: '{res}'");
-        
-        var buf = new byte[deviceExtensionsSize];
-        fixed (byte* p = buf)
-        {
-            res = getExts(OpenXRInstance, systemID, deviceExtensionsSize, &deviceExtensionsSize, p);
-            if (res != XrResult.XR_SUCCESS)
-                throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get Vulkan device extensions for OpenXR: '{res}'");
-        }
-
-        VkPhysicalDevice = physicalDevice;
-        
-        return (physicalDevice, deviceExtensions);
-    }
 #endregion
 #region Session Creation
     public static IntPtr CreateSessionS2(IntPtr VkInstance, IntPtr VkDevice, uint queueFamilyIndex)
@@ -249,13 +299,10 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
             createFlags = 0,
             systemId = systemID
         };
-
-        fixed (XrInstance* inst = &OpenXRInstance)
-        {
-            XrResult res = xrCreateSession(inst, &sessionCreateInfo, &session);
-            if (res != XrResult.XR_SUCCESS)
-                throw new Exceptions.FailedToInitializeOpenXRException($"Failed to create OpenXR session: {res}");
-        }
+        
+        XrResult res = xrCreateSession(OpenXRInstance, &sessionCreateInfo, &session);
+        if (res != XrResult.XR_SUCCESS)
+            throw new Exceptions.FailedToInitializeOpenXRException($"Failed to create OpenXR session: {res}");
 
         Logger.LogDebug("--- END CreateSessionS2 (OpenXR) ---", LoggingTarget.Graphics);
         OXRSession = session;
@@ -266,20 +313,12 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     public static (Types.XrSwapchain, Types.XrSwapchain) createSwapchains()
     {
         uint configViewsCount = 2;
-        XrViewConfigurationView[] configViews = new XrViewConfigurationView[]
-        {
-            new XrViewConfigurationView()
-            {
-                type = XrStructureType.XR_TYPE_VIEW_CONFIGURATION_VIEW,
-                recommendedSwapchainSampleCount = configViewsCount // ???
-            }
-        };
+        XrViewConfigurationView[] configViews = new XrViewConfigurationView[configViewsCount];
 
         XrResult res;
-        fixed (XrInstance* localOXRInstance = &OpenXRInstance)
         fixed (XrViewConfigurationView* configViewsPtr = configViews)
         {
-            res = xrEnumerateViewConfigurationViews(localOXRInstance, systemID,
+            res = xrEnumerateViewConfigurationViews(OpenXRInstance, systemID,
                 XrViewConfigurationType.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, configViewsCount, &configViewsCount,
                 configViewsPtr);
             if (res != XrResult.XR_SUCCESS)
@@ -345,11 +384,10 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
     public void Cleanup()
     {
-        // Instance
-        fixed (XrInstance* xrInstancePtr = &OpenXRInstance)
-            xrDestroyInstance(xrInstancePtr);
-
         xrDestroySession(OXRSession);
+
+        // Instance
+        xrDestroyInstance(OpenXRInstance);
     }
 #endregion
 #region Helpers
@@ -365,16 +403,24 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     private static IntPtr getXrFunction(string name)
     {
         IntPtr func;
+        byte[] nameBytes =
+            Encoding.ASCII.GetBytes(name + '\0');
 
-        fixed (XrInstance* xrInstancePtr = &OpenXRInstance)
+
+        fixed (byte* namePtr = nameBytes)
         {
-            XrResult res = xrGetInstanceProcAddr(xrInstancePtr, (byte*)Convert.ToSByte(name), (delegate*unmanaged[Cdecl]<void>*)&func);
-            
+            XrResult res = xrGetInstanceProcAddr(OpenXRInstance, namePtr,
+                (delegate*unmanaged[Cdecl]<void>*)&func);
             if (res != XrResult.XR_SUCCESS)
                 throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get OpenXR instance: {res}");
-
-            return func;
         }
+        
+        return func;
+    }
+
+    public static (ulong, ulong) getMinMaxSupportedVulkan()
+    {
+        return (VulkanReqs.minApiVersionSupported, VulkanReqs.maxApiVersionSupported);
     }
 #endregion
 }
