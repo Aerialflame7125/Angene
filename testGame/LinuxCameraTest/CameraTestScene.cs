@@ -163,29 +163,75 @@ namespace Game.Scenes
         {
             if (_gfx == null) return;
 
-            Transform3D camT = MainCamera.Transform;
             VulkanCamera cam = MainCamera.GetComponent<VulkanCamera>()!;
-            Matrix4x4 view = cam.LookTo(camT.pos, cam.forward, cam.up);
-            Matrix4x4 proj = cam.Perspective(cam.fov, cam.aspectRatio, cam.nearPlane, cam.farPlane);
-            
-            List<(Entity e, Matrix4x4 mv)> cubes = Entities.Where(e => e.HasComponent<Mesh>()).Select(e => (e, mv: view * this.GetWorldMatrix(e)))
-                .OrderBy(t => cam.TransformPoint(t.mv, new Vec3(0, 0, 0)).Z).ToList();
-            
-            _gfx.BeginFrame(0x00202020);
-            _gfx.SetPipeline(_pipeline);
+            GatherDrawItems();
 
-            foreach ((Entity e, Matrix4x4 mv) in cubes)
+            Matrix4x4? headView = null;
+            _gfx.RenderXrFrame(_cameraEntity.Transform.pos, cam, (eye, view, proj) =>
             {
-                Mesh mesh = e.GetComponent<Mesh>()!;
-                float[] data = BuildSortedNdcVertexBuffer(cam, mv, proj, out mesh.vertexCount);
-                Buffer.BlockCopy(data, 0, mesh.bytes, 0, data.Length * sizeof(float));
-                
-                _gfx.UpdateVertexBuffer(mesh.vertexBuffer, mesh.bytes);
-                _gfx.SetVertexBuffer(mesh.vertexBuffer, strideBytes: 7 * sizeof(float));
-                _gfx.Draw((uint)mesh.vertexCount);
-            }
+                if (eye == 0) headView = view;
+                DrawScene(_pipeline, view, proj, cam);
+            });
 
+            Matrix4x4 winView = headView
+                                ?? cam.LookTo(((Transform3D)MainCamera.Transform).pos, cam.forward, cam.up);
+            float aspect = _gfx.VkExtent2D.width / (float)_gfx.VkExtent2D.height;
+            Matrix4x4 winProj = cam.Perspective(cam.fov, aspect, cam.nearPlane, cam.farPlane);
+
+            _gfx.BeginFrame(0x00202020);
+            DrawScene(_pipeline, winView, winProj, cam);
             _gfx.EndFrame();
+        }
+        
+        private struct DrawItem
+        {
+            public Mesh Mesh;
+            public Matrix4x4 World;
+        }
+
+        private readonly List<DrawItem> _drawItems = new();
+        private readonly List<(DrawItem item, Matrix4x4 mv, float z)> _sorted = new();
+
+        // Once per frame: view-independent
+        private void GatherDrawItems()
+        {
+            _drawItems.Clear();
+            foreach (Entity e in Entities)
+            {
+                if (!e.HasComponent<Mesh>()) continue;
+                _drawItems.Add(new DrawItem
+                {
+                    Mesh = e.GetComponent<Mesh>()!,
+                    World = this.GetWorldMatrix(e)
+                });
+            }
+        }
+
+        // Once per view (left eye, right eye, window)
+        private void DrawScene(IntPtr pipeline, Matrix4x4 view, Matrix4x4 proj, VulkanCamera cam)
+        {
+            _gfx.SetPipeline(pipeline);   // each pass is a separate recording, so bind here
+
+            _sorted.Clear();
+            foreach (DrawItem item in _drawItems)
+            {
+                Matrix4x4 mv = view * item.World;
+                _sorted.Add((item, mv, cam.TransformPoint(mv, new Vec3(0, 0, 0)).Z));
+            }
+            _sorted.Sort((a, b) => a.z.CompareTo(b.z));
+
+            foreach (var (item, mv, _) in _sorted)
+                DrawMesh(item.Mesh, mv, proj, cam);
+        }
+
+        private void DrawMesh(Mesh mesh, Matrix4x4 mv, Matrix4x4 proj, VulkanCamera cam)
+        {
+            float[] data = BuildSortedNdcVertexBuffer(cam, mv, proj, out mesh.vertexCount);
+            Buffer.BlockCopy(data, 0, mesh.bytes, 0, data.Length * sizeof(float));
+
+            _gfx.UpdateVertexBuffer(mesh.vertexBuffer, mesh.bytes);
+            _gfx.SetVertexBuffer(mesh.vertexBuffer, strideBytes: 7 * sizeof(float));
+            _gfx.Draw((uint)mesh.vertexCount);
         }
 
         private float[] BuildSortedNdcVertexBuffer(VulkanCamera cam, Matrix4x4 modelView, Matrix4x4 proj, out int vertexCount)

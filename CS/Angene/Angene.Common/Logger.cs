@@ -36,7 +36,8 @@ namespace Angene.Common
         MasterScene,
         SlaveScene,
         Package,
-        Graphics
+        Graphics,
+        External
     }
 
     public class Logger

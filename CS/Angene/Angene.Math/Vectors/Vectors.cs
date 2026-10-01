@@ -74,6 +74,161 @@ namespace Angene.Math.Vectors
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct Vec4(float x = 0, float y = 0, float z = 0, float w = 0)
+    {
+        public float X = x, Y = y, Z = z, W = w;
+
+        public Vec4(Vec2 v, float z = 0, float w = 0) : this(v.X, v.Y, z, w) { }
+        public Vec4(Vec3 v, float w = 0) : this(v.X, v.Y, v.Z, w) { }
+
+        public static Vec4 Zero => new(0, 0, 0, 0);
+        public static Vec4 One => new(1, 1, 1, 1);
+        public static Vec4 UnitX => new(1, 0, 0, 0);
+        public static Vec4 UnitY => new(0, 1, 0, 0);
+        public static Vec4 UnitZ => new(0, 0, 1, 0);
+        public static Vec4 UnitW => new(0, 0, 0, 1);
+
+        public float Length => MathF.Sqrt(LengthSquared);
+        public float LengthSquared => X * X + Y * Y + Z * Z + W * W;
+        public Vec4 Normalized => this / Length;
+
+        public static float Dot(Vec4 a, Vec4 b) => a.X * b.X + a.Y * b.Y + a.Z * b.Z + a.W * b.W;
+        public static float Distance(Vec4 a, Vec4 b) => (a - b).Length;
+        public static Vec4 Lerp(Vec4 a, Vec4 b, float t) => a + (b - a) * t;
+        public static Vec4 Min(Vec4 a, Vec4 b) => new(MathF.Min(a.X, b.X), MathF.Min(a.Y, b.Y), MathF.Min(a.Z, b.Z), MathF.Min(a.W, b.W));
+        public static Vec4 Max(Vec4 a, Vec4 b) => new(MathF.Max(a.X, b.X), MathF.Max(a.Y, b.Y), MathF.Max(a.Z, b.Z), MathF.Max(a.W, b.W));
+
+        public static Vec4 operator +(Vec4 a, Vec4 b) => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
+        public static Vec4 operator -(Vec4 a, Vec4 b) => new(a.X - b.X, a.Y - b.Y, a.Z - b.Z, a.W - b.W);
+        public static Vec4 operator -(Vec4 v) => new(-v.X, -v.Y, -v.Z, -v.W);
+        public static Vec4 operator *(Vec4 v, float s) => new(v.X * s, v.Y * s, v.Z * s, v.W * s);
+        public static Vec4 operator *(float s, Vec4 v) => v * s;
+        public static Vec4 operator *(Vec4 a, Vec4 b) => new(a.X * b.X, a.Y * b.Y, a.Z * b.Z, a.W * b.W); // component-wise, like Vector4
+        public static Vec4 operator /(Vec4 v, float s) => new(v.X / s, v.Y / s, v.Z / s, v.W / s);
+
+        public static explicit operator Vec3(Vec4 v) => new(v.X, v.Y, v.Z);
+        public static explicit operator Vec2(Vec4 v) => new(v.X, v.Y);
+
+        public static implicit operator System.Numerics.Vector4(Vec4 v) => new(v.X, v.Y, v.Z, v.W);
+        public static implicit operator Vec4(System.Numerics.Vector4 v) => new(v.X, v.Y, v.Z, v.W);
+    }
+    
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Quaternion(float x = 0, float y = 0, float z = 0, float w = 1)
+    {
+        public float X = x, Y = y, Z = z, W = w;
+
+        public static Quaternion Identity => new(0, 0, 0, 1);
+
+        public float LengthSquared => X * X + Y * Y + Z * Z + W * W;
+        public float Length => MathF.Sqrt(LengthSquared);
+        public Quaternion Normalized
+        {
+            get { float l = Length; return l > 1e-8f ? new(X / l, Y / l, Z / l, W / l) : Identity; }
+        }
+
+        public Quaternion Conjugate => new(-X, -Y, -Z, W);
+        public Quaternion Inverse => new Quaternion(-X, -Y, -Z, W) * (1f / LengthSquared);
+
+        public static Quaternion operator *(Quaternion q, float s) => new(q.X * s, q.Y * s, q.Z * s, q.W * s);
+
+        // Hamilton product: (a * b) applies b first, then a (same as matrix multiplication order)
+        public static Quaternion operator *(Quaternion a, Quaternion b) => new(
+            a.W * b.X + a.X * b.W + a.Y * b.Z - a.Z * b.Y,
+            a.W * b.Y - a.X * b.Z + a.Y * b.W + a.Z * b.X,
+            a.W * b.Z + a.X * b.Y - a.Y * b.X + a.Z * b.W,
+            a.W * b.W - a.X * b.X - a.Y * b.Y - a.Z * b.Z
+        );
+
+        public static Quaternion FromAxisAngle(Vec3 axis, float radians)
+        {
+            Vec3 n = axis.Normalized;
+            float half = radians * 0.5f, s = MathF.Sin(half);
+            return new(n.X * s, n.Y * s, n.Z * s, MathF.Cos(half));
+        }
+
+        /// Euler radians -> Quaternionernion, matching Transform3D.GetMatrix(): Rz * Ry * Rx
+        public static Quaternion FromEuler(Vec3 euler)
+        {
+            float hx = euler.X * 0.5f, hy = euler.Y * 0.5f, hz = euler.Z * 0.5f;
+            Quaternion qx = new(MathF.Sin(hx), 0, 0, MathF.Cos(hx));
+            Quaternion qy = new(0, MathF.Sin(hy), 0, MathF.Cos(hy));
+            Quaternion qz = new(0, 0, MathF.Sin(hz), MathF.Cos(hz));
+            return qz * qy * qx;
+        }
+
+        /// Quaternionernion -> Euler radians (inverse of FromEuler). Has gimbal lock at Y = ±90°.
+        public Vec3 ToEuler()
+        {
+            Quaternion q = Normalized;
+            float m20 = 2 * (q.X * q.Z - q.Y * q.W);
+            float m21 = 2 * (q.Y * q.Z + q.X * q.W);
+            float m22 = 1 - 2 * (q.X * q.X + q.Y * q.Y);
+            float m10 = 2 * (q.X * q.Y + q.Z * q.W);
+            float m00 = 1 - 2 * (q.Y * q.Y + q.Z * q.Z);
+
+            float y = MathF.Asin(System.Math.Clamp(-m20, -1f, 1f));
+            if (MathF.Abs(m20) > 0.9999f) // gimbal lock: fold all roll into Z
+            {
+                float m01 = 2 * (q.X * q.Y - q.Z * q.W);
+                float m11 = 1 - 2 * (q.X * q.X + q.Z * q.Z);
+                return new(0f, y, MathF.Atan2(-m01, m11));
+            }
+            return new(MathF.Atan2(m21, m22), y, MathF.Atan2(m10, m00));
+        }
+
+        public Vec3 Rotate(Vec3 v)
+        {
+            // v' = v + 2w(u × v) + 2u × (u × v), cross written out because Vec3.Cross is currently negated
+            Vec3 u = new(X, Y, Z);
+            Vec3 t = new(
+                2 * (u.Y * v.Z - u.Z * v.Y),
+                2 * (u.Z * v.X - u.X * v.Z),
+                2 * (u.X * v.Y - u.Y * v.X));
+            Vec3 c = new(
+                u.Y * t.Z - u.Z * t.Y,
+                u.Z * t.X - u.X * t.Z,
+                u.X * t.Y - u.Y * t.X);
+            return new(v.X + W * t.X + c.X, v.Y + W * t.Y + c.Y, v.Z + W * t.Z + c.Z);
+        }
+
+        public static float Dot(Quaternion a, Quaternion b) => a.X * b.X + a.Y * b.Y + a.Z * b.Z + a.W * b.W;
+
+        public static Quaternion Slerp(Quaternion a, Quaternion b, float t)
+        {
+            float d = Dot(a, b);
+            if (d < 0) { b = new(-b.X, -b.Y, -b.Z, -b.W); d = -d; } // short way around
+            if (d > 0.9995f) // nearly parallel: nlerp is fine
+                return new Quaternion(a.X + (b.X - a.X) * t, a.Y + (b.Y - a.Y) * t,
+                    a.Z + (b.Z - a.Z) * t, a.W + (b.W - a.W) * t).Normalized;
+
+            float theta = MathF.Acos(d), sinT = MathF.Sin(theta);
+            float wa = MathF.Sin((1 - t) * theta) / sinT, wb = MathF.Sin(t * theta) / sinT;
+            return new(a.X * wa + b.X * wb, a.Y * wa + b.Y * wb, a.Z * wa + b.Z * wb, a.W * wa + b.W * wb);
+        }
+
+        public Matrix4x4 ToMatrix()
+        {
+            Quaternion q = Normalized;
+            float xx = q.X * q.X, yy = q.Y * q.Y, zz = q.Z * q.Z;
+            float xy = q.X * q.Y, xz = q.X * q.Z, yz = q.Y * q.Z;
+            float wx = q.W * q.X, wy = q.W * q.Y, wz = q.W * q.Z;
+
+            return new Matrix4x4
+            {
+                M00 = 1 - 2 * (yy + zz), M01 = 2 * (xy - wz),     M02 = 2 * (xz + wy),     M03 = 0,
+                M10 = 2 * (xy + wz),     M11 = 1 - 2 * (xx + zz), M12 = 2 * (yz - wx),     M13 = 0,
+                M20 = 2 * (xz - wy),     M21 = 2 * (yz + wx),     M22 = 1 - 2 * (xx + yy), M23 = 0,
+                M30 = 0, M31 = 0, M32 = 0, M33 = 1
+            };
+        }
+
+        // Raw 4-float interop (e.g. GPU upload). Layout is x, y, z, w.
+        public static explicit operator Vec4(Quaternion q) => new(q.X, q.Y, q.Z, q.W);
+        public static explicit operator Quaternion(Vec4 v) => new(v.X, v.Y, v.Z, v.W);
+    }
+    
+    [StructLayout(LayoutKind.Sequential)]
     public struct Rect(float x = 0, float y = 0, float width = 0, float height = 0)
     {
         public float X = x, Y = y, Width = width, Height = height;

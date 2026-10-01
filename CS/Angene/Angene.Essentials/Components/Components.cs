@@ -117,6 +117,19 @@ public class VulkanCamera
         farPlane = buh.farPlane;
         isPrimary = buh.isPrimary;
     }
+    
+    public CameraMatrices GetMatrices(Vec3 position)
+    {
+        return new CameraMatrices
+        {
+            View = LookTo(position, forward, up),
+            Projection = Perspective(
+                fov,
+                aspectRatio,
+                nearPlane,
+                farPlane)
+        };
+    }
 
     public Matrix4x4 LookAt(Vec3 eye, Vec3 target, Vec3 up)
     {
@@ -200,6 +213,40 @@ public class VulkanCamera
             M23 = -(2f * farPlane * nearPlane) / (farPlane - nearPlane),
 
             M30 = 0, 
+            M31 = 0,
+            M32 = -1f,
+            M33 = 0
+        };
+    }
+    
+    public static Matrix4x4 PerspectiveOpenXR(
+        XrEyeView eye,
+        float nearPlane,
+        float farPlane)
+    {
+        float l = eye.left;
+        float r = eye.right;
+        float u = eye.up;
+        float d = eye.down;
+
+        return new Matrix4x4
+        {
+            M00 = 2f / (r - l),
+            M01 = 0,
+            M02 = (r + l) / (r - l),
+            M03 = 0,
+
+            M10 = 0,
+            M11 = 2f / (u - d),
+            M12 = (u + d) / (u - d),
+            M13 = 0,
+
+            M20 = 0,
+            M21 = 0,
+            M22 = -(farPlane + nearPlane) / (farPlane - nearPlane),
+            M23 = -(2f * farPlane * nearPlane) / (farPlane - nearPlane),
+
+            M30 = 0,
             M31 = 0,
             M32 = -1f,
             M33 = 0

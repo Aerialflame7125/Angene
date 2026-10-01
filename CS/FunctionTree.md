@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-09-30 01:08:50.775934+00:00)</sup></sub>
+<sub><sup>(generated 2026-10-01 04:35:49.794771+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -1250,6 +1250,8 @@
   * **enum EngineMode**
   * **enum LinuxWindowType**
   * **enum TShaderType**
+  * **enum XrResult**
+  * **enum XrStructureType**
   * **interface IDX11Scene**
   * **interface IScene**
     * `Entity GetCameraEntity()`
@@ -1257,6 +1259,9 @@
     * `void AddEntity()`
     * `void RemoveEntity()`
   * **interface IScreenPlay**
+  * **struct CameraMatrices**
+    * `Matrix4x4 View`
+    * `Matrix4x4 Projection`
   * **struct FaceColor**
   * **struct LifecycleInfo**
     * `bool HasUpdate`
@@ -1267,8 +1272,20 @@
     * `uint? graphicsFamily`
     * `uint? presentFamily`
     * `bool isComplete()`
+  * **struct XrEyeView**
+  * **struct XrFrameInfo**
+    * `bool shouldRender`
   * **struct XrSwapchain**
+    * `IntPtr swapchain`
+    * `VkFormat format`
+    * `uint width`
+    * `uint height`
+    * `bool def`
     * `void DestroySwapchain()`
+  * **struct XrSwapchainImageVulkanKHR**
+    * `XrStructureType type`
+    * `IntPtr next`
+    * `IntPtr image`
 
   </details>
 
@@ -1312,6 +1329,7 @@
     * `float nearPlane`
     * `float farPlane`
     * `bool isPrimary`
+    * `CameraMatrices GetMatrices()`
     * `Matrix4x4 LookAt()`
     * `void AddTriangle()`
     * `void AppendVertex()`
@@ -1320,6 +1338,7 @@
     * `Matrix4x4 LookTo()`
     * `Matrix4x4 Perspective()`
     * `Matrix4x4 PerspectiveVulkan()`
+    * `Matrix4x4 PerspectiveOpenXR()`
 
   </details>
 
@@ -1377,6 +1396,13 @@
 
   </details>
 
+  <details><summary><b>Global</b></summary>
+
+  * **class XrCameraMath**
+    * `Matrix4x4 Projection()`
+
+  </details>
+
 
 
 ## Angene.Extensions.XR
@@ -1384,7 +1410,9 @@
   <details><summary><b>Angene.Extensions.XR</b></summary>
 
   * **class Exceptions**
+  * **class FailedToEnumerateSwapchainImageOpenXRException**
   * **class FailedToInitializeOpenXRException**
+  * **class OpenXRSessionException**
 
   </details>
 
@@ -1392,14 +1420,12 @@
 
   * **enum XrActionType**
   * **enum XrAnchorPersistStateANDROID**
-    * `XrStructureType type`
     * `XrUuid anchorId`
     * `IntPtr anchor`
     * `uint supportsAnchorPersistence`
   * **enum XrAudioBufferChannelLayoutBD**
   * **enum XrAudioSampleRateBD**
   * **enum XrBlendFactorFB**
-    * `XrStructureType type`
     * `XrBlendFactorFB srcFactorColor`
     * `XrBlendFactorFB dstFactorColor`
     * `XrBlendFactorFB srcFactorAlpha`
@@ -1410,7 +1436,6 @@
     * `float maxFarZ`
   * **enum XrBodyJointBD**
   * **enum XrBodyJointConfidenceHTC**
-    * `XrStructureType type`
     * `uint supportsBodyTracking`
     * `XrBodyJointSetHTC bodyJointSet`
     * `IntPtr baseSpace`
@@ -1418,7 +1443,6 @@
   * **enum XrBodyJointFB**
   * **enum XrBodyJointHTC**
   * **enum XrBodyJointSetBD**
-    * `XrStructureType type`
     * `uint supportsBodyTracking`
     * `XrBodyJointSetBD jointSet`
     * `IntPtr baseSpace`
@@ -1426,21 +1450,17 @@
   * **enum XrBodyJointSetFB**
   * **enum XrBodyJointSetHTC**
   * **enum XrBodyTrackingCalibrationStateMETA**
-    * `XrStructureType type`
     * `XrBodyTrackingCalibrationStateMETA status`
     * `float bodyHeight`
     * `uint supportsHeightOverride`
   * **enum XrBodyTrackingFidelityMETA**
-    * `XrStructureType type`
     * `uint supportsBodyTrackingFidelity`
     * `XrBodyTrackingFidelityMETA fidelity`
   * **enum XrBodyTrackingMessageBD**
-    * `XrStructureType type`
     * `uint postureCount`
   * **enum XrBodyTrackingPostureBD**
   * **enum XrBodyTrackingStatusBD**
   * **enum XrBoundaryVisibilityMETA**
-    * `XrStructureType type`
     * `uint supportsBoundaryVisibility`
     * `XrBoundaryVisibilityMETA boundaryVisibility`
     * `uint supportsSimultaneousHandsAndControllers`
@@ -1449,7 +1469,6 @@
   * **enum XrCameraFacingBD**
   * **enum XrCameraImageFormatBD**
   * **enum XrCameraModelBD**
-    * `XrStructureType type`
     * `uint propertyCount`
     * `uint capabilityCount`
     * `ulong cameraId`
@@ -1465,18 +1484,14 @@
   * **enum XrCameraPropertyTypeBD**
   * **enum XrCameraTypeBD**
   * **enum XrColorSpaceFB**
-    * `XrStructureType type`
     * `XrColorSpaceFB colorSpace`
   * **enum XrColorSpaceSONY**
-    * `XrStructureType type`
     * `long format`
     * `XrColorSpaceSONY colorSpace`
   * **enum XrCompareOpFB**
-    * `XrStructureType type`
     * `uint depthMask`
     * `XrCompareOpFB compareOp`
   * **enum XrDynamicObjectTypeBD**
-    * `XrStructureType type`
     * `uint supportsDynamicObjectTracking`
     * `uint trackingTypeCount`
     * `XrDynamicObjectTypeBD objectType`
@@ -1486,9 +1501,7 @@
     * `uint supportsDynamicObjectMouse`
   * **enum XrEnvironmentBlendMode**
   * **enum XrEnvironmentRaycastHitStatusMETA**
-    * `XrStructureType type`
     * `uint supportsEnvironmentRaycast`
-    * `XrResult futureResult`
     * `IntPtr baseSpace`
     * `long time`
     * `XrVector3f origin`
@@ -1502,7 +1515,6 @@
   * **enum XrEnvironmentTextureTransferTypeBD**
   * **enum XrExternalCameraAttachedToDeviceOCULUS**
   * **enum XrEyeCalibrationStatusML**
-    * `XrStructureType type`
     * `XrHeadsetFitStatusML status`
     * `long time`
     * `XrEyeCalibrationStatusML status`
@@ -1513,11 +1525,9 @@
   * **enum XrEyePositionFB**
   * **enum XrEyeStateANDROID**
   * **enum XrEyeTrackingModeANDROID**
-    * `XrStructureType type`
     * `uint supportsEyeTracking`
   * **enum XrEyeVisibility**
   * **enum XrFaceConfidence2FB**
-    * `XrStructureType type`
     * `uint supportsVisualFaceTracking`
     * `uint supportsAudioFaceTracking`
     * `XrFaceExpressionSet2FB faceExpressionSet`
@@ -1531,14 +1541,11 @@
     * `uint supportsSpatialEntitySharing`
     * `uint spaceCount`
     * `ulong requestId`
-    * `XrResult result`
   * **enum XrFaceConfidenceFB**
-    * `XrStructureType type`
     * `uint supportsFaceTracking`
     * `XrFaceExpressionSetFB faceExpressionSet`
     * `long time`
   * **enum XrFaceConfidenceRegionsANDROID**
-    * `XrStructureType type`
     * `long time`
     * `uint parametersCapacityInput`
     * `uint parametersCountOutput`
@@ -1557,11 +1564,9 @@
   * **enum XrFaceTrackingDataSource2FB**
   * **enum XrFaceTrackingStateANDROID**
   * **enum XrFaceTrackingVisemeMETA**
-    * `XrStructureType type`
     * `uint isValid`
     * `_visemes_e__FixedBuffer visemes`
   * **enum XrFacialBlendShapeML**
-    * `XrStructureType type`
     * `uint supportsFacialExpression`
     * `uint requestedCount`
     * `XrFacialBlendShapeML requestedFacialBlendShape`
@@ -1570,7 +1575,6 @@
     * `long time`
   * **enum XrFacialSimulationModeBD**
   * **enum XrFacialTrackingTypeHTC**
-    * `XrStructureType type`
     * `uint supportEyeFacialTracking`
     * `uint supportLipFacialTracking`
     * `uint isActive`
@@ -1578,51 +1582,41 @@
     * `uint expressionCount`
     * `XrFacialTrackingTypeHTC facialTrackingType`
   * **enum XrForceFeedbackCurlLocationMNDX**
-    * `XrStructureType type`
     * `uint supportsForceFeedbackCurl`
   * **enum XrFormFactor**
   * **enum XrFoveationDynamicFB**
-    * `XrStructureType type`
     * `XrFoveationLevelFB level`
     * `float verticalOffset`
     * `XrFoveationDynamicFB dynamic`
     * `uint supportsKeyboardTracking`
   * **enum XrFoveationLevelFB**
   * **enum XrFoveationLevelHTC**
-    * `XrStructureType type`
     * `XrFoveationModeHTC mode`
     * `uint subImageCount`
   * **enum XrFoveationModeHTC**
   * **enum XrFullBodyJointMETA**
-    * `XrStructureType type`
     * `uint supportsFullBodyTracking`
   * **enum XrFutureStateEXT**
-    * `XrStructureType type`
-    * `XrResult futureResult`
     * `XrFutureStateEXT state`
     * `IntPtr session`
     * `uint isUserPresent`
     * `uint supportsUserPresence`
   * **enum XrGeospatialTrackerStateANDROID**
   * **enum XrGoogleCloudAuthErrorANDROID**
-    * `XrStructureType type`
     * `XrGoogleCloudAuthErrorANDROID error`
   * **enum XrHandEXT**
   * **enum XrHandForearmJointULTRALEAP**
   * **enum XrHandGestureTypeQCOM**
   * **enum XrHandJointEXT**
   * **enum XrHandJointSetEXT**
-    * `XrStructureType type`
     * `uint supportsHandTracking`
     * `XrHandEXT hand`
     * `XrHandJointSetEXT handJointSet`
     * `IntPtr baseSpace`
     * `long time`
   * **enum XrHandJointsMotionRangeEXT**
-    * `XrStructureType type`
     * `XrHandJointsMotionRangeEXT handJointsMotionRange`
   * **enum XrHandPoseTypeMSFT**
-    * `XrStructureType type`
     * `uint supportsHandTrackingMesh`
     * `uint maxHandMeshIndexCount`
     * `uint maxHandMeshVertexCount`
@@ -1633,13 +1627,11 @@
     * `uint indexCapacityInput`
     * `uint indexCountOutput`
   * **enum XrHandTrackingDataSourceEXT**
-    * `XrStructureType type`
     * `uint requestedDataSourceCount`
     * `uint isActive`
     * `XrHandTrackingDataSourceEXT dataSource`
   * **enum XrHandTrackingFrequencyHintMETA**
   * **enum XrHapticParametricStreamFrameTypeEXT**
-    * `XrStructureType type`
     * `long idealFrameSubmissionRate`
     * `long minimumFirstFrameDuration`
     * `float minFrequencyHz`
@@ -1647,7 +1639,6 @@
   * **enum XrHeadsetFitStatusML**
   * **enum XrLightEstimateStateANDROID**
   * **enum XrLipExpressionBD**
-    * `XrStructureType type`
     * `uint supportsFaceTracking`
     * `XrFacialSimulationModeBD mode`
     * `long time`
@@ -1657,11 +1648,9 @@
     * `uint lipsyncExpressionWeightCount`
   * **enum XrLipExpressionHTC**
   * **enum XrLocalDimmingModeMETA**
-    * `XrStructureType type`
     * `XrLocalDimmingModeMETA localDimmingMode`
     * `ulong flags`
   * **enum XrLocalizationMapConfidenceML**
-    * `XrStructureType type`
     * `_name_e__FixedBuffer name`
     * `XrUuid mapUuid`
     * `XrLocalizationMapTypeML mapType`
@@ -1676,7 +1665,6 @@
   * **enum XrMarkerDetectorProfileML**
   * **enum XrMarkerDetectorResolutionML**
   * **enum XrMarkerDetectorStatusML**
-    * `XrStructureType type`
     * `uint supportsMarkerUnderstanding`
     * `XrMarkerDetectorProfileML profile`
     * `XrMarkerTypeML markerType`
@@ -1695,7 +1683,6 @@
   * **enum XrMarkerTypeML**
   * **enum XrMeshComputeLodMSFT**
   * **enum XrObjectLabelANDROID**
-    * `XrStructureType type`
     * `XrTrackingStateANDROID trackingState`
     * `XrPosef centerPose`
     * `XrExtent3Df extents`
@@ -1703,17 +1690,14 @@
     * `long lastUpdatedTime`
     * `uint labelCount`
   * **enum XrObjectType**
-    * `XrStructureType type`
     * `_layerName_e__FixedBuffer layerName`
     * `ulong specVersion`
     * `uint layerVersion`
     * `_description_e__FixedBuffer description`
   * **enum XrPassthroughCameraStateANDROID**
-    * `XrStructureType type`
     * `uint supportsPassthroughCameraState`
   * **enum XrPassthroughColorLutChannelsMETA**
     * `uint bufferSize`
-    * `XrStructureType type`
     * `XrPassthroughColorLutChannelsMETA channels`
     * `uint resolution`
     * `XrPassthroughColorLutDataMETA data`
@@ -1724,7 +1708,6 @@
     * `uint indexCapacityInput`
     * `uint indexCountOutput`
   * **enum XrPassthroughFormHTC**
-    * `XrStructureType type`
     * `XrPassthroughFormHTC form`
     * `float alpha`
     * `uint vertexCount`
@@ -1737,7 +1720,6 @@
     * `IntPtr space`
     * `XrPassthroughColorHTC color`
   * **enum XrPassthroughLayerPurposeFB**
-    * `XrStructureType type`
     * `uint supportsPassthrough`
     * `ulong capabilities`
     * `ulong flags`
@@ -1753,21 +1735,18 @@
   * **enum XrPerfSettingsDomainEXT**
   * **enum XrPerfSettingsLevelEXT**
   * **enum XrPerfSettingsNotificationLevelEXT**
-    * `XrStructureType type`
     * `XrPerfSettingsDomainEXT domain`
     * `XrPerfSettingsSubDomainEXT subDomain`
     * `XrPerfSettingsNotificationLevelEXT fromLevel`
     * `XrPerfSettingsNotificationLevelEXT toLevel`
   * **enum XrPerfSettingsSubDomainEXT**
   * **enum XrPerformanceMetricsCounterUnitANDROID**
-    * `XrStructureType type`
     * `uint enabled`
     * `ulong counterFlags`
     * `XrPerformanceMetricsCounterUnitANDROID counterUnit`
     * `uint uintValue`
     * `float floatValue`
   * **enum XrPerformanceMetricsCounterUnitMETA**
-    * `XrStructureType type`
     * `uint enabled`
     * `ulong counterFlags`
     * `XrPerformanceMetricsCounterUnitMETA counterUnit`
@@ -1776,7 +1755,6 @@
     * `uint spaceCount`
     * `XrSpaceStorageLocationFB location`
     * `ulong requestId`
-    * `XrResult result`
     * `ulong userId`
     * `XrUuid id`
     * `uint supportsSpaceDiscovery`
@@ -1792,18 +1770,15 @@
     * `long predictedDisplayTime`
     * `uint supportsSpacePersistence`
   * **enum XrPersistenceLocationBD**
-    * `XrStructureType type`
     * `uint supportsSpatialAnchor`
     * `IntPtr space`
     * `XrPosef pose`
     * `long time`
-    * `XrResult futureResult`
     * `XrUuid uuid`
     * `XrPersistenceLocationBD location`
     * `uint supportsSpatialAnchorSharing`
     * `uint supportsSpatialScene`
   * **enum XrPlaneDetectionStateEXT**
-    * `XrStructureType type`
     * `ulong supportedFeatures`
     * `ulong flags`
     * `IntPtr baseSpace`
@@ -1828,7 +1803,6 @@
   * **enum XrPlaneDetectorOrientationEXT**
   * **enum XrPlaneDetectorSemanticTypeEXT**
   * **enum XrPlaneLabelANDROID**
-    * `XrStructureType type`
     * `XrTrackableTypeANDROID trackableType`
     * `ulong trackable`
     * `IntPtr baseSpace`
@@ -1846,13 +1820,11 @@
     * `uint supportsAnchor`
     * `uint maxAnchors`
   * **enum XrPlaneOrientationBD**
-    * `XrStructureType type`
     * `uint supportsSpatialPlane`
     * `XrPlaneOrientationBD orientation`
     * `uint orientationCount`
   * **enum XrPlaneTypeANDROID**
   * **enum XrQrCodeTrackingModeANDROID**
-    * `XrStructureType type`
     * `uint supportsQrCodeTracking`
     * `uint supportsQrCodeSizeEstimation`
     * `ushort maxQrCodeCount`
@@ -1866,13 +1838,11 @@
     * `uint bufferCountOutput`
   * **enum XrReferenceSpaceType**
   * **enum XrReprojectionModeMSFT**
-    * `XrStructureType type`
     * `XrReprojectionModeMSFT reprojectionMode`
     * `XrVector3f position`
     * `XrVector3f normal`
     * `XrVector3f velocity`
     * `ulong flags`
-  * **enum XrResult**
   * **enum XrSceneComponentTypeMSFT**
   * **enum XrSceneComputeConsistencyMSFT**
   * **enum XrSceneComputeFeatureMSFT**
@@ -1880,7 +1850,6 @@
   * **enum XrSceneMarkerQRCodeSymbolTypeMSFT**
   * **enum XrSceneMarkerTypeMSFT**
   * **enum XrSceneMeshSemanticLabelANDROID**
-    * `XrStructureType type`
     * `uint supportsSceneMeshing`
     * `XrSceneMeshSemanticLabelSetANDROID semanticLabelSet`
     * `uint enableNormals`
@@ -1903,7 +1872,6 @@
   * **enum XrSemanticLabelBD**
   * **enum XrSemanticLabelMETA**
   * **enum XrSenseDataProviderStateBD**
-    * `XrStructureType type`
     * `uint supportsSpatialSensing`
     * `ulong entityId`
     * `XrSpatialEntityComponentTypeBD componentType`
@@ -1920,7 +1888,6 @@
     * `XrSpheref sphere`
     * `XrSenseDataProviderTypeBD providerType`
     * `XrSenseDataProviderStateBD newState`
-    * `XrResult futureResult`
     * `long lastUpdateTime`
     * `XrUuid uuid`
     * `uint stateCapacityInput`
@@ -1935,7 +1902,6 @@
   * **enum XrSoundFieldChannelMaskSurroundBD**
   * **enum XrSoundObjectDistanceAttenuationTypeBD**
   * **enum XrSoundObstacleMaterialTypeBD**
-    * `XrStructureType type`
     * `uint framesPerBuffer`
     * `XrAudioSampleRateBD sampleRate`
     * `XrAudioBufferChannelLayoutBD channelLayout`
@@ -1945,7 +1911,6 @@
     * `float order`
     * `float radius`
   * **enum XrSpaceComponentTypeFB**
-    * `XrStructureType type`
     * `uint supportsSpatialEntity`
     * `IntPtr space`
     * `XrPosef poseInSpace`
@@ -1955,19 +1920,15 @@
     * `long timeout`
     * `uint changePending`
     * `ulong requestId`
-    * `XrResult result`
     * `XrUuid uuid`
   * **enum XrSpacePersistenceModeFB**
-    * `XrStructureType type`
     * `IntPtr space`
     * `XrSpaceStorageLocationFB location`
     * `XrSpacePersistenceModeFB persistenceMode`
     * `ulong requestId`
-    * `XrResult result`
     * `XrUuid uuid`
   * **enum XrSpaceQueryActionFB**
   * **enum XrSpaceStorageLocationFB**
-    * `XrStructureType type`
     * `XrSpaceQueryActionFB queryAction`
     * `uint maxResultCount`
     * `long timeout`
@@ -1979,23 +1940,18 @@
     * `uint resultCapacityInput`
     * `uint resultCountOutput`
     * `ulong requestId`
-    * `XrResult result`
   * **enum XrSpatialAnchorConfidenceML**
-    * `XrStructureType type`
     * `IntPtr baseSpace`
     * `XrPosef poseInBaseSpace`
     * `long time`
-    * `XrResult futureResult`
     * `uint spaceCount`
     * `XrSpatialAnchorConfidenceML confidence`
   * **enum XrSpatialBufferTypeEXT**
-    * `XrStructureType type`
     * `uint componentTypeCapacityInput`
     * `uint componentTypeCountOutput`
     * `XrSpatialCapabilityEXT capability`
     * `uint enabledComponentCount`
     * `uint capabilityConfigCount`
-    * `XrResult futureResult`
     * `uint componentTypeCount`
     * `IntPtr baseSpace`
     * `long time`
@@ -2009,7 +1965,6 @@
   * **enum XrSpatialContainerBoundsModeEXT**
   * **enum XrSpatialContainerGraphicsPresentationEXT**
   * **enum XrSpatialContainerVolumeClippingEXT**
-    * `XrStructureType type`
     * `XrSpatialContainerGraphicsPresentationEXT graphicsPresentation`
     * `XrExtent3Df suggestedBounds`
     * `uint maxSpatialContainerCount`
@@ -2042,12 +1997,10 @@
   * **enum XrSpatialEntityComponentTypeBD**
   * **enum XrSpatialEntityTrackingStateEXT**
   * **enum XrSpatialGraphNodeTypeMSFT**
-    * `XrStructureType type`
     * `XrSpatialGraphNodeTypeMSFT nodeType`
     * `_nodeId_e__FixedBuffer nodeId`
     * `XrPosef pose`
   * **enum XrSpatialMarkerAprilTagDictEXT**
-    * `XrStructureType type`
     * `XrSpatialCapabilityEXT capability`
     * `uint enabledComponentCount`
     * `XrSpatialMarkerArucoDictEXT arUcoDict`
@@ -2056,14 +2009,12 @@
     * `uint optimizeForStaticMarker`
   * **enum XrSpatialMarkerArucoDictEXT**
   * **enum XrSpatialMeshLodBD**
-    * `XrStructureType type`
     * `uint supportsSpatialMesh`
     * `ulong configFlags`
     * `XrSpatialMeshLodBD lod`
     * `uint isSupported`
     * `uint progressPercentage`
   * **enum XrSpatialObjectSemanticLabelANDROID**
-    * `XrStructureType type`
     * `XrSpatialCapabilityEXT capability`
     * `uint enabledComponentCount`
     * `uint activeSemanticLabelCount`
@@ -2071,15 +2022,12 @@
   * **enum XrSpatialPersistenceContextResultEXT**
   * **enum XrSpatialPersistenceScopeEXT**
   * **enum XrSpatialPersistenceStateEXT**
-    * `XrStructureType type`
     * `XrSpatialPersistenceScopeEXT scope`
-    * `XrResult futureResult`
     * `XrSpatialPersistenceContextResultEXT createResult`
     * `uint persistenceContextCount`
     * `uint persistedUuidCount`
   * **enum XrSpatialPlaneAlignmentEXT**
   * **enum XrSpatialPlaneSemanticLabelEXT**
-    * `XrStructureType type`
     * `XrSpatialCapabilityEXT capability`
     * `uint enabledComponentCount`
     * `uint planeAlignmentCount`
@@ -2088,7 +2036,6 @@
     * `uint bufferSize`
     * `uint rowStride`
     * `uint pixelStride`
-    * `XrStructureType type`
     * `uint width`
     * `uint height`
     * `XrSpatialReferenceImageFormatEXT format`
@@ -2101,9 +2048,7 @@
     * `uint spatialReferenceImageCount`
     * `uint referenceImageIndex`
     * `uint imageCount`
-    * `XrResult futureResult`
   * **enum XrSphericalHarmonicsKindANDROID**
-    * `XrStructureType type`
     * `uint supportsLightEstimation`
     * `IntPtr space`
     * `long time`
@@ -2115,7 +2060,6 @@
     * `XrSphericalHarmonicsKindANDROID kind`
     * `_coefficients_e__FixedBuffer coefficients`
   * **enum XrSphericalHarmonicsKindBD**
-    * `XrStructureType type`
     * `uint supportsLightEstimation`
     * `uint supportsEnvironmentTexture`
     * `uint supportsSphericalHarmonics`
@@ -2128,9 +2072,7 @@
     * `uint coefficientCapacityInput`
     * `uint coefficientCountOutput`
     * `uint isValid`
-  * **enum XrStructureType**
   * **enum XrSurfaceAnchorTypeANDROID**
-    * `XrStructureType type`
     * `uint maxSurfaceAnchorCount`
     * `uint shouldTrackPlanes`
     * `XrGeospatialPoseANDROID geospatialPose`
@@ -2139,10 +2081,8 @@
     * `double latitude`
     * `double longitude`
     * `double altitudeRelativeToSurface`
-    * `XrResult futureResult`
     * `ulong anchorEntityId`
   * **enum XrTrackableImageFormatANDROID**
-    * `XrStructureType type`
     * `uint supportsImageTracking`
     * `uint supportsPhysicalSizeEstimation`
     * `uint maxTrackedImageCount`
@@ -2154,7 +2094,6 @@
     * `XrTrackableImageFormatANDROID format`
     * `uint bufferSize`
     * `uint entryCount`
-    * `XrResult futureResult`
     * `uint databaseCount`
     * `XrTrackingStateANDROID trackingState`
     * `long lastUpdatedTime`
@@ -2164,7 +2103,6 @@
     * `long time`
   * **enum XrTrackableImageTrackingModeANDROID**
   * **enum XrTrackableMarkerDictionaryANDROID**
-    * `XrStructureType type`
     * `uint supportsMarkerTracking`
     * `uint supportsMarkerSizeEstimation`
     * `ushort maxMarkerCount`
@@ -2176,7 +2114,6 @@
   * **enum XrVPSAvailabilityANDROID**
   * **enum XrViewConfigurationType**
   * **enum XrVirtualKeyboardInputSourceMETA**
-    * `XrStructureType type`
     * `uint supportsVirtualKeyboard`
     * `XrVirtualKeyboardLocationTypeMETA locationType`
     * `IntPtr space`
@@ -2198,7 +2135,6 @@
     * `_text_e__FixedBuffer text`
   * **enum XrVirtualKeyboardLocationTypeMETA**
   * **enum XrVisibilityMaskTypeKHR**
-    * `XrStructureType type`
     * `uint vertexCapacityInput`
     * `uint vertexCountOutput`
     * `uint indexCapacityInput`
@@ -2219,7 +2155,6 @@
     * `float lowerVerticalAngle`
     * `uint bindingModificationCount`
   * **enum XrWindingOrderANDROID**
-    * `XrStructureType type`
     * `uint vertexCapacity`
     * `uint indexCapacity`
     * `XrWindingOrderANDROID windingOrder`
@@ -2239,13 +2174,11 @@
     * `XrVector3f trajectory`
     * `long time`
   * **enum XrWindingOrderFB**
-    * `XrStructureType type`
     * `ulong flags`
     * `XrWindingOrderFB windingOrder`
     * `uint vertexCount`
     * `uint triangleCount`
   * **enum XrWorldMeshBlockResultML**
-    * `XrStructureType type`
     * `XrUuid uuid`
     * `XrPosef meshBoundingBoxCenter`
     * `XrExtent3Df meshBoundingBoxExtents`
@@ -2255,7 +2188,6 @@
     * `long time`
     * `XrPosef boundingBoxCenter`
     * `XrExtent3Df boundingBoxExtents`
-    * `XrResult futureResult`
     * `long timestamp`
     * `uint meshBlockStateCapacityInput`
     * `uint meshBlockStateCountOutput`
@@ -2286,7 +2218,6 @@
   * **struct XrAttenuationCurvePointBD**
     * `float distance`
     * `float gain`
-    * `XrStructureType type`
     * `uint curvePointCount`
     * `XrSoundObjectDistanceAttenuationTypeBD distanceAttenuationType`
     * `float minAttenuationRange`
@@ -2313,26 +2244,22 @@
     * `ulong accelerationFlags`
     * `XrVector3f linearAcceleration`
     * `XrVector3f angularAcceleration`
-    * `XrStructureType type`
     * `uint accelerationCount`
     * `XrBodyTrackingStatusBD status`
     * `XrBodyTrackingMessageBD message`
   * **struct XrBodyJointLocationBD**
     * `ulong locationFlags`
     * `XrPosef pose`
-    * `XrStructureType type`
     * `uint allJointPosesTracked`
     * `uint jointLocationCount`
   * **struct XrBodyJointLocationFB**
     * `ulong locationFlags`
     * `XrPosef pose`
-    * `XrStructureType type`
     * `uint supportsBodyTracking`
     * `XrBodyJointSetFB bodyJointSet`
   * **struct XrBodyJointLocationHTC**
     * `ulong locationFlags`
     * `XrPosef pose`
-    * `XrStructureType type`
     * `ulong combinedLocationFlags`
     * `XrBodyJointConfidenceHTC confidenceLevel`
     * `uint jointLocationCount`
@@ -2341,13 +2268,11 @@
     * `ulong velocityFlags`
     * `XrVector3f linearVelocity`
     * `XrVector3f angularVelocity`
-    * `XrStructureType type`
     * `uint velocityCount`
   * **struct XrBodySkeletonJointFB**
     * `int joint`
     * `int parentJoint`
     * `XrPosef pose`
-    * `XrStructureType type`
     * `uint jointCount`
     * `IntPtr baseSpace`
     * `long time`
@@ -2366,7 +2291,6 @@
     * `float offThreshold`
   * **struct XrBodySkeletonJointHTC**
     * `XrPosef pose`
-    * `XrStructureType type`
     * `uint jointCount`
     * `IntPtr actionSet`
     * `uint priorityOverride`
@@ -2382,7 +2306,6 @@
   * **struct XrCameraImageResolutionAndFrameRateBD**
     * `XrExtent2Di resolution`
     * `uint frameRate`
-    * `XrStructureType type`
     * `uint resolutionAndFrameRateCapacityInput`
     * `uint resolutionAndFrameRateCountOutput`
     * `uint transferTypeCapacityInput`
@@ -2395,7 +2318,6 @@
     * `uint modelCountOutput`
     * `XrCameraModelBD model`
     * `ulong cameraId`
-    * `XrResult futureResult`
     * `uint configCount`
     * `XrVector2f focalLength`
     * `XrVector2f principalPoint`
@@ -2430,7 +2352,6 @@
     * `float b`
     * `float a`
   * **struct XrDebugUtilsMessengerEXT**
-    * `XrStructureType type`
     * `XrObjectType objectType`
     * `ulong objectHandle`
     * `uint objectCount`
@@ -2446,7 +2367,6 @@
   * **struct XrDeviceAnchorPersistenceANDROID**
   * **struct XrEnvironmentDepthProviderMETA**
   * **struct XrEnvironmentDepthSwapchainMETA**
-    * `XrStructureType type`
     * `ulong createFlags`
     * `uint width`
     * `uint height`
@@ -2463,7 +2383,6 @@
   * **struct XrExtent2Df**
     * `float width`
     * `float height`
-    * `XrStructureType type`
     * `XrViewConfigurationType viewConfigurationType`
     * `uint fovMutable`
     * `uint recommendedImageRectWidth`
@@ -2503,7 +2422,6 @@
     * `int width`
     * `int height`
     * `int depth`
-    * `XrStructureType type`
     * `XrExtent3DiMETA tileDimensions`
     * `XrExtent2Di apronDimensions`
     * `XrOffset2Di origin`
@@ -2514,7 +2432,6 @@
     * `ulong cameraStatusFlags`
     * `XrExternalCameraAttachedToDeviceOCULUS attachedToDevice`
     * `XrPosef relativePose`
-    * `XrStructureType type`
     * `_name_e__FixedBuffer name`
     * `XrExternalCameraIntrinsicsOCULUS intrinsics`
     * `XrExternalCameraExtrinsicsOCULUS extrinsics`
@@ -2527,14 +2444,12 @@
   * **struct XrEyeANDROID**
     * `XrEyeStateANDROID eyeState`
     * `XrPosef eyePose`
-    * `XrStructureType type`
     * `_eyes_e__FixedBuffer eyes`
     * `XrEyeTrackingModeANDROID mode`
   * **struct XrEyeGazeFB**
     * `uint isValid`
     * `XrPosef gazePose`
     * `float gazeConfidence`
-    * `XrStructureType type`
     * `IntPtr baseSpace`
     * `long time`
     * `uint supportsEyeTracking`
@@ -2544,7 +2459,6 @@
   * **struct XrFaceExpressionStatusFB**
     * `uint isValid`
     * `uint isEyeFollowingBlendshapesValid`
-    * `XrStructureType type`
     * `uint weightCount`
     * `uint confidenceCount`
     * `XrFaceExpressionStatusFB status`
@@ -2558,25 +2472,21 @@
   * **struct XrForceFeedbackCurlApplyLocationMNDX**
     * `XrForceFeedbackCurlLocationMNDX location`
     * `float value`
-    * `XrStructureType type`
     * `uint locationCount`
   * **struct XrFoveationConfigurationHTC**
     * `XrFoveationLevelHTC level`
     * `float clearFovDegree`
     * `XrVector2f focalCenterOffset`
-    * `XrStructureType type`
     * `ulong dynamicFlags`
     * `uint configCount`
     * `uint supportsAnchor`
   * **struct XrFoveationProfileFB**
-    * `XrStructureType type`
     * `ulong flags`
   * **struct XrFovf**
     * `float angleLeft`
     * `float angleRight`
     * `float angleUp`
     * `float angleDown`
-    * `XrStructureType type`
     * `XrPosef pose`
     * `XrFovf fov`
     * `_actionSetName_e__FixedBuffer actionSetName`
@@ -2594,10 +2504,8 @@
     * `double latitude`
     * `double longitude`
     * `double altitude`
-    * `XrStructureType type`
     * `uint supportsGeospatial`
     * `XrGeospatialTrackerStateANDROID state`
-    * `XrResult initializationResult`
     * `long time`
     * `IntPtr space`
     * `XrPosef pose`
@@ -2606,21 +2514,18 @@
     * `double horizontalAccuracy`
     * `double verticalAccuracy`
     * `double orientationYawAccuracy`
-    * `XrResult futureResult`
     * `XrVPSAvailabilityANDROID availability`
     * `ulong parentId`
     * `uint subsumedUniqueIdCount`
     * `ulong anchorEntityId`
   * **struct XrGeospatialTrackerANDROID**
   * **struct XrGraphicsBindingVulkanKHR**
-    * `XrStructureType type`
     * `IntPtr instance`
     * `IntPtr physicalDevice`
     * `IntPtr device`
     * `uint queueFamilyIndex`
     * `uint queueIndex`
   * **struct XrGraphicsRequirementsD3D11KHR**
-    * `XrStructureType type`
   * **struct XrHandCapsuleFB**
     * `_points_e__FixedBuffer points`
     * `float radius`
@@ -2637,7 +2542,6 @@
     * `ulong velocityFlags`
     * `XrVector3f linearVelocity`
     * `XrVector3f angularVelocity`
-    * `XrStructureType type`
     * `uint isActive`
     * `uint jointCount`
   * **struct XrHandMeshVertexMSFT**
@@ -2646,7 +2550,6 @@
     * `long vertexUpdateTime`
     * `uint vertexCapacityInput`
     * `uint vertexCountOutput`
-    * `XrStructureType type`
     * `uint isActive`
     * `uint indexBufferChanged`
     * `uint vertexBufferChanged`
@@ -2669,7 +2572,6 @@
     * `long time`
     * `float amplitude`
     * `float frequency`
-    * `XrStructureType type`
     * `uint amplitudePointCount`
     * `uint frequencyPointCount`
     * `uint transientCount`
@@ -2703,7 +2605,6 @@
   * **struct XrPosef**
     * `XrQuaternionf orientation`
     * `XrVector3f position`
-    * `XrStructureType type`
     * `XrReferenceSpaceType referenceSpaceType`
     * `XrPosef poseInReferenceSpace`
     * `IntPtr action`
@@ -2723,7 +2624,6 @@
     * `XrTrackableTypeANDROID type`
     * `ulong trackable`
     * `XrPosef pose`
-    * `XrStructureType type`
     * `uint resultsCapacityInput`
     * `uint resultsCountOutput`
   * **struct XrRect2Df**
@@ -2735,7 +2635,6 @@
     * `IntPtr swapchain`
     * `XrRect2Di imageRect`
     * `uint imageArrayIndex`
-    * `XrStructureType type`
     * `XrPosef pose`
     * `XrFovf fov`
     * `XrSwapchainSubImage subImage`
@@ -2759,7 +2658,6 @@
   * **struct XrRect3DfFB**
     * `XrOffset3DfFB offset`
     * `XrExtent3Df extent`
-    * `XrStructureType type`
     * `uint bufferCapacityInput`
     * `uint bufferCountOutput`
     * `XrUuid floorUuid`
@@ -2770,13 +2668,11 @@
     * `uint vertexCountOutput`
     * `ulong flags`
     * `ulong requestId`
-    * `XrResult result`
     * `uint requestByteCount`
     * `uint uuidCapacityInput`
     * `uint uuidCountOutput`
     * `_foveationCenter_e__FixedBuffer foveationCenter`
   * **struct XrRenderModelAssetEXT**
-    * `XrStructureType type`
     * `ulong renderModelId`
     * `uint gltfExtensionCount`
     * `XrUuid cacheId`
@@ -2788,7 +2684,6 @@
   * **struct XrRenderModelNodeStateEXT**
     * `XrPosef nodePose`
     * `uint isVisible`
-    * `XrStructureType type`
     * `uint nodeStateCount`
     * `XrUuid cacheId`
     * `uint bufferCapacityInput`
@@ -2797,7 +2692,6 @@
     * `XrUuid uuid`
     * `XrUuid parentUuid`
     * `XrSemanticLabelMETA semanticLabel`
-    * `XrStructureType type`
     * `uint indexCapacityInput`
     * `uint indexCountOutput`
     * `uint recognizedSemanticLabelCount`
@@ -2807,7 +2701,6 @@
     * `uint faceCountOutput`
     * `uint bufferSize`
     * `ulong advertisementRequestId`
-    * `XrResult result`
     * `XrUuid advertisementUuid`
     * `ulong requestId`
     * `ulong discoveryRequestId`
@@ -2815,7 +2708,6 @@
   * **struct XrSceneComponentLocationMSFT**
     * `ulong flags`
     * `XrPosef pose`
-    * `XrStructureType type`
     * `uint locationCount`
     * `IntPtr baseSpace`
     * `long time`
@@ -2825,7 +2717,6 @@
     * `XrUuidMSFT id`
     * `XrUuidMSFT parentId`
     * `long updateTime`
-    * `XrStructureType type`
     * `uint componentCapacityInput`
     * `uint componentCountOutput`
   * **struct XrSceneFrustumBoundMSFT**
@@ -2837,7 +2728,6 @@
     * `uint sphereCount`
     * `uint boxCount`
     * `uint frustumCount`
-    * `XrStructureType type`
     * `uint requestedFeatureCount`
     * `XrSceneComputeConsistencyMSFT consistency`
     * `XrSceneBoundsMSFT bounds`
@@ -2848,18 +2738,15 @@
     * `long lastSeenTime`
     * `XrOffset2Df center`
     * `XrExtent2Df size`
-    * `XrStructureType type`
     * `uint sceneMarkerCapacityInput`
     * `uint markerTypeCount`
   * **struct XrSceneMarkerQRCodeMSFT**
     * `XrSceneMarkerQRCodeSymbolTypeMSFT symbolType`
     * `byte version`
-    * `XrStructureType type`
     * `uint qrCodeCapacityInput`
   * **struct XrSceneMeshMSFT**
     * `ulong meshBufferId`
     * `uint supportsIndicesUint16`
-    * `XrStructureType type`
     * `uint sceneMeshCount`
     * `uint vertexCapacityInput`
     * `uint vertexCountOutput`
@@ -2876,7 +2763,6 @@
   * **struct XrSceneMeshingTrackerANDROID**
   * **struct XrSceneObjectMSFT**
     * `XrSceneObjectTypeMSFT objectType`
-    * `XrStructureType type`
     * `uint sceneObjectCount`
     * `XrUuidMSFT parentId`
     * `uint objectTypeCount`
@@ -2889,7 +2775,6 @@
     * `XrExtent2Df size`
     * `ulong meshBufferId`
     * `uint supportsIndicesUint16`
-    * `XrStructureType type`
     * `uint scenePlaneCount`
     * `uint alignmentCount`
   * **struct XrSceneSphereBoundMSFT**
@@ -2904,14 +2789,11 @@
   * **struct XrSpaceLocationData**
     * `ulong locationFlags`
     * `XrPosef pose`
-    * `XrStructureType type`
     * `uint locationCount`
   * **struct XrSpaceUserFB**
-    * `XrStructureType type`
     * `uint spaceCount`
     * `uint userCount`
     * `ulong requestId`
-    * `XrResult result`
     * `ulong layerFlags`
     * `XrSwapchainSubImage motionVectorSubImage`
     * `XrPosef appSpaceDeltaPose`
@@ -2928,7 +2810,6 @@
     * `ulong velocityFlags`
     * `XrVector3f linearVelocity`
     * `XrVector3f angularVelocity`
-    * `XrStructureType type`
     * `uint velocityCount`
     * `ulong layerFlags`
     * `IntPtr space`
@@ -2949,11 +2830,8 @@
     * `XrVector2f bias`
   * **struct XrSpatialAnchorCompletionResultML**
     * `XrUuid uuid`
-    * `XrResult result`
-    * `XrStructureType type`
     * `uint resultCount`
   * **struct XrSpatialAnchorMSFT**
-    * `XrStructureType type`
     * `IntPtr space`
     * `XrPosef pose`
     * `long time`
@@ -2965,12 +2843,10 @@
     * `_name_e__FixedBuffer name`
   * **struct XrSpatialAnchorStoreConnectionMSFT**
   * **struct XrSpatialAnchorsStorageML**
-    * `XrStructureType type`
     * `IntPtr baseSpace`
     * `XrVector3f center`
     * `long time`
     * `float radius`
-    * `XrResult futureResult`
     * `uint uuidCapacityInput`
     * `uint uuidCountOutput`
     * `uint uuidCount`
@@ -2980,13 +2856,11 @@
   * **struct XrSpatialBounded2DDataEXT**
     * `XrPosef center`
     * `XrExtent2Df extents`
-    * `XrStructureType type`
     * `uint boundCount`
     * `uint parentCount`
   * **struct XrSpatialBufferEXT**
     * `ulong bufferId`
     * `XrSpatialBufferTypeEXT bufferType`
-    * `XrStructureType type`
   * **struct XrSpatialContainerEXT**
   * **struct XrSpatialContextEXT**
   * **struct XrSpatialEntityEXT**
@@ -2996,13 +2870,11 @@
     * `XrSpatialCapabilityEXT capability`
     * `uint markerId`
     * `XrSpatialBufferEXT data`
-    * `XrStructureType type`
     * `uint markerCount`
   * **struct XrSpatialMeshDataEXT**
     * `XrPosef origin`
     * `XrSpatialBufferEXT vertexBuffer`
     * `XrSpatialBufferEXT indexBuffer`
-    * `XrStructureType type`
     * `uint meshCount`
     * `ulong entityId`
     * `uint entityCount`
@@ -3014,19 +2886,16 @@
   * **struct XrSpatialPersistenceDataEXT**
     * `XrUuid persistUuid`
     * `XrSpatialPersistenceStateEXT persistState`
-    * `XrStructureType type`
     * `uint persistDataCount`
   * **struct XrSpatialPolygon2DDataEXT**
     * `XrPosef origin`
     * `XrSpatialBufferEXT vertexBuffer`
-    * `XrStructureType type`
     * `uint polygonCount`
     * `uint semanticLabelCount`
     * `XrUuid generationId`
   * **struct XrSpatialRaycastResultDataANDROID**
     * `XrPosef hitPose`
     * `float distanceSquared`
-    * `XrStructureType type`
     * `XrSpatialCapabilityEXT capability`
     * `uint enabledComponentCount`
     * `IntPtr space`
@@ -3047,7 +2916,6 @@
   * **struct XrSystemTrackingProperties**
     * `uint orientationTracking`
     * `uint positionTracking`
-    * `XrStructureType type`
     * `ulong systemId`
     * `uint vendorId`
     * `_systemName_e__FixedBuffer systemName`
@@ -3059,7 +2927,6 @@
     * `float edgeSize`
     * `XrTrackableMarkerDictionaryANDROID dictionary`
     * `uint entryCount`
-    * `XrStructureType type`
     * `XrTrackableMarkerTrackingModeANDROID trackingMode`
     * `uint databaseCount`
     * `XrTrackingStateANDROID trackingState`
@@ -3076,7 +2943,6 @@
   * **struct XrVector2f**
     * `float x`
     * `float y`
-    * `XrStructureType type`
     * `XrVector2f currentState`
     * `uint changedSinceLastSync`
     * `long lastChangeTime`
@@ -3101,7 +2967,6 @@
     * `short y`
     * `short z`
     * `short w`
-    * `XrStructureType type`
     * `uint jointCapacityInput`
     * `uint jointCountOutput`
     * `uint vertexCapacityInput`
@@ -3120,7 +2985,6 @@
     * `float pinchStrengthLittle`
   * **struct XrVirtualKeyboardMETA**
   * **struct XrVulkanGraphicsDeviceGetInfoKHR**
-    * `XrStructureType type`
     * `IntPtr next`
     * `ulong systemId`
     * `IntPtr vulkanInstance`
@@ -4050,7 +3914,6 @@
   * **struct XrXYColorSONY**
     * `float x`
     * `float y`
-    * `XrStructureType type`
     * `XrXYColorSONY displayPrimaryRed`
     * `XrXYColorSONY displayPrimaryGreen`
     * `XrXYColorSONY displayPrimaryBlue`
@@ -4060,7 +3923,6 @@
     * `float maxContentLightLevel`
     * `float maxFrameAverageLightLevel`
     * `ulong spatialEntityId`
-    * `XrResult futureResult`
     * `XrSpatialPersistenceContextResultEXT persistResult`
     * `XrUuid persistUuid`
     * `XrSpatialPersistenceContextResultEXT unpersistResult`
@@ -4072,9 +3934,7 @@
     * `byte e0`
   * **struct _buffer_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `ulong discoveryRequestId`
-    * `XrResult result`
     * `ulong requestId`
     * `uint supportsColocationDiscovery`
     * `uint supportsSpatialEntityGroupSharing`
@@ -4082,25 +3942,21 @@
     * `XrUuid groupUuid`
   * **struct _bytes_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
   * **struct _capsules_e__FixedBuffer**
     * `XrHandCapsuleFB e0`
   * **struct _coefficients_e__FixedBuffer**
     * `float e0_0`
   * **struct _data_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `IntPtr baseSpace`
     * `long time`
     * `uint spaceCount`
   * **struct _description_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `_extensionName_e__FixedBuffer extensionName`
     * `uint extensionVersion`
   * **struct _engineName_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `ulong createFlags`
     * `XrApplicationInfo applicationInfo`
     * `uint enabledApiLayerCount`
@@ -4111,16 +3967,13 @@
     * `byte e0`
   * **struct _eyes_e__FixedBuffer**
     * `XrEyeANDROID e0`
-    * `XrStructureType type`
     * `long time`
     * `IntPtr baseSpace`
   * **struct _foveationCenter_e__FixedBuffer**
     * `XrVector2f e0`
-    * `XrStructureType type`
     * `uint supportsFoveationEyeTracked`
   * **struct _gaze_e__FixedBuffer**
     * `XrEyeGazeFB e0`
-    * `XrStructureType type`
     * `float leftHandIntensity`
     * `float rightHandIntensity`
     * `ulong layerFlags`
@@ -4144,7 +3997,6 @@
     * `byte e0`
     * `IntPtr action`
     * `ulong binding`
-    * `XrStructureType type`
     * `ulong interactionProfile`
     * `uint countSuggestedBindings`
     * `uint countActionSets`
@@ -4156,14 +4008,12 @@
     * `float currentState`
   * **struct _localizedActionSetName_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `_actionName_e__FixedBuffer actionName`
     * `XrActionType actionType`
     * `uint countSubactionPaths`
     * `_localizedActionName_e__FixedBuffer localizedActionName`
   * **struct _modelName_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `uint bufferCapacityInput`
     * `uint bufferCountOutput`
     * `ulong modelKey`
@@ -4183,7 +4033,6 @@
     * `float dimmerValue`
   * **struct _name_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `ulong trackedKeyboardId`
     * `ulong flags`
     * `IntPtr session`
@@ -4200,7 +4049,6 @@
     * `XrSpatialAnchorNameHTC name`
   * **struct _nodeId_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `IntPtr space`
     * `XrPosef poseInSpace`
     * `long time`
@@ -4208,7 +4056,6 @@
     * `XrPosef poseInNodeSpace`
   * **struct _nodeName_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `uint nodeCapacityInput`
     * `uint nodeCountOutput`
     * `XrPosef nodePose`
@@ -4218,23 +4065,18 @@
     * `byte e0`
   * **struct _points_e__FixedBuffer**
     * `XrVector3f e0`
-    * `XrStructureType type`
     * `_capsules_e__FixedBuffer capsules`
   * **struct _runtimeName_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `_varying_e__FixedBuffer varying`
   * **struct _systemName_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `ulong createFlags`
     * `ulong systemId`
   * **struct _text_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
   * **struct _textureColorMap_e__FixedBuffer**
     * `XrColor4f e0`
-    * `XrStructureType type`
     * `_textureColorMap_e__FixedBuffer textureColorMap`
     * `byte e0`
     * `float brightness`
@@ -4248,23 +4090,19 @@
     * `uint modelVersion`
   * **struct _uniqueName_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `uint nodePropertyCount`
     * `uint topLevelUserPathCount`
   * **struct _varying_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `XrFormFactor formFactor`
   * **struct _views_e__FixedBuffer**
     * `XrEnvironmentDepthImageViewMETA e0`
-    * `XrStructureType type`
     * `long captureTime`
     * `uint enabled`
     * `uint supportsEnvironmentDepth`
     * `uint supportsHandRemoval`
   * **struct _visemes_e__FixedBuffer**
     * `float e0`
-    * `XrStructureType type`
     * `uint supportsVisemes`
 
   </details>
@@ -4929,6 +4767,22 @@
     * `_chars_e__FixedBuffer chars`
   * **struct _reserved_e__FixedBuffer**
     * `uint e0`
+
+  </details>
+
+  <details><summary><b>Angene.Graphics.Vulkan</b></summary>
+
+  * **struct CameraPushConstants**
+    * `Matrix4x4 View`
+    * `Matrix4x4 Proj`
+    * `void recordCommandBuffer()`
+    * `QueueFamilyIndices? findQueueFamilies()`
+    * `VkSurfaceFormatKHR ChooseSurfaceFormatAndColorSpace()`
+    * `IntPtr CreateImageView()`
+    * `VkPresentModeKHR ChoosePresentationMode()`
+    * `uint ChooseNumImages()`
+    * `void SelectPhysicalDeviceAndLogicalDevice()`
+    * `void CreateDevice()`
 
   </details>
 
@@ -5919,6 +5773,20 @@
     * `Matrix4x4 RotationY()`
     * `Matrix4x4 RotationZ()`
   * **struct Point**
+  * **struct Quaternion**
+    * `float X`
+    * `Quaternion Identity { get; set; }`
+    * `float LengthSquared { get; set; }`
+    * `float Length { get; set; }`
+    * `Quaternion Conjugate { get; set; }`
+    * `Quaternion Inverse { get; set; }`
+    * `Quaternion FromAxisAngle()`
+    * `Quaternion FromEuler()`
+    * `Vec3 ToEuler()`
+    * `Vec3 Rotate()`
+    * `float Dot()`
+    * `Quaternion Slerp()`
+    * `Matrix4x4 ToMatrix()`
   * **struct Rect**
     * `float X`
     * `float Left { get; set; }`
@@ -5951,6 +5819,22 @@
     * `float Dot()`
     * `Vec3 Cross()`
     * `Vec3 Lerp()`
+  * **struct Vec4**
+    * `float X`
+    * `Vec4 Zero { get; set; }`
+    * `Vec4 One { get; set; }`
+    * `Vec4 UnitX { get; set; }`
+    * `Vec4 UnitY { get; set; }`
+    * `Vec4 UnitZ { get; set; }`
+    * `Vec4 UnitW { get; set; }`
+    * `float Length { get; set; }`
+    * `float LengthSquared { get; set; }`
+    * `Vec4 Normalized { get; set; }`
+    * `float Dot()`
+    * `float Distance()`
+    * `Vec4 Lerp()`
+    * `Vec4 Min()`
+    * `Vec4 Max()`
 
   </details>
 
@@ -5964,6 +5848,7 @@
   * **class Structs**
   * **class VkVideo**
   * **class VulkanMemoryAllocator**
+    * `IntPtr Buffer`
   * **enum StdVideoAV1ChromaSamplePosition**
   * **enum StdVideoAV1ColorPrimaries**
   * **enum StdVideoAV1FrameRestorationType**
@@ -6912,9 +6797,12 @@
     * `uint flags`
     * `VkAccelerationStructureTypeKHR type`
     * `VkBuildAccelerationStructureModeKHR mode`
+    * `IntPtr srcAccelerationStructure`
+    * `IntPtr dstAccelerationStructure`
     * `uint geometryCount`
     * `VkDeviceOrHostAddressKHR scratchData`
     * `uint createFlags`
+    * `IntPtr buffer`
     * `ulong offset`
     * `ulong size`
     * `ulong deviceAddress`
@@ -6932,9 +6820,12 @@
     * `uint maxDescriptorSetAccelerationStructures`
     * `uint maxDescriptorSetUpdateAfterBindAccelerationStructures`
     * `uint minAccelerationStructureScratchOffsetAlignment`
+    * `IntPtr accelerationStructure`
+    * `IntPtr src`
     * `VkDeviceOrHostAddressKHR dst`
     * `VkCopyAccelerationStructureModeKHR mode`
     * `VkDeviceOrHostAddressConstKHR src`
+    * `IntPtr dst`
     * `VkRayTracingShaderGroupTypeKHR type`
     * `uint generalShader`
     * `uint closestHitShader`
@@ -6945,6 +6836,8 @@
     * `uint stageCount`
     * `uint groupCount`
     * `uint maxPipelineRayRecursionDepth`
+    * `IntPtr layout`
+    * `IntPtr basePipelineHandle`
     * `int basePipelineIndex`
     * `uint rayTracingPipeline`
     * `uint rayTracingPipelineShaderGroupHandleCaptureReplay`
@@ -7006,7 +6899,6 @@
     * `uint maxMeshMultiviewViewCount`
     * `uint meshOutputPerVertexGranularity`
     * `uint meshOutputPerPrimitiveGranularity`
-  * **struct VkAccelerationStructureKHR**
   * **struct VkAccelerationStructureMatrixMotionInstanceNV**
     * `VkTransformMatrixKHR transformT0`
     * `VkTransformMatrixKHR transformT1`
@@ -7053,15 +6945,21 @@
     * `uint stageCount`
     * `uint groupCount`
     * `uint maxRecursionDepth`
+    * `IntPtr layout`
+    * `IntPtr basePipelineHandle`
     * `int basePipelineIndex`
+    * `IntPtr vertexData`
     * `ulong vertexOffset`
     * `uint vertexCount`
     * `ulong vertexStride`
     * `VkFormat vertexFormat`
+    * `IntPtr indexData`
     * `ulong indexOffset`
     * `uint indexCount`
     * `VkIndexType indexType`
+    * `IntPtr transformData`
     * `ulong transformOffset`
+    * `IntPtr aabbData`
     * `uint numAABBs`
     * `uint stride`
     * `ulong offset`
@@ -7085,6 +6983,7 @@
     * `uint attachment`
     * `VkImageLayout layout`
     * `uint flags`
+    * `IntPtr renderPass`
     * `uint attachmentCount`
     * `uint width`
     * `uint height`
@@ -7096,6 +6995,7 @@
     * `ulong bufferAddress`
     * `uint size`
     * `VkIndexType indexType`
+    * `IntPtr pipeline`
     * `uint shaderCount`
     * `uint index`
     * `uint imageAlignmentControl`
@@ -7222,7 +7122,6 @@
     * `ulong bufferAddress`
     * `uint size`
     * `uint stride`
-  * **struct VkBuffer**
   * **struct VkBufferCopy**
     * `ulong srcOffset`
     * `ulong dstOffset`
@@ -7234,7 +7133,6 @@
     * `VkImageSubresourceLayers imageSubresource`
     * `VkOffset3D imageOffset`
     * `VkExtent3D imageExtent`
-  * **struct VkBufferView**
   * **struct VkBuildPartitionedAccelerationStructureIndirectCommandNV**
     * `VkPartitionedAccelerationStructureOpTypeNV opType`
     * `uint argCount`
@@ -7332,8 +7230,6 @@
     * `VkBlendFactor srcAlphaBlendFactor`
     * `VkBlendFactor dstAlphaBlendFactor`
     * `VkBlendOp alphaBlendOp`
-  * **struct VkCommandBuffer**
-  * **struct VkCommandPool**
   * **struct VkComponentMapping**
     * `VkComponentSwizzle r`
     * `VkComponentSwizzle g`
@@ -7366,6 +7262,7 @@
     * `uint srcCopyFlags`
     * `uint copyCount`
     * `VkStridedDeviceAddressRangeKHR copyAddressRange`
+    * `IntPtr dstImage`
     * `VkImageLayout dstImageLayout`
     * `uint indirectMemoryCopy`
     * `uint indirectMemoryToImageCopy`
@@ -7382,6 +7279,7 @@
     * `uint videoEncodeIntraRefresh`
     * `VkExtent2D maxQuantizationMapExtent`
     * `VkExtent2D quantizationMapTexelSize`
+    * `IntPtr quantizationMap`
     * `VkExtent2D quantizationMapExtent`
     * `uint videoEncodeQuantizationMap`
     * `int minQpDelta`
@@ -7416,7 +7314,9 @@
     * `uint sharedMemBytes`
     * `nuint paramCount`
     * `nuint extraCount`
+    * `IntPtr imageView`
     * `VkDescriptorType descriptorType`
+    * `IntPtr sampler`
     * `ulong deviceAddress`
     * `ulong size`
     * `uint supportsTextureGatherLODBiasAMD`
@@ -7432,12 +7332,16 @@
     * `uint binding`
     * `uint arrayElement`
     * `ulong flags`
+    * `IntPtr layout`
     * `uint resourceInfoCount`
+    * `IntPtr module`
     * `uint constantCount`
+    * `IntPtr dataGraphPipeline`
     * `VkDataGraphPipelineSessionBindPointARM bindPoint`
     * `VkDataGraphPipelineSessionBindPointTypeARM bindPointType`
     * `uint numObjects`
     * `uint objectIndex`
+    * `IntPtr memory`
     * `ulong memoryOffset`
     * `VkDataGraphPipelinePropertyARM property`
     * `uint isText`
@@ -7481,7 +7385,7 @@
     * `ulong size`
     * `ulong pipelineDeviceAddressCaptureReplay`
     * `VkPipelineBindPoint pipelineBindPoint`
-  * **struct VkDeferredOperationKHR**
+    * `IntPtr pipeline`
   * **struct VkDepthClampRangeEXT**
     * `float minDepthClamp`
     * `float maxDepthClamp`
@@ -7536,6 +7440,7 @@
     * `uint lowLatencyMode`
     * `uint lowLatencyBoost`
     * `uint minimumIntervalUs`
+    * `IntPtr signalSemaphore`
     * `ulong value`
     * `ulong presentID`
     * `VkLatencyMarkerNV marker`
@@ -7623,22 +7528,21 @@
     * `uint samplerHeapArrayStride`
     * `uint samplerPushOffset`
     * `uint samplerAddressOffset`
-  * **struct VkDescriptorPool**
   * **struct VkDescriptorPoolSize**
     * `VkDescriptorType type`
     * `uint descriptorCount`
     * `uint flags`
     * `uint maxSets`
     * `uint poolSizeCount`
+    * `IntPtr descriptorPool`
     * `uint descriptorSetCount`
     * `uint binding`
     * `VkDescriptorType descriptorType`
     * `uint stageFlags`
     * `uint bindingCount`
+    * `IntPtr dstSet`
     * `uint dstBinding`
     * `uint dstArrayElement`
-  * **struct VkDescriptorSet**
-  * **struct VkDescriptorSetLayout**
   * **struct VkDescriptorUpdateTemplate**
   * **struct VkDescriptorUpdateTemplateEntry**
     * `uint dstBinding`
@@ -7650,7 +7554,9 @@
     * `uint flags`
     * `uint descriptorUpdateEntryCount`
     * `VkDescriptorUpdateTemplateType templateType`
+    * `IntPtr descriptorSetLayout`
     * `VkPipelineBindPoint pipelineBindPoint`
+    * `IntPtr pipelineLayout`
     * `uint set`
     * `uint maxPerSetDescriptors`
     * `ulong maxMemoryAllocationSize`
@@ -7668,7 +7574,6 @@
     * `uint deviceMask`
     * `uint deviceRenderAreaCount`
     * `VkPointClippingBehavior pointClippingBehavior`
-  * **struct VkDevice**
   * **struct VkDeviceAddressRangeKHR**
     * `ulong address`
     * `ulong size`
@@ -7692,7 +7597,6 @@
     * `_description_e__FixedBuffer description`
     * `ulong vendorFaultCode`
     * `ulong vendorFaultData`
-  * **struct VkDeviceMemory**
   * **struct VkDispatchIndirectCommand**
     * `uint x`
     * `uint y`
@@ -7785,7 +7689,6 @@
     * `uint drmFormatModifierCount`
     * `VkSharingMode sharingMode`
     * `uint queueFamilyIndexCount`
-  * **struct VkEvent**
   * **struct VkExtensionProperties**
     * `_extensionName_e__FixedBuffer extensionName`
     * `uint specVersion`
@@ -7798,6 +7701,7 @@
     * `uint depth`
   * **struct VkExternalComputeQueueNV**
     * `uint reservedExternalQueues`
+    * `IntPtr preferredQueue`
     * `uint deviceIndex`
     * `uint externalDataSize`
     * `uint maxExternalQueues`
@@ -7814,6 +7718,7 @@
     * `uint disabledValidationCheckCount`
     * `VkFormat decodeMode`
     * `uint decodeModeSharedExponent`
+    * `IntPtr buffer`
     * `ulong offset`
     * `uint flags`
     * `uint conditionalRendering`
@@ -7832,12 +7737,10 @@
     * `_deviceLUID_e__FixedBuffer deviceLUID`
     * `uint deviceNodeMask`
     * `uint deviceLUIDValid`
-  * **struct VkFence**
   * **struct VkFormatProperties**
     * `uint linearTilingFeatures`
     * `uint optimalTilingFeatures`
     * `uint bufferFeatures`
-  * **struct VkFramebuffer**
   * **struct VkGeometryDataNV**
     * `VkGeometryTrianglesNV triangles`
     * `VkGeometryAABBNV aabbs`
@@ -7849,6 +7752,7 @@
     * `uint geometryCount`
     * `ulong compactedSize`
     * `VkAccelerationStructureInfoNV info`
+    * `IntPtr memory`
     * `ulong memoryOffset`
     * `uint deviceIndexCount`
     * `uint accelerationStructureCount`
@@ -7900,7 +7804,6 @@
     * `uint memoryClockFrequency`
     * `uint engineClockFrequency`
   * **struct VkGpaSessionAMD**
-  * **struct VkImage**
   * **struct VkImageBlit**
     * `VkImageSubresourceLayers srcSubresource`
     * `_srcOffsets_e__FixedBuffer srcOffsets`
@@ -7916,10 +7819,12 @@
     * `uint dstAccessMask`
     * `uint srcQueueFamilyIndex`
     * `uint dstQueueFamilyIndex`
+    * `IntPtr buffer`
     * `ulong offset`
     * `ulong size`
     * `VkImageLayout oldLayout`
     * `VkImageLayout newLayout`
+    * `IntPtr image`
     * `VkImageSubresourceRange subresourceRange`
   * **struct VkImageFormatProperties**
     * `VkExtent3D maxExtent`
@@ -7936,6 +7841,8 @@
     * `VkImageSubresourceLayers dstSubresource`
     * `VkOffset3D dstOffset`
     * `VkExtent3D extent`
+    * `IntPtr renderPass`
+    * `IntPtr framebuffer`
     * `VkRect2D renderArea`
     * `uint clearValueCount`
   * **struct VkImageSubresource**
@@ -7954,18 +7861,21 @@
     * `uint baseArrayLayer`
     * `uint layerCount`
     * `uint flags`
+    * `IntPtr image`
     * `VkImageViewType viewType`
     * `VkFormat format`
     * `VkComponentMapping components`
     * `VkImageSubresourceRange subresourceRange`
     * `uint queueFamilyIndex`
+    * `IntPtr commandPool`
     * `VkCommandBufferLevel level`
     * `uint commandBufferCount`
+    * `IntPtr renderPass`
     * `uint subpass`
+    * `IntPtr framebuffer`
     * `uint occlusionQueryEnable`
     * `uint queryFlags`
     * `uint pipelineStatistics`
-  * **struct VkImageView**
   * **struct VkIndirectCommandsExecutionSetTokenEXT**
     * `VkIndirectExecutionSetInfoTypeEXT type`
     * `uint shaderStages`
@@ -7974,6 +7884,7 @@
     * `uint offset`
     * `uint flags`
     * `uint indirectStride`
+    * `IntPtr pipelineLayout`
     * `uint tokenCount`
   * **struct VkIndirectCommandsIndexBufferTokenEXT**
     * `VkIndirectCommandsInputModeFlagBitsEXT mode`
@@ -7994,6 +7905,7 @@
     * `uint deviceGeneratedCommandsMultiDrawIndirectCount`
     * `uint maxSequenceCount`
     * `uint maxDrawCount`
+    * `IntPtr initialPipeline`
     * `uint maxPipelineCount`
     * `uint setLayoutCount`
     * `uint shaderCount`
@@ -8008,6 +7920,7 @@
     * `ulong preprocessSize`
     * `ulong sequenceCountAddress`
     * `uint index`
+    * `IntPtr pipeline`
   * **struct VkIndirectCommandsLayoutNV**
     * `uint maxGraphicsShaderGroupCount`
     * `uint maxIndirectSequenceCount`
@@ -8042,7 +7955,6 @@
     * `uint maxMultiviewViewCount`
     * `uint maxMultiviewInstanceIndex`
     * `uint shaderDrawParameters`
-  * **struct VkInstance**
   * **struct VkLayerProperties**
     * `_layerName_e__FixedBuffer layerName`
     * `uint specVersion`
@@ -8067,6 +7979,7 @@
     * `ulong indexBuffer`
     * `ulong indexStride`
     * `uint baseTriangle`
+    * `IntPtr micromap`
     * `uint maintenance10`
     * `uint rgba4OpaqueBlackSwizzled`
     * `uint resolveSrgbFormatAppliesTransferFunction`
@@ -8098,6 +8011,7 @@
     * `VkDeviceOrHostAddressConstKHR triangleArray`
     * `ulong triangleArrayStride`
     * `uint createFlags`
+    * `IntPtr buffer`
     * `ulong offset`
     * `ulong size`
     * `uint micromap`
@@ -8274,6 +8188,7 @@
     * `VkExtent2D maxFragmentDensityTexelSize`
     * `uint fragmentDensityInvocations`
     * `VkAttachmentReference fragmentDensityMapAttachment`
+    * `IntPtr imageView`
     * `VkImageLayout imageLayout`
     * `uint shaderCoreFeatures`
     * `uint activeComputeUnitCount`
@@ -8282,7 +8197,6 @@
     * `uint sparseImageInt64Atomics`
     * `_heapBudget_e__FixedBuffer heapBudget`
     * `_heapUsage_e__FixedBuffer heapUsage`
-  * **struct VkPhysicalDevice**
   * **struct VkPhysicalDeviceDataGraphOperationSupportARM**
     * `VkPhysicalDeviceDataGraphOperationTypeARM operationType`
     * `_name_e__FixedBuffer name`
@@ -8474,7 +8388,6 @@
     * `uint residencyStandard3DBlockShape`
     * `uint residencyAlignedMipSize`
     * `uint residencyNonResidentStrict`
-  * **struct VkPipeline**
   * **struct VkPipelineBinaryKHR**
     * `uint pipelineBinaries`
     * `uint pipelineBinaryInternalCache`
@@ -8485,7 +8398,6 @@
     * `uint disableInternalCache`
     * `uint keySize`
     * `_key_e__FixedBuffer key`
-  * **struct VkPipelineCache**
   * **struct VkPipelineCacheHeaderVersionDataGraphQCOM**
     * `uint headerSize`
     * `VkPipelineCacheHeaderVersion headerVersion`
@@ -8585,7 +8497,6 @@
     * `_description_e__FixedBuffer description`
     * `VkPipelineExecutableStatisticFormatKHR format`
     * `VkPipelineExecutableStatisticValueKHR value`
-  * **struct VkPipelineLayout**
   * **struct VkPresentStageTimeEXT**
     * `uint stage`
     * `ulong time`
@@ -8698,16 +8609,19 @@
     * `float maxLod`
     * `VkBorderColor borderColor`
     * `uint unnormalizedCoordinates`
+    * `IntPtr srcSet`
     * `uint srcBinding`
     * `uint srcArrayElement`
+    * `IntPtr dstSet`
     * `uint dstBinding`
     * `uint dstArrayElement`
     * `uint descriptorCount`
+    * `IntPtr buffer`
     * `ulong offset`
     * `ulong range`
+    * `IntPtr sampler`
+    * `IntPtr imageView`
     * `VkImageLayout imageLayout`
-  * **struct VkQueryPool**
-  * **struct VkQueue**
   * **struct VkQueueFamilyProperties**
     * `uint queueFlags`
     * `uint queueCount`
@@ -8731,6 +8645,7 @@
     * `uint rectangleCount`
     * `uint swapchainCount`
     * `uint sharedPresentSupportedUsageFlags`
+    * `IntPtr fence`
     * `uint flags`
     * `VkExternalFenceHandleTypeFlagBits handleType`
     * `int fd`
@@ -8743,7 +8658,6 @@
     * `_uuid_e__FixedBuffer uuid`
   * **struct VkRefreshCycleDurationGOOGLE**
     * `ulong refreshDuration`
-  * **struct VkRenderPass**
   * **struct VkRenderPassCreationFeedbackInfoEXT**
     * `uint postMergeSubpassCount`
   * **struct VkRenderPassSubpassFeedbackInfoEXT**
@@ -8773,9 +8687,11 @@
     * `VkSampleCountFlagBits sampleLocationsPerPixel`
     * `VkExtent2D sampleLocationGridSize`
     * `uint sampleLocationsCount`
-  * **struct VkSampler**
   * **struct VkSamplerYcbcrConversion**
+    * `IntPtr buffer`
+    * `IntPtr memory`
     * `ulong memoryOffset`
+    * `IntPtr image`
     * `uint prefersDedicatedAllocation`
     * `uint requiresDedicatedAllocation`
     * `uint flags`
@@ -8790,6 +8706,38 @@
     * `uint physicalDeviceCount`
     * `_physicalDevices_e__FixedBuffer physicalDevices`
     * `uint subsetAllocation`
+    * `IntPtr e0`
+    * `IntPtr e1`
+    * `IntPtr e2`
+    * `IntPtr e3`
+    * `IntPtr e4`
+    * `IntPtr e5`
+    * `IntPtr e6`
+    * `IntPtr e7`
+    * `IntPtr e8`
+    * `IntPtr e9`
+    * `IntPtr e10`
+    * `IntPtr e11`
+    * `IntPtr e12`
+    * `IntPtr e13`
+    * `IntPtr e14`
+    * `IntPtr e15`
+    * `IntPtr e16`
+    * `IntPtr e17`
+    * `IntPtr e18`
+    * `IntPtr e19`
+    * `IntPtr e20`
+    * `IntPtr e21`
+    * `IntPtr e22`
+    * `IntPtr e23`
+    * `IntPtr e24`
+    * `IntPtr e25`
+    * `IntPtr e26`
+    * `IntPtr e27`
+    * `IntPtr e28`
+    * `IntPtr e29`
+    * `IntPtr e30`
+    * `IntPtr e31`
     * `VkMemoryRequirements memoryRequirements`
     * `VkSparseImageMemoryRequirements memoryRequirements`
     * `VkPhysicalDeviceFeatures features`
@@ -8810,15 +8758,16 @@
     * `uint queueIndex`
     * `uint protectedSubmit`
     * `VkImageAspectFlagBits planeAspect`
-  * **struct VkSemaphore**
   * **struct VkSetStateFlagsIndirectCommandNV**
     * `uint data`
+    * `IntPtr buffer`
     * `ulong offset`
     * `VkIndirectCommandsTokenTypeNV tokenType`
     * `uint stream`
     * `uint offset`
     * `uint vertexBindingUnit`
     * `uint vertexDynamicStride`
+    * `IntPtr pushconstantPipelineLayout`
     * `uint pushconstantShaderStageFlags`
     * `uint pushconstantOffset`
     * `uint pushconstantSize`
@@ -8828,10 +8777,14 @@
     * `VkPipelineBindPoint pipelineBindPoint`
     * `uint tokenCount`
     * `uint streamCount`
+    * `IntPtr pipeline`
     * `uint sequencesCount`
+    * `IntPtr preprocessBuffer`
     * `ulong preprocessOffset`
     * `ulong preprocessSize`
+    * `IntPtr sequencesCountBuffer`
     * `ulong sequencesCountOffset`
+    * `IntPtr sequencesIndexBuffer`
     * `ulong sequencesIndexOffset`
     * `uint maxSequencesCount`
     * `uint inheritedViewportScissor2D`
@@ -8937,6 +8890,10 @@
     * `ulong accelerationStructure`
     * `VkDescriptorType type`
     * `VkDescriptorDataEXT data`
+    * `IntPtr image`
+    * `IntPtr imageView`
+    * `IntPtr sampler`
+    * `IntPtr accelerationStructure`
     * `nuint combinedImageSamplerDensityMapDescriptorSize`
     * `uint graphicsPipelineLibrary`
     * `uint graphicsPipelineLibraryFastLinking`
@@ -8979,7 +8936,6 @@
     * `uint colorAttachmentCount`
     * `VkFormat depthAttachmentFormat`
     * `VkFormat stencilAttachmentFormat`
-  * **struct VkShaderModule**
   * **struct VkShaderResourceUsageAMD**
     * `uint numUsedVgprs`
     * `uint numUsedSgprs`
@@ -9001,7 +8957,9 @@
     * `VkImageSubresource subresource`
     * `VkOffset3D offset`
     * `VkExtent3D extent`
+    * `IntPtr memory`
     * `ulong memoryOffset`
+    * `IntPtr image`
     * `uint bindCount`
   * **struct VkSparseImageMemoryRequirements**
     * `VkSparseImageFormatProperties formatProperties`
@@ -9011,9 +8969,12 @@
     * `ulong imageMipTailStride`
     * `ulong resourceOffset`
     * `ulong size`
+    * `IntPtr memory`
     * `ulong memoryOffset`
     * `uint flags`
+    * `IntPtr buffer`
     * `uint bindCount`
+    * `IntPtr image`
     * `uint waitSemaphoreCount`
     * `uint bufferBindCount`
     * `uint imageOpaqueBindCount`
@@ -9041,7 +9002,10 @@
     * `nuint dataSize`
     * `uint flags`
     * `VkShaderStageFlagBits stage`
+    * `IntPtr module`
     * `VkPipelineShaderStageCreateInfo stage`
+    * `IntPtr layout`
+    * `IntPtr basePipelineHandle`
     * `int basePipelineIndex`
   * **struct VkStencilOpState**
     * `VkStencilOp failOp`
@@ -9071,6 +9035,7 @@
     * `VkImageLayout imageLayout`
     * `VkOffset3D imageOffset`
     * `VkExtent3D imageExtent`
+    * `IntPtr image`
     * `ulong srcStageMask`
     * `ulong srcAccessMask`
     * `ulong dstStageMask`
@@ -9178,6 +9143,8 @@
     * `uint swapchainCount`
     * `uint imageIndex`
     * `ulong timeout`
+    * `IntPtr semaphore`
+    * `IntPtr fence`
     * `uint deviceMask`
     * `_presentMask_e__FixedBuffer presentMask`
     * `uint modes`
@@ -9213,6 +9180,7 @@
     * `ulong flags`
     * `VkSharingMode sharingMode`
     * `uint queueFamilyIndexCount`
+    * `IntPtr memory`
     * `ulong memoryOffset`
     * `uint tensorViewCount`
     * `ulong optimalTilingTensorFeatures`
@@ -9495,6 +9463,8 @@
     * `VkExternalMemoryHandleTypeFlagBits handleType`
     * `int fd`
     * `uint memoryTypeBits`
+    * `IntPtr memory`
+    * `IntPtr semaphore`
     * `uint flags`
     * `VkExternalSemaphoreHandleTypeFlagBits handleType`
   * **struct VkVideoEncodeH265QpKHR**
@@ -9560,9 +9530,11 @@
     * `VkOffset2D codedOffset`
     * `VkExtent2D codedExtent`
     * `uint baseArrayLayer`
+    * `IntPtr imageViewBinding`
     * `int slotIndex`
     * `uint memoryBindIndex`
     * `VkMemoryRequirements memoryRequirements`
+    * `IntPtr memory`
     * `ulong memoryOffset`
     * `ulong memorySize`
     * `uint queueFamilyIndex`
@@ -9571,6 +9543,7 @@
     * `uint updateSequenceCount`
     * `uint referenceSlotCount`
     * `uint videoUsageHints`
+    * `IntPtr srcBuffer`
     * `ulong srcBufferOffset`
     * `ulong srcBufferRange`
     * `VkVideoPictureResourceInfoKHR dstPictureResource`
@@ -9675,6 +9648,7 @@
     * `nuint maxBlockCount`
     * `ulong minAllocationAlignment`
     * `uint memoryType`
+    * `IntPtr deviceMemory`
     * `ulong offset`
     * `ulong size`
   * **struct VmaDefragmentationContext**
@@ -9707,7 +9681,10 @@
   * **struct VmaVirtualAllocation**
   * **struct VmaVirtualBlock**
     * `uint flags`
+    * `IntPtr physicalDevice`
+    * `IntPtr device`
     * `ulong preferredLargeHeapBlockSize`
+    * `IntPtr instance`
     * `uint vulkanApiVersion`
   * **struct _FeatureData_e__FixedBuffer**
     * `short e0_0`
@@ -9775,7 +9752,13 @@
     * `byte e0`
   * **struct __IOSurface**
     * `VkExportMetalObjectTypeFlagBitsEXT exportObjectType`
+    * `IntPtr queue`
+    * `IntPtr memory`
+    * `IntPtr image`
+    * `IntPtr imageView`
+    * `IntPtr bufferView`
     * `VkImageAspectFlagBits plane`
+    * `IntPtr semaphore`
     * `VkExternalMemoryHandleTypeFlagBits handleType`
     * `uint memoryTypeBits`
     * `uint flags`
@@ -9785,6 +9768,7 @@
     * `VkExternalSemaphoreHandleTypeFlagBits handleType`
     * `uint waitSemaphoreValuesCount`
     * `uint signalSemaphoreValuesCount`
+    * `IntPtr fence`
     * `VkExternalFenceHandleTypeFlagBits handleType`
     * `uint handleType`
     * `VkFullScreenExclusiveEXT fullScreenExclusive`
@@ -9836,7 +9820,10 @@
     * `uint viewportCount`
     * `uint scissorCount`
     * `uint stageCount`
+    * `IntPtr layout`
+    * `IntPtr renderPass`
     * `uint subpass`
+    * `IntPtr basePipelineHandle`
     * `int basePipelineIndex`
   * **struct _category_e__FixedBuffer**
     * `sbyte e0`
@@ -9878,6 +9865,8 @@
   * **struct _color_e__FixedBuffer**
     * `float e0`
     * `uint dedicatedAllocation`
+    * `IntPtr image`
+    * `IntPtr buffer`
     * `uint transformFeedback`
     * `uint geometryStreams`
     * `uint maxTransformFeedbackStreams`
@@ -9928,6 +9917,7 @@
     * `uint fragmentShadingRateStrictMultiplyCombiner`
     * `uint sampleCounts`
     * `VkExtent2D fragmentSize`
+    * `IntPtr imageView`
     * `VkImageLayout imageLayout`
     * `VkExtent2D shadingRateAttachmentTexelSize`
     * `uint shaderConstantData`
@@ -9938,6 +9928,7 @@
     * `uint supportsProtected`
     * `uint presentWait`
     * `uint pipelineExecutableInfo`
+    * `IntPtr pipeline`
     * `uint stages`
     * `_name_e__FixedBuffer name`
     * `_description_e__FixedBuffer description`
@@ -9993,12 +9984,14 @@
     * `uint waitSemaphoreCount`
     * `uint commandBufferCount`
     * `uint signalSemaphoreCount`
+    * `IntPtr memory`
     * `ulong offset`
     * `ulong size`
     * `ulong allocationSize`
     * `uint memoryTypeIndex`
     * `uint queueFamilyIndex`
     * `uint counterIndexCount`
+    * `IntPtr pipeline`
     * `uint executableIndex`
     * `_name_e__FixedBuffer name`
     * `_description_e__FixedBuffer description`
@@ -10008,6 +10001,7 @@
     * `uint swapchainCount`
     * `uint presentId`
     * `uint flags`
+    * `IntPtr dstBuffer`
     * `ulong dstBufferOffset`
     * `ulong dstBufferRange`
     * `VkVideoPictureResourceInfoKHR srcPictureResource`
@@ -10067,6 +10061,7 @@
     * `uint negativeOneToOne`
     * `uint primitiveTopologyListRestart`
     * `uint primitiveTopologyPatchListRestart`
+    * `IntPtr renderPass`
     * `uint subpass`
     * `uint subpassShading`
     * `uint maxSubpassShadingWorkgroupSizeAspectRatio`
@@ -10247,11 +10242,14 @@
     * `uint signalSemaphoreValueCount`
     * `uint flags`
     * `uint semaphoreCount`
+    * `IntPtr semaphore`
     * `ulong value`
     * `uint bufferDeviceAddress`
     * `uint bufferDeviceAddressCaptureReplay`
     * `uint bufferDeviceAddressMultiDevice`
+    * `IntPtr buffer`
     * `ulong opaqueCaptureAddress`
+    * `IntPtr memory`
     * `uint storageBuffer8BitAccess`
     * `uint uniformAndStorageBuffer8BitAccess`
     * `uint storagePushConstant8`
@@ -10380,7 +10378,9 @@
     * `byte e0`
   * **struct _dstOffsets_e__FixedBuffer**
     * `VkOffset3D e0`
+    * `IntPtr srcImage`
     * `VkImageLayout srcImageLayout`
+    * `IntPtr dstImage`
     * `VkImageLayout dstImageLayout`
     * `uint regionCount`
     * `VkFilter filter`
@@ -10389,8 +10389,10 @@
     * `VkImageSubresourceLayers dstSubresource`
     * `VkOffset3D dstOffset`
     * `VkExtent3D extent`
+    * `IntPtr imageView`
     * `VkImageLayout imageLayout`
     * `VkResolveModeFlagBits resolveMode`
+    * `IntPtr resolveImageView`
     * `VkImageLayout resolveImageLayout`
     * `VkAttachmentLoadOp loadOp`
     * `VkAttachmentStoreOp storeOp`
@@ -10536,6 +10538,7 @@
     * `byte e0`
     * `nuint dataSize`
     * `uint binaryCount`
+    * `IntPtr pipeline`
     * `uint pipelineBinaryCount`
     * `VkPresentModeKHR presentMode`
     * `uint supportedPresentScaling`
@@ -10585,18 +10588,22 @@
     * `ulong dstAccessMask`
     * `uint srcQueueFamilyIndex`
     * `uint dstQueueFamilyIndex`
+    * `IntPtr buffer`
     * `ulong offset`
     * `ulong size`
     * `VkImageLayout oldLayout`
     * `VkImageLayout newLayout`
+    * `IntPtr image`
     * `VkImageSubresourceRange subresourceRange`
     * `uint dependencyFlags`
     * `uint memoryBarrierCount`
     * `uint bufferMemoryBarrierCount`
     * `uint imageMemoryBarrierCount`
+    * `IntPtr semaphore`
     * `ulong value`
     * `ulong stageMask`
     * `uint deviceIndex`
+    * `IntPtr commandBuffer`
     * `uint deviceMask`
     * `uint waitSemaphoreInfoCount`
     * `uint commandBufferInfoCount`
@@ -10604,13 +10611,17 @@
     * `uint synchronization2`
     * `ulong srcOffset`
     * `ulong dstOffset`
+    * `IntPtr srcBuffer`
+    * `IntPtr dstBuffer`
     * `uint regionCount`
     * `VkImageSubresourceLayers srcSubresource`
     * `VkOffset3D srcOffset`
     * `VkImageSubresourceLayers dstSubresource`
     * `VkOffset3D dstOffset`
     * `VkExtent3D extent`
+    * `IntPtr srcImage`
     * `VkImageLayout srcImageLayout`
+    * `IntPtr dstImage`
     * `VkImageLayout dstImageLayout`
     * `ulong bufferOffset`
     * `uint bufferRowLength`
@@ -10723,6 +10734,7 @@
     * `uint sliceOffset`
     * `uint sliceCount`
     * `uint descriptorSetHostMapping`
+    * `IntPtr descriptorSetLayout`
     * `uint binding`
     * `nuint descriptorOffset`
     * `uint descriptorSize`
@@ -10788,6 +10800,7 @@
     * `uint tileBufferTransfers`
     * `ulong size`
     * `ulong alignment`
+    * `IntPtr memory`
     * `uint counterAddressCount`
     * `uint serializeRegions`
     * `uint counterIndexCount`
@@ -10803,9 +10816,12 @@
     * `VkOffset3D imageOffset`
     * `VkExtent3D imageExtent`
     * `uint flags`
+    * `IntPtr dstImage`
     * `VkImageLayout dstImageLayout`
     * `uint regionCount`
+    * `IntPtr srcImage`
     * `VkImageLayout srcImageLayout`
+    * `IntPtr image`
     * `VkImageLayout oldLayout`
     * `VkImageLayout newLayout`
     * `VkImageSubresourceRange subresourceRange`
@@ -10819,6 +10835,7 @@
     * `ulong flags`
     * `uint maxPushDescriptors`
     * `uint stageFlags`
+    * `IntPtr layout`
     * `uint firstSet`
     * `uint descriptorSetCount`
     * `uint dynamicOffsetCount`
@@ -10866,6 +10883,7 @@
   * **struct _pipelineCacheUUID_e__FixedBuffer**
     * `byte e0`
     * `uint flags`
+    * `IntPtr buffer`
     * `VkFormat format`
     * `ulong offset`
     * `ulong range`
@@ -10954,6 +10972,7 @@
     * `VkQueueGlobalPriority e0`
     * `uint indexTypeUint8`
     * `uint flags`
+    * `IntPtr memory`
     * `ulong offset`
     * `ulong size`
     * `uint maintenance5`
@@ -11008,6 +11027,7 @@
     * `uint stdSyntaxFlags`
     * `StdVideoAV1Profile stdProfile`
     * `uint videoMaintenance1`
+    * `IntPtr queryPool`
     * `uint firstQuery`
     * `uint queryCount`
     * `uint unifiedImageLayouts`
@@ -11015,6 +11035,7 @@
     * `uint feedbackLoopEnable`
     * `VkTimeDomainKHR timeDomain`
     * `uint stageFlags`
+    * `IntPtr layout`
     * `uint firstSet`
     * `uint setCount`
     * `uint set`

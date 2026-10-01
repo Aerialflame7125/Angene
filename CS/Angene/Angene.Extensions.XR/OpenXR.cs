@@ -1,9 +1,11 @@
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using Angene.Common;
 using Angene.Common.Settings;
 using Angene.Essentials;
 using Angene.Essentials.GraphicsContexts;
+using Angene.Math.Vectors;
 using Angene.Vulkan.Interop;
 using static Angene.Extensions.XR.Interop.OpenXR;
 using static Angene.Extensions.XR.Interop.OpenXR.Methods;
@@ -12,13 +14,19 @@ namespace Angene.Extensions.XR;
 public unsafe class OpenXR // corresponding to https://amini-allight.org/post/openxr-tutorial-part-1
 {
 #region Vars
-    public static IntPtr OpenXRInstance;
-    public static IntPtr OXRSession;
-    public static OpenXR Instance;
     public static ulong systemID = 0;
     private List<string> layerNames = new();
     private List<string> extensionNames = new();
+    public bool running { get; private set; } = false;
+    public static bool Running => Instance.running;
+    public static IntPtr OXRSpace { get; private set; }
+    private static IntPtr[] XrSwapchains = new []{ IntPtr.Zero, IntPtr.Zero }; 
+    private static Types.XrSwapchainImageVulkanKHR[] XrSwapchainImages = new Types.XrSwapchainImageVulkanKHR[]{};
 
+    // Instances
+    public static IntPtr OpenXRInstance;
+    public static OpenXR Instance;
+    public static IntPtr OXRSession;
     public static string[] instanceExtensions;
     private static IDX11GraphicsContext dx11GraphicsContext = null;
     private static XrGraphicsRequirementsD3D11KHR D3D11Reqs;
@@ -34,7 +42,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 #region Instance Creation
     public static void CreateInstanceS1(object usedContext, Types.AppInfo appInfo) // Used in VkGraphicsContext under the section labeled "OpenXR Init".
     {
-        Logger.LogDebug("--- CreateSessionS1 (OpenXR) ---", LoggingTarget.Graphics);
+        Logger.LogDebug("--- CreateSessionS1 (OpenXR) ---", LoggingTarget.External);
         Instance = new OpenXR();
         switch (usedContext)
         {
@@ -58,7 +66,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                 throw new Exceptions.FailedToInitializeOpenXRException(
                     $"Graphics context of type '{usedContext.GetType()}' is not supported.");
         }
-        Logger.LogDebug("--- END CreateInstanceS1 (OpenXR) ---",  LoggingTarget.Graphics);
+        Logger.LogDebug("--- END CreateInstanceS1 (OpenXR) ---",  LoggingTarget.External);
     }
 
     private void CreateInstance(Types.AppInfo appInfo)
@@ -80,7 +88,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
             {
                 XrInstanceCreateInfo instanceCreateInfo = new XrInstanceCreateInfo
                 {
-                    type = XrStructureType.XR_TYPE_INSTANCE_CREATE_INFO,
+                    type = Types.XrStructureType.XR_TYPE_INSTANCE_CREATE_INFO,
                     next = null,
                     createFlags = 0,
                     enabledApiLayerCount = (uint)Instance.layerNames.Count,
@@ -99,21 +107,21 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                     (uint)Settings.Instance.GetSetting<float>("Main.VersionFloat");
                 instanceCreateInfo.applicationInfo.apiVersion = (1UL << 48) | (0UL << 32) | 34UL;
 
-                XrResult res = xrCreateInstance(&instanceCreateInfo, &instance);
+                Types.XrResult res = xrCreateInstance(&instanceCreateInfo, &instance);
 
-                if (res != XrResult.XR_SUCCESS)
+                if (res != Types.XrResult.XR_SUCCESS)
                     throw new Exceptions.FailedToInitializeOpenXRException(
                         $"Failed to create OpenXR instance: {res}");
                 
                 Logger.LogDebug(
                     $"xrCreateInstance returned {res}, instance = 0x{(instance):X}",
-                    LoggingTarget.Graphics);
+                    LoggingTarget.External);
 
                 OpenXRInstance = instance;
 
                 Logger.LogDebug(
                     $"OpenXRInstance = 0x{(OpenXRInstance):X}",
-                    LoggingTarget.Graphics);
+                    LoggingTarget.External);
             }
         }
         finally
@@ -131,17 +139,17 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
         XrSystemGetInfo systemGetInfo = new XrSystemGetInfo()
         {
-            type = XrStructureType.XR_TYPE_SYSTEM_GET_INFO,
+            type = Types.XrStructureType.XR_TYPE_SYSTEM_GET_INFO,
             formFactor = XrFormFactor.XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
         };
         
         Logger.LogDebug(
             $"xrGetSystem instance = 0x{(OpenXRInstance):X}",
-            LoggingTarget.Graphics);
+            LoggingTarget.External);
 
-        XrResult res = xrGetSystem(OpenXRInstance, &systemGetInfo, &systemId);
+        Types.XrResult res = xrGetSystem(OpenXRInstance, &systemGetInfo, &systemId);
 
-        if (res != XrResult.XR_SUCCESS)
+        if (res != Types.XrResult.XR_SUCCESS)
             throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get OpenXR system: '{res}'");
         
         systemID = systemId;
@@ -149,12 +157,12 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
     public static IntPtr CreateVulkanInstance(IntPtr vkInstanceCreateInfo, IntPtr pfnGetInstanceProcAddr)
     {
-        var fn = (delegate* unmanaged[Cdecl]<IntPtr, XrVulkanInstanceCreateInfoKHR*, IntPtr*, int*, XrResult>)
+        var fn = (delegate* unmanaged[Cdecl]<IntPtr, XrVulkanInstanceCreateInfoKHR*, IntPtr*, int*, Types.XrResult>)
             getXrFunction("xrCreateVulkanInstanceKHR");
 
         var info = new XrVulkanInstanceCreateInfoKHR
         {
-            type = XrStructureType.XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR,
+            type = Types.XrStructureType.XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR,
             systemId = systemID,
             pfnGetInstanceProcAddr = pfnGetInstanceProcAddr,
             vulkanCreateInfo = (void*)vkInstanceCreateInfo
@@ -162,7 +170,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
         IntPtr vkInstance; int vkRes;
         var res = fn(OpenXRInstance, &info, &vkInstance, &vkRes);
-        if (res != XrResult.XR_SUCCESS || vkRes != 0)
+        if (res != Types.XrResult.XR_SUCCESS || vkRes != 0)
             throw new Exceptions.FailedToInitializeOpenXRException(
                 $"xrCreateVulkanInstanceKHR failed: xr={res}, vk={vkRes}");
         return vkInstance;
@@ -170,19 +178,19 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
     public static IntPtr GetVulkanPhysicalDevice(IntPtr vkInstance)
     {
-        var fn = (delegate* unmanaged[Cdecl]<IntPtr, XrVulkanGraphicsDeviceGetInfoKHR*, IntPtr*, XrResult>)
+        var fn = (delegate* unmanaged[Cdecl]<IntPtr, XrVulkanGraphicsDeviceGetInfoKHR*, IntPtr*, Types.XrResult>)
             getXrFunction("xrGetVulkanGraphicsDevice2KHR");
 
         var info = new XrVulkanGraphicsDeviceGetInfoKHR
         {
-            type = XrStructureType.XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR,
+            type = Types.XrStructureType.XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR,
             systemId = systemID,
             vulkanInstance = vkInstance        // the VkInstance, not the XrInstance
         };
 
         IntPtr pd;
         var res = fn(OpenXRInstance, &info, &pd);
-        if (res != XrResult.XR_SUCCESS || pd == IntPtr.Zero)
+        if (res != Types.XrResult.XR_SUCCESS || pd == IntPtr.Zero)
             throw new Exceptions.FailedToInitializeOpenXRException($"xrGetVulkanGraphicsDevice2KHR failed: {res}");
         VkPhysicalDevice = pd;
         return pd;
@@ -190,12 +198,12 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
     public static IntPtr CreateVulkanDevice(IntPtr physicalDevice, IntPtr vkDeviceCreateInfo, IntPtr pfnGetInstanceProcAddr)
     {
-        var fn = (delegate* unmanaged[Cdecl]<IntPtr, XrVulkanDeviceCreateInfoKHR*, IntPtr*, int*, XrResult>)
+        var fn = (delegate* unmanaged[Cdecl]<IntPtr, XrVulkanDeviceCreateInfoKHR*, IntPtr*, int*, Types.XrResult>)
             getXrFunction("xrCreateVulkanDeviceKHR");
 
         var info = new XrVulkanDeviceCreateInfoKHR
         {
-            type = XrStructureType.XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR,
+            type = Types.XrStructureType.XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR,
             systemId = systemID,
             pfnGetInstanceProcAddr = pfnGetInstanceProcAddr,
             vulkanPhysicalDevice = physicalDevice,
@@ -204,7 +212,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
         IntPtr device; int vkRes;
         var res = fn(OpenXRInstance, &info, &device, &vkRes);
-        if (res != XrResult.XR_SUCCESS || vkRes != 0)
+        if (res != Types.XrResult.XR_SUCCESS || vkRes != 0)
             throw new Exceptions.FailedToInitializeOpenXRException(
                 $"xrCreateVulkanDeviceKHR failed: xr={res}, vk={vkRes}");
         return device;
@@ -217,23 +225,23 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                 IntPtr,
                 ulong,
                 XrGraphicsRequirementsVulkanKHR*,
-                XrResult>)
+                Types.XrResult>)
             getXrFunction("xrGetVulkanGraphicsRequirements2KHR");
 
         VulkanReqs = new XrGraphicsRequirementsVulkanKHR
         {
-            type = XrStructureType.XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR,
+            type = Types.XrStructureType.XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR,
             next = IntPtr.Zero
         };
 
         fixed (XrGraphicsRequirementsVulkanKHR* reqs = &VulkanReqs)
         {
-            XrResult res = getReqs(
+            Types.XrResult res = getReqs(
                 OpenXRInstance,
                 systemID,
                 reqs);
 
-            if (res != XrResult.XR_SUCCESS)
+            if (res != Types.XrResult.XR_SUCCESS)
             {
                 throw new Exceptions.FailedToInitializeOpenXRException(
                     $"Failed to get Vulkan requirements for OpenXR: {res}");
@@ -244,31 +252,31 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
             $"OpenXR Vulkan API range: " +
             $"min=0x{VulkanReqs.minApiVersionSupported:X}, " +
             $"max=0x{VulkanReqs.maxApiVersionSupported:X}",
-            LoggingTarget.Graphics);
+            LoggingTarget.External);
     }
     
     private static void getD3D11InstanceRequirements()
     {
-        var getReqs = (delegate* unmanaged[Cdecl]<IntPtr, ulong, XrGraphicsRequirementsD3D11KHR*, XrResult>)
+        var getReqs = (delegate* unmanaged[Cdecl]<IntPtr, ulong, XrGraphicsRequirementsD3D11KHR*, Types.XrResult>)
             getXrFunction("xrGetD3D11GraphicsRequirementsKHR");
-        var getExts = (delegate* unmanaged[Cdecl]<IntPtr, ulong, uint, uint*, byte*, XrResult>)
+        var getExts = (delegate* unmanaged[Cdecl]<IntPtr, ulong, uint, uint*, byte*, Types.XrResult>)
             getXrFunction("xrGetD3D11InstanceExtensionsKHR");
 
-        D3D11Reqs = new XrGraphicsRequirementsD3D11KHR { type = XrStructureType.XR_TYPE_GRAPHICS_REQUIREMENTS_D3D11_KHR };
+        D3D11Reqs = new XrGraphicsRequirementsD3D11KHR { type = Types.XrStructureType.XR_TYPE_GRAPHICS_REQUIREMENTS_D3D11_KHR };
         fixed (XrGraphicsRequirementsD3D11KHR* r = &D3D11Reqs)
         {
             var res = getReqs(OpenXRInstance, systemID, r);
-            if (res != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get D3D11 Instance requirements for OpenXR: {res}");
+            if (res != Types.XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get D3D11 Instance requirements for OpenXR: {res}");
         }
 
         uint size;
         var res2 = getExts(OpenXRInstance, systemID, 0, &size, null);
-        if (res2 != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get D3D11 Instance requirements for OpenXR: {res2}");
+        if (res2 != Types.XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get D3D11 Instance requirements for OpenXR: {res2}");
 
         var buf = new byte[size];
         fixed (byte* p = buf)
             res2 = getExts(OpenXRInstance, systemID, size, &size, p);
-        if (res2 != XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get D3D11 instance requirements for OpenXR: {res2}");
+        if (res2 != Types.XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get D3D11 instance requirements for OpenXR: {res2}");
 
         instanceExtensions = System.Text.Encoding.ASCII
             .GetString(buf, 0, (int)size).TrimEnd('\0')
@@ -279,12 +287,12 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 #region Session Creation
     public static IntPtr CreateSessionS2(IntPtr VkInstance, IntPtr VkDevice, uint queueFamilyIndex)
     {
-        Logger.LogDebug("--- CreateSessionS2 (OpenXR) ---", LoggingTarget.Graphics);
+        Logger.LogDebug("--- CreateSessionS2 (OpenXR) ---", LoggingTarget.External);
         IntPtr session;
 
         XrGraphicsBindingVulkanKHR graphicsBinding = new XrGraphicsBindingVulkanKHR()
         {
-            type = XrStructureType.XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR,
+            type = Types.XrStructureType.XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR,
             instance = VkInstance,
             physicalDevice = VkPhysicalDevice,
             device = VkDevice,
@@ -294,34 +302,44 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
         XrSessionCreateInfo sessionCreateInfo = new XrSessionCreateInfo()
         {
-            type = XrStructureType.XR_TYPE_SESSION_CREATE_INFO,
+            type = Types.XrStructureType.XR_TYPE_SESSION_CREATE_INFO,
             next = &graphicsBinding,
             createFlags = 0,
             systemId = systemID
         };
         
-        XrResult res = xrCreateSession(OpenXRInstance, &sessionCreateInfo, &session);
-        if (res != XrResult.XR_SUCCESS)
+        Types.XrResult res = xrCreateSession(OpenXRInstance, &sessionCreateInfo, &session);
+        if (res != Types.XrResult.XR_SUCCESS)
             throw new Exceptions.FailedToInitializeOpenXRException($"Failed to create OpenXR session: {res}");
 
-        Logger.LogDebug("--- END CreateSessionS2 (OpenXR) ---", LoggingTarget.Graphics);
+        Logger.LogDebug("--- END CreateSessionS2 (OpenXR) ---", LoggingTarget.External);
         OXRSession = session;
         return session;
     }
 #endregion
-#region Swapchain Creation
+#region Swapchain
     public static (Types.XrSwapchain, Types.XrSwapchain) createSwapchains()
     {
-        uint configViewsCount = 2;
-        XrViewConfigurationView[] configViews = new XrViewConfigurationView[configViewsCount];
+        Types.XrResult res;
+        uint viewCount = 0;
+        res = xrEnumerateViewConfigurationViews(OpenXRInstance, systemID,
+            XrViewConfigurationType.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+            0, &viewCount, null);
+        if (res != Types.XrResult.XR_SUCCESS) throw new Exceptions.OpenXRSessionException($"Failed to create OpenXR Swapchains: {res}");
+        
+        XrViewConfigurationView[] configViews = new XrViewConfigurationView[viewCount];
+        for (int i = 0; i < configViews.Length; i++)
+        {
+            configViews[i].type = Types.XrStructureType.XR_TYPE_VIEW_CONFIGURATION_VIEW;
+            configViews[i].next = null;
+        }
 
-        XrResult res;
         fixed (XrViewConfigurationView* configViewsPtr = configViews)
         {
             res = xrEnumerateViewConfigurationViews(OpenXRInstance, systemID,
-                XrViewConfigurationType.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, configViewsCount, &configViewsCount,
+                XrViewConfigurationType.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, viewCount, &viewCount,
                 configViewsPtr);
-            if (res != XrResult.XR_SUCCESS)
+            if (res != Types.XrResult.XR_SUCCESS)
                 throw new Exceptions.FailedToInitializeOpenXRException(
                     $"Failed to enumerate view configuration views: {res}");
         }
@@ -329,7 +347,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
         uint formatCount = 0;
         res = xrEnumerateSwapchainFormats(OXRSession, 0, &formatCount, null);
-        if (res != XrResult.XR_SUCCESS)
+        if (res != Types.XrResult.XR_SUCCESS)
             throw new Exceptions.FailedToInitializeOpenXRException($"Failed to enumerate swapchain formats: {res}");
         
         long[] formats = new long[formatCount]; // I think this converts
@@ -337,7 +355,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
         fixed (long* pformats = formats)
         {
             res = xrEnumerateSwapchainFormats(OXRSession, formatCount, &formatCount, pformats);
-            if (res != XrResult.XR_SUCCESS)
+            if (res != Types.XrResult.XR_SUCCESS)
                 throw new Exceptions.FailedToInitializeOpenXRException($"Failed to enumerate swapchain formats: {res}");
         }
 
@@ -352,13 +370,11 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
             }
         }
 
-        IntPtr[] XrSwapchains = new []{ IntPtr.Zero, IntPtr.Zero };
-
         for (int i = 0; i < 2; i++)
         {
             XrSwapchainCreateInfo swapchainCreateInfo = new XrSwapchainCreateInfo()
             {
-                type = XrStructureType.XR_TYPE_SWAPCHAIN_CREATE_INFO,
+                type = Types.XrStructureType.XR_TYPE_SWAPCHAIN_CREATE_INFO,
                 usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT,
                 format = chosenFormat,
                 sampleCount = (uint)Enumerators.VkSampleCountFlagBits.VK_SAMPLE_COUNT_1_BIT,
@@ -371,23 +387,260 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
             IntPtr swapchain = IntPtr.Zero;
             res = xrCreateSwapchain(OXRSession, &swapchainCreateInfo, &swapchain);
-            if (res != XrResult.XR_SUCCESS)
+            if (res != Types.XrResult.XR_SUCCESS)
                 throw new Exceptions.FailedToInitializeOpenXRException($"Failed to create swapchain on index '{i}': {res}");
             
             XrSwapchains[i] = swapchain;
         }
+        for (int i = 0; i < 2; i++) {
+            _eyeW[i] = configViews[i].recommendedImageRectWidth;
+            _eyeH[i] = configViews[i].recommendedImageRectHeight;
+        }
         return (new Types.XrSwapchain(XrSwapchains[0], (Enumerators.VkFormat)chosenFormat, configViews[0].recommendedImageRectWidth, configViews[0].recommendedImageRectHeight), 
             new Types.XrSwapchain(XrSwapchains[1], (Enumerators.VkFormat)chosenFormat, configViews[1].recommendedImageRectWidth, configViews[1].recommendedImageRectHeight));
     }
+
+    public static List<Types.XrSwapchainImageVulkanKHR> getSwapchainImages(Types.XrSwapchain swapchain)
+    {
+        uint imageCount;
+
+        Types.XrResult res = xrEnumerateSwapchainImages(swapchain.swapchain, 0, &imageCount, IntPtr.Zero);
+
+        if (res != Types.XrResult.XR_SUCCESS || imageCount == 0)
+            throw new Exceptions.FailedToEnumerateSwapchainImageOpenXRException(
+                $"Failed to enumerate swapchain images: {res}");
+
+        XrSwapchainImages = new Types.XrSwapchainImageVulkanKHR[imageCount];
+        
+        for (int i = 0; i < imageCount; i++)
+            XrSwapchainImages[i].type = Types.XrStructureType.XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR;
+        fixed (Types.XrSwapchainImageVulkanKHR* p = XrSwapchainImages)
+            res = xrEnumerateSwapchainImages(swapchain.swapchain, imageCount, &imageCount, (IntPtr)p);
+        
+        if (res != Types.XrResult.XR_SUCCESS)
+            throw new Exceptions.FailedToEnumerateSwapchainImageOpenXRException(
+                $"Failed to enumerate swapchain images: {res}");
+        
+        return XrSwapchainImages.ToList();
+    }
+
+    public static void createSpace(Vec3 position, Quaternion quaternion)
+    {
+        IntPtr space;
+
+        XrReferenceSpaceCreateInfo spaceCreateInfo = new XrReferenceSpaceCreateInfo()
+        {
+            type = Types.XrStructureType.XR_TYPE_REFERENCE_SPACE_CREATE_INFO,
+            referenceSpaceType = XrReferenceSpaceType.XR_REFERENCE_SPACE_TYPE_STAGE,
+            poseInReferenceSpace = new XrPosef()
+            {
+                orientation = new XrQuaternionf()
+                {
+                    w = quaternion.W,
+                    x = quaternion.X,
+                    y = quaternion.Y,
+                    z = quaternion.Z
+                },
+                position = new XrVector3f()
+                {
+                    x = position.X,
+                    y = position.Y,
+                    z = position.Z
+                }
+            }
+        };
+        
+        Types.XrResult res = xrCreateReferenceSpace(OXRSession, &spaceCreateInfo, &space);
+        if (res != Types.XrResult.XR_SUCCESS)
+            throw new Exceptions.OpenXRSessionException($"Failed to create OpenXR space: {res}");
+
+        OXRSpace = space;
+    }
+    
+#endregion
+#region Session Management
+    public static void PollEvents()
+    {
+        if (OXRSession == IntPtr.Zero) return;
+        while (true)
+        {
+            XrEventDataBuffer ev = new() { type = Types.XrStructureType.XR_TYPE_EVENT_DATA_BUFFER };
+            var res = xrPollEvent(OpenXRInstance, &ev);
+            if (res == Types.XrResult.XR_EVENT_UNAVAILABLE) break;
+            if ((int)res < 0) throw new Exceptions.OpenXRSessionException($"xrPollEvent: {res}");
+
+            switch (ev.type)
+            {
+                case Types.XrStructureType.XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
+                    HandleSessionState(((XrEventDataSessionStateChanged*)&ev)->state);
+                    break;
+                case Types.XrStructureType.XR_TYPE_EVENT_DATA_EVENTS_LOST:
+                    Logger.LogWarning("[OpenXR] Events lost.", LoggingTarget.External);
+                    break;
+                case Types.XrStructureType.XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING:
+                    Logger.LogImportant("[OpenXR] Instance loss pending.", LoggingTarget.External);
+                    break;
+                default:
+                    Logger.LogDebug($"[OpenXR] Event: {ev.type}", LoggingTarget.External);
+                    break;
+            }
+        }
+    }
+
+    private static void HandleSessionState(XrSessionState state)
+    {
+        Logger.LogImportant($"[OpenXR] Session state -> {state}", LoggingTarget.External);
+        switch (state)
+        {
+            case XrSessionState.XR_SESSION_STATE_READY:
+                XrSessionBeginInfo bi = new()
+                {
+                    type = Types.XrStructureType.XR_TYPE_SESSION_BEGIN_INFO,
+                    primaryViewConfigurationType = XrViewConfigurationType.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
+                };
+                Check(xrBeginSession(OXRSession, &bi), "xrBeginSession");
+                Instance.running = true;
+                break;
+            case XrSessionState.XR_SESSION_STATE_SYNCHRONIZED:
+            case XrSessionState.XR_SESSION_STATE_VISIBLE:
+            case XrSessionState.XR_SESSION_STATE_FOCUSED:
+                Instance.running = true;
+                break;
+            case XrSessionState.XR_SESSION_STATE_STOPPING:
+                Instance.running = false;               // was missing: next xrWaitFrame would fail
+                Check(xrEndSession(OXRSession), "xrEndSession");
+                break;
+            case XrSessionState.XR_SESSION_STATE_IDLE:
+                Instance.running = false;
+                break;
+            case XrSessionState.XR_SESSION_STATE_LOSS_PENDING:
+            case XrSessionState.XR_SESSION_STATE_EXITING:
+                Instance.running = false;
+                Lifecycle.ScriptBinding.ShutdownEngine();
+                break;
+        }
+    }
 #endregion
 #region Cleanup
-
     public void Cleanup()
     {
+        xrDestroySpace(OXRSpace);
         xrDestroySession(OXRSession);
 
         // Instance
         xrDestroyInstance(OpenXRInstance);
+    }
+#endregion
+#region Rendering
+    private static XrView[] _views = new XrView[2];
+    private static long _displayTime;
+    private static uint[] _eyeW = new uint[2], _eyeH = new uint[2]; // fill in createSwapchains
+
+    private static void Check(Types.XrResult r, string what)
+    {
+        if (r != Types.XrResult.XR_SUCCESS)
+            throw new Exceptions.OpenXRSessionException($"{what} failed: {r}");
+    }
+
+    public static Types.XrFrameInfo BeginXrFrame()
+    {
+        XrFrameWaitInfo waitInfo = new() { type = Types.XrStructureType.XR_TYPE_FRAME_WAIT_INFO };
+        XrFrameState state = new() { type = Types.XrStructureType.XR_TYPE_FRAME_STATE };
+        Check(xrWaitFrame(OXRSession, &waitInfo, &state), "xrWaitFrame");
+
+        XrFrameBeginInfo beginInfo = new() { type = Types.XrStructureType.XR_TYPE_FRAME_BEGIN_INFO };
+        Check(xrBeginFrame(OXRSession, &beginInfo), "xrBeginFrame");
+
+        _displayTime = state.predictedDisplayTime;
+        var info = new Types.XrFrameInfo { shouldRender = state.shouldRender != 0 };
+        if (!info.shouldRender) return info;
+
+        XrViewLocateInfo locate = new()
+        {
+            type = Types.XrStructureType.XR_TYPE_VIEW_LOCATE_INFO,
+            viewConfigurationType = XrViewConfigurationType.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+            displayTime = _displayTime,
+            space = OXRSpace
+        };
+        XrViewState viewState = new() { type = Types.XrStructureType.XR_TYPE_VIEW_STATE };
+        uint count = 2;
+        for (int i = 0; i < 2; i++) _views[i] = new XrView { type = Types.XrStructureType.XR_TYPE_VIEW };
+
+        fixed (XrView* v = _views)
+            Check(xrLocateViews(OXRSession, &locate, &viewState, 2, &count, v), "xrLocateViews");
+
+        info.leftEye  = ToEye(_views[0]);
+        info.rightEye = ToEye(_views[1]);
+        return info;
+    }
+
+    private static Types.XrEyeView ToEye(XrView v) => new()
+    {
+        px = v.pose.position.x, py = v.pose.position.y, pz = v.pose.position.z,
+        qx = v.pose.orientation.x, qy = v.pose.orientation.y,
+        qz = v.pose.orientation.z, qw = v.pose.orientation.w,
+        left = v.fov.angleLeft, right = v.fov.angleRight,
+        up = v.fov.angleUp, down = v.fov.angleDown
+    };
+
+    public static uint AcquireEyeImage(int eye)
+    {
+        XrSwapchainImageAcquireInfo acq = new() { type = Types.XrStructureType.XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
+        uint idx;
+        Check(xrAcquireSwapchainImage(XrSwapchains[eye], &acq, &idx), "xrAcquireSwapchainImage");
+
+        XrSwapchainImageWaitInfo wait = new()
+        {
+            type = Types.XrStructureType.XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO,
+            timeout = long.MaxValue
+        };
+        Check(xrWaitSwapchainImage(XrSwapchains[eye], &wait), "xrWaitSwapchainImage");
+        return idx;
+    }
+
+    public static void ReleaseEyeImage(int eye)
+    {
+        XrSwapchainImageReleaseInfo rel = new() { type = Types.XrStructureType.XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
+        Check(xrReleaseSwapchainImage(XrSwapchains[eye], &rel), "xrReleaseSwapchainImage");
+    }
+
+    public static void EndXrFrame(bool rendered)
+    {
+        XrCompositionLayerProjectionView* pv = stackalloc XrCompositionLayerProjectionView[2];
+        for (int i = 0; i < 2; i++)
+        {
+            pv[i] = new XrCompositionLayerProjectionView
+            {
+                type = Types.XrStructureType.XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW,
+                pose = _views[i].pose,
+                fov = _views[i].fov
+            };
+            pv[i].subImage.swapchain = XrSwapchains[i];
+            pv[i].subImage.imageRect.offset.x = 0;
+            pv[i].subImage.imageRect.offset.y = 0;
+            pv[i].subImage.imageRect.extent.width  = (int)_eyeW[i];
+            pv[i].subImage.imageRect.extent.height = (int)_eyeH[i];
+            pv[i].subImage.imageArrayIndex = 0;
+        }
+
+        XrCompositionLayerProjection layer = new()
+        {
+            type = Types.XrStructureType.XR_TYPE_COMPOSITION_LAYER_PROJECTION,
+            space = OXRSpace,
+            viewCount = 2,
+            views = pv
+        };
+        XrCompositionLayerBaseHeader* layerPtr = (XrCompositionLayerBaseHeader*)&layer;
+
+        XrFrameEndInfo end = new()
+        {
+            type = Types.XrStructureType.XR_TYPE_FRAME_END_INFO,
+            displayTime = _displayTime,
+            environmentBlendMode = XrEnvironmentBlendMode.XR_ENVIRONMENT_BLEND_MODE_OPAQUE,
+            layerCount = rendered ? 1u : 0u,
+            layers = rendered ? &layerPtr : null
+        };
+        Check(xrEndFrame(OXRSession, &end), "xrEndFrame");
     }
 #endregion
 #region Helpers
@@ -409,9 +662,9 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
         fixed (byte* namePtr = nameBytes)
         {
-            XrResult res = xrGetInstanceProcAddr(OpenXRInstance, namePtr,
+            Types.XrResult res = xrGetInstanceProcAddr(OpenXRInstance, namePtr,
                 (delegate*unmanaged[Cdecl]<void>*)&func);
-            if (res != XrResult.XR_SUCCESS)
+            if (res != Types.XrResult.XR_SUCCESS)
                 throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get OpenXR instance: {res}");
         }
         

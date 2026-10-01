@@ -1,3 +1,5 @@
+using Angene.Essentials.Components;
+using Angene.Math.Vectors;
 using static Angene.Vulkan.Interop.Enumerators;
 using static Angene.Vulkan.Interop.Structs;
 using static Angene.Windows.Dxgi.DxgiEnums;
@@ -77,6 +79,8 @@ namespace Angene.Essentials.GraphicsContexts;
         IntPtr VkRenderPass { get; }
         IntPtr VkFramebuffer { get; }
         IntPtr VkPipeline { get; }
+        IntPtr VkPipelineLayout
+        { get; }
         IntPtr VkSemaphoreImageAvailable { get; }
         IntPtr VkSemaphoreRenderFinished { get; }
         IntPtr VkFenceInFlight { get; }
@@ -102,6 +106,7 @@ namespace Angene.Essentials.GraphicsContexts;
         void SetPipeline(IntPtr pipeline);
         void Draw(uint vertexCount, uint startVertex = 0);
         void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0);
+        void RenderXrFrame(Vec3 rigpos, VulkanCamera camera, Action<int, Matrix4x4, Matrix4x4> drawScene);
 
         // Frame lifecycle
         void BeginFrame(uint clearColor);

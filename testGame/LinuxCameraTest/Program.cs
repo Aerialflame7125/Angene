@@ -83,26 +83,15 @@ namespace Game
                     UsingOpenXR = true
                 };
                 Window win = new Window(config);
-                WindowConfig config2 = new WindowConfig()
-                {
-                    Width = 1280,
-                    Height = 720,
-                    Title = "Angene Camera Test",
-                    renderMode = Angene.Graphics.RenderType.Vulkan,
-                    UseWayland = false
-                };
-                Window win2 = new Window(config2);
 
                 string materialsPackagePath =
                     Path.Combine(AppContext.BaseDirectory, "Assets", "CameraMaterials.angpkg");
                 var scene = new Game.Scenes.CameraTestScene(win, materialsPackagePath);
-                var scene2 = new Game.Scenes.CameraTestScene(win2, materialsPackagePath);
                 win.SetScene(scene);
-                win2.SetScene(scene2);
                 Logger.LogDebug($"OpenWindows count after creation: {Engine.Instance.OpenWindows.Count}",
                     LoggingTarget.Engine);
 
-                RunMessageLoop(ref dt, ref lastFrame, [win, win2]);
+                RunMessageLoop(ref dt, ref lastFrame, [win]);
                 Logger.LogInfo("Cleanup complete.", LoggingTarget.Engine);
             }
             catch (Exception e)
