@@ -84,6 +84,7 @@ namespace Angene.Essentials.GraphicsContexts;
         IntPtr VkSemaphoreImageAvailable { get; }
         IntPtr VkSemaphoreRenderFinished { get; }
         IntPtr VkFenceInFlight { get; }
+        Types.AppInfo CurrentAppInfo { get; }
 
         // IGraphicsContext
         IntPtr Handle => (IntPtr)VkDevice;
@@ -107,6 +108,8 @@ namespace Angene.Essentials.GraphicsContexts;
         void Draw(uint vertexCount, uint startVertex = 0);
         void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0);
         void RenderXrFrame(Vec3 rigpos, VulkanCamera camera, Action<int, Matrix4x4, Matrix4x4> drawScene);
+        void SetXrObjects(OpenXRController leftController, OpenXRController rightController);
+        void SetScene(IScene scene);
 
         // Frame lifecycle
         void BeginFrame(uint clearColor);

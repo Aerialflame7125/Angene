@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
+using Angene.Essentials.Components;
 using Angene.Math.Vectors;
 using Angene.Vulkan.Interop;
 using static Angene.Vulkan.Interop.Enumerators;
@@ -1022,6 +1023,79 @@ namespace Angene.Essentials
         [DllImport("openxr_loader", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern XrResult xrDestroySwapchain( IntPtr swapchain);
         
+        public struct DrawItem
+        {
+            public Mesh Mesh;
+            public Matrix4x4 World;
+        }
+        
+        public class Mesh
+        {
+            public byte[] bytes = new byte[36 * 7 * sizeof(float)];
+            public IntPtr vertexBuffer;
+            public IntPtr indexBuffer;
+            public int indexCount;
+            public int vertexCount;
+            public Vec3[] Corners = Array.Empty<Vec3>();
+            public Face[] Faces   = Array.Empty<Face>();
+            public Entity targetEnt;
+            public int MaxVertexCount => Faces.Length * 6;
+
+            public Mesh(Mesh buh)
+            {
+                vertexBuffer = buh.vertexBuffer;
+                indexBuffer = buh.indexBuffer;
+                indexCount = buh.indexCount;
+                vertexCount = buh.vertexCount;
+                targetEnt = buh.targetEnt;
+                Corners = buh.Corners;
+                Faces = buh.Faces;
+            }
+
+            public Mesh(IntPtr _vertexBuffer, IntPtr _indexBuffer, int _indexCount = 0, int _vertexCount = 0, Entity targetent = null)
+            {
+                vertexBuffer = _vertexBuffer;
+                indexBuffer = _indexBuffer;
+                indexCount = _indexCount;
+                vertexCount = _vertexCount;
+                targetEnt = targetent;
+            }
+            
+            public Mesh(IntPtr _vertexBuffer, IntPtr _indexBuffer, Vec3[] corners, Face[] faces,  int _indexCount = 0, int _vertexCount = 0, Entity targetent = null)
+            {
+                vertexBuffer = _vertexBuffer;
+                indexBuffer = _indexBuffer;
+                indexCount = _indexCount;
+                vertexCount = _vertexCount;
+                targetEnt = targetent;
+                Corners = corners;
+                Faces = faces;
+            }
+            
+            public Mesh() { }
+        }
+        
+        public class Material // TODO: swap FaceColor for different material types when possible.
+        {
+            public enum Type
+            {
+                SolidColor,
+                Image,
+                Shader
+            }
+
+            public Type type;
+            public FaceColor Value { get; private set; }
+            public string Name { get; private set; } = "";
+            
+            public Material(Type type, FaceColor value, string name)
+            {
+                this.type = type;
+                Value = value;
+                Name = name;
+            }
+        }
+        
         public struct XrEyeView
         {
             public float px, py, pz;
@@ -1048,6 +1122,14 @@ namespace Angene.Essentials
         {
             public float R, G, B, A;
             public FaceColor(float r, float g, float b, float a) { R = r; G = g; B = b; A = a; }
+        }
+        
+        public struct Face
+        {
+            public int a, b, c, d;
+            public Material material;
+            public Face(int a, int b, int c, int d, Material material)
+            { this.a = a; this.b = b; this.c = c; this.d = d; this.material = material; }
         }
 
         public enum TShaderType : int

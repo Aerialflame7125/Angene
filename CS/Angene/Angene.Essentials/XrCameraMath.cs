@@ -49,6 +49,17 @@ public static class XrCameraMath
             M30 = 0, M31 = 0, M32 = -1f, M33 = 0
         };
     }
+    
+    public static Vec3 PosToWorld(Vec3 rigPos, VulkanCamera cam, Vec3 p)
+    {
+        Vec3 f = cam.forward.Normalized;
+        Vec3 s = Vec3.Cross(f, cam.up).Normalized;
+        Vec3 u = Vec3.Cross(s, f);
+        return new Vec3(
+            rigPos.X + s.X * p.X + u.X * p.Y - f.X * p.Z,
+            rigPos.Y + s.Y * p.X + u.Y * p.Y - f.Y * p.Z,
+            rigPos.Z + s.Z * p.X + u.Z * p.Y - f.Z * p.Z);
+    }
 
     static float[] QuatToMat3(float x, float y, float z, float w) => new[]
     {

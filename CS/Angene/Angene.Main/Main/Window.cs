@@ -24,6 +24,7 @@ using static Angene.Linux.Wayland.XdgShell.Methods;
 using static Angene.Linux.Wayland.WaylandClient;
 using static Angene.Linux.Wayland.WaylandClient.Methods;
 using Angene.Essentials.Components;
+using Angene.Graphics.Vulkan;
 using Angene.Input;
 using Angene.Math.Vectors;
 
@@ -175,6 +176,9 @@ namespace Angene.Main
             Scenes.Clear();
             Scenes.Add(scene);
             PrimaryScene = scene;
+
+            if (graphicsContext is VkGraphicsContext vkctx)
+                vkctx.SetScene(scene);
             foreach (Entity ent in scene.Entities)
             {
                 if (ent.HasComponent<Essentials.Components.VulkanCamera>())

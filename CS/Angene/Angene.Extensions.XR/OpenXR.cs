@@ -22,6 +22,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     public static IntPtr OXRSpace { get; private set; }
     private static IntPtr[] XrSwapchains = new []{ IntPtr.Zero, IntPtr.Zero }; 
     private static Types.XrSwapchainImageVulkanKHR[] XrSwapchainImages = new Types.XrSwapchainImageVulkanKHR[]{};
+    private static bool sessionFocused;
 
     // Instances
     public static IntPtr OpenXRInstance;
@@ -30,6 +31,22 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     public static string[] instanceExtensions;
     private static IDX11GraphicsContext dx11GraphicsContext = null;
     private static XrGraphicsRequirementsD3D11KHR D3D11Reqs;
+    private static long predictedDisplayTime;
+    
+    // Input
+    private static IntPtr OXRActionSet;
+    private static IntPtr leftHandAction;
+    private static IntPtr rightHandAction;
+    private static IntPtr leftGrabAction;
+    private static IntPtr rightGrabAction;
+    private static IntPtr leftHandSpace;
+    private static IntPtr rightHandSpace;
+    public bool leftControllerGrab;
+    public bool rightControllerGrab;
+    public Vec3 leftHandPos, rightHandPos;
+    public Quaternion leftHandRot, rightHandRot;
+    public Vec3 headPos;
+    public Quaternion headRot;
     
     // Vulkan
     private static IVkGraphicsContext vulkanGraphicsContext = null;
@@ -318,7 +335,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     }
 #endregion
 #region Swapchain
-    public static (Types.XrSwapchain, Types.XrSwapchain) createSwapchains()
+    public static (Types.XrSwapchain, Types.XrSwapchain) createSwapchainsAndActionSet()
     {
         Types.XrResult res;
         uint viewCount = 0;
@@ -396,6 +413,19 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
             _eyeW[i] = configViews[i].recommendedImageRectWidth;
             _eyeH[i] = configViews[i].recommendedImageRectHeight;
         }
+        
+        createActionSet();
+
+        leftHandAction = createAction("left-hand", XrActionType.XR_ACTION_TYPE_POSE_INPUT);
+        rightHandAction = createAction( "right-hand", XrActionType.XR_ACTION_TYPE_POSE_INPUT);
+        leftGrabAction = createAction("left-grab", XrActionType.XR_ACTION_TYPE_BOOLEAN_INPUT);
+        rightGrabAction = createAction( "right-grab", XrActionType.XR_ACTION_TYPE_BOOLEAN_INPUT);
+
+        suggestBindings();
+        leftHandSpace = createActionSpace(leftHandAction);
+        rightHandSpace = createActionSpace(rightHandAction);
+        attachActionSet(OXRActionSet);
+        
         return (new Types.XrSwapchain(XrSwapchains[0], (Enumerators.VkFormat)chosenFormat, configViews[0].recommendedImageRectWidth, configViews[0].recommendedImageRectHeight), 
             new Types.XrSwapchain(XrSwapchains[1], (Enumerators.VkFormat)chosenFormat, configViews[1].recommendedImageRectWidth, configViews[1].recommendedImageRectHeight));
     }
@@ -484,12 +514,16 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                     Logger.LogDebug($"[OpenXR] Event: {ev.type}", LoggingTarget.External);
                     break;
             }
+
         }
+        if (sessionFocused && predictedDisplayTime != 0)
+            ControllerInput(OXRActionSet, OXRSpace, predictedDisplayTime);
     }
 
     private static void HandleSessionState(XrSessionState state)
     {
         Logger.LogImportant($"[OpenXR] Session state -> {state}", LoggingTarget.External);
+        sessionFocused = state == XrSessionState.XR_SESSION_STATE_FOCUSED;
         switch (state)
         {
             case XrSessionState.XR_SESSION_STATE_READY:
@@ -519,16 +553,6 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                 Lifecycle.ScriptBinding.ShutdownEngine();
                 break;
         }
-    }
-#endregion
-#region Cleanup
-    public void Cleanup()
-    {
-        xrDestroySpace(OXRSpace);
-        xrDestroySession(OXRSession);
-
-        // Instance
-        xrDestroyInstance(OpenXRInstance);
     }
 #endregion
 #region Rendering
@@ -571,6 +595,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
         info.leftEye  = ToEye(_views[0]);
         info.rightEye = ToEye(_views[1]);
+        predictedDisplayTime = state.predictedDisplayTime;
         return info;
     }
 
@@ -643,6 +668,219 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
         Check(xrEndFrame(OXRSession, &end), "xrEndFrame");
     }
 #endregion
+#region Input
+    private static void createActionSet()
+    {
+        IntPtr actionSet;
+        Types.XrResult res;
+
+        XrActionSetCreateInfo actionSetCreateInfo = new XrActionSetCreateInfo()
+        {
+            type = Types.XrStructureType.XR_TYPE_ACTION_SET_CREATE_INFO,
+            priority = 0
+        };
+        WriteFixedString(ref actionSetCreateInfo.actionSetName, "angene");
+        WriteFixedString(ref actionSetCreateInfo.localizedActionSetName, vulkanGraphicsContext.CurrentAppInfo.AppName.ToLower());
+        
+        res = xrCreateActionSet(OpenXRInstance, &actionSetCreateInfo, &actionSet);
+
+        if (res != Types.XrResult.XR_SUCCESS)
+            throw new Exceptions.OpenXRSessionException($"Failed to create OpenXR action set: {res}");
+
+        OXRActionSet = actionSet;
+    }
+
+    private static IntPtr createAction(string name, XrActionType type)
+    {
+        IntPtr action;
+
+        XrActionCreateInfo actionCreateInfo = new XrActionCreateInfo()
+        {
+            type = Types.XrStructureType.XR_TYPE_ACTION_CREATE_INFO,
+            actionType = type
+        };
+        WriteFixedString(ref actionCreateInfo.actionName, name.ToLower());
+        WriteFixedString(ref actionCreateInfo.localizedActionName, name.ToLower());
+
+        Types.XrResult res = xrCreateAction(OXRActionSet, &actionCreateInfo, &action);
+        if (res != Types.XrResult.XR_SUCCESS)
+            throw new Exceptions.OpenXRSessionException($"Failed to create OpenXR action set: {res}");
+
+        return action;
+    }
+
+    private static IntPtr createActionSpace(IntPtr action)
+    {
+        IntPtr actionSpace = IntPtr.Zero;
+
+        XrActionSpaceCreateInfo actionSpaceCreateInfo = new XrActionSpaceCreateInfo()
+        {
+            type = Types.XrStructureType.XR_TYPE_ACTION_SPACE_CREATE_INFO,
+            poseInActionSpace = new XrPosef()
+            {
+                position = new XrVector3f()
+                {
+                    x = 0,
+                    y = 0,
+                    z = 0
+                },
+                orientation = new XrQuaternionf()
+                {
+                    w = 1,
+                    x = 0,
+                    y = 0,
+                    z = 0
+                }
+            },
+            action = action
+        };
+
+        Types.XrResult res = xrCreateActionSpace(OXRSession, &actionSpaceCreateInfo, &actionSpace);
+        if (res != Types.XrResult.XR_SUCCESS)
+            throw new Exceptions.OpenXRSessionException($"Failed to create OpenXR action space: {res}");
+
+        return actionSpace;
+    }
+
+    private static void suggestBindings()
+    {
+        suggestFor("/interaction_profiles/khr/simple_controller",
+            (leftHandAction,  "/user/hand/left/input/grip/pose"),
+            (rightHandAction, "/user/hand/right/input/grip/pose"),
+            (leftGrabAction,  "/user/hand/left/input/select/click"),
+            (rightGrabAction, "/user/hand/right/input/select/click"));
+
+        suggestFor("/interaction_profiles/oculus/touch_controller",
+            (leftHandAction,  "/user/hand/left/input/grip/pose"),
+            (rightHandAction, "/user/hand/right/input/grip/pose"),
+            (leftGrabAction,  "/user/hand/left/input/squeeze/value"),   // float -> bool is converted by the runtime
+            (rightGrabAction, "/user/hand/right/input/squeeze/value"));
+
+        suggestFor("/interaction_profiles/valve/index_controller",
+            (leftHandAction,  "/user/hand/left/input/grip/pose"),
+            (rightHandAction, "/user/hand/right/input/grip/pose"),
+            (leftGrabAction,  "/user/hand/left/input/squeeze/value"),
+            (rightGrabAction, "/user/hand/right/input/squeeze/value"));
+    }
+
+    private static void suggestFor(string profile, params (IntPtr action, string path)[] b)
+    {
+        try
+        {
+            var arr = new XrActionSuggestedBinding[b.Length];
+            for (int i = 0; i < b.Length; i++)
+                arr[i] = new XrActionSuggestedBinding { action = b[i].action, binding = getPath(b[i].path) };
+
+            fixed (XrActionSuggestedBinding* p = arr)
+            {
+                var s = new XrInteractionProfileSuggestedBinding
+                {
+                    type = Types.XrStructureType.XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING,
+                    interactionProfile = getPath(profile),
+                    countSuggestedBindings = (uint)arr.Length,
+                    suggestedBindings = p
+                };
+                var res = xrSuggestInteractionProfileBindings(OpenXRInstance, &s);
+                if ((int)res < 0) throw new Exceptions.OpenXRSessionException($"{profile}: {res}");
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogWarning($"[OpenXR] Skipping binding profile: {e.Message}", LoggingTarget.External);
+        }
+    }
+    
+    private static void attachActionSet(IntPtr actionSet)
+    {
+        XrSessionActionSetsAttachInfo actionSetsAttachInfo = new XrSessionActionSetsAttachInfo()
+        {
+            type = Types.XrStructureType.XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO,
+            countActionSets = 1,
+            actionSets = &actionSet
+        };
+
+        Types.XrResult res = xrAttachSessionActionSets(OXRSession, &actionSetsAttachInfo);
+        if (res != Types.XrResult.XR_SUCCESS)
+            throw new Exceptions.OpenXRSessionException($"Failed to attach OpenXR action set: {res}");
+    }
+
+    private static bool getActionBoolean(IntPtr action)
+    {
+        XrActionStateGetInfo getInfo = new XrActionStateGetInfo()
+        {
+            type = Types.XrStructureType.XR_TYPE_ACTION_STATE_GET_INFO,
+            action = action
+        };
+
+        XrActionStateBoolean state = new XrActionStateBoolean()
+        {
+            type = Types.XrStructureType.XR_TYPE_ACTION_STATE_BOOLEAN
+        };
+
+        Types.XrResult res = xrGetActionStateBoolean(OXRSession, &getInfo, &state);
+        if ((int)res < 0)
+            throw new Exceptions.OpenXRSessionException($"Failed to get boolean action state for OpenXR: {res}");
+        return state.isActive != 0 && state.currentState != 0;
+    }
+
+    private static bool getActionPose(IntPtr action, IntPtr space, IntPtr roomSpace, long time, out XrPosef pose)
+    {
+        pose = default;
+
+        var getInfo = new XrActionStateGetInfo
+        {
+            type = Types.XrStructureType.XR_TYPE_ACTION_STATE_GET_INFO,
+            action = action
+        };
+        var state = new XrActionStatePose { type = Types.XrStructureType.XR_TYPE_ACTION_STATE_POSE };
+        if ((int)xrGetActionStatePose(OXRSession, &getInfo, &state) < 0 || state.isActive == 0)
+            return false;
+
+        var loc = new XrSpaceLocation { type = Types.XrStructureType.XR_TYPE_SPACE_LOCATION };
+        if ((int)xrLocateSpace(space, roomSpace, time, &loc) < 0) return false;
+
+        const ulong need = XR_SPACE_LOCATION_POSITION_VALID_BIT | XR_SPACE_LOCATION_ORIENTATION_VALID_BIT;
+        if ((loc.locationFlags & need) != need) return false;
+
+        pose = loc.pose;
+        return true;
+    }
+    
+    private static void ControllerInput(IntPtr actionSet, IntPtr roomSpace, long predictedDisplayTime)
+    {
+        XrActiveActionSet activeActionSet = new XrActiveActionSet()
+        {
+            actionSet = actionSet,
+            subactionPath = 0
+        };
+
+        XrActionsSyncInfo syncInfo = new XrActionsSyncInfo()
+        {
+            type = Types.XrStructureType.XR_TYPE_ACTIONS_SYNC_INFO,
+            countActiveActionSets = 1,
+            activeActionSets = &activeActionSet
+        };
+        
+        Types.XrResult res = xrSyncActions(OXRSession, &syncInfo);
+        if ((int)res < 0)
+            throw new Exceptions.OpenXRSessionException($"Failed to synchronize OpenXR actions: {res}");
+        if (res == Types.XrResult.XR_SESSION_NOT_FOCUSED) return;
+        
+        if (getActionPose(leftHandAction, leftHandSpace, roomSpace, predictedDisplayTime, out var leftHand))
+        {
+            Instance.leftHandPos = new Vec3(leftHand.position.x, leftHand.position.y, leftHand.position.z);
+            Instance.leftHandRot = new Quaternion(leftHand.orientation.x, leftHand.orientation.y, leftHand.orientation.z, leftHand.orientation.w);
+        }
+        if (getActionPose(rightHandAction, rightHandSpace, roomSpace, predictedDisplayTime, out var rightHand))
+        {
+            Instance.rightHandPos = new Vec3(rightHand.position.x, rightHand.position.y, rightHand.position.z);
+            Instance.rightHandRot = new Quaternion(rightHand.orientation.x, rightHand.orientation.y, rightHand.orientation.z, rightHand.orientation.w);
+        }
+
+        Instance.leftControllerGrab = getActionBoolean(leftGrabAction);
+        Instance.rightControllerGrab = getActionBoolean(rightGrabAction);
+    }
+#endregion
 #region Helpers
     private static void SetFixedString(byte* dest, int maxLength, string value)
     {
@@ -674,6 +912,54 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     public static (ulong, ulong) getMinMaxSupportedVulkan()
     {
         return (VulkanReqs.minApiVersionSupported, VulkanReqs.maxApiVersionSupported);
+    }
+    
+    private static void WriteFixedString<TBuffer>(ref TBuffer buffer, string value) where TBuffer : unmanaged
+    {
+        fixed (TBuffer* p = &buffer)
+        {
+            Span<byte> dest = new Span<byte>(p, sizeof(TBuffer));
+            dest.Clear();
+            
+            int max = dest.Length - 1;
+            int written = Encoding.UTF8.GetBytes(value.AsSpan(), dest.Slice(0, max));
+        }
+    }
+
+    private static ulong getPath(string name)
+    {
+        ulong path;
+        
+        byte[] bytes = Encoding.UTF8.GetBytes(name + '\0');
+
+        fixed (byte* pBytes = bytes)
+        {
+            Types.XrResult res = xrStringToPath(OpenXRInstance, pBytes, &path);
+            if (res  != Types.XrResult.XR_SUCCESS)
+                throw new Exceptions.OpenXRSessionException($"Failed to get OpenXR path: {res}");
+        }
+
+        return path;
+    }
+#endregion
+#region Cleanup
+    public static void Cleanup()
+    {
+        if (OpenXRInstance == IntPtr.Zero) return;
+        xrDestroySpace(rightHandSpace);
+        xrDestroySpace(leftHandSpace);
+
+        xrDestroyAction(rightGrabAction);
+        xrDestroyAction(leftGrabAction);
+        xrDestroyAction(rightHandAction);
+        xrDestroyAction(leftHandAction);
+
+        xrDestroyActionSet(OXRActionSet);
+        xrDestroySpace(OXRSpace);
+        xrDestroySession(OXRSession);
+
+        // Instance
+        xrDestroyInstance(OpenXRInstance);
     }
 #endregion
 }

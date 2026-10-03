@@ -1,15 +1,57 @@
+using System.Runtime.CompilerServices;
+using Angene.Common;
 using Angene.Math.Vectors;
 using static Angene.Essentials.Types;
 
 namespace Angene.Essentials.Components;
+
+public class OpenXRController
+{
+    public bool ControllerGrabbed { get; internal set; }
+    private ControllerType type { get; }
+
+    public Transform3D ControllerTransform { get; private set; } =
+        new Transform3D(new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1));
+
+    public enum ControllerType
+    {
+        Left,
+        Right
+    }
+
+    public OpenXRController(ControllerType type)
+    {
+        this.type = type;
+    }
+
+    public void SetControllerData(bool controllerGrabbed, Transform3D transform)
+    {
+        ControllerGrabbed = controllerGrabbed;
+        ControllerTransform = transform;
+    }
+}
+
 public class Transform3D
 {
-    public Vec3 pos = new(0.0f, 0.0f, 0.0f);
-    public Vec3 rot = new(0.0f, 0.0f, 0.0f);
-    public Vec3 scale = new(1.0f, 1.0f, 1.0f);
+    public Vec3 pos { get; internal set; } = new(0.0f, 0.0f, 0.0f);
+    public Vec3 rot { get; internal set; } = new(0.0f, 0.0f, 0.0f);
+    public Vec3 scale { get; internal set; } = new(1.0f, 1.0f, 1.0f);
 
     public Matrix4x4 ModelView;
     public Matrix4x4 Proj;
+
+    /// <summary>
+    /// This method forcefully sets the transform values. If you are translating a game object, please use Entity.TransformObj instead.
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <param name="rot"></param>
+    /// <param name="scale"></param>
+    public void ForceSetTransformVar(Vec3 pos, Vec3 rot, Vec3 scale)
+    {
+        this.pos = pos;
+        this.rot = rot;
+        this.scale = scale;
+    }
 
     public Matrix4x4 GetMatrix()
     {
@@ -68,32 +110,6 @@ public class Transform2D {
 
     public static implicit operator Transform2D(Transform3D d) => new Transform2D((Vec2)d.pos, d.rot.Z, (Vec2)d.scale);
     public static implicit operator Transform3D(Transform2D d) => new Transform3D((Vec3)d.pos, new Vec3(0f, 0f, d.rot), (Vec3)d.scale);
-}
-
-public class Mesh
-{
-    public byte[] bytes = new byte[36 * 7 * sizeof(float)];
-    public IntPtr vertexBuffer;
-    public IntPtr indexBuffer;
-    public int indexCount;
-    public int vertexCount;
-
-    public Mesh(Mesh buh)
-    {
-        vertexBuffer = buh.vertexBuffer;
-        indexBuffer = buh.indexBuffer;
-        indexCount = buh.indexCount;
-        vertexCount = buh.vertexCount;
-    }
-
-    public Mesh(IntPtr _vertexBuffer, IntPtr _indexBuffer, int _indexCount = 0, int _vertexCount = 0)
-    {
-        vertexBuffer = _vertexBuffer;
-        indexBuffer = _indexBuffer;
-        indexCount = _indexCount;
-        vertexCount = _vertexCount;
-    }
-    public Mesh() { }
 }
 
 public class VulkanCamera

@@ -51,11 +51,11 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private Dictionary<IntPtr, VmaBufferHandle> _vmaBuffers = new();
     private IntPtr _currentVertexBuffer;
     private IntPtr _currentPipeline;
-    private IScene _scene;
     private AppInfo _currentAppInfo;
+    private IScene _scene;
 
 
-
+    public AppInfo CurrentAppInfo => _currentAppInfo;
     public IntPtr VkPhysicalDevice => _vkPhysicalDevice;
     public IntPtr VkDevice => _vkDevice;
     public IntPtr VkQueue => _vkQueue;
@@ -74,7 +74,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     public IntPtr VkRenderPass => _vkRenderPass;
     public IntPtr VkFramebuffer => _vkFramebuffer;
     public IntPtr[] VkFrameBuffers => _vkFramebuffers;
-    public IntPtr VkPipeline => _vkPipeline;
+    public IntPtr VkPipeline { get => _vkPipeline; set => _vkPipeline = value; }
     public IntPtr VkPipelineLayout => _vkPipelineLayout;
     public IntPtr VkSemaphoreImageAvailable => _vkSemaphoreImageAvailable;
     public IntPtr VkSemaphoreRenderFinished => _vkSemaphoreRenderFinished;
@@ -106,10 +106,10 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     public QueueFamilyIndices? queueFamilyIndices { get; internal set; }
     
     // OpenXR
+    public bool UseOpenXR { get; internal set; }
     public (Types.XrSwapchain, Types.XrSwapchain) XrSwapchains { get; private set; } = (
         new XrSwapchain(IntPtr.Zero, VkFormat.VK_FORMAT_A8B8G8R8_SRGB_PACK32, 0, 0, true),
         new XrSwapchain(IntPtr.Zero, VkFormat.VK_FORMAT_A8B8G8R8_SRGB_PACK32, 0, 0, true));
-    private IntPtr _xrRenderPass;
     private IntPtr[][] _xrViews = new IntPtr[2][];
     private IntPtr[][] _xrFramebuffers = new IntPtr[2][];
     private VkExtent2D[] _xrExtent = new VkExtent2D[2];
@@ -121,7 +121,10 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private ulong maxSupportedOpenXRVer = 0;
     private uint instanceVersion = (uint)((1 << 22) | (3 << 12) | 0);
     private string xrDll = Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll";
-
+    private OpenXRController leftOXRController, rightOXRController = null;
+    private IntPtr _xrCommandBuffer, _xrFence, _activeCmd, _xrPipeline, _xrRenderPass;
+    
+    
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     private static uint DebugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -134,28 +137,64 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         return 0;
     }
 
-    internal static (Assembly, Type, MethodInfo, object) CallExternalFunc(string assemblyPath, string type, string method, object[] parameters) // last returned object is returned output from method
+
+    private static object OXRInstance;
+    private static Type CachedType;
+
+    public void SetScene(IScene scene) => _scene = scene;
+    
+    internal static void InitializeExternalInstance(string assemblyPath, string typeName)
     {
+        if (OXRInstance != null) return;
+
         Assembly assem = Assembly.LoadFrom(assemblyPath);
+        CachedType = assem.GetType(typeName);
+    
+        if (CachedType == null)
+            throw new Exception($"Type {typeName} was unable to be found.");
 
-        Type ltype = assem.GetType(type);
-        if (ltype == null)
-            throw new Exceptions.FailedToInitializeVulkanException(
-                $"Type {type} was unable to be found within assembly {assemblyPath.Split('.').Last()}. Please check your installation.");
+        OXRInstance = Activator.CreateInstance(CachedType);
+    }
+    internal static object CallExternalFunc(string method, object[] parameters, bool isStatic = true)
+    {
+        BindingFlags flags = isStatic 
+            ? BindingFlags.Static | BindingFlags.Public 
+            : BindingFlags.Instance | BindingFlags.Public;
 
-        MethodInfo lmethod = ltype.GetMethod(method, BindingFlags.Static | BindingFlags.Public);
+        MethodInfo lmethod = CachedType.GetMethod(method, flags);
         if (lmethod == null)
-            throw new Exceptions.FailedToInitializeVulkanException(
-                $"Method {method} was unable to be found within assembly {assemblyPath.Split('.').Last()}. Please check your installation.");
+            throw new Exception($"Method {method} was unable to be found.");
 
-        object output = null;
-        try { output = lmethod.Invoke(null, parameters); } // instance, params for future reference
+        try 
+        { 
+            object target = isStatic ? null : OXRInstance;
+            return lmethod.Invoke(target, parameters); 
+        } 
         catch (TargetInvocationException ex) when (ex.InnerException != null)
         {
             System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            return null; // Unreachable
+        }
+    }
+
+    internal static object GetPreservedVariable(string variableName)
+    {
+        if (CachedType == null || OXRInstance == null)
+            throw new InvalidOperationException("External library instance does not exist.");
+        
+        PropertyInfo prop = CachedType.GetProperty(variableName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        if (prop != null)
+        {
+            return prop.GetValue(OXRInstance);
+        }
+        
+        FieldInfo field = CachedType.GetField(variableName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        if (field != null)
+        {
+            return field.GetValue(OXRInstance);
         }
 
-        return (assem, ltype, lmethod, output);
+        throw new MissingMemberException($"Field or Property '{variableName}' was not found on type {CachedType.FullName}.");
     }
 
     public VkGraphicsContext(object windowHandle, int width, int height, Dictionary<int, object> shaders, IScene Scene, Types.AppInfo? currentAppInfo = null, bool UseOpenXR = false)
@@ -198,32 +237,21 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             IntPtr vulkanLib = NativeLibrary.Load(
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "vulkan-1.dll" : "libvulkan.so.1");
             IntPtr pfnGipa = NativeLibrary.GetExport(vulkanLib, "vkGetInstanceProcAddr");
+            InitializeExternalInstance(Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll", "Angene.Extensions.XR.OpenXR");
             
             
 #region OpenXR Init
+                this.UseOpenXR = UseOpenXR;
                 if (UseOpenXR)
                 {
                     if (!Common.Settings.Settings.Instance.GetSetting<string[]>("Main.SupportedLibraries")
                         .Contains("Extensions.XR"))
                         throw new Exceptions.FailedToInitializeVulkanException("OpenXR is labeled to be used but the library is missing. Please check your installation.");
-
-                    Type type = null;
-                    MethodInfo method = null;
-                    Assembly assem = null;
-                    object ret;
-                    (assem, type, method, ret) = CallExternalFunc(
-                        Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll",
-                        "Angene.Extensions.XR.OpenXR",
-                        "CreateInstanceS1",
-                        new object[] { (IVkGraphicsContext)this, currentAppInfo }
-                    );
                     
-                    (assem, type, method, ret) = CallExternalFunc(
-                        Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll",
-                        "Angene.Extensions.XR.OpenXR",
-                        "getMinMaxSupportedVulkan",
-                        new object[] { }
-                    );
+                    
+                    CallExternalFunc("CreateInstanceS1", new object[] { (IVkGraphicsContext)this, currentAppInfo });
+                    
+                    object ret = CallExternalFunc("getMinMaxSupportedVulkan", new object[] { } );
                     
                     (ulong, ulong) rret = (ValueTuple<ulong, ulong>)ret;
                     maxSupportedOpenXRVer = rret.Item2;
@@ -358,9 +386,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
                         if (UseOpenXR)
                         {
-                            var r = CallExternalFunc(xrDll, "Angene.Extensions.XR.OpenXR", "CreateVulkanInstance",
-                                new object[] { (IntPtr)(&createInfo), pfnGipa });
-                            instanceHandle = (IntPtr)r.Item4;
+                            var r = CallExternalFunc("CreateVulkanInstance", new object[] { (IntPtr)(&createInfo), pfnGipa });
+                            instanceHandle = (IntPtr)r;
                         }
                         else
                         {
@@ -489,13 +516,11 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 uint xrQueueFamily = 0;
                 if (UseOpenXR)
                 {
-                    _physicalDevice = (IntPtr)CallExternalFunc(xrDll, "Angene.Extensions.XR.OpenXR",
-                        "GetVulkanPhysicalDevice", new object[] { _vkInstance }).Item4;
+                    _physicalDevice = (IntPtr)CallExternalFunc("GetVulkanPhysicalDevice", new object[] { _vkInstance });
 
                     IntPtr pd = _physicalDevice;
                     contextHelpers.CreateDevice(pd, Array.Empty<string>(),
-                        ci => (IntPtr)CallExternalFunc(xrDll, "Angene.Extensions.XR.OpenXR",
-                            "CreateVulkanDevice", new object[] { pd, ci, pfnGipa }).Item4,
+                        ci => (IntPtr)CallExternalFunc("CreateVulkanDevice", new object[] { pd, ci, pfnGipa }),
                         out _device, out _graphicsQueue, out xrQueueFamily);
                 }
                 else
@@ -512,21 +537,11 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 IntPtr XRSession;
                 if (UseOpenXR)
                 {
-                    Type type = null;
-                    MethodInfo method = null;
-                    Assembly assem = null;
-                    object ret;
-                    (assem, type, method, ret) = CallExternalFunc(
-                        Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll",
-                        "Angene.Extensions.XR.OpenXR",
-                        "CreateSessionS2",
-                        new object[] { _vkInstance, _vkDevice, UseOpenXR ? xrQueueFamily : queueFamilyIndices.graphicsFamily.Value }
-                    );
+                    object ret = CallExternalFunc("CreateSessionS2", new object[] { _vkInstance, _vkDevice, UseOpenXR ? xrQueueFamily : queueFamilyIndices.graphicsFamily.Value });
 
                     XRSession = (IntPtr)ret;
                     
-                    CallExternalFunc(xrDll, "Angene.Extensions.XR.OpenXR", "createSpace",
-                        new object[] { new Vec3(0, 0, 0), new Quaternion(0, 0, 0, 1) });
+                    CallExternalFunc("createSpace", new object[] { new Vec3(0, 0, 0), new Quaternion(0, 0, 0, 1) });
                     
                     BindXr();
                 }
@@ -603,16 +618,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
                 if (UseOpenXR)
                 {
-                    Type type = null;
-                    MethodInfo method = null;
-                    Assembly assem = null;
-                    object ret;
-                    (assem, type, method, ret) = CallExternalFunc(
-                        Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll",
-                        "Angene.Extensions.XR.OpenXR",
-                        "createSwapchains",
-                        new object[] {}
-                    );
+                    object ret = CallExternalFunc("createSwapchainsAndActionSet", new object[] {} );
 
                     XrSwapchains = ((XrSwapchain, XrSwapchain))ret;
                     _xrRenderPass = CreateRenderPass(XrSwapchains.Item1.format,
@@ -621,8 +627,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     for (int eye = 0; eye < 2; eye++)
                     {
                         var sc = eye == 0 ? XrSwapchains.Item1 : XrSwapchains.Item2;
-                        var (_, _, _, imgsObj) = CallExternalFunc(xrDll, "Angene.Extensions.XR.OpenXR",
-                            "getSwapchainImages", new object[] { sc });
+                        var imgsObj = CallExternalFunc("getSwapchainImages", new object[] { sc });
                         var imgs = (List<XrSwapchainImageVulkanKHR>)imgsObj;
                         _xrViews[eye] = new IntPtr[imgs.Count];
                         _xrFramebuffers[eye] = new IntPtr[imgs.Count];
@@ -993,6 +998,10 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 if (result != VkResult.VK_SUCCESS)
                     throw new Exceptions.FailedToInitializeVulkanException($"Failed to allocate command buffers (vkAllocateCommandBuffers): {result}");
 
+                IntPtr xrCb;
+                result = vkAllocateCommandBuffers(_device, &commandBufferAllocInfo, &xrCb);
+                _xrCommandBuffer = xrCb;
+                
                 _vkCommandBuffer = commandBuffer;
 #endregion
 #region Sync Objects
@@ -1012,6 +1021,10 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 if (vkCreateSemaphore(_device, &semaphoreInfo, null, &imageAvailableSemaphore) != VkResult.VK_SUCCESS || vkCreateSemaphore(_device, &semaphoreInfo, null, &renderFinishedSemaphore) != VkResult.VK_SUCCESS || vkCreateFence(_device, &fenceInfo, null, &inFlightFence) != VkResult.VK_SUCCESS)
                     throw new Exceptions.FailedToInitializeVulkanException($"Failed to create semaphores (vkCreateSemaphore): {result}");
 
+                IntPtr xrFence;
+                vkCreateFence(_device, &fenceInfo, null, &xrFence);
+                _xrFence = xrFence;
+                
                 _vkSemaphoreImageAvailable = imageAvailableSemaphore;
                 _vkSemaphoreRenderFinished = renderFinishedSemaphore;
                 _vkFenceInFlight = inFlightFence;
@@ -1421,6 +1434,17 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     VkResult result = vkCreateGraphicsPipelines(_vkDevice, IntPtr.Zero, 1, &pipelineInfo, null, &pipeline);
                     if (result != VkResult.VK_SUCCESS)
                         throw new Exceptions.FailedToInitializeVulkanException($"Failed to create graphics pipeline: {result}");
+                    if (UseOpenXR != null)
+                    {
+                        IntPtr OXRPipeline;
+                        result = vkCreateGraphicsPipelines(_vkDevice, IntPtr.Zero, 1, &pipelineInfo, null,
+                            &OXRPipeline);
+                        if (result != VkResult.VK_SUCCESS)
+                            throw new Exceptions.FailedToInitializeVulkanException($"Failed to create graphics pipeline for OpenXR: {result}");
+                        _xrPipeline = OXRPipeline;
+                    }
+                    
+                    _vkPipeline = pipeline;
                     return pipeline;
                 }
             }
@@ -1456,6 +1480,12 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         vkCmdSetScissor(_vkCommandBuffer, 0, 1, &scissor);
     }
 
+    public void SetXrObjects(OpenXRController leftController, OpenXRController rightController)
+    {
+        leftOXRController = leftController;
+        rightOXRController = rightController;
+    }
+
     public void RenderXrFrame(
         Vec3 rigpos,
         VulkanCamera camera,
@@ -1463,7 +1493,9 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     {
         if (shuttingDown || _disposed)
             return;
-
+        
+        CallExternalFunc("PollEvents", new object[] {  } );
+        
         if (_xrRunning == null)
             throw new Exception("XR Running delegate is null.");
 
@@ -1513,8 +1545,50 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
                 _xrRelease(eye);
             }
-        }
 
+            if (leftOXRController != null)
+            {
+                Vec3 p = (Vec3)GetPreservedVariable("leftHandPos");
+                Quaternion r = (Quaternion)GetPreservedVariable("leftHandRot");
+                bool leftControllerGrabbed = (bool)GetPreservedVariable("leftControllerGrab");
+            
+                r = new Quaternion(-r.X, -r.Y, r.Z, r.W);
+            
+                leftOXRController.SetControllerData(leftControllerGrabbed,
+                    new Transform3D(XrCameraMath.PosToWorld(_scene.MainCamera.Transform.pos, _scene.MainCamera.GetComponent<VulkanCamera>(), p), r.ToEuler(), leftOXRController.ControllerTransform.scale));
+            }
+            if (rightOXRController != null)
+            {
+                Vec3 p = (Vec3)GetPreservedVariable("rightHandPos");
+                Quaternion r = (Quaternion)GetPreservedVariable("rightHandRot");
+                bool rightControllerGrabbed = (bool)GetPreservedVariable("rightControllerGrab");
+            
+                r = new Quaternion(-r.X, -r.Y, r.Z, r.W);
+            
+                rightOXRController.SetControllerData(rightControllerGrabbed,
+                    new Transform3D(XrCameraMath.PosToWorld(_scene.MainCamera.Transform.pos, _scene.MainCamera.GetComponent<VulkanCamera>(), p), r.ToEuler(), rightOXRController.ControllerTransform.scale));
+            }
+            
+            Vec3 left = new Vec3(
+                frame.leftEye.px,
+                frame.leftEye.py,
+                frame.leftEye.pz);
+
+            Vec3 right = new Vec3(
+                frame.rightEye.px,
+                frame.rightEye.py,
+                frame.rightEye.pz);
+
+            Vec3 headPos = (left + right) * 0.5f;
+            Quaternion headRot = new Quaternion()
+            {
+                W = frame.leftEye.qw,
+                X = frame.leftEye.qx,
+                Y = frame.leftEye.qy,
+                Z = frame.leftEye.qz,
+            };
+            _scene.MainCamera.TranslateObj(headPos, headRot.ToEuler(), null);
+        }
         _xrEndFrame(frame.shouldRender);
     }
     
@@ -1529,21 +1603,17 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
     private void RecordAndSubmitEye(int eye, uint img, Action draw)
     {
-        IntPtr fence = _vkFenceInFlight, cb = _vkCommandBuffer;
-        vkWaitForFences(_vkDevice, 1, &fence, 1, ulong.MaxValue);   // wait for desktop submit
-        vkResetFences(_vkDevice, 1, &fence);
+        IntPtr fence = _xrFence, cb = _xrCommandBuffer;
+        var prev = _activeCmd;
+        _activeCmd = cb;
+
+        vkWaitForFences(_vkDevice, 1, &fence, 1, ulong.MaxValue);
         vkResetCommandBuffer(cb, 0);
 
         var begin = new VkCommandBufferBeginInfo { sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
         vkBeginCommandBuffer(cb, &begin);
-        
-        VkClearColorValue cc = new VkClearColorValue();
-        if (XrClearTest)
-        {
-            cc.float32[0] = 1f; cc.float32[1] = 0f; cc.float32[2] = 1f; cc.float32[3] = 1f; // magenta
-        }
-        VkClearValue clear = new VkClearValue { color = cc };
 
+        VkClearValue clear = new VkClearValue();
         var rp = new VkRenderPassBeginInfo
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -1560,8 +1630,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         vkCmdSetViewport(cb, 0, 1, &vp);
         vkCmdSetScissor(cb, 0, 1, &sc);
 
-        if (!XrClearTest)
-            draw();
+        draw();
 
         vkCmdEndRenderPass(cb);
         vkEndCommandBuffer(cb);
@@ -1572,10 +1641,18 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             commandBufferCount = 1,
             pCommandBuffers = &cb
         };
+
+        vkResetFences(_vkDevice, 1, &fence);
         var r = vkQueueSubmit(_vkQueue, 1, &submit, fence);
         if (r != VkResult.VK_SUCCESS)
+        {
             Logger.LogError($"[OpenXR] vkQueueSubmit failed: {r}", LoggingTarget.Graphics);
-        vkWaitForFences(_vkDevice, 1, &fence, 1, ulong.MaxValue);
+            vkQueueWaitIdle(_vkQueue);
+        }
+        else
+            vkWaitForFences(_vkDevice, 1, &fence, 1, ulong.MaxValue);
+
+        _activeCmd = prev;
     }
 
     private void RecreateSwapchain()
@@ -1689,39 +1766,72 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     {
         _currentVertexBuffer = buffer;
         ulong off = offset;
-        vkCmdBindVertexBuffers(_vkCommandBuffer, 0, 1, &buffer, &off);
+        vkCmdBindVertexBuffers(_activeCmd, 0, 1, &buffer, &off);
     }
 
-    public void SetIndexBuffer(IntPtr buffer, uint offset = 0)
-    {
-        vkCmdBindIndexBuffer(_vkCommandBuffer, buffer, offset, VkIndexType.VK_INDEX_TYPE_UINT32);
-    }
+    public void SetIndexBuffer(IntPtr buffer, uint offset = 0) => vkCmdBindIndexBuffer(_activeCmd, buffer, offset, VkIndexType.VK_INDEX_TYPE_UINT32);
 
     public void SetPipeline(IntPtr pipeline)
     {
         _currentPipeline = pipeline;
-        vkCmdBindPipeline(_vkCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        vkCmdBindPipeline(_activeCmd, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     }
 
-    public void Draw(uint vertexCount, uint startVertex = 0)
+    public void Draw(uint vertexCount, uint startVertex = 0) => vkCmdDraw(_activeCmd, vertexCount, 1, startVertex, 0);
+
+    public void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0) => vkCmdDrawIndexed(_activeCmd, indexCount, 1, startIndex, baseVertex, 0);
+
+    private readonly List<DrawItem> _drawItems = new();
+    private readonly List<(DrawItem item, Matrix4x4 mv, float z)> _sorted = new();
+    private List<(Vec3 ndc0, Vec3 ndc1, Vec3 ndc2, float depth, FaceColor material)> triangles =
+        new List<(Vec3 ndc0, Vec3 ndc1, Vec3 ndc2, float depth, FaceColor material)>();
+    private List<float> verts = new();
+    private List<Material> _materials = new List<Material>();
+    
+    private void GatherDrawItems()
     {
-        vkCmdDraw(_vkCommandBuffer, vertexCount, 1, startVertex, 0);
-    }
+        _drawItems.Clear();
+        _materials.Clear();
+        
+        if (_scene == null)
+            throw new InvalidOperationException("GatherDrawItems: _scene is null");
 
-    public void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0)
-    {
-        vkCmdDrawIndexed(_vkCommandBuffer, indexCount, 1, startIndex, baseVertex, 0);
+        if (_scene.Entities == null)
+            throw new InvalidOperationException("GatherDrawItems: _scene.Entities is null");
+        
+        foreach (Entity e in _scene.Entities)
+        {
+            if (!e.TryGetComponent<Mesh>(out var mesh) || mesh == null) continue;
+            _drawItems.Add(new DrawItem
+            {
+                Mesh = mesh,
+                World = _scene.GetWorldMatrix(e)
+            });
+            foreach (var face in mesh.Faces)
+            {
+                if (face.material != null)
+                {
+                    Material m = face.material;
+                    if (m != null && !string.IsNullOrEmpty(m.Name))
+                    {
+                        _materials.Add(m);
+                    }
+                }
+            }
+        }
+        _materials.Add(_defaultMaterial);
     }
-
+    
     public void BeginFrame(uint clearColor)
     {
         if (shuttingDown || _disposed) return;
         VkResult result;
         IntPtr fence = _vkFenceInFlight;
         uint imageIndex;
+        
+        GatherDrawItems();
 
         vkWaitForFences(_vkDevice, 1, &fence, 1, ulong.MaxValue);
-        vkResetFences(_vkDevice, 1, &fence);
 
         result = vkAcquireNextImageKHR(_vkDevice, _vkSwapchainKHR, ulong.MaxValue,
             _vkSemaphoreImageAvailable, IntPtr.Zero, &imageIndex);
@@ -1746,6 +1856,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         result = vkBeginCommandBuffer(_vkCommandBuffer, &beginInfo);
         if (result != VkResult.VK_SUCCESS)
             throw new Exception($"Failed to begin recording command buffer (vkBeginCommandBuffer): {result}");
+
+        _activeCmd = _vkCommandBuffer;
 
         VkClearColorValue clearColorValue = new VkClearColorValue();
         clearColorValue.float32[0] = ((clearColor >> 16) & 0xFF) / 255.0f; // R
@@ -1785,19 +1897,78 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         };
         vkCmdSetScissor(_vkCommandBuffer, 0, 1, &scissor);
 
-        if (XrSwapchains.Item1.def != true)
+        VulkanCamera cam = _scene.MainCamera.GetComponent<VulkanCamera>();
+        if (UseOpenXR)
         {
-            Type type = null;
-            MethodInfo method = null;
-            Assembly assem = null;
-            object ret;
-            (assem, type, method, ret) = CallExternalFunc(
-                Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll",
-                "Angene.Extensions.XR.OpenXR",
-                "PollEvents",
-                new object[] {  }
-            );
+            Matrix4x4? headView = null;
+            RenderXrFrame(_scene.MainCamera.Transform.pos, cam, (eye, view, proj) =>
+            {
+                if (eye == 0) headView = view;
+                DrawScene(view, proj, cam);
+            });
         }
+        else
+        {
+            Matrix4x4 view = cam.LookTo(_scene.MainCamera.Transform.pos, cam.forward, cam.up);
+            Matrix4x4 proj = cam.Perspective(cam.fov, cam.aspectRatio, cam.nearPlane, cam.farPlane);
+            DrawScene(view, proj, cam);
+        }
+    }
+    
+    private void DrawScene(Matrix4x4 view, Matrix4x4 proj, VulkanCamera cam)
+    {
+        if (_vkPipeline == IntPtr.Zero) throw new AngeneException("No pipeline");
+        SetPipeline(VkPipeline);
+
+        _sorted.Clear();
+        foreach (DrawItem item in _drawItems)
+        {
+            Matrix4x4 mv = view * item.World;
+            _sorted.Add((item, mv, cam.TransformPoint(mv, new Vec3(0, 0, 0)).Z));
+        }
+        _sorted.Sort((a, b) => a.z.CompareTo(b.z));
+
+        foreach (var (item, mv, _) in _sorted)
+            DrawMesh(item.Mesh, mv, proj, cam);
+    }
+
+    private void DrawMesh(Mesh mesh, Matrix4x4 mv, Matrix4x4 proj, VulkanCamera cam)
+    {
+        BuildSortedNdcVertexBuffer(cam, mesh, mv, proj, out mesh.vertexCount);
+        
+        var floats = CollectionsMarshal.AsSpan(verts);
+        MemoryMarshal.AsBytes(floats).CopyTo(mesh.bytes);
+
+        UpdateVertexBuffer(mesh.vertexBuffer, mesh.bytes);
+        SetVertexBuffer(mesh.vertexBuffer, strideBytes: 7 * sizeof(float));
+        Draw((uint)mesh.vertexCount);
+    }
+    
+    private readonly Material _defaultMaterial =
+        new Material(Material.Type.SolidColor, new FaceColor(1, 1, 1, 1), "Default");
+
+    private float[] BuildSortedNdcVertexBuffer(VulkanCamera cam, Mesh mesh, Matrix4x4 modelView, Matrix4x4 proj, out int vertexCount)
+    {
+        triangles.Clear();
+        foreach (var face in mesh.Faces)
+        {
+            cam.AddTriangle(mesh.Corners[face.a], mesh.Corners[face.b], mesh.Corners[face.c], face.material.Value, modelView, proj, triangles);
+            cam.AddTriangle(mesh.Corners[face.a], mesh.Corners[face.c], mesh.Corners[face.d], face.material.Value, modelView, proj, triangles);
+        }
+
+        triangles.Sort((t1, t2) => t2.depth.CompareTo(t1.depth));
+
+        verts.Clear();
+        verts.Capacity = System.Math.Max(verts.Capacity, triangles.Count * 3 * 7);
+        foreach (var tri in triangles)
+        {
+            cam.AppendVertex(verts, tri.ndc0, tri.material);
+            cam.AppendVertex(verts, tri.ndc1, tri.material);
+            cam.AppendVertex(verts, tri.ndc2, tri.material);
+        }
+
+        vertexCount = triangles.Count * 3;
+        return verts.ToArray();
     }
 
     public void EndFrame()
@@ -1826,6 +1997,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             pSignalSemaphores = &signalSemaphore
         };
 
+        IntPtr fence = _vkFenceInFlight;
+        vkResetFences(_vkDevice, 1, &fence);
         result = vkQueueSubmit(_vkQueue, 1, &submitInfo, _vkFenceInFlight);
         if (result != VkResult.VK_SUCCESS)
             throw new Exception($"Failed to submit draw command buffer (vkQueueSubmit): {result}");
@@ -1977,6 +2150,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         {
             vkDeviceWaitIdle(_vkDevice);
         }
+
+        CallExternalFunc("Cleanup", new object[] { });
         if (_destroyFunc != null && _debugMessenger != IntPtr.Zero)
             _destroyFunc(_vkInstance, _debugMessenger, null);
         // destroy vma

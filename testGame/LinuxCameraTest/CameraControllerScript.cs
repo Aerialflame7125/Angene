@@ -18,6 +18,7 @@ namespace Game
     {
         private Transform3D _transform;
         internal VulkanCamera _camera;
+        internal Entity cameraEntity;
 
         // Kept outside the components because VulkanCamera stores a raw forward vector,
         // not yaw/pitch angles -- these are the "source of truth" for orientation and we
@@ -38,6 +39,7 @@ namespace Game
         {
             if (cameraEntity == null)
                 throw new ArgumentNullException(nameof(cameraEntity));
+            this.cameraEntity = cameraEntity;
 
             _transform = cameraEntity.GetComponent<Transform3D>();
             _camera = cameraEntity.GetComponent<VulkanCamera>();
@@ -132,7 +134,7 @@ namespace Game
             }
 
             if (move.Length > 0.0001f)
-                _transform.pos += move.Normalized * (MoveSpeed * delta);
+                cameraEntity.TranslateObj(_transform.pos + move.Normalized * (MoveSpeed * delta), new Vec3(0, 0, 0), new Vec3(1, 1, 1));
 
             // Push the recalculated orientation back onto the VulkanCamera component.
             _camera.forward = forward;

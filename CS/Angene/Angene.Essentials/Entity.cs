@@ -27,8 +27,63 @@ namespace Angene.Essentials
         // Transform
         public Transform3D Transform
         {
-            get => GetComponent<Transform3D>() ?? AddComponent<Transform3D>();
-            set => AddComponent(value);
+            get
+            {
+                OpenXRController cont = GetComponent<OpenXRController>();
+                if (cont == null)
+                {
+                    Transform3D transform = GetComponent<Transform3D>();
+                    if (transform == null)
+                        return AddComponent<Transform3D>();
+                    return transform;
+                }
+                else
+                {
+                    return cont.ControllerTransform;
+                }
+            }
+            set
+            {
+                OpenXRController cont = GetComponent<OpenXRController>();
+                if (cont == null)
+                    AddComponent(value);
+            }
+        }
+
+        public Transform3D TranslateObj(Vec3? pos, Vec3? rot, Vec3? scale)
+        {
+            Vec3 transPos = pos ?? Transform.pos;
+            Vec3 transRot = rot ?? Transform.rot;
+            Vec3 transScale = scale ?? Transform.scale;
+
+            if (_parent != null)
+            {
+                if (pos.HasValue)
+                {
+                    transPos.X += _parent.Transform.pos.X;
+                    transPos.Y += _parent.Transform.pos.Y;
+                    transPos.Z += _parent.Transform.pos.Z;
+                    Transform.pos = transPos;
+                }
+
+                if (rot.HasValue)
+                {
+                    transRot.X += _parent.Transform.rot.X;
+                    transRot.Y += _parent.Transform.rot.Y;
+                    transRot.Z += _parent.Transform.rot.Z;
+                    Transform.rot = transRot;
+                }
+
+                if (scale.HasValue)
+                {
+                    transScale.X *= _parent.Transform.scale.X;
+                    transScale.Y *= _parent.Transform.scale.Y;
+                    transScale.Z *= _parent.Transform.scale.Z;
+                    Transform.scale = transScale;
+                }
+            }
+
+            return new Transform3D(transPos, transRot, transScale);
         }
 
         // Script instances and components attached to this entity
@@ -244,6 +299,7 @@ namespace Angene.Essentials
                 );
                 return instance!;
             }
+
  
             var type = typeof(T);
  
@@ -256,7 +312,7 @@ namespace Angene.Essentials
             }
  
             _components[type] = instance;
- 
+            
             Logger.LogDebug(
                 $"Component '{type.Name}' added to entity '{name}'",
                 LoggingTarget.Engine

@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-10-01 04:35:49.794771+00:00)</sup></sub>
+<sub><sup>(generated 2026-10-03 20:50:07.179140+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -1193,6 +1193,7 @@
     * `int Id { get; set; }`
     * `Entity Instance`
     * `string name`
+    * `Transform3D TranslateObj()`
     * `List<Entity> childEntities { get; set; }`
     * `IReadOnlyCollection<object> GetComponents()`
     * `void AddScript()`
@@ -1226,6 +1227,17 @@
     * `bool Enabled`
     * `bool StartCalled`
     * `bool Destroyed`
+  * **class Material**
+  * **class Mesh**
+    * `byte[] bytes`
+    * `IntPtr vertexBuffer`
+    * `IntPtr indexBuffer`
+    * `int indexCount`
+    * `int vertexCount`
+    * `Vec3[] Corners`
+    * `Face[] Faces`
+    * `Entity targetEnt`
+    * `int MaxVertexCount { get; set; }`
   * **class SceneExtensions**
     * `Matrix4x4 GetWorldMatrix()`
   * **class ScriptBinding**
@@ -1250,6 +1262,10 @@
   * **enum EngineMode**
   * **enum LinuxWindowType**
   * **enum TShaderType**
+  * **enum Type**
+    * `Type type`
+    * `FaceColor Value { get; set; }`
+    * `string Name { get; set; }`
   * **enum XrResult**
   * **enum XrStructureType**
   * **interface IDX11Scene**
@@ -1262,6 +1278,11 @@
   * **struct CameraMatrices**
     * `Matrix4x4 View`
     * `Matrix4x4 Projection`
+  * **struct DrawItem**
+    * `Mesh Mesh`
+    * `Matrix4x4 World`
+  * **struct Face**
+    * `Material material`
   * **struct FaceColor**
   * **struct LifecycleInfo**
     * `bool HasUpdate`
@@ -1303,23 +1324,21 @@
     * `Matrix4x4 LookTo()`
     * `Matrix4x4 Perspective()`
     * `Matrix4x4 PerspectiveD3D11()`
-  * **class Mesh**
-    * `byte[] bytes`
-    * `IntPtr vertexBuffer`
-    * `IntPtr indexBuffer`
-    * `int indexCount`
-    * `int vertexCount`
+  * **class OpenXRController**
+    * `bool ControllerGrabbed { get; set; }`
+    * `Transform3D ControllerTransform { get; set; }`
   * **class Transform2D**
     * `Vec2 pos`
     * `float rot`
     * `Vec2 scale`
     * `Matrix4x4 GetMatrix()`
   * **class Transform3D**
-    * `Vec3 pos`
-    * `Vec3 rot`
-    * `Vec3 scale`
+    * `Vec3 pos { get; set; }`
+    * `Vec3 rot { get; set; }`
+    * `Vec3 scale { get; set; }`
     * `Matrix4x4 ModelView`
     * `Matrix4x4 Proj`
+    * `void ForceSetTransformVar()`
     * `Matrix4x4 GetMatrix()`
   * **class VulkanCamera**
     * `Vec3 forward`
@@ -1339,6 +1358,8 @@
     * `Matrix4x4 Perspective()`
     * `Matrix4x4 PerspectiveVulkan()`
     * `Matrix4x4 PerspectiveOpenXR()`
+  * **enum ControllerType**
+    * `void SetControllerData()`
 
   </details>
 
@@ -1400,6 +1421,7 @@
 
   * **class XrCameraMath**
     * `Matrix4x4 Projection()`
+    * `Vec3 PosToWorld()`
 
   </details>
 
