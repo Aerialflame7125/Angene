@@ -12,9 +12,9 @@ namespace Game
         public class VertexShader : IShader
         {
             public string Name => "VertexShader";
-            public bool VerboseLog { get; set; } = false;
+            public bool verboseLog { get; set; } = true;
 
-            public int id => 1;
+            public int id => 5;
             public string Extension => "hlsl";
             public string EntryPoint { get; set; } = "vertexMain";
             public ShaderType Type => ShaderType.Vertex;
@@ -22,8 +22,9 @@ namespace Game
             public bool IsDisposed { get; private set; }
 
             ShaderOrigin IShader.Origin => ShaderOrigin.Vulkan;
-
-            public string Code => @"struct VSInput
+            public ShaderQueue Queue => ShaderQueue.Geometry;
+            
+            public string code => @"struct VSInput
 {
     float3 position : POSITION;
     float4 color : COLOR;
@@ -58,7 +59,7 @@ VSOutput vertexMain(VSInput input)
         public class FragmentShader : IShader
         {
             public string Name => "FragmentShader";
-            public bool VerboseLog { get; set; } = false;
+            public bool verboseLog { get; set; } = true;
 
             public int id => 2;
             public string Extension => "hlsl";
@@ -68,8 +69,8 @@ VSOutput vertexMain(VSInput input)
             public bool IsDisposed { get; private set; }
 
             ShaderOrigin IShader.Origin => ShaderOrigin.Vulkan;
-
-            public string Code => @"struct VertexOutput {
+            public ShaderQueue Queue => ShaderQueue.Geometry;
+            public string code => @"struct VertexOutput {
     float4 position : SV_Position;
     float4 color : COLOR;
 };

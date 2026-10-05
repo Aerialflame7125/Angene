@@ -447,7 +447,7 @@ namespace Angene.Main
                 switch (current.Origin)
                 {
                     case SlangShaderResources.ShaderOrigin.Vulkan:
-                        if (current.VerboseLog)
+                        if (current.verboseLog)
                             Logger.LogDebug($"Compiling Vulkan shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
                         CompileVulkanShader(current, _devicePtr, current.compileToFile);
                         break; 
@@ -485,7 +485,7 @@ namespace Angene.Main
                 if (!TryLoadVerifiedShaderFile(cachePath, out code))
                 {
                     Logger.LogDebug($"Cached SPIR-V for '{shader.Name}' failed verification, recompiling.", LoggingTarget.Graphics);
-                    code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                    code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.code, shader.EntryPoint, stage);
                     byte[] intBytes = BitConverter.GetBytes(code.Length);
                     byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
                     Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
@@ -509,7 +509,7 @@ namespace Angene.Main
             }
             else if (CompileToFile)
             {
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.code, shader.EntryPoint, stage);
                 byte[] intBytes = BitConverter.GetBytes(code.Length);
                 byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
                 Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
@@ -531,7 +531,7 @@ namespace Angene.Main
             }
             else
             {
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.code, shader.EntryPoint, stage);
             }
 
             unsafe
@@ -550,7 +550,7 @@ namespace Angene.Main
                     if (result != VkResult.VK_SUCCESS)
                         throw new AngeneException($"Failed to create shader module for '{shader.Name}': {result}");
 
-                    var wrapped = new VkShader(shader.Name, shader.Type, null, shader.id, module, code);
+                    var wrapped = new VkShader(shader.Name, shader.Type, null, shader.id, shader.Queue, module, code);
                     Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
                     Engine.Instance.ShaderCache[shader.id] = wrapped;
                 }
@@ -665,7 +665,7 @@ namespace Angene.Main
                         switch (current.Origin)
                         {
                             case SlangShaderResources.ShaderOrigin.Dx11:
-                                if (current.VerboseLog)
+                                if (current.verboseLog)
                                     Logger.LogDebug($"Compiling Dx11 shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
                                 CompileDx11Shader(current, _devicePtr, current.compileToFile);
                                 break;
@@ -774,7 +774,7 @@ namespace Angene.Main
                         throw new AngeneException($"Failed to compile shader '{shader.Name}', Bytecode result is null.");
                     else
                         Logger.LogDebug($"Bytecode length: {code.Length}", LoggingTarget.MainGame);
-                    var wrapped = new Dx11Shader(shader.Name, shader.Type, null, null, IntPtr.Zero, nativeShader, shader.id, code);
+                    var wrapped = new Dx11Shader(shader.Name, shader.Type, null, null, IntPtr.Zero, nativeShader, shader.id, shader.Queue, code);
                     Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
                     Engine.Instance.ShaderCache[shader.id] = wrapped;
                 }

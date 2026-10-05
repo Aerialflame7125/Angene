@@ -61,7 +61,7 @@ namespace Game.Scenes
 
             // --- Camera entity: Transform3D (position) + VulkanCamera (lens/orientation) ---
             Entity cameraParent =
-                new Entity(new Vec3(-4f, 0, 1f), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "CameraParent");
+                new Entity(new Vec3(0f, 0, 0f), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "CameraParent");
             _cameraEntity = new Entity(new Vec3(0f, 0f, 0f), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "MainCamera");
             _cameraEntity.AddComponent(new VulkanCamera
             {
@@ -91,12 +91,6 @@ namespace Game.Scenes
             _cubeEntity1 = Cube.Instantiate(_gfx, new Vec3(0f, 3f, 0f), new Vec3(0, 0, 0), new Vec3(2, 2, 1), "Cube1", CameraMaterials.DefaultColors().ToArray());
             Entities.Add(_cubeEntity1);
             // --- Pipeline (position + color vertex layout, matches Shaders.cs) ---
-            var vertexShader = Engine.Instance.ShaderCache[1] as VkShader;
-            var fragmentShader = Engine.Instance.ShaderCache[2] as VkShader;
-
-            if (vertexShader.NativeShaderModule == IntPtr.Zero || fragmentShader.NativeShaderModule == IntPtr.Zero)
-                throw new Exception("Shader module handle is zero!");
-
             var attributes = new VkVertexInputAttributeDescription[]
             {
                 new VkVertexInputAttributeDescription
@@ -113,8 +107,7 @@ namespace Game.Scenes
                 },
             };
 
-            _pipeline = _gfx.CreatePipeline(vertexShader.NativeShaderModule, fragmentShader.NativeShaderModule,
-                attributes, 7 * sizeof(float));
+            _pipeline = _gfx.CreatePipeline( attributes, 7 * sizeof(float));
             
             _leftControllerEntity  = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "leftController", CameraMaterials.DefaultColors().ToArray());
             _rightControllerEntity = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "rightController", CameraMaterials.DefaultColors().ToArray());

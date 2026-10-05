@@ -95,8 +95,7 @@ namespace Angene.Essentials.GraphicsContexts;
         // Resource creation
         IntPtr CreateVertexBuffer(byte[] data, uint strideBytes);
         IntPtr CreateIndexBuffer(uint[] indices);
-        IntPtr CreatePipeline(IntPtr vertexShaderModule, IntPtr fragmentShaderModule,
-                      VkVertexInputAttributeDescription[] attributes, uint strideBytes);
+        IntPtr CreatePipeline(VkVertexInputAttributeDescription[] attributes, uint strideBytes);
 
         // Per-draw state
         void DestroyBuffer(IntPtr bufferHandle);

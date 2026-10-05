@@ -589,6 +589,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             _vmaAllocator = localAllocator;
 #endregion
 #region Shader Handling
+                Shaders = Shaders.OrderBy(x => (int)x.Queue + x.id).ToArray();
+
                 for (int i = 0; i < Shaders.Count(); i++)
                 {
                     VkShader shader = Shaders[i];
@@ -1255,31 +1257,48 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         return renderPass;
     }
 
-    public IntPtr CreatePipeline(IntPtr vertexShaderModule, IntPtr fragmentShaderModule,
-                             VkVertexInputAttributeDescription[] attributes, uint strideBytes)
+    public IntPtr CreatePipeline(VkVertexInputAttributeDescription[] attributes, uint strideBytes)
     {
         IntPtr entryPointPtr = Marshal.StringToHGlobalAnsi("main");
         try
         {
             sbyte* entryPoint = (sbyte*)entryPointPtr;
 
-            VkPipelineShaderStageCreateInfo[] stages = new VkPipelineShaderStageCreateInfo[]
+            VkPipelineShaderStageCreateInfo[] stages = new VkPipelineShaderStageCreateInfo[]{};
+
+            foreach (VkShader shader in Shaders)
             {
-                new VkPipelineShaderStageCreateInfo
+                switch (shader.Type)
                 {
-                    sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                    stage = VkShaderStageFlagBits.VK_SHADER_STAGE_VERTEX_BIT,
-                    module = vertexShaderModule,
-                    pName = entryPoint
-                },
-                new VkPipelineShaderStageCreateInfo
-                {
-                    sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                    stage = VkShaderStageFlagBits.VK_SHADER_STAGE_FRAGMENT_BIT,
-                    module = fragmentShaderModule,
-                    pName = entryPoint
+                    case SlangShaderResources.ShaderType.Vertex:
+                        stages.Append(new VkPipelineShaderStageCreateInfo()
+                        {
+                            sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                            stage = VkShaderStageFlagBits.VK_SHADER_STAGE_VERTEX_BIT,
+                            module = shader.NativeShaderModule,
+                            pName = entryPoint
+                        });
+                        break;
+                    case SlangShaderResources.ShaderType.Fragment:
+                        stages.Append(new VkPipelineShaderStageCreateInfo()
+                        {
+                            sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                            stage = VkShaderStageFlagBits.VK_SHADER_STAGE_FRAGMENT_BIT,
+                            module = shader.NativeShaderModule,
+                            pName = entryPoint
+                        });
+                        break;
+                    case SlangShaderResources.ShaderType.Compute:
+                        stages.Append(new VkPipelineShaderStageCreateInfo()
+                        {
+                            sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                            stage = VkShaderStageFlagBits.VK_SHADER_STAGE_COMPUTE_BIT,
+                            module = shader.NativeShaderModule,
+                            pName = entryPoint
+                        });
+                        break;
                 }
-            };
+            }
 
             fixed (VkPipelineShaderStageCreateInfo* pStages = stages)
             fixed (VkVertexInputAttributeDescription* pAttrs = attributes)

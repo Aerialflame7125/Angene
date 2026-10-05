@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-10-03 20:50:07.179140+00:00)</sup></sub>
+<sub><sup>(generated 2026-10-05 00:00:56.545902+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -1384,26 +1384,29 @@
   * **class Dx11Shader**
     * `int id { get; set; }`
     * `bool compileToFile { get; set; }`
-    * `bool VerboseLog { get; set; }`
+    * `bool verboseLog { get; set; }`
     * `IntPtr NativeShader { get; set; }`
     * `ShaderOrigin Origin { get; set; }`
-    * `string Code { get; set; }`
+    * `string code { get; set; }`
     * `string Extension { get; set; }`
     * `string EntryPoint { get; set; }`
     * `byte[] byteCode { get; set; }`
+    * `ShaderQueue Queue { get; set; }`
     * `void Bind()`
   * **class SlangShaderResources**
   * **class VkShader**
     * `int id { get; set; }`
     * `bool compileToFile { get; set; }`
-    * `bool VerboseLog { get; set; }`
+    * `bool verboseLog { get; set; }`
     * `ShaderOrigin Origin { get; set; }`
-    * `string Code { get; set; }`
+    * `string code { get; set; }`
     * `string Extension { get; set; }`
     * `string EntryPoint { get; set; }`
     * `byte[] byteCode { get; set; }`
+    * `ShaderQueue Queue { get; set; }`
     * `void Bind()`
   * **enum ShaderOrigin**
+  * **enum ShaderQueue**
   * **enum ShaderType**
   * **interface IDX11GraphicsContext**
   * **interface IGraphicsContext**
