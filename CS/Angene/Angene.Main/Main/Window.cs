@@ -644,7 +644,7 @@ namespace Angene.Main
                 try
                 {
                     if (graphicsContext is IVkGraphicsContext)
-                        ApplyCameraTransformsVulkan(scene);
+                        SetEntityParentScene(scene);
                     scene.Render();
                 }
                 catch (Exception ex)
@@ -674,36 +674,12 @@ namespace Angene.Main
             }
         }
 
-        public static void ApplyCameraTransformsVulkan(IScene scene)
+        public static void SetEntityParentScene(IScene scene)
         {
-            Entity cam = scene.MainCamera;
-            if (cam == null)
-                return;
-
-            var camTransform = cam.GetComponent<Transform3D>();
-            var vCam = cam.GetComponent<VulkanCamera>();
-
-            if (camTransform == null || vCam == null)
-                return;
-
-            Matrix4x4 view = vCam.LookTo(camTransform.pos, vCam.forward, vCam.up);
-            Matrix4x4 proj = vCam.Perspective(vCam.fov, vCam.aspectRatio, vCam.nearPlane, vCam.farPlane);
-
             foreach (Entity e in scene.Entities)
             {
                 if (e.ParentScene != scene)
                     e.ParentScene = scene;
-
-                if (e == cam)
-                    continue;
-
-                if (!e.TryGetComponent<Transform3D>(out var t))
-                    continue;
-
-                Matrix4x4 modelView = view * t.GetMatrix();
-
-                t.ModelView = modelView;
-                t.Proj = proj;
             }
         }
 

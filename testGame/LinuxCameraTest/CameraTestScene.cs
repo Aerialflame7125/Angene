@@ -84,13 +84,12 @@ namespace Game.Scenes
             controller.Initialize(_cameraEntity);
             Entities.Add(SpectatorCam);
 
-            // --- Cube entity: just needs a Transform3D, geometry is generated in Render() ---
-            _cubeEntity = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "Cube", CameraMaterials.DefaultColors().ToArray());
+            _cubeEntity = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "Cube", (SlangShaderResources.IShader)Engine.Instance.ShaderCache[5], CameraMaterials.DefaultColors().ToArray());
             Entities.Add(_cubeEntity);
             
-            _cubeEntity1 = Cube.Instantiate(_gfx, new Vec3(0f, 3f, 0f), new Vec3(0, 0, 0), new Vec3(2, 2, 1), "Cube1", CameraMaterials.DefaultColors().ToArray());
+            _cubeEntity1 = Cube.Instantiate(_gfx, new Vec3(0f, 3f, 0f), new Vec3(0, 0, 0), new Vec3(2, 2, 1), "Cube1", (SlangShaderResources.IShader)Engine.Instance.ShaderCache[5], CameraMaterials.DefaultColors().ToArray());
             Entities.Add(_cubeEntity1);
-            // --- Pipeline (position + color vertex layout, matches Shaders.cs) ---
+            
             var attributes = new VkVertexInputAttributeDescription[]
             {
                 new VkVertexInputAttributeDescription
@@ -109,17 +108,17 @@ namespace Game.Scenes
 
             _pipeline = _gfx.CreatePipeline( attributes, 7 * sizeof(float));
             
-            _leftControllerEntity  = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "leftController", CameraMaterials.DefaultColors().ToArray());
-            _rightControllerEntity = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "rightController", CameraMaterials.DefaultColors().ToArray());
-            OpenXRController l = _leftControllerEntity.AddComponent<OpenXRController>(new OpenXRController(OpenXRController.ControllerType.Left));
-            OpenXRController r = _rightControllerEntity.AddComponent<OpenXRController>(new OpenXRController(OpenXRController.ControllerType.Right));
-            l.ControllerTransform.ForceSetTransformVar(l.ControllerTransform.pos, l.ControllerTransform.rot,
-                new Vec3(0.2f, 0.2f, 0.2f));
-            r.ControllerTransform.ForceSetTransformVar(l.ControllerTransform.pos, l.ControllerTransform.rot,
-                new Vec3(0.2f, 0.2f, 0.2f));
-            Entities.Add(_leftControllerEntity);
-            Entities.Add(_rightControllerEntity);
-            _gfx.SetXrObjects(l, r);
+            //_leftControllerEntity  = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "leftController", CameraMaterials.DefaultColors().ToArray());
+            //_rightControllerEntity = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "rightController", CameraMaterials.DefaultColors().ToArray());
+            //OpenXRController l = _leftControllerEntity.AddComponent<OpenXRController>(new OpenXRController(OpenXRController.ControllerType.Left));
+            //OpenXRController r = _rightControllerEntity.AddComponent<OpenXRController>(new OpenXRController(OpenXRController.ControllerType.Right));
+            //l.ControllerTransform.ForceSetTransformVar(l.ControllerTransform.pos, l.ControllerTransform.rot,
+            //    new Vec3(0.2f, 0.2f, 0.2f));
+            //r.ControllerTransform.ForceSetTransformVar(l.ControllerTransform.pos, l.ControllerTransform.rot,
+            //    new Vec3(0.2f, 0.2f, 0.2f));
+            //Entities.Add(_leftControllerEntity);
+            //Entities.Add(_rightControllerEntity);
+            //_gfx.SetXrObjects(l, r);
         }
 
         public void OnMessage(object msgPtr)

@@ -5,7 +5,19 @@ using static Angene.Essentials.Types;
 
 namespace Angene.Essentials.Components;
 
-public class OpenXRController
+public class Component
+{
+    public readonly struct ComponentHandle<T> where T : class
+    {
+        private readonly Entity _entity;
+        public ComponentHandle(Entity e) => _entity = e;
+        public bool IsValid => _entity != null && _entity.HasComponent<T>();
+        public T Value => _entity.GetComponent<T>()
+                          ?? throw new InvalidOperationException($"'{_entity.name}' has no {typeof(T).Name}.");
+    }
+}
+
+public class OpenXRController : Component
 {
     public bool ControllerGrabbed { get; internal set; }
     private ControllerType type { get; }
@@ -31,54 +43,43 @@ public class OpenXRController
     }
 }
 
-public class Transform3D
+public class Transform3D : Component
 {
-    public Vec3 pos { get; internal set; } = new(0.0f, 0.0f, 0.0f);
-    public Vec3 rot { get; internal set; } = new(0.0f, 0.0f, 0.0f);
-    public Vec3 scale { get; internal set; } = new(1.0f, 1.0f, 1.0f);
+    private Vec3 _pos, _rot, _scale = new(1f, 1f, 1f);
+    private Matrix4x4 _local;
+    private bool _dirty = true;
 
-    public Matrix4x4 ModelView;
-    public Matrix4x4 Proj;
+    public int Version { get; private set; }
 
-    /// <summary>
-    /// This method forcefully sets the transform values. If you are translating a game object, please use Entity.TransformObj instead.
-    /// </summary>
-    /// <param name="pos"></param>
-    /// <param name="rot"></param>
-    /// <param name="scale"></param>
-    public void ForceSetTransformVar(Vec3 pos, Vec3 rot, Vec3 scale)
-    {
-        this.pos = pos;
-        this.rot = rot;
-        this.scale = scale;
-    }
+    public Vec3 pos { get => _pos; set { _pos = value; Touch(); } }
+    public Vec3 rot { get => _rot; set { _rot = value; Touch(); } }
+    public Vec3 scale { get => _scale; set { _scale = value; Touch(); } }
+
+    private void Touch() { _dirty = true; Version++; }
+
+    public void ForceSetTransformVar(Vec3 p, Vec3 r, Vec3 s)
+    { _pos = p; _rot = r; _scale = s; Touch(); }
 
     public Matrix4x4 GetMatrix()
     {
-        Matrix4x4 rotation = Matrix4x4.RotationZ(rot.Z) 
-                        * Matrix4x4.RotationY(rot.Y) 
-                        * Matrix4x4.RotationX(rot.X);
-    return Matrix4x4.Translation(pos) * rotation * Matrix4x4.Scale(scale);
+        if (_dirty)
+        {
+            Matrix4x4 rotation = Matrix4x4.RotationZ(_rot.Z)
+                                 * Matrix4x4.RotationY(_rot.Y)
+                                 * Matrix4x4.RotationX(_rot.X);
+            _local = Matrix4x4.Translation(_pos) * rotation * Matrix4x4.Scale(_scale);
+            _dirty = false;
+        }
+        return _local;
     }
 
     public Transform3D() {}
-
-    public Transform3D(Transform3D buh)
-    {
-        pos = buh.pos;
-        rot = buh.rot;
-        scale = buh.scale;
-    }
-
-    public Transform3D(Vec3 _pos, Vec3 _rot, Vec3 _scale)
-    {
-        pos = _pos;
-        rot = _rot;
-        scale = _scale;
-    }
+    public Transform3D(Transform3D o) { _pos = o._pos; _rot = o._rot; _scale = o._scale; }
+    public Transform3D(Vec3 p, Vec3 r, Vec3 s) { _pos = p; _rot = r; _scale = s; }
 }
 
-public class Transform2D {
+public class Transform2D : Component
+{
     public Vec2 pos = new(0.0f, 0.0f);
     public float rot = 0f;
     public Vec2 scale = new(1.0f, 1.0f);
@@ -112,7 +113,7 @@ public class Transform2D {
     public static implicit operator Transform3D(Transform2D d) => new Transform3D((Vec3)d.pos, new Vec3(0f, 0f, d.rot), (Vec3)d.scale);
 }
 
-public class VulkanCamera
+public class VulkanCamera : Component
 {
     public Vec3 forward;
     public Vec3 up;
@@ -146,6 +147,11 @@ public class VulkanCamera
                 farPlane)
         };
     }
+    public CameraMatrices GetMatrices(Matrix4x4 cameraWorld) => new CameraMatrices
+    {
+        View = LookTo(Matrix4x4.WorldPosition(cameraWorld), Matrix4x4.TransformDirection(cameraWorld, forward), Matrix4x4.TransformDirection(cameraWorld, up)),
+        Projection = Perspective(fov, aspectRatio, nearPlane, farPlane)
+    };
 
     public Matrix4x4 LookAt(Vec3 eye, Vec3 target, Vec3 up)
     {
@@ -225,8 +231,8 @@ public class VulkanCamera
 
             M20 = 0, 
             M21 = 0,
-            M22 = -(farPlane + nearPlane) / (farPlane - nearPlane),
-            M23 = -(2f * farPlane * nearPlane) / (farPlane - nearPlane),
+            M22 = farPlane / (nearPlane - farPlane),
+            M23 = (farPlane * nearPlane) / (nearPlane - farPlane),
 
             M30 = 0, 
             M31 = 0,
@@ -259,8 +265,8 @@ public class VulkanCamera
 
             M20 = 0,
             M21 = 0,
-            M22 = -(farPlane + nearPlane) / (farPlane - nearPlane),
-            M23 = -(2f * farPlane * nearPlane) / (farPlane - nearPlane),
+            M22 = farPlane / (nearPlane - farPlane),
+            M23 = (farPlane * nearPlane) / (nearPlane - farPlane),
 
             M30 = 0,
             M31 = 0,
@@ -270,7 +276,7 @@ public class VulkanCamera
     }
 }
 
-public class D3D11Camera
+public class D3D11Camera : Component
 {
     public Vec3 forward;
     public Vec3 up;

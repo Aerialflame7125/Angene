@@ -49,42 +49,9 @@ namespace Angene.Essentials
                     AddComponent(value);
             }
         }
-
-        public Transform3D TranslateObj(Vec3? pos, Vec3? rot, Vec3? scale)
-        {
-            Vec3 transPos = pos ?? Transform.pos;
-            Vec3 transRot = rot ?? Transform.rot;
-            Vec3 transScale = scale ?? Transform.scale;
-
-            if (_parent != null)
-            {
-                if (pos.HasValue)
-                {
-                    transPos.X += _parent.Transform.pos.X;
-                    transPos.Y += _parent.Transform.pos.Y;
-                    transPos.Z += _parent.Transform.pos.Z;
-                    Transform.pos = transPos;
-                }
-
-                if (rot.HasValue)
-                {
-                    transRot.X += _parent.Transform.rot.X;
-                    transRot.Y += _parent.Transform.rot.Y;
-                    transRot.Z += _parent.Transform.rot.Z;
-                    Transform.rot = transRot;
-                }
-
-                if (scale.HasValue)
-                {
-                    transScale.X *= _parent.Transform.scale.X;
-                    transScale.Y *= _parent.Transform.scale.Y;
-                    transScale.Z *= _parent.Transform.scale.Z;
-                    Transform.scale = transScale;
-                }
-            }
-
-            return new Transform3D(transPos, transRot, transScale);
-        }
+        
+        public Matrix4x4 GetWorldMatrix() =>
+            _parent == null ? Transform.GetMatrix() : _parent.GetWorldMatrix() * Transform.GetMatrix();
 
         // Script instances and components attached to this entity
         private List<object> _scripts;

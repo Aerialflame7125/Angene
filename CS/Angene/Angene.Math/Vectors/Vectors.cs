@@ -420,5 +420,11 @@ namespace Angene.Math.Vectors
                 M33 = a.M30 * b.M03 + a.M31 * b.M13 + a.M32 * b.M23 + a.M33 * b.M33,
             };
         }
+        public static Vec3 WorldPosition(Matrix4x4 w) => new(w.M03, w.M13, w.M23);
+        
+        public static Vec3 TransformDirection(Matrix4x4 w, Vec3 d) => new Vec3(
+            w.M00 * d.X + w.M01 * d.Y + w.M02 * d.Z,
+            w.M10 * d.X + w.M11 * d.Y + w.M12 * d.Z,
+            w.M20 * d.X + w.M21 * d.Y + w.M22 * d.Z).Normalized;
     }
 }

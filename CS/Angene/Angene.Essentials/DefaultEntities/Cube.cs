@@ -6,10 +6,10 @@ namespace Angene.Essentials.DefaultEntities;
 
 public class Cube
 {
-    public static Entity Instantiate(object graphicsContext, Vec3 pos, Vec3 rot, Vec3 scale, string name, Types.Material[] mats = null)
+    public static Entity Instantiate(object graphicsContext, Vec3 pos, Vec3 rot, Vec3 scale, string name, SlangShaderResources.IShader shader, Types.Material[] mats = null)
     {
         Entity _local = new Entity(pos, rot, scale, name);
-        Types.Mesh m = _local.AddComponent(new Types.Mesh());
+        Types.Mesh m = _local.AddComponent(new Types.Mesh(IntPtr.Zero, IntPtr.Zero, shader));
         switch (graphicsContext.GetType().ToString())
         {
             case "Angene.Graphics.Vulkan.VkGraphicsContext":
@@ -24,7 +24,7 @@ public class Cube
         return _local;
     }
 
-    public static (Vec3[] corners, Types.Face[] faces) BuildCubeMesh(Entity cube, Types.Material[] mats, float s = 1f)
+    public static void BuildCubeMesh(Entity cube, Types.Material[] mats, float s = 1f)
     {
         float h = s / 2f;
         var c = new[]
@@ -44,7 +44,5 @@ public class Cube
 
         cube.GetComponent<Types.Mesh>().Corners = c;
         cube.GetComponent<Types.Mesh>().Faces = f;
-        
-        return (c, f);
     }
 }

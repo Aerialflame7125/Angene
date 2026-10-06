@@ -746,18 +746,18 @@ namespace Angene.Main
                 if (!TryLoadVerifiedShaderFile(cachePath, out code))
                 {
                     Logger.LogDebug($"Cached shader file for '{shader.Name}' failed verification, recompiling.", LoggingTarget.Graphics);
-                    code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
+                    code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
                 }
             }
             else if (CompileToFile)
             {
                 // No cache yet — compile and write the verified file for next time.
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
             }
             else
             {
                 // Not using file caching at all.
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryD3D11(shader.Code, shader.EntryPoint, stage);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryD3D11(shader.code, shader.EntryPoint, stage);
             }
 
             unsafe

@@ -24,7 +24,15 @@ namespace Game
             ShaderOrigin IShader.Origin => ShaderOrigin.Vulkan;
             public ShaderQueue Queue => ShaderQueue.Geometry;
             
-            public string code => @"struct VSInput
+            public string code => @"struct PushData
+{
+    row_major float4x4 view;
+    row_major float4x4 proj;
+};
+
+[[vk::push_constant]] ConstantBuffer<PushData> pc;
+
+struct VSInput
 {
     float3 position : POSITION;
     float4 color : COLOR;
@@ -37,7 +45,8 @@ struct VSOutput
 VSOutput vertexMain(VSInput input)
 {
     VSOutput output;
-    output.position = float4(input.position, 1.0);
+    float4 viewPos = mul(pc.view, float4(input.position, 1.0));
+    output.position = mul(pc.proj, viewPos);
     output.color = input.color;
     return output;
 }";

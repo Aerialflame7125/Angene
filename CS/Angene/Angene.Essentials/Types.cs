@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 using Angene.Essentials.Components;
+using Angene.Essentials.GraphicsContexts;
 using Angene.Math.Vectors;
 using Angene.Vulkan.Interop;
 using static Angene.Vulkan.Interop.Enumerators;
@@ -1037,8 +1038,10 @@ namespace Angene.Essentials
             public int indexCount;
             public int vertexCount;
             public Vec3[] Corners = Array.Empty<Vec3>();
+            public bool geometryDirty = true;
             public Face[] Faces   = Array.Empty<Face>();
             public Entity targetEnt;
+            public SlangShaderResources.IShader Shader { get; }
             public int MaxVertexCount => Faces.Length * 6;
 
             public Mesh(Mesh buh)
@@ -1050,18 +1053,20 @@ namespace Angene.Essentials
                 targetEnt = buh.targetEnt;
                 Corners = buh.Corners;
                 Faces = buh.Faces;
+                Shader = buh.Shader;
             }
 
-            public Mesh(IntPtr _vertexBuffer, IntPtr _indexBuffer, int _indexCount = 0, int _vertexCount = 0, Entity targetent = null)
+            public Mesh(IntPtr _vertexBuffer, IntPtr _indexBuffer, SlangShaderResources.IShader shader, int _indexCount = 0, int _vertexCount = 0, Entity targetent = null)
             {
                 vertexBuffer = _vertexBuffer;
                 indexBuffer = _indexBuffer;
                 indexCount = _indexCount;
                 vertexCount = _vertexCount;
                 targetEnt = targetent;
+                Shader = shader;
             }
             
-            public Mesh(IntPtr _vertexBuffer, IntPtr _indexBuffer, Vec3[] corners, Face[] faces,  int _indexCount = 0, int _vertexCount = 0, Entity targetent = null)
+            public Mesh(IntPtr _vertexBuffer, IntPtr _indexBuffer, Vec3[] corners, Face[] faces, SlangShaderResources.IShader shader,  int _indexCount = 0, int _vertexCount = 0, Entity targetent = null)
             {
                 vertexBuffer = _vertexBuffer;
                 indexBuffer = _indexBuffer;
@@ -1070,6 +1075,7 @@ namespace Angene.Essentials
                 targetEnt = targetent;
                 Corners = corners;
                 Faces = faces;
+                Shader = shader;
             }
             
             public Mesh() { }
@@ -1085,8 +1091,8 @@ namespace Angene.Essentials
             }
 
             public Type type;
-            public FaceColor Value { get; private set; }
-            public string Name { get; private set; } = "";
+            public FaceColor Value { get; }
+            public string Name { get; } = "";
             
             public Material(Type type, FaceColor value, string name)
             {

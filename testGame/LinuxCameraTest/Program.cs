@@ -79,7 +79,7 @@ namespace Game
                     Height = 720,
                     Title = "Angene Camera Test",
                     renderMode = Angene.Graphics.RenderType.Vulkan,
-                    UseWayland = false,
+                    UseWayland = true,
                     UsingOpenXR = false
                 };
                 Window win = new Window(config);

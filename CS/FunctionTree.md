@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-10-05 00:00:56.545902+00:00)</sup></sub>
+<sub><sup>(generated 2026-10-06 05:38:22.898449+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -1193,7 +1193,7 @@
     * `int Id { get; set; }`
     * `Entity Instance`
     * `string name`
-    * `Transform3D TranslateObj()`
+    * `Matrix4x4 GetWorldMatrix()`
     * `List<Entity> childEntities { get; set; }`
     * `IReadOnlyCollection<object> GetComponents()`
     * `void AddScript()`
@@ -1235,6 +1235,7 @@
     * `int indexCount`
     * `int vertexCount`
     * `Vec3[] Corners`
+    * `bool geometryDirty`
     * `Face[] Faces`
     * `Entity targetEnt`
     * `int MaxVertexCount { get; set; }`
@@ -1312,6 +1313,9 @@
 
   <details><summary><b>Angene.Essentials.Components</b></summary>
 
+  * **class Component**
+    * `bool IsValid { get; set; }`
+    * `T Value { get; set; }`
   * **class D3D11Camera**
     * `Vec3 forward`
     * `Vec3 up`
@@ -1333,11 +1337,10 @@
     * `Vec2 scale`
     * `Matrix4x4 GetMatrix()`
   * **class Transform3D**
+    * `int Version { get; set; }`
     * `Vec3 pos { get; set; }`
     * `Vec3 rot { get; set; }`
     * `Vec3 scale { get; set; }`
-    * `Matrix4x4 ModelView`
-    * `Matrix4x4 Proj`
     * `void ForceSetTransformVar()`
     * `Matrix4x4 GetMatrix()`
   * **class VulkanCamera**
@@ -1367,6 +1370,7 @@
 
   * **class Cube**
     * `Entity Instantiate()`
+    * `void BuildCubeMesh()`
 
   </details>
 
@@ -5619,7 +5623,7 @@
     * `void SetEngineMode()`
     * `EngineMode GetEngineMode()`
     * `void RenderFrame()`
-    * `void ApplyCameraTransformsVulkan()`
+    * `void SetEntityParentScene()`
     * `bool Acked`
     * `void Cleanup()`
     * `void Close()`
@@ -5797,6 +5801,8 @@
     * `Matrix4x4 RotationX()`
     * `Matrix4x4 RotationY()`
     * `Matrix4x4 RotationZ()`
+    * `Vec3 WorldPosition()`
+    * `Vec3 TransformDirection()`
   * **struct Point**
   * **struct Quaternion**
     * `float X`
@@ -5874,6 +5880,7 @@
   * **class VkVideo**
   * **class VulkanMemoryAllocator**
     * `IntPtr Buffer`
+    * `IntPtr Allocation`
   * **enum StdVideoAV1ChromaSamplePosition**
   * **enum StdVideoAV1ColorPrimaries**
   * **enum StdVideoAV1FrameRestorationType**
@@ -6239,6 +6246,12 @@
   * **enum VmaMemoryUsage**
   * **enum VmaPoolCreateFlagBits**
   * **enum VmaVirtualAllocationCreateFlagBits**
+    * `uint flags`
+    * `IntPtr physicalDevice`
+    * `IntPtr device`
+    * `ulong preferredLargeHeapBlockSize`
+    * `IntPtr instance`
+    * `uint vulkanApiVersion`
   * **enum VmaVirtualBlockCreateFlagBits**
   * **struct StdVideoAV1CDEF**
     * `byte cdef_damping_minus_3`
@@ -9645,17 +9658,18 @@
     * `float maxContentLightLevel`
     * `float maxFrameAverageLightLevel`
     * `uint relaxedLineRasterization`
-  * **struct VmaAllocation**
   * **struct VmaAllocationInfo2**
     * `VmaAllocationInfo allocationInfo`
     * `ulong blockSize`
     * `uint dedicatedMemory`
     * `uint flags`
+    * `IntPtr pool`
     * `ulong maxBytesPerPass`
     * `uint maxAllocationsPerPass`
     * `VmaDefragmentationMoveOperation operation`
+    * `IntPtr srcAllocation`
+    * `IntPtr dstTmpAllocation`
     * `uint moveCount`
-  * **struct VmaAllocator**
   * **struct VmaBudget**
     * `VmaStatistics statistics`
     * `ulong usage`
@@ -9665,6 +9679,7 @@
     * `uint requiredFlags`
     * `uint preferredFlags`
     * `uint memoryTypeBits`
+    * `IntPtr pool`
     * `float priority`
     * `ulong minAlignment`
     * `uint memoryTypeIndex`
@@ -9676,7 +9691,6 @@
     * `IntPtr deviceMemory`
     * `ulong offset`
     * `ulong size`
-  * **struct VmaDefragmentationContext**
   * **struct VmaDefragmentationStats**
     * `ulong bytesMoved`
     * `ulong bytesFreed`
@@ -9693,7 +9707,6 @@
     * `ulong allocationSizeMax`
     * `ulong unusedRangeSizeMin`
     * `ulong unusedRangeSizeMax`
-  * **struct VmaPool**
   * **struct VmaStatistics**
     * `uint blockCount`
     * `uint allocationCount`
@@ -9703,14 +9716,6 @@
     * `_memoryType_e__FixedBuffer memoryType`
     * `_memoryHeap_e__FixedBuffer memoryHeap`
     * `VmaDetailedStatistics total`
-  * **struct VmaVirtualAllocation**
-  * **struct VmaVirtualBlock**
-    * `uint flags`
-    * `IntPtr physicalDevice`
-    * `IntPtr device`
-    * `ulong preferredLargeHeapBlockSize`
-    * `IntPtr instance`
-    * `uint vulkanApiVersion`
   * **struct _FeatureData_e__FixedBuffer**
     * `short e0_0`
   * **struct _FeatureEnabled_e__FixedBuffer**
