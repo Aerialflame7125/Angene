@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-10-06 05:38:22.898449+00:00)</sup></sub>
+<sub><sup>(generated 2026-10-08 00:02:24.605555+00:00)</sup></sub>
 
 ## Angene.Audio
 
@@ -1153,6 +1153,8 @@
     * `void LogError()`
     * `void LogImportant()`
     * `void LogCritical()`
+    * `HashSet<int> _ids`
+    * `void LogOnce()`
     * `void Shutdown()`
   * **class PrecompileAttribute**
   * **enum LogLevel**
@@ -1271,7 +1273,6 @@
   * **enum XrStructureType**
   * **interface IDX11Scene**
   * **interface IScene**
-    * `Entity GetCameraEntity()`
     * `List<Entity> GetEntities()`
     * `void AddEntity()`
     * `void RemoveEntity()`
@@ -1331,6 +1332,9 @@
   * **class OpenXRController**
     * `bool ControllerGrabbed { get; set; }`
     * `Transform3D ControllerTransform { get; set; }`
+  * **class OpenXRHmd**
+    * `object cam { get; set; }`
+    * `Entity head`
   * **class Transform2D**
     * `Vec2 pos`
     * `float rot`
@@ -1351,6 +1355,10 @@
     * `float nearPlane`
     * `float farPlane`
     * `bool isPrimary`
+    * `Vec4 viewport`
+    * `bool clearDepth`
+    * `int priority`
+    * `bool enabled`
     * `CameraMatrices GetMatrices()`
     * `Matrix4x4 LookAt()`
     * `void AddTriangle()`
@@ -1427,8 +1435,8 @@
   <details><summary><b>Global</b></summary>
 
   * **class XrCameraMath**
-    * `Matrix4x4 Projection()`
     * `Vec3 PosToWorld()`
+    * `Matrix4x4 Projection()`
 
   </details>
 

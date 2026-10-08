@@ -16,7 +16,7 @@ namespace Game
 {
     public class CameraControllerScript : IScreenPlay
     {
-        private Transform3D _transform;
+        private Transform3D _transform, _parentTransform;
         internal VulkanCamera _camera;
         internal Entity cameraEntity;
         private Vec3 rotation;
@@ -36,14 +36,15 @@ namespace Game
         private KeyDetection keyDetection = new KeyDetection();
         private MouseDetection mouseDetection = new MouseDetection();
 
-        public void Initialize(Entity cameraEntity)
+        public void Initialize(Entity cameraEntity, Entity cameraParent)
         {
             if (cameraEntity == null)
                 throw new ArgumentNullException(nameof(cameraEntity));
             this.cameraEntity = cameraEntity;
 
             _transform = cameraEntity.GetComponent<Transform3D>();
-            _camera = cameraEntity.GetComponent<VulkanCamera>();
+            _parentTransform = cameraParent.GetComponent<Transform3D>();
+            _camera = (VulkanCamera)cameraEntity.GetComponent<OpenXRHmd>().cam;
 
             if (_transform == null || _camera == null)
             {
@@ -82,7 +83,7 @@ namespace Game
             if (KeyDetection.IsKeyDown((uint)CursorKeys.Down))
                 _pitch -= LookSpeed * delta;
             
-            _transform.rot = new Vec3(_pitch, -_yaw, 0);
+            _parentTransform.rot = new Vec3(_pitch, -_yaw, 0);
             
             Vec3 forward = new Vec3(
                 MathF.Sin(_yaw) * MathF.Cos(_pitch),
@@ -134,7 +135,7 @@ namespace Game
             }
 
             if (move.Length > 0.0001f)
-                _transform.pos = _transform.pos + move.Normalized * (MoveSpeed * delta);
+                _parentTransform.pos = _parentTransform.pos + move.Normalized * (MoveSpeed * delta);
         }
     }
 }

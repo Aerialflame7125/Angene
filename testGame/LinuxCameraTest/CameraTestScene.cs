@@ -63,30 +63,41 @@ namespace Game.Scenes
             Entity cameraParent =
                 new Entity(new Vec3(0f, 0, 0f), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "CameraParent");
             _cameraEntity = new Entity(new Vec3(0f, 0f, 0f), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "MainCamera");
-            _cameraEntity.AddComponent(new VulkanCamera
+            _cameraEntity.AddComponent(new OpenXRHmd(new VulkanCamera
             {
                 forward = new Vec3(0f, 0f, -1f), // looking toward the cube at the origin
                 up = new Vec3(0f, 1f, 0f),
-                fov = MathF.PI / 3f, // 60 degrees
+                fov = MathF.PI / 3f,
                 aspectRatio = _gfx.VkExtent2D.width / (float)_gfx.VkExtent2D.height,
                 nearPlane = 0.1f,
                 farPlane = 100f,
-                isPrimary = true,
-            });
+                isPrimary = true
+            }));
             cameraParent.AddChild(_cameraEntity);
             Entities.Add(_cameraEntity);
-
-            VulkanCamera mainCamera = _cameraEntity.GetComponent<VulkanCamera>();
-
+            
             SpectatorCam = new Entity(new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "spectatorCam");
+            SpectatorCam.AddComponent(new VulkanCamera {
+                forward = new Vec3(0, 0, -1), up = new Vec3(0, 1, 0),
+                fov = MathF.PI / 3f,
+                nearPlane = 0.1f,
+                farPlane = 100f,
+                priority = 0,
+                clearDepth = true
+            });
 
             var controller = _cameraEntity.AddScript<CameraControllerScript>();
-            controller.Initialize(_cameraEntity);
-            Entities.Add(SpectatorCam);
+            
+            var hmd = _cameraEntity.GetComponent<OpenXRHmd>()!;
+            hmd.head.AddChild(SpectatorCam);
+            controller.Initialize(_cameraEntity, cameraParent);
+            _cameraEntity.AddChild(hmd.head);
 
+            Entities.Add(SpectatorCam);
+            Entities.Add(hmd.head);
+            
             _cubeEntity = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "Cube", (SlangShaderResources.IShader)Engine.Instance.ShaderCache[5], CameraMaterials.DefaultColors().ToArray());
             Entities.Add(_cubeEntity);
-            
             _cubeEntity1 = Cube.Instantiate(_gfx, new Vec3(0f, 3f, 0f), new Vec3(0, 0, 0), new Vec3(2, 2, 1), "Cube1", (SlangShaderResources.IShader)Engine.Instance.ShaderCache[5], CameraMaterials.DefaultColors().ToArray());
             Entities.Add(_cubeEntity1);
             
@@ -108,8 +119,8 @@ namespace Game.Scenes
 
             _pipeline = _gfx.CreatePipeline( attributes, 7 * sizeof(float));
             
-            //_leftControllerEntity  = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "leftController", CameraMaterials.DefaultColors().ToArray());
-            //_rightControllerEntity = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "rightController", CameraMaterials.DefaultColors().ToArray());
+            //_leftControllerEntity  = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "leftController", (SlangShaderResources.IShader)Engine.Instance.ShaderCache[5], CameraMaterials.DefaultColors().ToArray());
+            //_rightControllerEntity = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "rightController", (SlangShaderResources.IShader)Engine.Instance.ShaderCache[5], CameraMaterials.DefaultColors().ToArray());
             //OpenXRController l = _leftControllerEntity.AddComponent<OpenXRController>(new OpenXRController(OpenXRController.ControllerType.Left));
             //OpenXRController r = _rightControllerEntity.AddComponent<OpenXRController>(new OpenXRController(OpenXRController.ControllerType.Right));
             //l.ControllerTransform.ForceSetTransformVar(l.ControllerTransform.pos, l.ControllerTransform.rot,
@@ -132,7 +143,7 @@ namespace Game.Scenes
         {
             if (_gfx == null) return;
             
-            _gfx.BeginFrame(0x00202020);
+            _gfx.BeginFrame();
             _gfx.EndFrame();
         }
         

@@ -111,7 +111,7 @@ namespace Angene.Essentials.GraphicsContexts;
         void SetScene(IScene scene);
 
         // Frame lifecycle
-        void BeginFrame(uint clearColor);
+        void BeginFrame(uint clearColor = 0x00000000);
         void EndFrame();
     }
     

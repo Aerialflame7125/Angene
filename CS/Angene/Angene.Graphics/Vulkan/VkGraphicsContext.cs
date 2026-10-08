@@ -17,6 +17,7 @@ using static Angene.Essentials.Types;
 using Angene.Essentials.GraphicsContexts;
 using Angene.Math.Vectors;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Angene.Essentials.Components;
@@ -1458,22 +1459,24 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         subpass = 0,
                         basePipelineIndex = -1
                     };
-                    IntPtr pipeline;
-                    VkResult result = vkCreateGraphicsPipelines(_vkDevice, IntPtr.Zero, 1, &pipelineInfo, null, &pipeline);
+                    IntPtr swapPipeline;
+                    pipelineInfo.renderPass = _vkRenderPass;
+                    VkResult result = vkCreateGraphicsPipelines(_vkDevice, IntPtr.Zero, 1, &pipelineInfo, null, &swapPipeline);
                     if (result != VkResult.VK_SUCCESS)
                         throw new Exceptions.FailedToInitializeVulkanException($"Failed to create graphics pipeline: {result}");
+
                     if (UseOpenXR)
                     {
-                        IntPtr OXRPipeline;
-                        result = vkCreateGraphicsPipelines(_vkDevice, IntPtr.Zero, 1, &pipelineInfo, null,
-                            &OXRPipeline);
+                        IntPtr xrPipe;
+                        pipelineInfo.renderPass = _xrRenderPass;
+                        result = vkCreateGraphicsPipelines(_vkDevice, IntPtr.Zero, 1, &pipelineInfo, null, &xrPipe);
                         if (result != VkResult.VK_SUCCESS)
                             throw new Exceptions.FailedToInitializeVulkanException($"Failed to create graphics pipeline for OpenXR: {result}");
-                        _xrPipeline = OXRPipeline;
+                        _xrPipeline = xrPipe;
                     }
-                    
-                    _vkPipeline = pipeline;
-                    return pipeline;
+
+                    _vkPipeline = swapPipeline;
+                    return swapPipeline;
                 }
             }
         }
@@ -1548,8 +1551,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         {
             if (camera == null)
                 throw new Exception("RenderXrFrame received a null VulkanCamera.");
-            Matrix4x4 camWorld = _scene.GetWorldMatrix(_scene.MainCamera);
-            Vec3 pos = Matrix4x4.WorldPosition(camWorld);
+            Matrix4x4 camWorld = _scene.GetWorldMatrix(_hmd);
 
             for (int eye = 0; eye < 2; eye++)
             {
@@ -1558,12 +1560,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         ? frame.leftEye
                         : frame.rightEye;
 
-                var (view, proj) =
-                    XrCameraMath.ForEye(
-                        pos,
-                        camera,
-                        ev
-                    );
+                var (view, proj) = XrCameraMath.ForEye(camWorld, camera, ev);
 
                 uint img = _xrAcquire(eye);
 
@@ -1582,10 +1579,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 Quaternion r = (Quaternion)GetPreservedVariable("leftHandRot");
                 bool leftControllerGrabbed = (bool)GetPreservedVariable("leftControllerGrab");
             
-                r = new Quaternion(-r.X, -r.Y, r.Z, r.W);
-            
                 leftOXRController.SetControllerData(leftControllerGrabbed,
-                    new Transform3D(XrCameraMath.PosToWorld(pos, _scene.MainCamera.GetComponent<VulkanCamera>(), p), r.ToEuler(), leftOXRController.ControllerTransform.scale));
+                    new Transform3D(XrCameraMath.PosToWorld(camWorld, p), r.ToEuler(), leftOXRController.ControllerTransform.scale));
             }
             if (rightOXRController != null)
             {
@@ -1593,10 +1588,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 Quaternion r = (Quaternion)GetPreservedVariable("rightHandRot");
                 bool rightControllerGrabbed = (bool)GetPreservedVariable("rightControllerGrab");
             
-                r = new Quaternion(-r.X, -r.Y, r.Z, r.W);
-            
                 rightOXRController.SetControllerData(rightControllerGrabbed,
-                    new Transform3D(XrCameraMath.PosToWorld(pos, _scene.MainCamera.GetComponent<VulkanCamera>(), p), r.ToEuler(), rightOXRController.ControllerTransform.scale));
+                    new Transform3D(XrCameraMath.PosToWorld(camWorld, p), r.ToEuler(), rightOXRController.ControllerTransform.scale));
             }
             
             Vec3 left = new Vec3(
@@ -1614,11 +1607,12 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             {
                 W = frame.leftEye.qw,
                 X = frame.leftEye.qx,
-                Y = frame.leftEye.qy,
+                Y = -frame.leftEye.qy,
                 Z = frame.leftEye.qz,
             };
-            _scene.MainCamera.Transform.rot = headRot.ToEuler();
-            _scene.MainCamera.Transform.pos = headPos;
+            var head = _hmd.GetComponent<OpenXRHmd>()!.head;
+            head.Transform.rot = headRot.ToEuler();
+            head.Transform.pos = headPos;
         }
         _xrEndFrame(frame.shouldRender);
     }
@@ -1806,25 +1800,36 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
     private readonly List<DrawItem> _drawItems = new();
     private readonly List<(DrawItem item, Matrix4x4 mv, float z)> _sorted = new();
+    private readonly List<Entity> _cameras = new();
+    private readonly HashSet<Entity> _visited = new();
+    private Entity _hmd = null;
     
     private void GatherDrawItems()
     {
-        _drawItems.Clear();
-        
-        if (_scene == null)
-            throw new InvalidOperationException("GatherDrawItems: _scene is null");
-
-        if (_scene.Entities == null)
-            throw new InvalidOperationException("GatherDrawItems: _scene.Entities is null");
-        
+        _drawItems.Clear(); _cameras.Clear(); _visited.Clear();
         foreach (Entity e in _scene.Entities)
         {
-            if (!e.TryGetComponent<Mesh>(out var mesh) || mesh == null) continue;
-            _drawItems.Add(new DrawItem
-            {
-                Mesh = mesh,
-                World = _scene.GetWorldMatrix(e)
-            });
+            Entity root = e;
+            while (root.GetParent() != null) root = root.GetParent();
+            Visit(root);
+        }
+        if (_cameras.Contains(_hmd))
+        {
+            Logger.LogOnce("Your scene seems to contain a VulkanCamera on an OpenXRHmd object. OpenXRHmd objects have their own VulkanCamera objects, and they should be used for such.", LoggingTarget.Graphics, 1013);
+            _cameras.Remove(_hmd);
+        }
+        _cameras.Sort((a, b) => a.GetComponent<VulkanCamera>()!.priority
+            .CompareTo(b.GetComponent<VulkanCamera>()!.priority));
+    }
+    
+    private void Visit(Entity e)
+    {
+        if (!_visited.Add(e) || !e.IsEnabled()) return;
+
+        if (e.TryGetComponent<OpenXRHmd>(out _)) _hmd = e;
+        if (e.TryGetComponent<VulkanCamera>(out _)) _cameras.Add(e);
+        if (e.TryGetComponent<Mesh>(out var mesh) && mesh != null)
+        {
             if (mesh.vertexBuffer == IntPtr.Zero || mesh.geometryDirty)
             {
                 if (mesh.vertexBuffer != IntPtr.Zero) DestroyBuffer(mesh.vertexBuffer);
@@ -1832,7 +1837,9 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 BuildStaticMesh(mesh);
                 mesh.geometryDirty = false;
             }
+            _drawItems.Add(new DrawItem { Mesh = mesh, World = e.GetWorldMatrix() });
         }
+        foreach (Entity c in e.childEntities) Visit(c);
     }
     
     (IntPtr image, IntPtr alloc, IntPtr view) CreateDepth(uint w, uint h)
@@ -1859,7 +1866,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         return (img, a, view);
     }
     
-    public void BeginFrame(uint clearColor)
+    public void BeginFrame(uint clearColor = 0x00000000)
     {
         if (shuttingDown || _disposed) return;
         VkResult result;
@@ -1935,21 +1942,44 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             extent = _vkSurfaceCapabilities.currentExtent
         };
         vkCmdSetScissor(_vkCommandBuffer, 0, 1, &scissor);
-
-        VulkanCamera cam = _scene.MainCamera.GetComponent<VulkanCamera>();
+        
         if (UseOpenXR)
         {
             Matrix4x4? headView = null;
-            RenderXrFrame(_scene.MainCamera.Transform.pos, cam, (eye, view, proj) =>
+            
+            RenderXrFrame(_hmd.Transform.pos, (VulkanCamera)_hmd.GetComponent<OpenXRHmd>()!.cam, (eye, view, proj) =>
             {
                 if (eye == 0) headView = view;
-                DrawScene(view, proj, cam);
+                DrawScene(view, proj, (VulkanCamera)_hmd.GetComponent<OpenXRHmd>()!.cam);
             });
         }
-        else
+        float W = _vkSurfaceCapabilities.currentExtent.width;
+        float H = _vkSurfaceCapabilities.currentExtent.height;
+        bool drewFirst = false;
+
+        foreach (Entity camEnt in _cameras)
         {
-            var m = cam.GetMatrices(_scene.GetWorldMatrix(_scene.MainCamera));
+            var cam = camEnt.GetComponent<VulkanCamera>();
+            var v = cam.viewport;
+            var vp = new VkViewport { x = v.X * W, y = v.Y * H, width = v.Z * W, height = v.W * H,
+                minDepth = 0, maxDepth = 1 };
+            if (!cam.enabled || vp.width < 1 || vp.height < 1) continue;
+            var sc = new VkRect2D { offset = new VkOffset2D { x = (int)vp.x, y = (int)vp.y },
+                extent = new VkExtent2D { width = (uint)vp.width, height = (uint)vp.height } };
+            vkCmdSetViewport(_vkCommandBuffer, 0, 1, &vp);
+            vkCmdSetScissor(_vkCommandBuffer, 0, 1, &sc);
+
+            if (drewFirst && cam.clearDepth)
+            {
+                var ca = new VkClearAttachment { aspectMask = (uint)VkImageAspectFlagBits.VK_IMAGE_ASPECT_DEPTH_BIT,
+                    clearValue = new VkClearValue { depthStencil = new VkClearDepthStencilValue { depth = 1f } } };
+                var cr = new VkClearRect { rect = sc, baseArrayLayer = 0, layerCount = 1 };
+                vkCmdClearAttachments(_vkCommandBuffer, 1, &ca, 1, &cr);
+            }
+
+            var m = cam.GetMatrices(camEnt.GetWorldMatrix(), vp.width / vp.height);
             DrawScene(m.View, m.Projection, cam);
+            drewFirst = true;
         }
     }
     
@@ -1958,7 +1988,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         if (_vkPipeline == IntPtr.Zero)
             throw new AngeneException("No pipeline");
 
-        SetPipeline(VkPipeline);
+        SetPipeline(_activeCmd == _xrCommandBuffer ? _xrPipeline : _vkPipeline);
 
         _sorted.Clear();
 

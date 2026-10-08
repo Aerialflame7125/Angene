@@ -80,7 +80,7 @@ namespace Game
                     Title = "Angene Camera Test",
                     renderMode = Angene.Graphics.RenderType.Vulkan,
                     UseWayland = true,
-                    UsingOpenXR = false
+                    UsingOpenXR = true
                 };
                 Window win = new Window(config);
 

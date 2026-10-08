@@ -4,25 +4,21 @@ using Angene.Math.Vectors;
 
 public static class XrCameraMath
 {
-    public static (Matrix4x4 view, Matrix4x4 proj) ForEye(Vec3 rigPos, VulkanCamera cam, Types.XrEyeView eye)
+    public static (Matrix4x4 view, Matrix4x4 proj) ForEye(Matrix4x4 rigWorld, VulkanCamera cam, Types.XrEyeView eye)
     {
-        // Rig orientation from your camera: columns = right, up, back
         Vec3 f = cam.forward.Normalized;
         Vec3 s = Vec3.Cross(f, cam.up).Normalized;
         Vec3 u = Vec3.Cross(s, f);
-        float[] R = { s.X, u.X, -f.X,
-                      s.Y, u.Y, -f.Y,
-                      s.Z, u.Z, -f.Z };
+        float[] R = RigRotation(rigWorld);
+        Vec3 rigPos = Matrix4x4.WorldPosition(rigWorld);
 
         float[] E = QuatToMat3(eye.qx, eye.qy, eye.qz, eye.qw);
-        float[] W = Mul3(R, E); // eye orientation in world space
-
-        // eye position in world space = rigPos + R * eyePos
+        float[] W = Mul3(R, E);
+        
         float ex = rigPos.X + R[0]*eye.px + R[1]*eye.py + R[2]*eye.pz;
         float ey = rigPos.Y + R[3]*eye.px + R[4]*eye.py + R[5]*eye.pz;
         float ez = rigPos.Z + R[6]*eye.px + R[7]*eye.py + R[8]*eye.pz;
-
-        // view = inverse rigid transform = [Wᵀ | -Wᵀ·pos]
+        
         var view = new Matrix4x4
         {
             M00 = W[0], M01 = W[3], M02 = W[6], M03 = -(W[0]*ex + W[3]*ey + W[6]*ez),
@@ -32,6 +28,30 @@ public static class XrCameraMath
         };
 
         return (view, Projection(eye.left, eye.right, eye.up, eye.down, cam.nearPlane, cam.farPlane));
+    }
+    
+    public static Vec3 PosToWorld(Matrix4x4 rigWorld, Vec3 p)
+    {
+        float[] R = RigRotation(rigWorld);
+        Vec3 o = Matrix4x4.WorldPosition(rigWorld);
+        return new Vec3(
+            o.X + R[0]*p.X + R[1]*p.Y + R[2]*p.Z,
+            o.Y + R[3]*p.X + R[4]*p.Y + R[5]*p.Z,
+            o.Z + R[6]*p.X + R[7]*p.Y + R[8]*p.Z);
+    }
+
+// Rotation part of the rig matrix, with scale stripped, row-major like R above.
+    static float[] RigRotation(Matrix4x4 m)
+    {
+        float l0 = MathF.Sqrt(m.M00*m.M00 + m.M10*m.M10 + m.M20*m.M20);
+        float l1 = MathF.Sqrt(m.M01*m.M01 + m.M11*m.M11 + m.M21*m.M21);
+        float l2 = MathF.Sqrt(m.M02*m.M02 + m.M12*m.M12 + m.M22*m.M22);
+        return new[]
+        {
+            m.M00/l0, m.M01/l1, m.M02/l2,
+            m.M10/l0, m.M11/l1, m.M12/l2,
+            m.M20/l0, m.M21/l1, m.M22/l2
+        };
     }
 
     // Asymmetric Vulkan projection (Y-down clip space, depth 0..1)

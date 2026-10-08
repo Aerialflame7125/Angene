@@ -2,7 +2,7 @@ using System;
 using Angene.Common;
 using Angene.Graphics.SlangShader;
 using static Angene.Common.Attributes;
-using static Angene.Essentials.GraphicsContexts.SlangShaderResources;   // Required for NativeSlangMemoryCompiler
+using static Angene.Essentials.GraphicsContexts.SlangShaderResources;
 
 namespace Game
 {
@@ -16,7 +16,7 @@ namespace Game
 
             public int id => 5;
             public string Extension => "hlsl";
-            public string EntryPoint { get; set; } = "vertexMain";
+            public string EntryPoint { get; set; } = "main";
             public ShaderType Type => ShaderType.Vertex;
             public bool compileToFile { get; } = false;
             public bool IsDisposed { get; private set; }
@@ -42,7 +42,7 @@ struct VSOutput
     float4 position : SV_Position;
     float4 color : COLOR;
 };
-VSOutput vertexMain(VSInput input)
+VSOutput main(VSInput input)
 {
     VSOutput output;
     float4 viewPos = mul(pc.view, float4(input.position, 1.0));
@@ -52,7 +52,7 @@ VSOutput vertexMain(VSInput input)
 }";
             public byte[] byteCode => null;
 
-            public void Bind() { /* binding is handled by IDX11GraphicsContext.SetShader */ }
+            public void Bind() { }
 
             public string OutputDebugInfo(bool log = true)
             {
@@ -72,23 +72,24 @@ VSOutput vertexMain(VSInput input)
 
             public int id => 2;
             public string Extension => "hlsl";
-            public string EntryPoint { get; set; } = "fragmentMain";
+            public string EntryPoint { get; set; } = "main";
             public ShaderType Type => ShaderType.Fragment;
             public bool compileToFile { get; } = false;
             public bool IsDisposed { get; private set; }
 
             ShaderOrigin IShader.Origin => ShaderOrigin.Vulkan;
             public ShaderQueue Queue => ShaderQueue.Geometry;
+
             public string code => @"struct VertexOutput {
     float4 position : SV_Position;
     float4 color : COLOR;
 };
-float4 fragmentMain(VertexOutput input) : SV_Target {
+float4 main(VertexOutput input) : SV_Target {
     return input.color;
 }";
             public byte[] byteCode => null;
 
-            public void Bind() { /* binding is handled by IDX11GraphicsContext.SetShader */ }
+            public void Bind() { }
 
             public string OutputDebugInfo(bool log = true)
             {

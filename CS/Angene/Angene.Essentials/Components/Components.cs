@@ -17,6 +17,24 @@ public class Component
     }
 }
 
+public class OpenXRHmd : Component
+{
+    public object cam { get; private set; }
+    public Entity head;
+
+    public OpenXRHmd(VulkanCamera cam)
+    {
+        this.cam = cam;
+        head = new Entity(new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "Head");
+    }
+
+    public OpenXRHmd(D3D11Camera cam)
+    {
+        this.cam = cam;
+        head = new Entity(new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "Head");
+    }
+}
+
 public class OpenXRController : Component
 {
     public bool ControllerGrabbed { get; internal set; }
@@ -122,6 +140,11 @@ public class VulkanCamera : Component
     public float nearPlane;
     public float farPlane;
     public bool isPrimary;
+    public Vec4 viewport = new Vec4(0f, 0f, 1f, 1f);
+    public bool clearDepth = true;
+    public int priority = 0;
+    public bool enabled = true;
+    
     public VulkanCamera(){}
 
     public VulkanCamera(VulkanCamera buh)
@@ -133,24 +156,18 @@ public class VulkanCamera : Component
         nearPlane = buh.nearPlane;
         farPlane = buh.farPlane;
         isPrimary = buh.isPrimary;
+        viewport = buh.viewport;
+        clearDepth = buh.clearDepth;
+        priority = buh.priority;
+        enabled = buh.enabled;
     }
-    
-    public CameraMatrices GetMatrices(Vec3 position)
+
+    public CameraMatrices GetMatrices(Matrix4x4 world, float? aspect = null) => new()
     {
-        return new CameraMatrices
-        {
-            View = LookTo(position, forward, up),
-            Projection = Perspective(
-                fov,
-                aspectRatio,
-                nearPlane,
-                farPlane)
-        };
-    }
-    public CameraMatrices GetMatrices(Matrix4x4 cameraWorld) => new CameraMatrices
-    {
-        View = LookTo(Matrix4x4.WorldPosition(cameraWorld), Matrix4x4.TransformDirection(cameraWorld, forward), Matrix4x4.TransformDirection(cameraWorld, up)),
-        Projection = Perspective(fov, aspectRatio, nearPlane, farPlane)
+        View = LookTo(Matrix4x4.WorldPosition(world),
+            Matrix4x4.TransformDirection(world, forward),
+            Matrix4x4.TransformDirection(world, up)),
+        Projection = Perspective(fov, aspect ?? aspectRatio, nearPlane, farPlane)
     };
 
     public Matrix4x4 LookAt(Vec3 eye, Vec3 target, Vec3 up)

@@ -4,6 +4,7 @@ using System.IO;
 using Angene.Common.Settings;
 using System.Linq.Expressions;
 using System.ComponentModel;
+using System.ComponentModel.Design.Serialization;
 
 namespace Angene.Common
 {
@@ -82,18 +83,21 @@ namespace Angene.Common
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine($"[ERROR] Logger.(Static Constructor) ({DateTime.Now}): Failed to create log file. Exception: {ex.Message}");
+                System.Console.WriteLine(
+                    $"[ERROR] Logger.(Static Constructor) ({DateTime.Now}): Failed to create log file. Exception: {ex.Message}");
             }
         }
 
-        private void Log(string message, LoggingTarget logFrom, LogLevel logLevel = LogLevel.Info, Exception? exception = null, bool enginePanic = false, int sceneNumber = -1)
+        private void Log(string message, LoggingTarget logFrom, LogLevel logLevel = LogLevel.Info,
+            Exception? exception = null, bool enginePanic = false, int sceneNumber = -1)
         {
             lock (logLock)
             {
-                
+
                 if (LogInstance == null)
                 {
-                    System.Console.WriteLine($"[ERROR] Logger.Log ({DateTime.Now}): LogInstance is null. Message: {message}, LogFrom: {logFrom}, LogLevel: {logLevel}, Exception: {exception?.Message}");
+                    System.Console.WriteLine(
+                        $"[ERROR] Logger.Log ({DateTime.Now}): LogInstance is null. Message: {message}, LogFrom: {logFrom}, LogLevel: {logLevel}, Exception: {exception?.Message}");
                     return;
                 }
 
@@ -108,14 +112,16 @@ namespace Angene.Common
                     LogInstance.WriteLine($"  >> Stack Trace: {exception.StackTrace}");
                     if (exception.InnerException != null)
                     {
-                        System.Console.WriteLine($"  >> Inner: {exception.InnerException.GetType().FullName}: {exception.InnerException.Message}");
-                        LogInstance.WriteLine($"  >> Inner: {exception.InnerException.GetType().FullName}: {exception.InnerException.Message}");
+                        System.Console.WriteLine(
+                            $"  >> Inner: {exception.InnerException.GetType().FullName}: {exception.InnerException.Message}");
+                        LogInstance.WriteLine(
+                            $"  >> Inner: {exception.InnerException.GetType().FullName}: {exception.InnerException.Message}");
                     }
                 }
 
                 if (sceneNumber != -1)
                     LogInstance.WriteLine($"Log came from Scene Number: {sceneNumber}");
-                
+
                 // Message dispatcher
                 switch (logLevel)
                 {
@@ -131,7 +137,8 @@ namespace Angene.Common
                     case LogLevel.Critical:
                         Instance.OnLog?.Invoke(message, logFrom, logLevel, DateTime.Now, exception);
                         if (enginePanic)
-                            Instance.OnLog?.Invoke("[OnQuit] ExitOnException", logFrom, LogLevel.Important, DateTime.Now, null);
+                            Instance.OnLog?.Invoke("[OnQuit] ExitOnException", logFrom, LogLevel.Important,
+                                DateTime.Now, null);
                         break;
                     case LogLevel.Important:
                         Instance.OnLog?.Invoke(message, logFrom, logLevel, DateTime.Now, null);
@@ -143,13 +150,26 @@ namespace Angene.Common
 
         // Static methods
         public static void LogDebug(string message, LoggingTarget logFrom) { Instance.Log(message, logFrom, LogLevel.Debug); }
+
         public static void LogInfo(string message, LoggingTarget logFrom) { Instance.Log(message, logFrom, LogLevel.Info); }
+
         public static void LogWarning(string message, LoggingTarget logFrom) { Instance.Log(message, logFrom, LogLevel.Warning); }
+
         public static void LogError(string message, LoggingTarget logFrom) { Instance.Log(message, logFrom, LogLevel.Error); }
+
         public static void LogImportant(string message, LoggingTarget logFrom, bool enginePanic = false) { Instance.Log(message, logFrom, LogLevel.Important); }
+
         public static void LogCritical(string message, LoggingTarget logFrom, Exception exception, bool enginePanic = false) { Instance.Log(message, logFrom, LogLevel.Critical, exception, enginePanic); }
 
-        public static void Shutdown()
+        public static readonly HashSet<int> _ids = new();
+        public static void LogOnce(string message, LoggingTarget logFrom, int id)
+        {
+            if (_ids.Contains(id)) return;
+            _ids.Add(id);
+            LogImportant($"[LOGONCE] {message}", logFrom);
+        }
+
+    public static void Shutdown()
         {
             lock (logLock)
             {
