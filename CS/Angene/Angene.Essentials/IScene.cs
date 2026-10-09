@@ -43,6 +43,7 @@ namespace Angene.Essentials
         }
     }
 
+#if WINDOWS
     /// <summary>
     /// IDX11Scene definition for a DX11 specific scene with render calls.
     /// All definitions and execution still gets routed through Angene.Lifecycle
@@ -51,4 +52,5 @@ namespace Angene.Essentials
     {
         void Render(IDX11GraphicsContext graphics);
     }
+#endif
 }

@@ -97,8 +97,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private List<IntPtr> shaderModules = new List<IntPtr>();
     private readonly IntPtr _hwnd;
     private bool _needsRecreateSwapchain = false;
-
-    public bool shuttingDown { get; internal set; } = false;
+    
     private readonly int _w, _h;
     VkGraphicscontextHelpers contextHelpers = new VkGraphicscontextHelpers();
     private readonly object _allocatorLock = new object();
@@ -187,13 +186,13 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         if (CachedType == null || OXRInstance == null)
             throw new InvalidOperationException("External library instance does not exist.");
         
-        PropertyInfo prop = CachedType.GetProperty(variableName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        PropertyInfo prop = CachedType.GetProperty(variableName, BindingFlags.Static | BindingFlags.Public);
         if (prop != null)
         {
             return prop.GetValue(OXRInstance);
         }
         
-        FieldInfo field = CachedType.GetField(variableName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        FieldInfo field = CachedType.GetField(variableName, BindingFlags.Static | BindingFlags.Public);
         if (field != null)
         {
             return field.GetValue(OXRInstance);
@@ -1087,7 +1086,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         VmaAllocationInfo allocationInfo;
         lock (_allocatorLock)
         {
-            if (_disposed || shuttingDown || _vmaAllocator == IntPtr.Zero)
+            if (_disposed || _vmaAllocator == IntPtr.Zero)
             {
                 // Abort the operation. The engine is shutting down.
                 return IntPtr.Zero; 
@@ -1131,7 +1130,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         VmaAllocationInfo allocationInfo;
         lock (_allocatorLock)
         {
-            if (_disposed || shuttingDown || _vmaAllocator == IntPtr.Zero)
+            if (_disposed || _vmaAllocator == IntPtr.Zero)
             {
                 // Abort the operation. The engine is shutting down.
                 return IntPtr.Zero; 
@@ -1154,7 +1153,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     {
         lock (_allocatorLock)
         {
-            if (_disposed || shuttingDown || _vmaAllocator == IntPtr.Zero)
+            if (_disposed || _vmaAllocator == IntPtr.Zero)
                 return; 
 
             vmaDestroyBuffer(_vmaAllocator, _vmaBuffers[bufferHandle].Buffer, _vmaBuffers[bufferHandle].Allocation);
@@ -1166,7 +1165,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     {
         lock (_allocatorLock)
         {
-            if (_disposed || shuttingDown || _vmaAllocator == IntPtr.Zero)
+            if (_disposed || _vmaAllocator == IntPtr.Zero)
                 return;
 
             vmaDestroyBuffer(_vmaAllocator, _vmaBuffers[oldBufferHandle].Buffer, _vmaBuffers[oldBufferHandle].Allocation);
@@ -1180,7 +1179,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     {
         lock (_allocatorLock)
         {
-            if (_disposed || shuttingDown || _vmaAllocator == IntPtr.Zero || !_vmaBuffers.TryGetValue(bufferHandle, out var handle))
+            if (_disposed || _vmaAllocator == IntPtr.Zero || !_vmaBuffers.TryGetValue(bufferHandle, out var handle))
                 return;
 
             VmaAllocationInfo allocInfo;
@@ -1522,13 +1521,10 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         VulkanCamera camera,
         Action<int, Matrix4x4, Matrix4x4> drawScene)
     {
-        if (shuttingDown || _disposed)
+        if (_disposed)
             return;
         
         CallExternalFunc("PollEvents", new object[] {  } );
-        
-        if (_xrRunning == null)
-            throw new Exception("XR Running delegate is null.");
 
         if (_xrBeginFrame == null)
             throw new Exception("XR BeginFrame delegate is null.");
@@ -1542,8 +1538,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         if (_xrEndFrame == null)
             throw new Exception("XR EndFrame delegate is null.");
 
-        if (!_xrRunning())
-            return;
+        bool a = (bool)CallExternalFunc("isRunning", new object[] { });
+        if (!a) return;
         
         XrFrameInfo frame = _xrBeginFrame();
 
@@ -1575,21 +1571,25 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
             if (leftOXRController != null)
             {
-                Vec3 p = (Vec3)GetPreservedVariable("leftHandPos");
-                Quaternion r = (Quaternion)GetPreservedVariable("leftHandRot");
+                Vec3 p = XrCameraMath.FromXr((Vec3)GetPreservedVariable("leftHandPos"));
+                Quaternion r = XrCameraMath.FromXr((Quaternion)GetPreservedVariable("leftHandRot"));
                 bool leftControllerGrabbed = (bool)GetPreservedVariable("leftControllerGrab");
-            
+                
+                Quaternion rot = Matrix4x4.ToQuaternion(camWorld) * r;
+                
                 leftOXRController.SetControllerData(leftControllerGrabbed,
-                    new Transform3D(XrCameraMath.PosToWorld(camWorld, p), r.ToEuler(), leftOXRController.ControllerTransform.scale));
+                    new Transform3D(XrCameraMath.PosToWorld(camWorld, p), rot.ToEuler(), leftOXRController.ControllerTransform.scale));
             }
             if (rightOXRController != null)
             {
-                Vec3 p = (Vec3)GetPreservedVariable("rightHandPos");
-                Quaternion r = (Quaternion)GetPreservedVariable("rightHandRot");
+                Vec3 p = XrCameraMath.FromXr((Vec3)GetPreservedVariable("rightHandPos"));
+                Quaternion r = XrCameraMath.FromXr((Quaternion)GetPreservedVariable("rightHandRot"));
                 bool rightControllerGrabbed = (bool)GetPreservedVariable("rightControllerGrab");
-            
+
+                Quaternion rot = Matrix4x4.ToQuaternion(camWorld) * r;
+                
                 rightOXRController.SetControllerData(rightControllerGrabbed,
-                    new Transform3D(XrCameraMath.PosToWorld(camWorld, p), r.ToEuler(), rightOXRController.ControllerTransform.scale));
+                    new Transform3D(XrCameraMath.PosToWorld(camWorld, p), rot.ToEuler(), rightOXRController.ControllerTransform.scale));
             }
             
             Vec3 left = new Vec3(
@@ -1602,14 +1602,13 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 frame.rightEye.py,
                 frame.rightEye.pz);
 
-            Vec3 headPos = (left + right) * 0.5f;
-            Quaternion headRot = new Quaternion()
-            {
-                W = frame.leftEye.qw,
-                X = frame.leftEye.qx,
-                Y = -frame.leftEye.qy,
-                Z = frame.leftEye.qz,
-            };
+            Vec3 headPos = XrCameraMath.FromXr((left + right) * 0.5f);
+            
+            Quaternion qL = new Quaternion(frame.leftEye.qx,  frame.leftEye.qy,  frame.leftEye.qz,  frame.leftEye.qw);
+            Quaternion qR = new Quaternion(frame.rightEye.qx, frame.rightEye.qy, frame.rightEye.qz, frame.rightEye.qw);
+            Quaternion headRaw = Quaternion.Slerp(qL, qR, 0.5f);
+            Quaternion headRot = XrCameraMath.FromXr(headRaw);
+            
             var head = _hmd.GetComponent<OpenXRHmd>()!.head;
             head.Transform.rot = headRot.ToEuler();
             head.Transform.pos = headPos;
@@ -1623,8 +1622,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         vkCmdPushConstants(_vkCommandBuffer, _vkPipelineLayout,
             (uint)VkShaderStageFlagBits.VK_SHADER_STAGE_VERTEX_BIT, 0, 128, &pc);
     }
-
-    private const bool XrClearTest = false;
+    
 
     private void RecordAndSubmitEye(int eye, uint img, Action draw)
     {
@@ -1868,7 +1866,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     
     public void BeginFrame(uint clearColor = 0x00000000)
     {
-        if (shuttingDown || _disposed) return;
+        if (_disposed) return;
         VkResult result;
         IntPtr fence = _vkFenceInFlight;
         uint imageIndex;
@@ -2058,7 +2056,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
     public void EndFrame()
     {
-        if (shuttingDown || _disposed) return;
+        if (_disposed) return;
 
         vkCmdEndRenderPass(_vkCommandBuffer);
         VkResult result = vkEndCommandBuffer(_vkCommandBuffer);
@@ -2142,7 +2140,6 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         _xrAcquire    = Bind<Func<int, uint>>("AcquireEyeImage");
         _xrRelease    = Bind<Action<int>>("ReleaseEyeImage");
         _xrEndFrame   = Bind<Action<bool>>("EndXrFrame");
-        _xrRunning    = Bind<Func<bool>>("get_Running");
 
         Logger.LogDebug(
             "[OpenXR] XR delegates successfully bound.",
@@ -2150,11 +2147,21 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         );
     }
 
+    private Action CleanupWindow = null;
+
+    public void SetWindowCleanupCall(Action method)
+    {
+        CleanupWindow = method;
+        if (UseOpenXR) CallExternalFunc("SetCleanupCall", new object[] { CleanUpWindow });
+    }
+
+    private void CleanUpWindow() => CleanupWindow.Invoke();
+
     public void Cleanup()
     {
         if (_disposed) return;
-
-        shuttingDown = true;
+        _disposed = true;
+        
         if (_vkDevice != IntPtr.Zero)
         {
             vkDeviceWaitIdle(_vkDevice);
@@ -2163,9 +2170,19 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         if (UseOpenXR)
         {
             CallExternalFunc("Cleanup", new object[] { });
-            if (_destroyFunc != null && _debugMessenger != IntPtr.Zero)
-                _destroyFunc(_vkInstance, _debugMessenger, null);
+            for (int eye = 0; eye < 2; eye++)
+            {
+                var depth = _xrDepth[eye];
+                foreach (var fb in _xrFramebuffers[eye]) vkDestroyFramebuffer(_vkDevice, fb, null);
+                vkDestroyImageView(_vkDevice, depth.view, null);
+                vmaDestroyImage(_vmaAllocator, depth.img, depth.alloc);
+            }
+            vkDestroyPipeline(_vkDevice, _xrPipeline, null);
+            vkDestroyRenderPass(_vkDevice, _xrRenderPass, null);
+            vkDestroyFence(_vkDevice, _xrFence, null);
         }
+        if (_destroyFunc != null && _debugMessenger != IntPtr.Zero)
+            _destroyFunc(_vkInstance, _debugMessenger, null);
         // destroy vma
         foreach (var entry in _vmaBuffers.Values)
             vmaDestroyBuffer(_vmaAllocator, entry.Buffer, entry.Allocation);
@@ -2173,15 +2190,6 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         
         vkDestroyImageView(_vkDevice, _depth.view, null);
         vmaDestroyImage(_vmaAllocator, _depth.img, _depth.alloc);
-        if (UseOpenXR)
-        {
-            for (int eye = 0; eye < 2; eye++)
-            {
-                var depth = _xrDepth[eye];
-                vkDestroyImageView(_vkDevice, depth.view, null);
-                vmaDestroyImage(_vmaAllocator, depth.img, depth.alloc);
-            }
-        }
         
         // destroy memory allocators
         lock (_allocatorLock)
@@ -2229,8 +2237,6 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         _vkDevice = IntPtr.Zero;
         _vkInstance = IntPtr.Zero;
         _vkSurfaceKHR = IntPtr.Zero;
-        _disposed = true;
-
         GC.SuppressFinalize(this);
     }
 

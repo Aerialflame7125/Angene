@@ -1,8 +1,318 @@
-<sub><sup>(generated 2026-10-08 00:02:24.605555+00:00)</sup></sub>
+<sub><sup>(generated 2026-10-09 04:12:11.005029+00:00)</sup></sub>
 
-## Angene.Audio
+## Angene.Common
 
-  <details><summary><b>Angene.Audio</b></summary>
+  <details><summary><b>Angene.Common</b></summary>
+
+  * **class AngeneException**
+  * **class Attributes**
+  * **class Locks**
+    * `object LibraryLoaderLock`
+  * **class Logger**
+    * `Logger Instance`
+    * `StreamWriter? LogInstance`
+    * `bool _verbose`
+    * `void Init()`
+    * `void LogDebug()`
+    * `void LogInfo()`
+    * `void LogWarning()`
+    * `void LogError()`
+    * `void LogImportant()`
+    * `void LogCritical()`
+    * `HashSet<int> _ids`
+    * `void LogOnce()`
+    * `void Shutdown()`
+  * **class PrecompileAttribute**
+  * **enum LogLevel**
+  * **enum LoggingTarget**
+
+  </details>
+
+  <details><summary><b>Angene.Common.Settings</b></summary>
+
+  * **class Settings**
+    * `Settings Instance`
+    * `void Register()`
+    * `object? GetSetting()`
+    * `bool SetSetting()`
+    * `string SaveKeys()`
+
+  </details>
+
+  <details><summary><b>Angene.Globals</b></summary>
+
+  * **interface IRenderer**
+
+  </details>
+
+
+
+## Angene.Essentials
+
+  <details><summary><b>Angene.Essentials</b></summary>
+
+  * **class AppInfo**
+    * `string AppName`
+    * `float AppVersion`
+    * `string Author`
+    * `string Developer`
+    * `VkPresentModeKHR VulkanPresentMode`
+  * **class Entity**
+    * `int Id { get; set; }`
+    * `Entity Instance`
+    * `string name`
+    * `Matrix4x4 GetWorldMatrix()`
+    * `List<Entity> childEntities { get; set; }`
+    * `IReadOnlyCollection<object> GetComponents()`
+    * `void AddScript()`
+    * `void RemoveScript()`
+    * `IReadOnlyList<object> GetScripts()`
+    * `void SetEnabled()`
+    * `bool IsEnabled()`
+    * `void AddChild()`
+    * `void RemoveChild()`
+    * `bool IsParent()`
+    * `Entity? GetParent()`
+    * `void Remove()`
+    * `void Destroy()`
+    * `bool Equals()`
+    * `int GetHashCode()`
+    * `bool operator`
+  * **class Lifecycle**
+    * `object Instance`
+    * `Action? Awake`
+    * `Action? OnEnable`
+    * `Action? Start`
+    * `Action<double>? Update`
+    * `Action<double>? LateUpdate`
+    * `Action? OnDraw`
+    * `Action? OnDisable`
+    * `Action? OnDestroy`
+    * `Action<object>? OnMessage`
+    * `Action? Render`
+    * `Action? Cleanup`
+    * `bool AwakeCalled`
+    * `bool Enabled`
+    * `bool StartCalled`
+    * `bool Destroyed`
+  * **class Material**
+  * **class Mesh**
+    * `byte[] bytes`
+    * `IntPtr vertexBuffer`
+    * `IntPtr indexBuffer`
+    * `int indexCount`
+    * `int vertexCount`
+    * `Vec3[] Corners`
+    * `bool geometryDirty`
+    * `Face[] Faces`
+    * `Entity targetEnt`
+    * `int MaxVertexCount { get; set; }`
+  * **class SceneExtensions**
+    * `Matrix4x4 GetWorldMatrix()`
+  * **class ScriptBinding**
+    * `List<Action> destroyEngineList`
+    * `void Tick()`
+    * `void Draw()`
+    * `void HandleEntityCreated()`
+    * `void DestroyEntity()`
+    * `void SetEntityEnabled()`
+    * `void RegisterScript()`
+    * `void ShutdownEngine()`
+  * **class TShader**
+  * **class TShaderMetadata**
+    * `int Id`
+    * `string ShaderName`
+    * `TShaderType ShaderType`
+    * `string Source`
+    * `float ShaderRate`
+    * `float Shade`
+    * `bool CacheOnDevice`
+  * **class Types**
+  * **enum EngineMode**
+  * **enum LinuxWindowType**
+  * **enum TShaderType**
+  * **enum Type**
+    * `Type type`
+    * `FaceColor Value { get; set; }`
+    * `string Name { get; set; }`
+  * **enum XrResult**
+  * **enum XrStructureType**
+  * **interface IDX11Scene**
+  * **interface IScene**
+    * `List<Entity> GetEntities()`
+    * `void AddEntity()`
+    * `void RemoveEntity()`
+  * **interface IScreenPlay**
+  * **struct CameraMatrices**
+    * `Matrix4x4 View`
+    * `Matrix4x4 Projection`
+  * **struct DrawItem**
+    * `Mesh Mesh`
+    * `Matrix4x4 World`
+  * **struct Face**
+    * `Material material`
+  * **struct FaceColor**
+  * **struct LifecycleInfo**
+    * `bool HasUpdate`
+    * `bool HasLateUpdate`
+    * `bool HasOnDraw`
+    * `bool HasStart`
+  * **struct QueueFamilyIndices**
+    * `uint? graphicsFamily`
+    * `uint? presentFamily`
+    * `bool isComplete()`
+  * **struct XrEyeView**
+  * **struct XrFrameInfo**
+    * `bool shouldRender`
+  * **struct XrSwapchain**
+    * `IntPtr swapchain`
+    * `VkFormat format`
+    * `uint width`
+    * `uint height`
+    * `bool def`
+    * `void DestroySwapchain()`
+  * **struct XrSwapchainImageVulkanKHR**
+    * `XrStructureType type`
+    * `IntPtr next`
+    * `IntPtr image`
+
+  </details>
+
+  <details><summary><b>Angene.Essentials.Components</b></summary>
+
+  * **class Component**
+    * `bool IsValid { get; set; }`
+    * `T Value { get; set; }`
+  * **class D3D11Camera**
+    * `Vec3 forward`
+    * `Vec3 up`
+    * `float fov`
+    * `float aspectRatio`
+    * `float nearPlane`
+    * `float farPlane`
+    * `bool isPrimary`
+    * `Matrix4x4 LookAt()`
+    * `Matrix4x4 LookTo()`
+    * `Matrix4x4 Perspective()`
+    * `Matrix4x4 PerspectiveD3D11()`
+  * **class OpenXRController**
+    * `bool ControllerGrabbed { get; set; }`
+    * `Transform3D ControllerTransform { get; set; }`
+  * **class OpenXRHmd**
+    * `object cam { get; set; }`
+    * `Entity head`
+  * **class Transform2D**
+    * `Vec2 pos`
+    * `float rot`
+    * `Vec2 scale`
+    * `Matrix4x4 GetMatrix()`
+  * **class Transform3D**
+    * `int Version { get; set; }`
+    * `Vec3 pos { get; set; }`
+    * `Vec3 rot { get; set; }`
+    * `Vec3 scale { get; set; }`
+    * `void ForceSetTransformVar()`
+    * `Matrix4x4 GetMatrix()`
+  * **class VulkanCamera**
+    * `Vec3 forward`
+    * `Vec3 up`
+    * `float fov`
+    * `float aspectRatio`
+    * `float nearPlane`
+    * `float farPlane`
+    * `bool isPrimary`
+    * `Vec4 viewport`
+    * `bool clearDepth`
+    * `int priority`
+    * `bool enabled`
+    * `CameraMatrices GetMatrices()`
+    * `Matrix4x4 LookAt()`
+    * `void AddTriangle()`
+    * `void AppendVertex()`
+    * `Vec3 TransformPoint()`
+    * `Vec3 ProjectToNdc()`
+    * `Matrix4x4 LookTo()`
+    * `Matrix4x4 Perspective()`
+    * `Matrix4x4 PerspectiveVulkan()`
+    * `Matrix4x4 PerspectiveOpenXR()`
+  * **enum ControllerType**
+    * `void SetControllerData()`
+
+  </details>
+
+  <details><summary><b>Angene.Essentials.DefaultEntities</b></summary>
+
+  * **class Cube**
+    * `Entity Instantiate()`
+    * `void BuildCubeMesh()`
+
+  </details>
+
+  <details><summary><b>Angene.Essentials.GraphicsContexts</b></summary>
+
+  * **class BaseShader**
+    * `string Name { get; set; }`
+    * `bool IsDisposed { get; set; }`
+    * `bool VerboseLog { get; set; }`
+    * `ShaderType Type { get; set; }`
+    * `ShaderOrigin Origin { get; set; }`
+    * `string OutputDebugInfo()`
+    * `void Bind()`
+    * `void Dispose()`
+  * **class Dx11Shader**
+    * `int id { get; set; }`
+    * `bool compileToFile { get; set; }`
+    * `bool verboseLog { get; set; }`
+    * `IntPtr NativeShader { get; set; }`
+    * `ShaderOrigin Origin { get; set; }`
+    * `string code { get; set; }`
+    * `string Extension { get; set; }`
+    * `string EntryPoint { get; set; }`
+    * `byte[] byteCode { get; set; }`
+    * `ShaderQueue Queue { get; set; }`
+    * `void Bind()`
+  * **class SlangShaderResources**
+  * **class VkShader**
+    * `int id { get; set; }`
+    * `bool compileToFile { get; set; }`
+    * `bool verboseLog { get; set; }`
+    * `ShaderOrigin Origin { get; set; }`
+    * `string code { get; set; }`
+    * `string Extension { get; set; }`
+    * `string EntryPoint { get; set; }`
+    * `byte[] byteCode { get; set; }`
+    * `ShaderQueue Queue { get; set; }`
+    * `void Bind()`
+  * **enum ShaderOrigin**
+  * **enum ShaderQueue**
+  * **enum ShaderType**
+  * **interface IDX11GraphicsContext**
+  * **interface IGraphicsContext**
+  * **interface IShader**
+  * **interface IVkGraphicsContext**
+  * **struct InputElement**
+    * `string SemanticName`
+    * `uint SemanticIndex`
+    * `DXGI_FORMAT Format`
+    * `uint ByteOffset`
+
+  </details>
+
+  <details><summary><b>Global</b></summary>
+
+  * **class XrCameraMath**
+    * `Vec3 FromXr()`
+    * `Quaternion FromXr()`
+    * `Vec3 PosToWorld()`
+    * `Matrix4x4 Projection()`
+
+  </details>
+
+
+
+## Angene.Extensions.Audio
+
+  <details><summary><b>Angene.Extensions.Audio</b></summary>
 
   * **class AudioFile**
     * `LoadType _loadType`
@@ -26,14 +336,14 @@
 
   </details>
 
-  <details><summary><b>Angene.Audio.Common</b></summary>
+  <details><summary><b>Angene.Extensions.Audio.Common</b></summary>
 
   * **class AudioFactory**
     * `IAudioPlayer Create()`
 
   </details>
 
-  <details><summary><b>Angene.Audio.MiniAudio</b></summary>
+  <details><summary><b>Angene.Extensions.Audio.MiniAudio</b></summary>
 
   * **enum MiniAudioPlayerType**
     * `bool IsPlaying { get; set; }`
@@ -54,7 +364,7 @@
 
   </details>
 
-  <details><summary><b>Angene.Audio.MiniAudio.Interop</b></summary>
+  <details><summary><b>Angene.Extensions.Audio.MiniAudio.Interop</b></summary>
 
   * **enum _ma_channel_position**
   * **enum ma_aaudio_allowed_capture_policy**
@@ -1110,7 +1420,7 @@
 
   </details>
 
-  <details><summary><b>Angene.Audio.Windows</b></summary>
+  <details><summary><b>Angene.Extensions.Audio.Windows</b></summary>
 
   * **struct WAVEHDR**
     * `IntPtr lpData`
@@ -1134,309 +1444,29 @@
 
 
 
-## Angene.Common
+## Angene.Extensions.Input
 
-  <details><summary><b>Angene.Common</b></summary>
+  <details><summary><b>Angene.Extensions.Input</b></summary>
 
-  * **class AngeneException**
-  * **class Attributes**
-  * **class Locks**
-    * `object LibraryLoaderLock`
-  * **class Logger**
-    * `Logger Instance`
-    * `StreamWriter? LogInstance`
-    * `bool _verbose`
-    * `void Init()`
-    * `void LogDebug()`
-    * `void LogInfo()`
-    * `void LogWarning()`
-    * `void LogError()`
-    * `void LogImportant()`
-    * `void LogCritical()`
-    * `HashSet<int> _ids`
-    * `void LogOnce()`
-    * `void Shutdown()`
-  * **class PrecompileAttribute**
-  * **enum LogLevel**
-  * **enum LoggingTarget**
-
-  </details>
-
-  <details><summary><b>Angene.Common.Settings</b></summary>
-
-  * **class Settings**
-    * `Settings Instance`
+  * **class KeyDetection**
+    * `List<Entity> Instances`
     * `void Register()`
-    * `object? GetSetting()`
-    * `bool SetSetting()`
-    * `string SaveKeys()`
-
-  </details>
-
-  <details><summary><b>Angene.Globals</b></summary>
-
-  * **interface IRenderer**
-
-  </details>
-
-
-
-## Angene.Essentials
-
-  <details><summary><b>Angene.Essentials</b></summary>
-
-  * **class AppInfo**
-    * `string AppName`
-    * `float AppVersion`
-    * `string Author`
-    * `string Developer`
-    * `VkPresentModeKHR VulkanPresentMode`
-  * **class Entity**
-    * `int Id { get; set; }`
-    * `Entity Instance`
-    * `string name`
-    * `Matrix4x4 GetWorldMatrix()`
-    * `List<Entity> childEntities { get; set; }`
-    * `IReadOnlyCollection<object> GetComponents()`
-    * `void AddScript()`
-    * `void RemoveScript()`
-    * `IReadOnlyList<object> GetScripts()`
-    * `void SetEnabled()`
-    * `bool IsEnabled()`
-    * `void AddChild()`
-    * `void RemoveChild()`
-    * `bool IsParent()`
-    * `Entity? GetParent()`
-    * `void Remove()`
-    * `void Destroy()`
-    * `bool Equals()`
-    * `int GetHashCode()`
-    * `bool operator`
-  * **class Lifecycle**
-    * `object Instance`
-    * `Action? Awake`
-    * `Action? OnEnable`
-    * `Action? Start`
-    * `Action<double>? Update`
-    * `Action<double>? LateUpdate`
-    * `Action? OnDraw`
-    * `Action? OnDisable`
-    * `Action? OnDestroy`
-    * `Action<object>? OnMessage`
-    * `Action? Render`
-    * `Action? Cleanup`
-    * `bool AwakeCalled`
-    * `bool Enabled`
-    * `bool StartCalled`
-    * `bool Destroyed`
-  * **class Material**
-  * **class Mesh**
-    * `byte[] bytes`
-    * `IntPtr vertexBuffer`
-    * `IntPtr indexBuffer`
-    * `int indexCount`
-    * `int vertexCount`
-    * `Vec3[] Corners`
-    * `bool geometryDirty`
-    * `Face[] Faces`
-    * `Entity targetEnt`
-    * `int MaxVertexCount { get; set; }`
-  * **class SceneExtensions**
-    * `Matrix4x4 GetWorldMatrix()`
-  * **class ScriptBinding**
-    * `List<Action> destroyEngineList`
-    * `void Tick()`
-    * `void Draw()`
-    * `void HandleEntityCreated()`
-    * `void DestroyEntity()`
-    * `void SetEntityEnabled()`
-    * `void RegisterScript()`
-    * `void ShutdownEngine()`
-  * **class TShader**
-  * **class TShaderMetadata**
-    * `int Id`
-    * `string ShaderName`
-    * `TShaderType ShaderType`
-    * `string Source`
-    * `float ShaderRate`
-    * `float Shade`
-    * `bool CacheOnDevice`
-  * **class Types**
-  * **enum EngineMode**
-  * **enum LinuxWindowType**
-  * **enum TShaderType**
-  * **enum Type**
-    * `Type type`
-    * `FaceColor Value { get; set; }`
-    * `string Name { get; set; }`
-  * **enum XrResult**
-  * **enum XrStructureType**
-  * **interface IDX11Scene**
-  * **interface IScene**
-    * `List<Entity> GetEntities()`
-    * `void AddEntity()`
-    * `void RemoveEntity()`
-  * **interface IScreenPlay**
-  * **struct CameraMatrices**
-    * `Matrix4x4 View`
-    * `Matrix4x4 Projection`
-  * **struct DrawItem**
-    * `Mesh Mesh`
-    * `Matrix4x4 World`
-  * **struct Face**
-    * `Material material`
-  * **struct FaceColor**
-  * **struct LifecycleInfo**
-    * `bool HasUpdate`
-    * `bool HasLateUpdate`
-    * `bool HasOnDraw`
-    * `bool HasStart`
-  * **struct QueueFamilyIndices**
-    * `uint? graphicsFamily`
-    * `uint? presentFamily`
-    * `bool isComplete()`
-  * **struct XrEyeView**
-  * **struct XrFrameInfo**
-    * `bool shouldRender`
-  * **struct XrSwapchain**
-    * `IntPtr swapchain`
-    * `VkFormat format`
-    * `uint width`
-    * `uint height`
-    * `bool def`
-    * `void DestroySwapchain()`
-  * **struct XrSwapchainImageVulkanKHR**
-    * `XrStructureType type`
-    * `IntPtr next`
-    * `IntPtr image`
-
-  </details>
-
-  <details><summary><b>Angene.Essentials.Components</b></summary>
-
-  * **class Component**
-    * `bool IsValid { get; set; }`
-    * `T Value { get; set; }`
-  * **class D3D11Camera**
-    * `Vec3 forward`
-    * `Vec3 up`
-    * `float fov`
-    * `float aspectRatio`
-    * `float nearPlane`
-    * `float farPlane`
-    * `bool isPrimary`
-    * `Matrix4x4 LookAt()`
-    * `Matrix4x4 LookTo()`
-    * `Matrix4x4 Perspective()`
-    * `Matrix4x4 PerspectiveD3D11()`
-  * **class OpenXRController**
-    * `bool ControllerGrabbed { get; set; }`
-    * `Transform3D ControllerTransform { get; set; }`
-  * **class OpenXRHmd**
-    * `object cam { get; set; }`
-    * `Entity head`
-  * **class Transform2D**
-    * `Vec2 pos`
-    * `float rot`
-    * `Vec2 scale`
-    * `Matrix4x4 GetMatrix()`
-  * **class Transform3D**
-    * `int Version { get; set; }`
-    * `Vec3 pos { get; set; }`
-    * `Vec3 rot { get; set; }`
-    * `Vec3 scale { get; set; }`
-    * `void ForceSetTransformVar()`
-    * `Matrix4x4 GetMatrix()`
-  * **class VulkanCamera**
-    * `Vec3 forward`
-    * `Vec3 up`
-    * `float fov`
-    * `float aspectRatio`
-    * `float nearPlane`
-    * `float farPlane`
-    * `bool isPrimary`
-    * `Vec4 viewport`
-    * `bool clearDepth`
-    * `int priority`
-    * `bool enabled`
-    * `CameraMatrices GetMatrices()`
-    * `Matrix4x4 LookAt()`
-    * `void AddTriangle()`
-    * `void AppendVertex()`
-    * `Vec3 TransformPoint()`
-    * `Vec3 ProjectToNdc()`
-    * `Matrix4x4 LookTo()`
-    * `Matrix4x4 Perspective()`
-    * `Matrix4x4 PerspectiveVulkan()`
-    * `Matrix4x4 PerspectiveOpenXR()`
-  * **enum ControllerType**
-    * `void SetControllerData()`
-
-  </details>
-
-  <details><summary><b>Angene.Essentials.DefaultEntities</b></summary>
-
-  * **class Cube**
-    * `Entity Instantiate()`
-    * `void BuildCubeMesh()`
-
-  </details>
-
-  <details><summary><b>Angene.Essentials.GraphicsContexts</b></summary>
-
-  * **class BaseShader**
-    * `string Name { get; set; }`
-    * `bool IsDisposed { get; set; }`
-    * `bool VerboseLog { get; set; }`
-    * `ShaderType Type { get; set; }`
-    * `ShaderOrigin Origin { get; set; }`
-    * `string OutputDebugInfo()`
-    * `void Bind()`
-    * `void Dispose()`
-  * **class Dx11Shader**
-    * `int id { get; set; }`
-    * `bool compileToFile { get; set; }`
-    * `bool verboseLog { get; set; }`
-    * `IntPtr NativeShader { get; set; }`
-    * `ShaderOrigin Origin { get; set; }`
-    * `string code { get; set; }`
-    * `string Extension { get; set; }`
-    * `string EntryPoint { get; set; }`
-    * `byte[] byteCode { get; set; }`
-    * `ShaderQueue Queue { get; set; }`
-    * `void Bind()`
-  * **class SlangShaderResources**
-  * **class VkShader**
-    * `int id { get; set; }`
-    * `bool compileToFile { get; set; }`
-    * `bool verboseLog { get; set; }`
-    * `ShaderOrigin Origin { get; set; }`
-    * `string code { get; set; }`
-    * `string Extension { get; set; }`
-    * `string EntryPoint { get; set; }`
-    * `byte[] byteCode { get; set; }`
-    * `ShaderQueue Queue { get; set; }`
-    * `void Bind()`
-  * **enum ShaderOrigin**
-  * **enum ShaderQueue**
-  * **enum ShaderType**
-  * **interface IDX11GraphicsContext**
-  * **interface IGraphicsContext**
-  * **interface IShader**
-  * **interface IVkGraphicsContext**
-  * **struct InputElement**
-    * `string SemanticName`
-    * `uint SemanticIndex`
-    * `DXGI_FORMAT Format`
-    * `uint ByteOffset`
-
-  </details>
-
-  <details><summary><b>Global</b></summary>
-
-  * **class XrCameraMath**
-    * `Vec3 PosToWorld()`
-    * `Matrix4x4 Projection()`
+    * `bool IsKeyDown()`
+    * `bool IsAnyKeyDown()`
+    * `void Deregister()`
+    * `HashSet<uint> GetDownKeys { get; set; }`
+  * **class KeyResolver**
+    * `object TryInt()`
+    * `object TryNInt()`
+    * `object TryByte()`
+    * `uint TryLinuxKeysym()`
+  * **class MouseDetection**
+    * `List<Entity> Instances`
+    * `void Register()`
+    * `bool IsButtonDown()`
+    * `void Deregister()`
+    * `HashSet<uint> GetDownButtons { get; set; }`
+    * `bool IsInWindow()`
 
   </details>
 
@@ -4825,34 +4855,6 @@
 
 
 
-## Angene.Input
-
-  <details><summary><b>Angene.Input</b></summary>
-
-  * **class KeyDetection**
-    * `List<Entity> Instances`
-    * `void Register()`
-    * `bool IsKeyDown()`
-    * `bool IsAnyKeyDown()`
-    * `void Deregister()`
-    * `HashSet<uint> GetDownKeys { get; set; }`
-  * **class KeyResolver**
-    * `object TryInt()`
-    * `object TryNInt()`
-    * `object TryByte()`
-    * `uint TryLinuxKeysym()`
-  * **class MouseDetection**
-    * `List<Entity> Instances`
-    * `void Register()`
-    * `bool IsButtonDown()`
-    * `void Deregister()`
-    * `HashSet<uint> GetDownButtons { get; set; }`
-    * `bool IsInWindow()`
-
-  </details>
-
-
-
 ## Angene.Linux
 
   <details><summary><b>Angene.Linux.Wayland</b></summary>
@@ -5811,6 +5813,7 @@
     * `Matrix4x4 RotationZ()`
     * `Vec3 WorldPosition()`
     * `Vec3 TransformDirection()`
+    * `Quaternion ToQuaternion()`
   * **struct Point**
   * **struct Quaternion**
     * `float X`

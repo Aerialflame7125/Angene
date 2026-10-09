@@ -129,6 +129,7 @@ namespace Angene.Main
                 {
                     graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo, useOpenXR: config.UsingOpenXR,
                         shaderStages: Engine.Instance.ShaderCache);
+                    ((VkGraphicsContext)graphicsContext).SetWindowCleanupCall(RequestShutdown);
                 }
                 else
                 {
@@ -907,14 +908,14 @@ namespace Angene.Main
             if (_cleanedUp) return;
             _cleanedUp = true;
 
-            Logger.LogInfo("Cleaning up window resources", LoggingTarget.Engine);
-
             foreach (IScene scene in Scenes)
                 scene?.Cleanup();
 
             if (graphicsContext != null)
                 graphicsContext.Cleanup();
         }
+        
+        private void RequestShutdown() => Engine.Instance.RequestClose(this);
         /// <summary>
         /// Requests this window be closed. Frees this window's own scenes/graphics
         /// resources immediately.

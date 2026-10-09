@@ -173,13 +173,13 @@ public class VulkanCamera : Component
     public Matrix4x4 LookAt(Vec3 eye, Vec3 target, Vec3 up)
     {
         Vec3 f = (target - eye).Normalized;
-        Vec3 s = Vec3.Cross(f, up).Normalized;
-        Vec3 u = Vec3.Cross(s, f);
+        Vec3 s = Vec3.Cross(up, f).Normalized;
+        Vec3 u = Vec3.Cross(f, s);
         return new Matrix4x4
         {
             M00 = s.X,  M01 = s.Y,  M02 = s.Z,  M03 = -Vec3.Dot(s, eye),
             M10 = u.X,  M11 = u.Y,  M12 = u.Z,  M13 = -Vec3.Dot(u, eye),
-            M20 = -f.X, M21 = -f.Y, M22 = -f.Z, M23 = Vec3.Dot(f, eye),
+            M20 = -f.X, M21 = -f.Y, M22 = -f.Z, M23 =  Vec3.Dot(f, eye),
             M30 = 0,    M31 = 0,    M32 = 0,    M33 = 1
         };
     }

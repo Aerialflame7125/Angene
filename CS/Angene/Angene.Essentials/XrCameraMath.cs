@@ -4,6 +4,9 @@ using Angene.Math.Vectors;
 
 public static class XrCameraMath
 {
+    public static Vec3 FromXr(Vec3 p) => new(p.X, p.Y, -p.Z);
+    public static Quaternion FromXr(Quaternion q) => new(-q.X, -q.Y, q.Z, q.W);
+    
     public static (Matrix4x4 view, Matrix4x4 proj) ForEye(Matrix4x4 rigWorld, VulkanCamera cam, Types.XrEyeView eye)
     {
         Vec3 f = cam.forward.Normalized;
@@ -12,18 +15,18 @@ public static class XrCameraMath
         float[] R = RigRotation(rigWorld);
         Vec3 rigPos = Matrix4x4.WorldPosition(rigWorld);
 
-        float[] E = QuatToMat3(eye.qx, eye.qy, eye.qz, eye.qw);
+        float[] E = QuatToMat3(-eye.qx, -eye.qy, eye.qz, eye.qw);
+        float px = eye.px, py = eye.py, pz = -eye.pz;
+        float ex = rigPos.X + R[0]*px + R[1]*py + R[2]*pz;
+        float ey = rigPos.Y + R[3]*px + R[4]*py + R[5]*pz;
+        float ez = rigPos.Z + R[6]*px + R[7]*py + R[8]*pz;
         float[] W = Mul3(R, E);
-        
-        float ex = rigPos.X + R[0]*eye.px + R[1]*eye.py + R[2]*eye.pz;
-        float ey = rigPos.Y + R[3]*eye.px + R[4]*eye.py + R[5]*eye.pz;
-        float ez = rigPos.Z + R[6]*eye.px + R[7]*eye.py + R[8]*eye.pz;
         
         var view = new Matrix4x4
         {
             M00 = W[0], M01 = W[3], M02 = W[6], M03 = -(W[0]*ex + W[3]*ey + W[6]*ez),
             M10 = W[1], M11 = W[4], M12 = W[7], M13 = -(W[1]*ex + W[4]*ey + W[7]*ez),
-            M20 = W[2], M21 = W[5], M22 = W[8], M23 = -(W[2]*ex + W[5]*ey + W[8]*ez),
+            M20 = -W[2], M21 = -W[5], M22 = -W[8], M23 = (W[2]*ex + W[5]*ey + W[8]*ez),
             M30 = 0,    M31 = 0,    M32 = 0,    M33 = 1
         };
 

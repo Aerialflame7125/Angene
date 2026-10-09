@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>Angene.Extensions.Input</RootNamespace>
+    <PackageId>Angene.Extensions.Input</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
+    <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
+    <ProjectReference Include="..\Angene.Main\Angene.csproj" />
+    <ProjectReference Include="..\Angene.Management\Angene.Management.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(AngenePlatform)' == 'Windows'">
+      <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
+      
+  </ItemGroup>
+  <ItemGroup Condition="'$(AngenePlatform)' != 'Windows'">
+      <ProjectReference Include="..\Angene.Linux\Angene.Linux.csproj" />
+  </ItemGroup>
+</Project>

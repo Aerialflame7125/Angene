@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.5.11716.220
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Audio", "Angene.Audio\Angene.Audio.csproj", "{61082C1F-13E0-DF31-A646-F685A216298E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Extensions.Audio", "Angene.Extensions.Audio\Angene.Extensions.Audio.csproj", "{61082C1F-13E0-DF31-A646-F685A216298E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Common", "Angene.Common\Angene.Common.csproj", "{CEBACA89-AFB2-008B-5BDF-555190A3DCFD}"
 EndProject
@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Essentials", "Angene
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Graphics", "Angene.Graphics\Angene.Graphics.csproj", "{9B80BA02-4BC1-3AB4-F80D-53C3FDBE5645}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Input", "Angene.Input\Angene.Input.csproj", "{BA8BE518-8F6C-4E2D-DE75-61D9658B8AF1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Extensions.Input", "Angene.Extensions.Input\Angene.Extensions.Input.csproj", "{BA8BE518-8F6C-4E2D-DE75-61D9658B8AF1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Math", "Angene.Math\Angene.Math.csproj", "{7E33D123-DEF7-81D2-7138-22D65CE141EF}"
 EndProject

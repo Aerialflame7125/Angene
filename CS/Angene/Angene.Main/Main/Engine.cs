@@ -170,6 +170,8 @@ namespace Angene.Main
         
         internal unsafe static void destroyInstances()
         {
+            foreach (Window w in Instance.OpenWindows) Instance.RequestClose(w);
+            
 #if WINDOWS
             if (Instance.SharedD3D11Device != IntPtr.Zero) { Marshal.Release(Instance.SharedD3D11Device); Instance.SharedD3D11Device = IntPtr.Zero; }
             if (Instance.SharedD3D11Context != IntPtr.Zero) { Marshal.Release(Instance.SharedD3D11Context); Instance.SharedD3D11Context = IntPtr.Zero; }
@@ -273,17 +275,20 @@ namespace Angene.Main
                 bool usesD3D11 = false;
                 foreach (SlangShaderResources.IShader shader in shaderTypes)
                 {
+                    #if WINDOWS
                     if (shader.Origin == SlangShaderResources.ShaderOrigin.Dx11)
                         usesD3D11 = true;
-                    else if (shader.Origin == SlangShaderResources.ShaderOrigin.Vulkan)
+                    #endif
+                    if (shader.Origin == SlangShaderResources.ShaderOrigin.Vulkan)
                         usesVulkan = true;
                 }
-                Window _D3dwindow = null;
-                IDX11GraphicsContext _D3Dgraphicscontext = null;
                 Window _Vkwindow = null;
                 VkGraphicsContext _Vkgraphicscontext = null;
                 
 #if WINDOWS
+                Window _D3dwindow = null;
+                IDX11GraphicsContext _D3Dgraphicscontext = null;
+
                 if (usesD3D11)
                 {
                     // alright im going to fucking hate this

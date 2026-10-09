@@ -74,25 +74,20 @@ namespace Game
             float delta = (float)dt;
 
             // --- Look (arrow keys) ---
-            if (KeyDetection.IsKeyDown((uint)CursorKeys.Left))
-                _yaw += LookSpeed * delta;
             if (KeyDetection.IsKeyDown((uint)CursorKeys.Right))
+                _yaw += LookSpeed * delta;
+            if (KeyDetection.IsKeyDown((uint)CursorKeys.Left))
                 _yaw -= LookSpeed * delta;
             if (KeyDetection.IsKeyDown((uint)CursorKeys.Up))
                 _pitch += LookSpeed * delta;
             if (KeyDetection.IsKeyDown((uint)CursorKeys.Down))
                 _pitch -= LookSpeed * delta;
             
-            _parentTransform.rot = new Vec3(_pitch, -_yaw, 0);
-            
-            Vec3 forward = new Vec3(
-                MathF.Sin(_yaw) * MathF.Cos(_pitch),
-                MathF.Sin(_pitch),
-                -MathF.Cos(_yaw) * MathF.Cos(_pitch)
-            ).Normalized;
+            _parentTransform.rot = new Vec3(-_pitch, _yaw, 0);
+            Vec3 forward = new Vec3(MathF.Sin(_yaw)*MathF.Cos(_pitch), MathF.Sin(_pitch), MathF.Cos(_yaw)*MathF.Cos(_pitch));
 
             Vec3 worldUp = new Vec3(0, 1, 0);
-            Vec3 right = Vec3.Cross(forward, worldUp).Normalized;
+            Vec3 right = Vec3.Cross(worldUp, forward).Normalized;
 
             Vec3 move = new Vec3(0, 0, 0);
             if (KeyDetection.IsKeyDown((uint)Latin1.w)) move += forward;   // restored
@@ -101,7 +96,6 @@ namespace Game
             if (KeyDetection.IsKeyDown((uint)Latin1.a)) move -= right;
             if (KeyDetection.IsKeyDown((uint)Latin1.space)) move += worldUp;
             if (KeyDetection.IsKeyDown((uint)Latin1.c)) move -= worldUp;
-            if (KeyDetection.IsKeyDown((uint)Latin1.e)) Logger.LogDebug($"X: {_transform.pos.X} Y: {_transform.pos.Y} Z: {_transform.pos.Z}, Rotation: X: {_transform.rot.X}, Y: {_transform.rot.Y}, Z: {_transform.rot.Z}", LoggingTarget.MainGame);
             
             (float, float) pos = MouseDetection.GetPosition();
             bool kleft = false;

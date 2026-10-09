@@ -15,10 +15,12 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 {
 #region Vars
     public static ulong systemID = 0;
-    private List<string> layerNames = new();
-    private List<string> extensionNames = new();
-    public bool running { get; private set; } = false;
-    public static bool Running => Instance.running;
+    private static List<string> layerNames = new();
+    private static List<string> extensionNames = new();
+    public static bool running { get; private set; } = false;
+    public static bool init = true;
+    public static bool _disposing = false;
+    public static bool Running => running;
     public static IntPtr OXRSpace { get; private set; }
     private static IntPtr[] XrSwapchains = new []{ IntPtr.Zero, IntPtr.Zero }; 
     private static Types.XrSwapchainImageVulkanKHR[] XrSwapchainImages = new Types.XrSwapchainImageVulkanKHR[]{};
@@ -26,12 +28,14 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
     // Instances
     public static IntPtr OpenXRInstance;
-    public static OpenXR Instance;
     public static IntPtr OXRSession;
-    public static string[] instanceExtensions;
+    private static long predictedDisplayTime;
+    
+    // Windows
+#if WINDOWS
     private static IDX11GraphicsContext dx11GraphicsContext = null;
     private static XrGraphicsRequirementsD3D11KHR D3D11Reqs;
-    private static long predictedDisplayTime;
+#endif
     
     // Input
     private static IntPtr OXRActionSet;
@@ -41,12 +45,12 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     private static IntPtr rightGrabAction;
     private static IntPtr leftHandSpace;
     private static IntPtr rightHandSpace;
-    public bool leftControllerGrab;
-    public bool rightControllerGrab;
-    public Vec3 leftHandPos, rightHandPos;
-    public Quaternion leftHandRot, rightHandRot;
-    public Vec3 headPos;
-    public Quaternion headRot;
+    public static bool leftControllerGrab;
+    public static bool rightControllerGrab;
+    public static Vec3 leftHandPos, rightHandPos;
+    public static Quaternion leftHandRot, rightHandRot;
+    public static Vec3 headPos;
+    public static Quaternion headRot;
     
     // Vulkan
     private static IVkGraphicsContext vulkanGraphicsContext = null;
@@ -60,25 +64,26 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     public static void CreateInstanceS1(object usedContext, Types.AppInfo appInfo) // Used in VkGraphicsContext under the section labeled "OpenXR Init".
     {
         Logger.LogDebug("--- CreateSessionS1 (OpenXR) ---", LoggingTarget.External);
-        Instance = new OpenXR();
         switch (usedContext)
         {
             case IVkGraphicsContext vk:
                 vulkanGraphicsContext = vk;
-                Instance.extensionNames.Add("XR_KHR_vulkan_enable2");
+                extensionNames.Add("XR_KHR_vulkan_enable2");
                 
-                Instance.CreateInstance(appInfo);
-                Instance.getSystem();
+                CreateInstance(appInfo);
+                getSystem();
                 getVulkanInstanceRequirements();
                 break;
+#if WINDOWS
             case IDX11GraphicsContext dx1:
                 dx11GraphicsContext = dx1;
-                Instance.extensionNames.Add("XR_KHR_D3D11_enable");
+                extensionNames.Add("XR_KHR_D3D11_enable");
                 
-                Instance.CreateInstance(appInfo);
-                Instance.getSystem();
+                CreateInstance(appInfo);
+                getSystem();
                 getD3D11InstanceRequirements();
                 break;
+#endif
             default:
                 throw new Exceptions.FailedToInitializeOpenXRException(
                     $"Graphics context of type '{usedContext.GetType()}' is not supported.");
@@ -86,17 +91,17 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
         Logger.LogDebug("--- END CreateInstanceS1 (OpenXR) ---",  LoggingTarget.External);
     }
 
-    private void CreateInstance(Types.AppInfo appInfo)
+    private static void CreateInstance(Types.AppInfo appInfo)
     {
         IntPtr instance = IntPtr.Zero;
         
-        IntPtr[] extensionPtrs = new IntPtr[Instance.extensionNames.Count];
-        for (int i = 0; i < Instance.extensionNames.Count; i++)
-            extensionPtrs[i] = Marshal.StringToHGlobalAnsi(Instance.extensionNames[i]);
+        IntPtr[] extensionPtrs = new IntPtr[extensionNames.Count];
+        for (int i = 0; i < extensionNames.Count; i++)
+            extensionPtrs[i] = Marshal.StringToHGlobalAnsi(extensionNames[i]);
         
-        IntPtr[] layerPtrs = new IntPtr[Instance.layerNames.Count];
-        for (int i = 0; i < Instance.layerNames.Count; i++)
-            layerPtrs[i] = Marshal.StringToHGlobalAnsi(Instance.layerNames[i]);
+        IntPtr[] layerPtrs = new IntPtr[layerNames.Count];
+        for (int i = 0; i < layerNames.Count; i++)
+            layerPtrs[i] = Marshal.StringToHGlobalAnsi(layerNames[i]);
 
         try
         {
@@ -108,9 +113,9 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                     type = Types.XrStructureType.XR_TYPE_INSTANCE_CREATE_INFO,
                     next = null,
                     createFlags = 0,
-                    enabledApiLayerCount = (uint)Instance.layerNames.Count,
+                    enabledApiLayerCount = (uint)layerNames.Count,
                     enabledApiLayerNames = (byte**)layerArrayPtr,
-                    enabledExtensionCount = (uint)Instance.extensionNames.Count,
+                    enabledExtensionCount = (uint)extensionNames.Count,
                     enabledExtensionNames = (byte**)extensionArrayPtr
                 };
 
@@ -150,7 +155,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
         }
     }
 
-    private void getSystem()
+    private static void getSystem()
     {
         ulong systemId;
 
@@ -272,6 +277,7 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
             LoggingTarget.External);
     }
     
+#if WINDOWS
     private static void getD3D11InstanceRequirements()
     {
         var getReqs = (delegate* unmanaged[Cdecl]<IntPtr, ulong, XrGraphicsRequirementsD3D11KHR*, Types.XrResult>)
@@ -294,12 +300,8 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
         fixed (byte* p = buf)
             res2 = getExts(OpenXRInstance, systemID, size, &size, p);
         if (res2 != Types.XrResult.XR_SUCCESS) throw new Exceptions.FailedToInitializeOpenXRException($"Failed to get D3D11 instance requirements for OpenXR: {res2}");
-
-        instanceExtensions = System.Text.Encoding.ASCII
-            .GetString(buf, 0, (int)size).TrimEnd('\0')
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
     }
-    
+#endif
 #endregion
 #region Session Creation
     public static IntPtr CreateSessionS2(IntPtr VkInstance, IntPtr VkDevice, uint queueFamilyIndex)
@@ -492,8 +494,11 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     public static void PollEvents()
     {
         if (OXRSession == IntPtr.Zero) return;
+        if (!running && !init || _disposing) return;
+        
         while (true)
         {
+            if (_disposing) return;
             XrEventDataBuffer ev = new() { type = Types.XrStructureType.XR_TYPE_EVENT_DATA_BUFFER };
             var res = xrPollEvent(OpenXRInstance, &ev);
             if (res == Types.XrResult.XR_EVENT_UNAVAILABLE) break;
@@ -533,24 +538,28 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
                     primaryViewConfigurationType = XrViewConfigurationType.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
                 };
                 Check(xrBeginSession(OXRSession, &bi), "xrBeginSession");
-                Instance.running = true;
+                running = true;
                 break;
             case XrSessionState.XR_SESSION_STATE_SYNCHRONIZED:
             case XrSessionState.XR_SESSION_STATE_VISIBLE:
             case XrSessionState.XR_SESSION_STATE_FOCUSED:
-                Instance.running = true;
+                running = true;
                 break;
             case XrSessionState.XR_SESSION_STATE_STOPPING:
-                Instance.running = false;               // was missing: next xrWaitFrame would fail
+                running = false;
                 Check(xrEndSession(OXRSession), "xrEndSession");
                 break;
             case XrSessionState.XR_SESSION_STATE_IDLE:
-                Instance.running = false;
+                running = false;
                 break;
             case XrSessionState.XR_SESSION_STATE_LOSS_PENDING:
             case XrSessionState.XR_SESSION_STATE_EXITING:
-                Instance.running = false;
-                Lifecycle.ScriptBinding.ShutdownEngine();
+                running = false;
+                if (!_disposing)
+                {
+                    _disposing = true;
+                    cleanupCall?.Invoke();
+                }
                 break;
         }
     }
@@ -566,6 +575,8 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
             throw new Exceptions.OpenXRSessionException($"{what} failed: {r}");
     }
 
+    public static bool isRunning() => running;
+    
     public static Types.XrFrameInfo BeginXrFrame()
     {
         XrFrameWaitInfo waitInfo = new() { type = Types.XrStructureType.XR_TYPE_FRAME_WAIT_INFO };
@@ -631,6 +642,8 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
 
     public static void EndXrFrame(bool rendered)
     {
+        if (!running) return;
+        
         XrCompositionLayerProjectionView* pv = stackalloc XrCompositionLayerProjectionView[2];
         for (int i = 0; i < 2; i++)
         {
@@ -745,20 +758,20 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     private static void suggestBindings()
     {
         suggestFor("/interaction_profiles/khr/simple_controller",
-            (leftHandAction,  "/user/hand/left/input/grip/pose"),
-            (rightHandAction, "/user/hand/right/input/grip/pose"),
+            (leftHandAction,  "/user/hand/left/input/aim/pose"),
+            (rightHandAction, "/user/hand/right/input/aim/pose"),
             (leftGrabAction,  "/user/hand/left/input/select/click"),
             (rightGrabAction, "/user/hand/right/input/select/click"));
 
         suggestFor("/interaction_profiles/oculus/touch_controller",
-            (leftHandAction,  "/user/hand/left/input/grip/pose"),
-            (rightHandAction, "/user/hand/right/input/grip/pose"),
-            (leftGrabAction,  "/user/hand/left/input/squeeze/value"),   // float -> bool is converted by the runtime
+            (leftHandAction,  "/user/hand/left/input/aim/pose"),
+            (rightHandAction, "/user/hand/right/input/aim/pose"),
+            (leftGrabAction,  "/user/hand/left/input/squeeze/value"),
             (rightGrabAction, "/user/hand/right/input/squeeze/value"));
 
         suggestFor("/interaction_profiles/valve/index_controller",
-            (leftHandAction,  "/user/hand/left/input/grip/pose"),
-            (rightHandAction, "/user/hand/right/input/grip/pose"),
+            (leftHandAction,  "/user/hand/left/input/aim/pose"),
+            (rightHandAction, "/user/hand/right/input/aim/pose"),
             (leftGrabAction,  "/user/hand/left/input/squeeze/value"),
             (rightGrabAction, "/user/hand/right/input/squeeze/value"));
     }
@@ -868,17 +881,17 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
         
         if (getActionPose(leftHandAction, leftHandSpace, roomSpace, predictedDisplayTime, out var leftHand))
         {
-            Instance.leftHandPos = new Vec3(leftHand.position.x, leftHand.position.y, leftHand.position.z);
-            Instance.leftHandRot = new Quaternion(leftHand.orientation.x, leftHand.orientation.y, leftHand.orientation.z, leftHand.orientation.w);
+            leftHandPos = new Vec3(leftHand.position.x, leftHand.position.y, leftHand.position.z);
+            leftHandRot = new Quaternion(leftHand.orientation.x, leftHand.orientation.y, leftHand.orientation.z, leftHand.orientation.w);
         }
         if (getActionPose(rightHandAction, rightHandSpace, roomSpace, predictedDisplayTime, out var rightHand))
         {
-            Instance.rightHandPos = new Vec3(rightHand.position.x, rightHand.position.y, rightHand.position.z);
-            Instance.rightHandRot = new Quaternion(rightHand.orientation.x, rightHand.orientation.y, rightHand.orientation.z, rightHand.orientation.w);
+            rightHandPos = new Vec3(rightHand.position.x, rightHand.position.y, rightHand.position.z);
+            rightHandRot = new Quaternion(rightHand.orientation.x, rightHand.orientation.y, rightHand.orientation.z, rightHand.orientation.w);
         }
 
-        Instance.leftControllerGrab = getActionBoolean(leftGrabAction);
-        Instance.rightControllerGrab = getActionBoolean(rightGrabAction);
+        leftControllerGrab = getActionBoolean(leftGrabAction);
+        rightControllerGrab = getActionBoolean(rightGrabAction);
     }
 #endregion
 #region Helpers
@@ -943,6 +956,9 @@ public unsafe class OpenXR // corresponding to https://amini-allight.org/post/op
     }
 #endregion
 #region Cleanup
+
+    private static Action cleanupCall = null;
+    public static void SetCleanupCall(Action action) => cleanupCall = action;
     public static void Cleanup()
     {
         if (OpenXRInstance == IntPtr.Zero) return;

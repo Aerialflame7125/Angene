@@ -2,18 +2,11 @@ using Angene.Essentials.Components;
 using Angene.Math.Vectors;
 using static Angene.Vulkan.Interop.Enumerators;
 using static Angene.Vulkan.Interop.Structs;
+#if WINDOWS
 using static Angene.Windows.Dxgi.DxgiEnums;
+#endif
 
 namespace Angene.Essentials.GraphicsContexts;
-
-    // Abstract interface for platform-specific graphics
-    public struct InputElement
-    {
-        public string SemanticName;
-        public uint SemanticIndex;
-        public DXGI_FORMAT Format;
-        public uint ByteOffset;
-    }
 
     public interface IGraphicsContext
     {
@@ -24,6 +17,16 @@ namespace Angene.Essentials.GraphicsContexts;
         bool isDisposed();
         void Resize(int width, int height);
         byte[] GetRawPixels();
+    }
+
+#if WINDOWS
+    // Abstract interface for platform-specific graphics
+    public struct InputElement
+    {
+        public string SemanticName;
+        public uint SemanticIndex;
+        public DXGI_FORMAT Format;
+        public uint ByteOffset;
     }
 
     public interface IDX11GraphicsContext : IGraphicsContext
@@ -56,6 +59,7 @@ namespace Angene.Essentials.GraphicsContexts;
             uint vertexCount);
         void EndFrame();
     }
+#endif
 
     public interface IVkGraphicsContext : IGraphicsContext
     {

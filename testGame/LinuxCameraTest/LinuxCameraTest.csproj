@@ -5,7 +5,6 @@
 		<OutputType>exe</OutputType>
 		<AssemblyName>Game</AssemblyName>
 		<RootNamespace>Game</RootNamespace>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Nullable>disable</Nullable>
 		<LangVersion>latest</LangVersion>
 

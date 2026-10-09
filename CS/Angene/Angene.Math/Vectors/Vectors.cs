@@ -58,10 +58,9 @@ namespace Angene.Math.Vectors
 
         public static float Dot(Vec3 a, Vec3 b) => a.X * b.X + a.Y * b.Y + a.Z * b.Z;
         public static Vec3 Cross(Vec3 a, Vec3 b) => new(
-            a.Z * b.Y - a.Y * b.Z,
-            a.X * b.Z - a.Z * b.X,
-            a.Y * b.X - a.X * b.Y
-        );
+            a.Y * b.Z - a.Z * b.Y,
+            a.Z * b.X - a.X * b.Z,
+            a.X * b.Y - a.Y * b.X);
         public static Vec3 Lerp(Vec3 a, Vec3 b, float t) => a + (b - a) * t;
 
         public static Vec3 operator +(Vec3 a, Vec3 b) => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
@@ -179,7 +178,6 @@ namespace Angene.Math.Vectors
 
         public Vec3 Rotate(Vec3 v)
         {
-            // v' = v + 2w(u × v) + 2u × (u × v), cross written out because Vec3.Cross is currently negated
             Vec3 u = new(X, Y, Z);
             Vec3 t = new(
                 2 * (u.Y * v.Z - u.Z * v.Y),
@@ -426,5 +424,50 @@ namespace Angene.Math.Vectors
             w.M00 * d.X + w.M01 * d.Y + w.M02 * d.Z,
             w.M10 * d.X + w.M11 * d.Y + w.M12 * d.Z,
             w.M20 * d.X + w.M21 * d.Y + w.M22 * d.Z).Normalized;
+        
+        public static Quaternion ToQuaternion(Matrix4x4 m)
+        {
+            float trace = m.M00 + m.M11 + m.M22;
+            float x, y, z, w;
+
+            if (trace > 0.0f)
+            {
+                float s = 0.5f / MathF.Sqrt(trace + 1.0f);
+                w = 0.25f / s;
+                x = (m.M21 - m.M12) * s;
+                y = (m.M02 - m.M20) * s;
+                z = (m.M10 - m.M01) * s;
+            }
+            else
+            {
+                if (m.M00 > m.M11 && m.M00 > m.M22)
+                {
+                    float s = 2.0f * MathF.Sqrt(1.0f + m.M00 - m.M11 - m.M22);
+                    w = (m.M21 - m.M12) / s;
+                    x = 0.25f * s;
+                    y = (m.M01 + m.M10) / s;
+                    z = (m.M02 + m.M20) / s;
+                }
+                else if (m.M11 > m.M22)
+                {
+                    float s = 2.0f * MathF.Sqrt(1.0f + m.M11 - m.M00 - m.M22);
+                    w = (m.M02 - m.M20) / s;
+                    x = (m.M01 + m.M10) / s;
+                    y = 0.25f * s;
+                    z = (m.M12 + m.M21) / s;
+                }
+                else
+                {
+                    float s = 2.0f * MathF.Sqrt(1.0f + m.M22 - m.M00 - m.M11);
+                    w = (m.M10 - m.M01) / s;
+                    x = (m.M02 + m.M20) / s;
+                    y = (m.M12 + m.M21) / s;
+                    z = 0.25f * s;
+                }
+            }
+            
+            float length = MathF.Sqrt(x * x + y * y + z * z + w * w);
+            return new Quaternion(x / length, y / length, z / length, w / length);
+        }
     }
 }
