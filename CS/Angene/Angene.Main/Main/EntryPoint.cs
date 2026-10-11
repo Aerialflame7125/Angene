@@ -33,7 +33,7 @@ public class EntryPoint
             {
                 foreach (Window win in wins)
                 {
-                    bool a = win.ProcessMessages(win.Handle);
+                    win.ProcessMessages(win.Handle);
                     dt = (DateTime.Now - lastFrame).TotalSeconds;
                     lastFrame = DateTime.Now;
 

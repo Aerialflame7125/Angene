@@ -34,6 +34,9 @@
 	  <Reference Include="Angene.Essentials">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Essentials.dll</HintPath>
 	  </Reference>
+	  <Reference Include="Angene.Extensions.Input">
+	    <HintPath>..\..\Build\Angene\Lin\Angene.Extensions.Input.dll</HintPath>
+	  </Reference>
 	  <Reference Include="Angene.Extensions.XR">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Extensions.XR.dll</HintPath>
 	  </Reference>
@@ -46,17 +49,11 @@
 	  <Reference Include="Angene.Management">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Management.dll</HintPath>
 	  </Reference>
-	  <Reference Include="Angene.Input">
-	    <HintPath>..\..\Build\Angene\Lin\Angene.Input.dll</HintPath>
-	  </Reference>
 	  <Reference Include="Angene.Math">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Math.dll</HintPath>
 	  </Reference>
 	  <Reference Include="Angene.Vulkan">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Vulkan.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Angene.Audio">
-	    <HintPath>..\..\Build\Angene\Lin\Angene.Audio.dll</HintPath>
 	  </Reference>
 	</ItemGroup>
 

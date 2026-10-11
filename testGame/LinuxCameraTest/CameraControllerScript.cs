@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Angene.Common;
 using Angene.Essentials;
 using Angene.Essentials.Components;
+using Angene.Extensions.Input;
 using Angene.Math.Vectors;
 using Latin1 = Angene.Linux.X11.X11InputKeys.IKeyCodeLangLinux.IKeyCodeLatin1;
 using CursorKeys = Angene.Linux.X11.X11InputKeys.IKeyCodeCursorControlLinux;
@@ -54,7 +55,7 @@ namespace Game
                 return;
             }
 
-            keyDetection.Register(cameraEntity);
+            keyDetection.Register();
             mouseDetection.Register(cameraEntity);
             
             _yaw = 0;

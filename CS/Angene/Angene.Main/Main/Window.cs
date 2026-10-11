@@ -713,6 +713,7 @@ namespace Angene.Main
                 // Say we can handle closing or some shit
                 sbyte* deleteName = ToSBytePtr("WM_DELETE_WINDOW");
                 sbyte* pingName = ToSBytePtr("_NET_WM_PING");
+                XLib.Methods.XAutoRepeatOff(Engine.Instance.SharedX11Display);
                 wmDeleteAtom = XLib.Methods.XInternAtom(Engine.Instance.SharedX11Display, deleteName, 0);
                 wmPingAtom  = XLib.Methods.XInternAtom(Engine.Instance.SharedX11Display, pingName, 0);
                 
@@ -1106,11 +1107,17 @@ namespace Angene.Main
                     if (target == null)
                         continue;
 
-                    if (xevent.type == 33 /* ClientMessage */ &&
-                        xevent.xclient.data.l[0] == (IntPtr)target.wmDeleteAtom || xevent.xclient.data.l[0] == (IntPtr)target.wmPingAtom)
+                    if (xevent.type == 33)
                     {
-                        target.Close();
-                        continue;
+                        var d0 = xevent.xclient.data.l[0];
+                        if (d0 == (IntPtr)target.wmDeleteAtom) { target.Close(); continue; }
+                        if (d0 == (IntPtr)target.wmPingAtom)
+                        {
+                            xevent.xclient.window = XLib.Methods.XDefaultRootWindow(_handle.Display);
+                            XLib.Methods.XSendEvent(_handle.Display, xevent.xclient.window, 0,
+                                (nint)(SubstructureNotifyMask | SubstructureRedirectMask), &xevent);
+                            continue;
+                        }
                     }
 
                     if (xevent.type == 22 /* ConfigureNotify */)
@@ -1121,10 +1128,10 @@ namespace Angene.Main
                             target.graphicsContext?.Resize(w, h);
                     }
 
-                    foreach (IScene scene in Scenes)
+                    foreach (IScene scene in target._scenes)
                         scene.OnMessage(xevent);
                     
-                    ManagementScene.OnMessage(xevent);
+                    target.ManagementScene.OnMessage(xevent);
 
                     if (injectedCalls != null)
                         foreach (var i in injectedCalls)

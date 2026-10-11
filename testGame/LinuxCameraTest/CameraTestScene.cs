@@ -9,6 +9,7 @@ using Angene.Main;
 using Angene.Math.Vectors;
 using Angene.Essentials.DefaultEntities;
 using Angene.Essentials.GraphicsContexts;
+using Angene.Extensions.Input;
 using Angene.Input;
 using Angene.Linux.X11;
 

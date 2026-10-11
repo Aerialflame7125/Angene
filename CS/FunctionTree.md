@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-10-09 04:12:11.005029+00:00)</sup></sub>
+<sub><sup>(generated 2026-10-11 00:28:36.231934+00:00)</sup></sub>
 
 ## Angene.Common
 
@@ -5693,7 +5693,6 @@
     * `object Instance { get; set; }`
     * `string Name { get; set; }`
     * `List<Entity> Entities { get; set; }`
-    * `Entity MainCamera { get; set; }`
     * `Entity AddEntity()`
     * `Entity RemoveScript()`
     * `Entity GetDefaultEntity()`
@@ -11678,8 +11677,8 @@
     * `uint RowPitch`
     * `uint DepthPitch`
   * **struct D3D11_RASTERIZER_DESC**
-    * `D3D11_FILL_MODE FillMode`
-    * `D3D11_CULL_MODE CullMode`
+    * `uint FillMode`
+    * `uint CullMode`
     * `int FrontCounterClockwise`
     * `int DepthBias`
     * `float DepthBiasClamp`
@@ -11688,8 +11687,8 @@
     * `int ScissorEnable`
     * `int MultisampleEnable`
     * `int AntialiasedLineEnable`
-    * `uint FillMode`
-    * `uint CullMode`
+    * `D3D11_FILL_MODE FillMode`
+    * `D3D11_CULL_MODE CullMode`
   * **struct D3D11_RENDER_TARGET_BLEND_DESC**
     * `int BlendEnable`
     * `D3D11_BLEND SrcBlend`

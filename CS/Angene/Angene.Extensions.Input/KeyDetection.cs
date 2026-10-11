@@ -22,6 +22,17 @@ namespace Angene.Extensions.Input
         private bool holdingFullscreen = false;
         private bool anyKeyDown = false;
 
+#if LINUX
+        public unsafe void Start()
+        {
+            foreach (Window win in Engine.Instance.OpenWindows)
+            {
+                if (win.Handle is X11WindowHandle handle)
+                    XLib.Methods.XSelectInput(Engine.Instance.SharedX11Display, (nuint)handle.Window, (IntPtr)(XLib.XEventMask.KeyPressMask|XLib.XEventMask.KeyReleaseMask|XLib.XEventMask.ButtonPressMask|XLib.XEventMask.ButtonReleaseMask|XLib.XEventMask.PointerMotionMask|XLib.XEventMask.StructureNotifyMask|XLib.XEventMask.FocusChangeMask));
+            }
+        }
+#endif
+        
         public unsafe void OnMessage(object msgPtr)
         {
 #if WINDOWS
@@ -64,35 +75,23 @@ namespace Angene.Extensions.Input
 #if LINUX
             if (msgPtr is XLib._XEvent msg)
             {
-                if (msg.type != 2 && msg.type != 3 && msg.type != 10) return;
+                if (msg.type == 4 || msg.type == 5 || msg.type == 6 || msg.type == 7 || msg.type == 8) return; // pointer events
                 if (msg.type == 10)
                 {
                     _heldKeys.Clear();
                     _comboWasDown = false;
                     return;
                 }
-                
-                bool ours = false;
-                foreach (Window win in Engine.Instance.OpenWindows)
-                {
-                    if (win.Handle is X11WindowHandle h && h.Window == (IntPtr)msg.xkey.window)
-                    {
-                        ours = true;
-                        break;
-                    }
-                }
-
-                if (!ours) return;
 
                 nuint keysym = XLib.Methods.XKeycodeToKeysym(Engine.Instance.SharedX11Display, (byte)msg.xkey.keycode, 0);
                 uint key = KeyResolver.TryLinuxKeysym(keysym);
                 if (key == 0) return;
 
+                if (msg.type == 3)
+                    _heldKeys.Remove(key);
                 if (msg.type == 2)
                     _heldKeys.Add(key);
-                else
-                    _heldKeys.Remove(key);
-
+                
                 CheckFullscreenCombo(Window.ResolveWindowMapTargetFromXEvent(msg));
             }
 #endif
@@ -168,8 +167,8 @@ namespace Angene.Extensions.Input
         public List<Entity> Instances = new List<Entity>();
 
         /// <summary>
-        /// Takes default ManagementScene object entities of all open windows and registers a new KeyDetection Entity on them.
-        /// NOTICE: This method is not recommended for performance. It WILL iterate through all open windows and ManagementScene objects.
+        /// Takes default ManagementScene object entities of the open window at index 0 of Engine.OpenWindows and registers a new KeyDetection Entity on them.
+        /// NOTICE: This method is not recommended as it picks the first window at random.
         /// </summary>
         public void Register()
         {
@@ -180,15 +179,12 @@ namespace Angene.Extensions.Input
                 return;
             }
 
-            foreach (Window w in Engine.Instance.OpenWindows)
-            {
-                Entity DetectionEntity = new Entity("KeyDetection");
-                _script = new KeyDetectionScript();
-                ManagementScene? a = w.ManagementScene as ManagementScene;
-                Entity b = a.AddEntity(DetectionEntity);
-                Instances.Add(b);
-                b.AddScript(_script);
-            }
+            Entity DetectionEntity = new Entity("KeyDetection");
+            _script = new KeyDetectionScript();
+            ManagementScene? a = Engine.Instance.OpenWindows[0].ManagementScene as ManagementScene;
+            Entity b = a.AddEntity(DetectionEntity);
+            Instances.Add(b);
+            b.AddScript(_script);
 
             Logger.LogDebug($"[KeyDetection] Added {Engine.Instance.OpenWindows.Count} new Entities",
                 LoggingTarget.Engine);
