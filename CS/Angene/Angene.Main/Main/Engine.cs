@@ -79,7 +79,7 @@ namespace Angene.Main
         }
 
         public static Engine Instance { get; } = new Engine();
-
+        
         // Check supported libraries
         private static string[] CheckSupportedLibraries()
         {
@@ -88,7 +88,7 @@ namespace Angene.Main
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Logger.LogDebug("[Engine.cs | CheckSupportedLibraries] Checking for supported libraries on Windows.", LoggingTarget.Engine);
-                string[] AllLibs = new[] { "Graphics", "Vulkan", "D3D11", "Input", "Math", "Audio" };
+                string[] AllLibs = new[] { "Graphics", "Vulkan", "D3D11", "Input", "Math", "Audio", "Extensions.XR" };
                 // Manual checks, most important.
                 if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Windows.dll")))
                     supportedLibs.Add("Windows");
@@ -112,7 +112,7 @@ namespace Angene.Main
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 Logger.LogDebug("[Engine.cs | CheckSupportedLibraries] Checking for supported libraries on Linux.", LoggingTarget.Engine);
-                string [] AllLibs = new[] { "Graphics", "Vulkan", "Input", "Math", "Audio" };
+                string [] AllLibs = new[] { "Graphics", "Vulkan", "Input", "Math", "Audio",　"Extensions.XR" };
                 if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Angene.Linux.dll")))
                     supportedLibs.Add("Linux");
                 else
@@ -170,6 +170,8 @@ namespace Angene.Main
         
         internal unsafe static void destroyInstances()
         {
+            foreach (Window w in Instance.OpenWindows) Instance.RequestClose(w);
+            
 #if WINDOWS
             if (Instance.SharedD3D11Device != IntPtr.Zero) { Marshal.Release(Instance.SharedD3D11Device); Instance.SharedD3D11Device = IntPtr.Zero; }
             if (Instance.SharedD3D11Context != IntPtr.Zero) { Marshal.Release(Instance.SharedD3D11Context); Instance.SharedD3D11Context = IntPtr.Zero; }
@@ -205,11 +207,12 @@ namespace Angene.Main
             foreach (var w in toClose)
                 w.ReallyClose();
         }
-
-        public void Init(Types.AppInfo appInfo, bool verbose = false, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        
+        public void Init(Types.AppInfo appInfo, bool verbose = false, Assembly callingAssembly = null, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
             Logger.Instance.Init(verbose);
             supportedLibs = CheckSupportedLibraries();
+            Settings.Instance.SetSetting("Main.SupportedLibraries", supportedLibs);
             bool skipGraphics = false;
             currentAppInfo = appInfo;
             
@@ -228,7 +231,10 @@ namespace Angene.Main
             {
                 try
                 {
-                    shaderTypes = Assembly.GetCallingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null).Select(t => (SlangShaderResources.IShader)Activator.CreateInstance(t)).ToList();
+                    if (callingAssembly != null)
+                        shaderTypes = callingAssembly.GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null).Select(t => (SlangShaderResources.IShader)Activator.CreateInstance(t)).ToList();
+                    else
+                        shaderTypes = Assembly.GetCallingAssembly().GetTypes().Where(t => t.GetCustomAttribute<Attributes.PrecompileAttribute>() != null).Select(t => (SlangShaderResources.IShader)Activator.CreateInstance(t)).ToList();
                     shaderCount = shaderTypes.Count();
                 }
                 catch(Exception e)
@@ -269,17 +275,20 @@ namespace Angene.Main
                 bool usesD3D11 = false;
                 foreach (SlangShaderResources.IShader shader in shaderTypes)
                 {
+                    #if WINDOWS
                     if (shader.Origin == SlangShaderResources.ShaderOrigin.Dx11)
                         usesD3D11 = true;
-                    else if (shader.Origin == SlangShaderResources.ShaderOrigin.Vulkan)
+                    #endif
+                    if (shader.Origin == SlangShaderResources.ShaderOrigin.Vulkan)
                         usesVulkan = true;
                 }
-                Window _D3dwindow = null;
-                IDX11GraphicsContext _D3Dgraphicscontext = null;
                 Window _Vkwindow = null;
                 VkGraphicsContext _Vkgraphicscontext = null;
                 
 #if WINDOWS
+                Window _D3dwindow = null;
+                IDX11GraphicsContext _D3Dgraphicscontext = null;
+
                 if (usesD3D11)
                 {
                     // alright im going to fucking hate this
@@ -443,7 +452,7 @@ namespace Angene.Main
                 switch (current.Origin)
                 {
                     case SlangShaderResources.ShaderOrigin.Vulkan:
-                        if (current.VerboseLog)
+                        if (current.verboseLog)
                             Logger.LogDebug($"Compiling Vulkan shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
                         CompileVulkanShader(current, _devicePtr, current.compileToFile);
                         break; 
@@ -481,7 +490,7 @@ namespace Angene.Main
                 if (!TryLoadVerifiedShaderFile(cachePath, out code))
                 {
                     Logger.LogDebug($"Cached SPIR-V for '{shader.Name}' failed verification, recompiling.", LoggingTarget.Graphics);
-                    code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                    code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.code, shader.EntryPoint, stage);
                     byte[] intBytes = BitConverter.GetBytes(code.Length);
                     byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
                     Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
@@ -505,7 +514,7 @@ namespace Angene.Main
             }
             else if (CompileToFile)
             {
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.code, shader.EntryPoint, stage);
                 byte[] intBytes = BitConverter.GetBytes(code.Length);
                 byte[] fileData = new byte[intBytes.Length + 1 + code.Length + 1];
                 Buffer.BlockCopy(intBytes, 0, fileData, 0, intBytes.Length);
@@ -527,7 +536,7 @@ namespace Angene.Main
             }
             else
             {
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.Code, shader.EntryPoint, stage);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemorySpirv(shader.code, shader.EntryPoint, stage);
             }
 
             unsafe
@@ -546,7 +555,7 @@ namespace Angene.Main
                     if (result != VkResult.VK_SUCCESS)
                         throw new AngeneException($"Failed to create shader module for '{shader.Name}': {result}");
 
-                    var wrapped = new VkShader(shader.Name, shader.Type, null, shader.id, module, code);
+                    var wrapped = new VkShader(shader.Name, shader.Type, null, shader.id, shader.Queue, module, code);
                     Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
                     Engine.Instance.ShaderCache[shader.id] = wrapped;
                 }
@@ -661,7 +670,7 @@ namespace Angene.Main
                         switch (current.Origin)
                         {
                             case SlangShaderResources.ShaderOrigin.Dx11:
-                                if (current.VerboseLog)
+                                if (current.verboseLog)
                                     Logger.LogDebug($"Compiling Dx11 shader '{current.Name}' to ID {current.id}..", LoggingTarget.Graphics);
                                 CompileDx11Shader(current, _devicePtr, current.compileToFile);
                                 break;
@@ -742,18 +751,18 @@ namespace Angene.Main
                 if (!TryLoadVerifiedShaderFile(cachePath, out code))
                 {
                     Logger.LogDebug($"Cached shader file for '{shader.Name}' failed verification, recompiling.", LoggingTarget.Graphics);
-                    code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
+                    code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
                 }
             }
             else if (CompileToFile)
             {
                 // No cache yet — compile and write the verified file for next time.
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.Code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryToFile(shader.code, shader.EntryPoint, stage, cachePath, NativeSlangMemoryCompiler.ToShaderType.D3D11);
             }
             else
             {
                 // Not using file caching at all.
-                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryD3D11(shader.Code, shader.EntryPoint, stage);
+                code = NativeSlangMemoryCompiler.CompileShaderFromMemoryD3D11(shader.code, shader.EntryPoint, stage);
             }
 
             unsafe
@@ -770,7 +779,7 @@ namespace Angene.Main
                         throw new AngeneException($"Failed to compile shader '{shader.Name}', Bytecode result is null.");
                     else
                         Logger.LogDebug($"Bytecode length: {code.Length}", LoggingTarget.MainGame);
-                    var wrapped = new Dx11Shader(shader.Name, shader.Type, null, null, IntPtr.Zero, nativeShader, shader.id, code);
+                    var wrapped = new Dx11Shader(shader.Name, shader.Type, null, null, IntPtr.Zero, nativeShader, shader.id, shader.Queue, code);
                     Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
                     Engine.Instance.ShaderCache[shader.id] = wrapped;
                 }

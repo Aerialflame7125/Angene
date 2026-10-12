@@ -11,8 +11,6 @@ namespace Angene.Management
 
         public List<Entity> Entities { get; internal set; } = new List<Entity>();
 
-        public Entity MainCamera => null;
-
         Entity defaultEnt;
 
         public ManagementScene(string Token) => Entities.Add(new Entity(Token));
@@ -52,14 +50,9 @@ namespace Angene.Management
 
         public void Cleanup()
         {
-            foreach (var entity in Entities)
-            {
-                foreach (var script in entity.GetScripts())
-                {
-                    if (script is IScreenPlay sp)
-                        sp.Cleanup();
-                }
-            }
+            foreach (Entity e in Entities)
+                foreach (IScreenPlay isp in e.GetScripts())
+                    isp.Cleanup();
             Entities.Clear();
         }
 
@@ -83,14 +76,9 @@ namespace Angene.Management
 
         public void OnMessage(object msgPtr)
         {
-            foreach (var entity in Entities)
-            {
-                foreach (var script in entity.GetScripts())
-                {
-                    if (script is IScreenPlay sp)
-                        sp.OnMessage(msgPtr);
-                }
-            }
+            foreach (Entity e in Entities)
+                foreach (IScreenPlay isp in e.GetScripts())
+                    isp.OnMessage(msgPtr);
         }
 
         public void Render() { }

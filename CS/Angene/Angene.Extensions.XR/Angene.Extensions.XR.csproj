@@ -11,5 +11,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Angene.Graphics\Angene.Graphics.csproj" />
   </ItemGroup>
+    
+  <ItemGroup>
+    <EmbeddedResource Include="Native/win-x64/openxr_loader.dll">
+        <LogicalName>Angene.Extensions.XR.Native.win-x64.openxr_loader.dll</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 
 </Project>

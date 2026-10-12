@@ -27,14 +27,14 @@ namespace Angene.Common.Settings
             Register("Console.LogDebugToConsole", 0,
                 v => v is int i && i is 0 or 1);
 
-            Register("Main.VersionFloat", 0.3f, v => v is float);
+            Register("Main.VersionFloat", 0.4f, v => v is float);
 
             Register("Main.Version", "Angene v0.4 | Purple Fungi");
 
             Register("Main.getIsGameAllowedForWebsockets", false,
                 v => v is bool);
 
-            Register("Engine.RunningDirectory", null, v => v is string);
+            Register("Engine.RunningDirectory", System.Environment.CurrentDirectory, v => v is string);
             
 #if WINDOWS
             string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -105,16 +105,7 @@ namespace Angene.Common.Settings
                 case "Main.Version":
                     return false;
                 case "Engine.RunningDirectory":
-                    if (GetSetting<string?>("Engine.RunningDirectory") == null)
-                    {
-                        _store[ns][field] = value;
-                        if (value != null) OnSettingsChanged?.Invoke(key, value);
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return false;
                 case "Graphics.ShaderDirectory":
                     return false;
             }

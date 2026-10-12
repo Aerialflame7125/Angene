@@ -24,7 +24,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
     <ProjectReference Include="..\Angene.Vulkan\Angene.Vulkan.csproj" />
-    <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
     <ProjectReference Include="..\Angene.Math\Angene.Math.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(AngenePlatform)' == 'Windows'">
+      <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
   </ItemGroup>
 </Project>

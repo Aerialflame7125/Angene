@@ -62,6 +62,15 @@ namespace Angene.Essentials.GraphicsContexts
             ~BaseShader() => Dispose(false);
         }
 
+        public enum ShaderQueue : int
+        {
+            Background = 1000,
+            Geometry = 2000,
+            AlphaTest = 2450,
+            Transparent = 3000,
+            Overlay = 4000
+        }
+
         public interface IShader : IDisposable
         {
             int id { get; }
@@ -71,8 +80,9 @@ namespace Angene.Essentials.GraphicsContexts
             string Extension { get; }
             string Name { get; }
             string EntryPoint { get; }
-            bool VerboseLog { get; set; }
-            string Code { get; }
+            ShaderQueue Queue { get; }
+            bool verboseLog { get; }
+            string code { get; }
             byte[] byteCode { get; }
             ShaderOrigin Origin { get; }
             ShaderType Type { get; }
@@ -91,29 +101,31 @@ namespace Angene.Essentials.GraphicsContexts
 
         public int id { get; }
         public bool compileToFile { get; }
-        public bool VerboseLog { get; set; } = false;
+        public bool verboseLog { get; } = false;
         public IntPtr NativeShader => _nativeShaderPtr;
         public static ShaderOrigin Origin => ShaderOrigin.Dx11;
 
-        public string Code { get; }
+        public string code { get; }
         /// <summary>
         /// File extension (e.g: 'hlsl')
         /// </summary>
         public string Extension { get; }
         public string EntryPoint { get; }
         public byte[] byteCode { get; }
+        public ShaderQueue Queue { get; }
 
         public Dx11Shader(string name, ShaderType type, object slangReflectionData, object nativeComShader, 
-            IntPtr deviceContext, IntPtr nativeShaderPtr, int id,
+            IntPtr deviceContext, IntPtr nativeShaderPtr, int id, ShaderQueue queueType,
             byte[] byteCode = null, string code = null)
             : base(name, type, slangReflectionData)
         {
             this.byteCode = byteCode;
-            Code = code;
+            this.code = code;
             _nativeComShader = nativeComShader;
             _ID3D11DeviceContext = deviceContext;
             _nativeShaderPtr = nativeShaderPtr;
             this.id = id;
+            Queue = queueType;
         }
 
         public override void Bind()
@@ -147,22 +159,25 @@ namespace Angene.Essentials.GraphicsContexts
         }
         public int id { get; }
         public bool compileToFile { get; }
-        public bool VerboseLog { get; set; } = false;
+        public bool verboseLog { get; } = false;
         public static ShaderOrigin Origin => ShaderOrigin.Vulkan;
 
-        public string Code { get; }
+        public string code { get; }
         public string Extension => "spv";
         public string EntryPoint { get; }
         public byte[] byteCode { get; }
-
-        public VkShader(string name, ShaderType type, object slangReflectionData, int id, IntPtr nativeShaderModule = 0,
+        public ShaderQueue Queue { get; }
+        
+        
+        public VkShader(string name, ShaderType type, object slangReflectionData, int id, ShaderQueue queueType, IntPtr nativeShaderModule = 0,
             byte[] byteCode = null, string code = null)
             : base(name, type, slangReflectionData)
         {
             this.byteCode = byteCode;
-            Code = code;
+            this.code = code;
             NativeShaderModule = nativeShaderModule;
             this.id = id;
+            Queue = queueType;
         }
 
         public override void Bind() { /* handled via pipeline bind, not per-shader */ }

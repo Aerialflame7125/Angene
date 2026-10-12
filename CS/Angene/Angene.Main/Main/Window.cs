@@ -24,6 +24,7 @@ using static Angene.Linux.Wayland.XdgShell.Methods;
 using static Angene.Linux.Wayland.WaylandClient;
 using static Angene.Linux.Wayland.WaylandClient.Methods;
 using Angene.Essentials.Components;
+using Angene.Graphics.Vulkan;
 using Angene.Input;
 using Angene.Math.Vectors;
 
@@ -120,18 +121,19 @@ namespace Angene.Main
 #if WINDOWS
                     graphicsContext = Engine.Instance.SharedD3D11Device != IntPtr.Zero
                         ? GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo,
-                            Engine.Instance.SharedD3D11Device, Engine.Instance.SharedD3D11Context)
-                        : GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo);
+                            Engine.Instance.SharedD3D11Device, Engine.Instance.SharedD3D11Context, useOpenXR: config.UsingOpenXR)
+                        : GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo, useOpenXR: config.UsingOpenXR);
 #endif
                 }
                 else if (config.renderMode == RenderType.Vulkan)
                 {
-                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo,
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo, useOpenXR: config.UsingOpenXR,
                         shaderStages: Engine.Instance.ShaderCache);
+                    ((VkGraphicsContext)graphicsContext).SetWindowCleanupCall(RequestShutdown);
                 }
                 else
                 {
-                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo);
+                    graphicsContext = GraphicsContextFactory.Create(Handle, config.Width, config.Height, (int)config.renderMode, PrimaryScene, Engine.Instance.currentAppInfo, useOpenXR: config.UsingOpenXR);
                 }
             }
 #if WINDOWS
@@ -175,6 +177,9 @@ namespace Angene.Main
             Scenes.Clear();
             Scenes.Add(scene);
             PrimaryScene = scene;
+
+            if (graphicsContext is VkGraphicsContext vkctx)
+                vkctx.SetScene(scene);
             foreach (Entity ent in scene.Entities)
             {
                 if (ent.HasComponent<Essentials.Components.VulkanCamera>())
@@ -640,7 +645,7 @@ namespace Angene.Main
                 try
                 {
                     if (graphicsContext is IVkGraphicsContext)
-                        ApplyCameraTransformsVulkan(scene);
+                        SetEntityParentScene(scene);
                     scene.Render();
                 }
                 catch (Exception ex)
@@ -670,36 +675,12 @@ namespace Angene.Main
             }
         }
 
-        public static void ApplyCameraTransformsVulkan(IScene scene)
+        public static void SetEntityParentScene(IScene scene)
         {
-            Entity cam = scene.MainCamera;
-            if (cam == null)
-                return;
-
-            var camTransform = cam.GetComponent<Transform3D>();
-            var vCam = cam.GetComponent<VulkanCamera>();
-
-            if (camTransform == null || vCam == null)
-                return;
-
-            Matrix4x4 view = vCam.LookTo(camTransform.pos, vCam.forward, vCam.up);
-            Matrix4x4 proj = vCam.Perspective(vCam.fov, vCam.aspectRatio, vCam.nearPlane, vCam.farPlane);
-
             foreach (Entity e in scene.Entities)
             {
                 if (e.ParentScene != scene)
                     e.ParentScene = scene;
-
-                if (e == cam)
-                    continue;
-
-                if (!e.TryGetComponent<Transform3D>(out var t))
-                    continue;
-
-                Matrix4x4 modelView = view * t.GetMatrix();
-
-                t.ModelView = modelView;
-                t.Proj = proj;
             }
         }
 
@@ -732,6 +713,7 @@ namespace Angene.Main
                 // Say we can handle closing or some shit
                 sbyte* deleteName = ToSBytePtr("WM_DELETE_WINDOW");
                 sbyte* pingName = ToSBytePtr("_NET_WM_PING");
+                XLib.Methods.XAutoRepeatOff(Engine.Instance.SharedX11Display);
                 wmDeleteAtom = XLib.Methods.XInternAtom(Engine.Instance.SharedX11Display, deleteName, 0);
                 wmPingAtom  = XLib.Methods.XInternAtom(Engine.Instance.SharedX11Display, pingName, 0);
                 
@@ -927,14 +909,14 @@ namespace Angene.Main
             if (_cleanedUp) return;
             _cleanedUp = true;
 
-            Logger.LogInfo("Cleaning up window resources", LoggingTarget.Engine);
-
             foreach (IScene scene in Scenes)
                 scene?.Cleanup();
 
             if (graphicsContext != null)
                 graphicsContext.Cleanup();
         }
+        
+        private void RequestShutdown() => Engine.Instance.RequestClose(this);
         /// <summary>
         /// Requests this window be closed. Frees this window's own scenes/graphics
         /// resources immediately.
@@ -1125,11 +1107,17 @@ namespace Angene.Main
                     if (target == null)
                         continue;
 
-                    if (xevent.type == 33 /* ClientMessage */ &&
-                        xevent.xclient.data.l[0] == (IntPtr)target.wmDeleteAtom || xevent.xclient.data.l[0] == (IntPtr)target.wmPingAtom)
+                    if (xevent.type == 33)
                     {
-                        target.Close();
-                        continue;
+                        var d0 = xevent.xclient.data.l[0];
+                        if (d0 == (IntPtr)target.wmDeleteAtom) { target.Close(); continue; }
+                        if (d0 == (IntPtr)target.wmPingAtom)
+                        {
+                            xevent.xclient.window = XLib.Methods.XDefaultRootWindow(_handle.Display);
+                            XLib.Methods.XSendEvent(_handle.Display, xevent.xclient.window, 0,
+                                (nint)(SubstructureNotifyMask | SubstructureRedirectMask), &xevent);
+                            continue;
+                        }
                     }
 
                     if (xevent.type == 22 /* ConfigureNotify */)
@@ -1140,10 +1128,10 @@ namespace Angene.Main
                             target.graphicsContext?.Resize(w, h);
                     }
 
-                    foreach (IScene scene in Scenes)
+                    foreach (IScene scene in target._scenes)
                         scene.OnMessage(xevent);
                     
-                    ManagementScene.OnMessage(xevent);
+                    target.ManagementScene.OnMessage(xevent);
 
                     if (injectedCalls != null)
                         foreach (var i in injectedCalls)

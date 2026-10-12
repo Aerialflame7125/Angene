@@ -17,6 +17,10 @@ using static Angene.Essentials.Types;
 using Angene.Essentials.GraphicsContexts;
 using Angene.Math.Vectors;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using Angene.Essentials.Components;
 
 namespace Angene.Graphics.Vulkan;
 public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
@@ -48,11 +52,11 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private Dictionary<IntPtr, VmaBufferHandle> _vmaBuffers = new();
     private IntPtr _currentVertexBuffer;
     private IntPtr _currentPipeline;
-    private IScene _scene;
     private AppInfo _currentAppInfo;
+    private IScene _scene;
 
 
-
+    public AppInfo CurrentAppInfo => _currentAppInfo;
     public IntPtr VkPhysicalDevice => _vkPhysicalDevice;
     public IntPtr VkDevice => _vkDevice;
     public IntPtr VkQueue => _vkQueue;
@@ -71,7 +75,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     public IntPtr VkRenderPass => _vkRenderPass;
     public IntPtr VkFramebuffer => _vkFramebuffer;
     public IntPtr[] VkFrameBuffers => _vkFramebuffers;
-    public IntPtr VkPipeline => _vkPipeline;
+    public IntPtr VkPipeline { get => _vkPipeline; set => _vkPipeline = value; }
     public IntPtr VkPipelineLayout => _vkPipelineLayout;
     public IntPtr VkSemaphoreImageAvailable => _vkSemaphoreImageAvailable;
     public IntPtr VkSemaphoreRenderFinished => _vkSemaphoreRenderFinished;
@@ -83,23 +87,48 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private VkSurfaceFormatKHR _surfaceFormat;
     private VkPresentModeKHR _presentMode;
 
-    private VmaAllocator* _vmaAllocator;
-    private VkBuffer* _vma_VkBuffer;
-    private VmaAllocation* _vmaAllocation;
+    private IntPtr _vmaAllocator;
+    private IntPtr _vma_VkBuffer;
+    private IntPtr _vmaAllocation;
     private IntPtr _debugMessenger;
     private delegate* unmanaged[Cdecl]<IntPtr, VkDebugUtilsMessengerCreateInfoEXT*, VkAllocationCallbacks*, IntPtr*, VkResult> _createFunc;
     private delegate* unmanaged[Cdecl]<IntPtr, IntPtr, VkAllocationCallbacks*, void> _destroyFunc;
     private VkShader[] Shaders = Array.Empty<VkShader>();
-    private VkPipelineShaderStageCreateInfo[] shaderStages = Array.Empty<VkPipelineShaderStageCreateInfo>();
-    private IntPtr[] shaderModules = Array.Empty<IntPtr>();
+    private List<IntPtr> shaderModules = new List<IntPtr>();
     private readonly IntPtr _hwnd;
     private bool _needsRecreateSwapchain = false;
-
-    public bool shuttingDown { get; internal set; } = false;
+    
     private readonly int _w, _h;
     VkGraphicscontextHelpers contextHelpers = new VkGraphicscontextHelpers();
     private readonly object _allocatorLock = new object();
-
+    public List<string> ExtraExtensions = new List<string>() {};
+    public QueueFamilyIndices? queueFamilyIndices { get; internal set; }
+    
+    // OpenXR
+    public bool UseOpenXR { get; internal set; }
+    public (Types.XrSwapchain, Types.XrSwapchain) XrSwapchains { get; private set; } = (
+        new XrSwapchain(IntPtr.Zero, VkFormat.VK_FORMAT_A8B8G8R8_SRGB_PACK32, 0, 0, true),
+        new XrSwapchain(IntPtr.Zero, VkFormat.VK_FORMAT_A8B8G8R8_SRGB_PACK32, 0, 0, true));
+    private IntPtr[][] _xrViews = new IntPtr[2][];
+    private IntPtr[][] _xrFramebuffers = new IntPtr[2][];
+    private VkExtent2D[] _xrExtent = new VkExtent2D[2];
+    private Func<Types.XrFrameInfo> _xrBeginFrame;
+    private Func<int, uint> _xrAcquire;
+    private Action<int> _xrRelease;
+    private Action<bool> _xrEndFrame;
+    private Func<bool> _xrRunning;
+    private ulong maxSupportedOpenXRVer = 0;
+    private uint instanceVersion = (uint)((1 << 22) | (3 << 12) | 0);
+    private string xrDll = Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll";
+    private OpenXRController leftOXRController, rightOXRController = null;
+    private IntPtr _xrCommandBuffer, _xrFence, _activeCmd, _xrPipeline, _xrRenderPass;
+    
+    // depth
+    private const VkFormat DepthFormat = VkFormat.VK_FORMAT_D32_SFLOAT;
+    private (IntPtr img, IntPtr alloc, IntPtr view) _depth;
+    private (IntPtr img, IntPtr alloc, IntPtr view)[] _xrDepth = new (IntPtr, IntPtr, IntPtr)[2];
+    
+    
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     private static uint DebugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -112,7 +141,67 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         return 0;
     }
 
-    public VkGraphicsContext(object windowHandle, int width, int height, Dictionary<int, object> shaders, IScene Scene, Types.AppInfo? currentAppInfo = null)
+
+    private static object OXRInstance;
+    private static Type CachedType;
+
+    public void SetScene(IScene scene) => _scene = scene;
+    
+    internal static void InitializeExternalInstance(string assemblyPath, string typeName)
+    {
+        if (OXRInstance != null) return;
+
+        Assembly assem = Assembly.LoadFrom(assemblyPath);
+        CachedType = assem.GetType(typeName);
+    
+        if (CachedType == null)
+            throw new Exception($"Type {typeName} was unable to be found.");
+
+        OXRInstance = Activator.CreateInstance(CachedType);
+    }
+    internal static object CallExternalFunc(string method, object[] parameters, bool isStatic = true)
+    {
+        BindingFlags flags = isStatic 
+            ? BindingFlags.Static | BindingFlags.Public 
+            : BindingFlags.Instance | BindingFlags.Public;
+
+        MethodInfo lmethod = CachedType.GetMethod(method, flags);
+        if (lmethod == null)
+            throw new Exception($"Method {method} was unable to be found.");
+
+        try 
+        { 
+            object target = isStatic ? null : OXRInstance;
+            return lmethod.Invoke(target, parameters); 
+        } 
+        catch (TargetInvocationException ex) when (ex.InnerException != null)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            return null; // Unreachable
+        }
+    }
+
+    internal static object GetPreservedVariable(string variableName)
+    {
+        if (CachedType == null || OXRInstance == null)
+            throw new InvalidOperationException("External library instance does not exist.");
+        
+        PropertyInfo prop = CachedType.GetProperty(variableName, BindingFlags.Static | BindingFlags.Public);
+        if (prop != null)
+        {
+            return prop.GetValue(OXRInstance);
+        }
+        
+        FieldInfo field = CachedType.GetField(variableName, BindingFlags.Static | BindingFlags.Public);
+        if (field != null)
+        {
+            return field.GetValue(OXRInstance);
+        }
+
+        throw new MissingMemberException($"Field or Property '{variableName}' was not found on type {CachedType.FullName}.");
+    }
+
+    public VkGraphicsContext(object windowHandle, int width, int height, Dictionary<int, object> shaders, IScene Scene, Types.AppInfo? currentAppInfo = null, bool UseOpenXR = false)
     {
         if (windowHandle is MicrosoftWindowHandle MWinHandle)
             _hwnd = MWinHandle.Hwnd;
@@ -148,36 +237,68 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             VkApplicationInfo appInfo;
             VkInstanceCreateInfo createInfo;
             VkResult result;
-
+            
+            IntPtr vulkanLib = NativeLibrary.Load(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "vulkan-1.dll" : "libvulkan.so.1");
+            IntPtr pfnGipa = NativeLibrary.GetExport(vulkanLib, "vkGetInstanceProcAddr");
+            if (UseOpenXR)
+                InitializeExternalInstance(Common.Settings.Settings.Instance.GetSetting<string>("Engine.RunningDirectory") + "/Angene.Extensions.XR.dll", "Angene.Extensions.XR.OpenXR");
+            
+#region OpenXR Init
+                this.UseOpenXR = UseOpenXR;
+                if (UseOpenXR)
+                {
+                    if (!Common.Settings.Settings.Instance.GetSetting<string[]>("Main.SupportedLibraries")
+                        .Contains("Extensions.XR"))
+                        throw new Exceptions.FailedToInitializeVulkanException("OpenXR is labeled to be used but the library is missing. Please check your installation.");
+                    
+                    
+                    CallExternalFunc("CreateInstanceS1", new object[] { (IVkGraphicsContext)this, currentAppInfo });
+                    
+                    object ret = CallExternalFunc("getMinMaxSupportedVulkan", new object[] { } );
+                    
+                    (ulong, ulong) rret = (ValueTuple<ulong, ulong>)ret;
+                    maxSupportedOpenXRVer = rret.Item2;
+                }
+#endregion
 #region App Info (appInfo)
-            try
-            {
-                if (currentAppInfo != null)
+                if (maxSupportedOpenXRVer != 0)
+                    instanceVersion = VkGraphicscontextHelpers.XrToVkVersion(maxSupportedOpenXRVer);
+                
+                uint vmaMajor = instanceVersion >> 22;
+                uint vmaMinor = (instanceVersion >> 12) & 0x3FF;
+                uint vmaApiVersion = (vmaMajor == 1 && vmaMinor <= 4) // vma asserts on anything above 1.4
+                    ? instanceVersion
+                    : (uint)((1 << 22) | (3 << 12));
+                
+                try
                 {
-                    appNamePtr = Marshal.StringToHGlobalAnsi(currentAppInfo.AppName);
-                    appInfo = new VkApplicationInfo
+                    if (currentAppInfo != null)
                     {
-                        sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                        pApplicationName = (sbyte*)appNamePtr,
-                        applicationVersion = (uint)System.Math.Round(currentAppInfo.AppVersion),
-                        pEngineName = (sbyte*)engineNamePtr,
-                        engineVersion = (uint)System.Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
-                        apiVersion = (uint)((1 << 22) | (3 << 12) | 0)
-                    };
-                }
-                else
-                {
-                    appNamePtr = Marshal.StringToHGlobalAnsi("Angene Application");
-                    appInfo = new VkApplicationInfo
+                        appNamePtr = Marshal.StringToHGlobalAnsi(currentAppInfo.AppName);
+                        appInfo = new VkApplicationInfo
+                        {
+                            sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                            pApplicationName = (sbyte*)appNamePtr,
+                            applicationVersion = (uint)System.Math.Round(currentAppInfo.AppVersion),
+                            pEngineName = (sbyte*)engineNamePtr,
+                            engineVersion = (uint)System.Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
+                            apiVersion = instanceVersion
+                        };
+                    }
+                    else
                     {
-                        sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                        pApplicationName = (sbyte*)appNamePtr,
-                        applicationVersion = 0,
-                        pEngineName = (sbyte*)engineNamePtr,
-                        engineVersion = (uint)System.Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
-                        apiVersion = (uint)((1 << 22) | (3 << 12) | 0)
-                    };
-                }
+                        appNamePtr = Marshal.StringToHGlobalAnsi("Angene Application");
+                        appInfo = new VkApplicationInfo
+                        {
+                            sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                            pApplicationName = (sbyte*)appNamePtr,
+                            applicationVersion = 0,
+                            pEngineName = (sbyte*)engineNamePtr,
+                            engineVersion = (uint)System.Math.Round(Angene.Common.Settings.Settings.Instance.GetSetting<float>("Main.VersionFloat")), // cancer
+                            apiVersion = instanceVersion
+                        };
+                    }
 #endregion
 #region Extensions
                 // Extensions //
@@ -229,6 +350,16 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         toEnable.Add(o);
                 }
 
+                foreach (var e in ExtraExtensions)
+                {
+                    if (!available.Contains(e))
+                        throw new Exceptions.FailedToInitializeVulkanException(
+                            $"OpenXR-required Vulkan instance extension missing: {e}");
+
+                    if (!toEnable.Contains(e))
+                        toEnable.Add(e);
+                }
+
                 byte[][] extBytes = toEnable.Select(s => Encoding.UTF8.GetBytes(s + "\0")).ToArray();
                 int extCountFinal = extBytes.Length;
 
@@ -257,11 +388,17 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                             ppEnabledExtensionNames = (sbyte**)ppEnabledExtensionNames
                         };
 
-                        // vkCreateInstance(...) must be called HERE, inside this fixed block,
-                        // since ppEnabledExtensionNames is only valid within it
-                        result = vkCreateInstance(&createInfo, null, out instanceHandle);
-                        if (result != VkResult.VK_SUCCESS)
-                            throw new Exception($"Failed to create Vulkan instance: {result}");
+                        if (UseOpenXR)
+                        {
+                            var r = CallExternalFunc("CreateVulkanInstance", new object[] { (IntPtr)(&createInfo), pfnGipa });
+                            instanceHandle = (IntPtr)r;
+                        }
+                        else
+                        {
+                            result = vkCreateInstance(&createInfo, null, out instanceHandle);
+                            if (result != VkResult.VK_SUCCESS)
+                                throw new Exception($"Failed to create Vulkan instance: {result}");
+                        }
                     }
                 }
                 finally
@@ -380,24 +517,51 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 IntPtr _device = IntPtr.Zero;
                 IntPtr _graphicsQueue = IntPtr.Zero;
                 
-                contextHelpers.SelectPhysicalDeviceAndLogicalDevice(_vkInstance, out _physicalDevice, out _device, out _graphicsQueue);
+                uint xrQueueFamily = 0;
+                if (UseOpenXR)
+                {
+                    _physicalDevice = (IntPtr)CallExternalFunc("GetVulkanPhysicalDevice", new object[] { _vkInstance });
 
+                    IntPtr pd = _physicalDevice;
+                    contextHelpers.CreateDevice(pd, Array.Empty<string>(),
+                        ci => (IntPtr)CallExternalFunc("CreateVulkanDevice", new object[] { pd, ci, pfnGipa }),
+                        out _device, out _graphicsQueue, out xrQueueFamily);
+                }
+                else
+                    contextHelpers.SelectPhysicalDeviceAndLogicalDevice(_vkInstance, out _physicalDevice, out _device, out _graphicsQueue);
+                
                 _vkPhysicalDevice = _physicalDevice;
                 _vkDevice = _device;
                 _vkQueue = _graphicsQueue;
+#endregion
+#region (OPENXR) XRSession (XRSession)
+                QueueFamilyIndices queueFamilyIndices = (QueueFamilyIndices)contextHelpers.findQueueFamilies(_physicalDevice, _vkSurfaceKHR);
+                this.queueFamilyIndices = queueFamilyIndices;
+
+                IntPtr XRSession;
+                if (UseOpenXR)
+                {
+                    object ret = CallExternalFunc("CreateSessionS2", new object[] { _vkInstance, _vkDevice, UseOpenXR ? xrQueueFamily : queueFamilyIndices.graphicsFamily.Value });
+
+                    XRSession = (IntPtr)ret;
+                    
+                    CallExternalFunc("createSpace", new object[] { new Vec3(0, 0, 0), new Quaternion(0, 0, 0, 1) });
+                    
+                    BindXr();
+                }
 #endregion
 #region Vulkan Memory Allocator (VMA)
             // 1. Create the allocator once, after you have instance/physicalDevice/device
             VmaAllocatorCreateInfo allocatorInfo = new VmaAllocatorCreateInfo
             {
-                instance = (VkInstance*)_vkInstance,
-                physicalDevice = (VkPhysicalDevice*)_vkPhysicalDevice,
-                device = (VkDevice*)_vkDevice,
-                vulkanApiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0),
+                instance = _vkInstance,
+                physicalDevice = _vkPhysicalDevice,
+                device = _vkDevice,
+                vulkanApiVersion = vmaApiVersion,
                 // pVulkanFunctions = ... required by most bindings, fill with vkGetInstanceProcAddr/vkGetDeviceProcAddr
             };
 
-            VmaAllocator* localAllocator;
+            IntPtr localAllocator;
             result = vmaCreateAllocator(&allocatorInfo, &localAllocator);
             if (result != VkResult.VK_SUCCESS)
                 throw new Exception($"Failed to create VMA allocator: {result}");
@@ -418,8 +582,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             };
 
             // 4. Let VMA create the buffer AND its backing memory
-            VkBuffer* localBuffer;
-            VmaAllocation* localVmaAllocation;
+            IntPtr localBuffer;
+            IntPtr localVmaAllocation;
             result = vmaCreateBuffer(localAllocator, &bufferInfo, &VmaAllocInfo, &localBuffer, &localVmaAllocation, null);
             if (result != VkResult.VK_SUCCESS)
                 throw new Exceptions.FailedToInitializeVulkanException($"Failed to create buffer via VMA: {result}");
@@ -429,6 +593,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             _vmaAllocator = localAllocator;
 #endregion
 #region Shader Handling
+                Shaders = Shaders.OrderBy(x => (int)x.Queue + x.id).ToArray();
+
                 for (int i = 0; i < Shaders.Count(); i++)
                 {
                     VkShader shader = Shaders[i];
@@ -450,7 +616,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         
                         
                         shader.NativeShaderModule = module;
-                        shaderModules.Append(module);
+                        shaderModules.Add(module);
                     }
                 }
 #endregion
@@ -462,6 +628,34 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
                 _vkSurfaceCapabilities = _surfaceCapabilities;
 
+                if (UseOpenXR)
+                {
+                    object ret = CallExternalFunc("createSwapchainsAndActionSet", new object[] {} );
+
+                    XrSwapchains = ((XrSwapchain, XrSwapchain))ret;
+                    _xrRenderPass = CreateRenderPass(XrSwapchains.Item1.format,
+                        VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+                    for (int eye = 0; eye < 2; eye++)
+                    {
+                        var sc = eye == 0 ? XrSwapchains.Item1 : XrSwapchains.Item2;
+                        _xrDepth[eye] = CreateDepth(sc.width, sc.height);
+                        var imgsObj = CallExternalFunc("getSwapchainImages", new object[] { sc });
+                        var imgs = (List<XrSwapchainImageVulkanKHR>)imgsObj;
+                        _xrViews[eye] = new IntPtr[imgs.Count];
+                        _xrFramebuffers[eye] = new IntPtr[imgs.Count];
+                        _xrExtent[eye] = new VkExtent2D { width = sc.width, height = sc.height };
+
+                        for (int i = 0; i < imgs.Count; i++)
+                        {
+                            _xrViews[eye][i] = contextHelpers.CreateImageView(_vkDevice, imgs[i].image, sc.format,
+                                VkImageAspectFlagBits.VK_IMAGE_ASPECT_COLOR_BIT, VkImageViewType.VK_IMAGE_VIEW_TYPE_2D, 1, 1);
+                            _xrFramebuffers[eye][i] = CreateFramebuffer(_xrRenderPass, _xrViews[eye][i],
+                                _xrDepth[eye].view, sc.width, sc.height);
+                        }
+                    }
+                }
+                
                 VkExtent2D chosenExtent;
                 if (_surfaceCapabilities.currentExtent.width == uint.MaxValue)
                 {
@@ -484,6 +678,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
                 _vkExtent2D = chosenExtent;
 
+                _depth = CreateDepth(chosenExtent.width, chosenExtent.height);
+                
                 // get surface format
                 uint surfaceFormatCount;
                 vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, _vkSurfaceKHR, &surfaceFormatCount, null);
@@ -571,35 +767,50 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
                     finalLayout = VkImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
                 };
+                VkAttachmentDescription* atts = stackalloc VkAttachmentDescription[2];
+                atts[0] = colorAttachment;
+                atts[1] = new VkAttachmentDescription {
+                    format = DepthFormat,
+                    samples = VkSampleCountFlagBits.VK_SAMPLE_COUNT_1_BIT,
+                    loadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_CLEAR,
+                    storeOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                    stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                    stencilStoreOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                    initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
+                    finalLayout = VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+                };
                 VkAttachmentReference colorAttachmentRef = new VkAttachmentReference
                 {
                     attachment = 0,
                     layout = VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
                 };
+                var depthRef = new VkAttachmentReference {
+                    attachment = 1,
+                    layout = VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
                 VkSubpassDescription subpass = new VkSubpassDescription
                 {
                     pipelineBindPoint = VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS,
                     colorAttachmentCount = 1,
-                    pColorAttachments = &colorAttachmentRef
+                    pColorAttachments = &colorAttachmentRef,
+                    pDepthStencilAttachment = &depthRef
                 };
 
                 IntPtr renderPass = IntPtr.Zero;
-                
                 VkSubpassDependency dependency = new VkSubpassDependency
                 {
                     srcSubpass = uint.MaxValue,
                     dstSubpass = 0,
-                    srcStageMask = (uint)VkPipelineStageFlagBits.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                    srcStageMask = (uint)(VkPipelineStageFlagBits.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VkPipelineStageFlagBits.VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VkPipelineStageFlagBits.VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT),
                     srcAccessMask = 0,
-                    dstStageMask = (uint)VkPipelineStageFlagBits.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                    dstAccessMask = (uint)VkAccessFlagBits.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+                    dstStageMask = (uint)(VkPipelineStageFlagBits.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VkPipelineStageFlagBits.VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VkPipelineStageFlagBits.VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT),
+                    dstAccessMask = (uint)(VkAccessFlagBits.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VkAccessFlagBits.VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
                 };
-
+                
                 VkRenderPassCreateInfo renderPassInfo = new VkRenderPassCreateInfo
                 {
                     sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                    attachmentCount = 1,
-                    pAttachments = &colorAttachment,
+                    attachmentCount = 2,
+                    pAttachments = atts,
                     subpassCount = 1,
                     pSubpasses = &subpass,
                     dependencyCount = 1,
@@ -730,13 +941,20 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 // Pipeline Layout
                 IntPtr pipelineLayout = IntPtr.Zero;
 
+                VkPushConstantRange range = new()
+                {
+                    stageFlags = (uint)VkShaderStageFlagBits.VK_SHADER_STAGE_VERTEX_BIT,
+                    offset = 0,
+                    size = 128
+                };
+
                 VkPipelineLayoutCreateInfo pipelineLayoutInfo = new VkPipelineLayoutCreateInfo
                 {
                     sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                     setLayoutCount = 0, // Optional
                     pSetLayouts = null, // Optional
-                    pushConstantRangeCount = 0, // Optional
-                    pPushConstantRanges = null // Optional
+                    pushConstantRangeCount = 1,
+                    pPushConstantRanges = &range
                 };
                 result = vkCreatePipelineLayout(_device, &pipelineLayoutInfo, null, &pipelineLayout);
                 if (result != VkResult.VK_SUCCESS)
@@ -746,43 +964,20 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 #endregion
 #region Framebuffer (_vkFramebuffer)
                 _vkFramebuffers = new IntPtr[_vkImageViews.Length];
-                for (int idx = 0; idx < _vkImageViews.Length; idx++)
-                {
-                    IntPtr[] attachments = { _vkImageViews[idx] };
-                    VkFramebufferCreateInfo framebufferInfo;
-
-                    fixed (IntPtr* imageView = attachments)
-                    {
-                        framebufferInfo = new VkFramebufferCreateInfo
-                        {
-                            sType = VkStructureType.VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                            renderPass = (VkRenderPass*)_vkRenderPass,
-                            attachmentCount = 1,
-                            pAttachments = (VkImageView**)imageView,
-                            width = _surfaceCapabilities.currentExtent.width,
-                            height = _surfaceCapabilities.currentExtent.height,
-                            layers = 1
-                        };
-
-                        IntPtr framebuffer;
-                        result = vkCreateFramebuffer(_device, &framebufferInfo, null, &framebuffer);
-                        if (result != VkResult.VK_SUCCESS)
-                            throw new Exceptions.FailedToInitializeVulkanException($"Failed to create framebuffer (vkCreateFramebuffer): {result}");
-
-                        _vkFramebuffers[idx] = framebuffer;
-                    }
-                }
+                for (int i = 0; i < _vkImageViews.Length; i++)
+                    _vkFramebuffers[i] = CreateFramebuffer(_vkRenderPass, _vkImageViews[i], _depth.view,
+                        chosenExtent.width, chosenExtent.height);
 #endregion
 #region Command Pool (_vkCommandPool)
                 IntPtr commandPool;
-    
-                VkGraphicscontextHelpers.QueueFamilyIndices queueFamilyIndices = (VkGraphicscontextHelpers.QueueFamilyIndices)contextHelpers.findQueueFamilies(_physicalDevice, _vkSurfaceKHR);
+                
                 VkCommandPoolCreateInfo poolInfo = new VkCommandPoolCreateInfo
                 {
                     sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
                     flags = (uint)VkCommandPoolCreateFlagBits.VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-                    queueFamilyIndex = queueFamilyIndices.graphicsFamily.Value
+                    queueFamilyIndex = UseOpenXR ? xrQueueFamily : queueFamilyIndices.graphicsFamily.Value
                 };
+                
                 result = vkCreateCommandPool(_device, &poolInfo, null, &commandPool);
 
                 if (result != VkResult.VK_SUCCESS)
@@ -796,7 +991,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 VkCommandBufferAllocateInfo commandBufferAllocInfo = new VkCommandBufferAllocateInfo
                 {
                     sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-                    commandPool = (VkCommandPool*)commandPool,
+                    commandPool = commandPool,
                     level = VkCommandBufferLevel.VK_COMMAND_BUFFER_LEVEL_PRIMARY,
                     commandBufferCount = 1
                 };
@@ -805,6 +1000,10 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 if (result != VkResult.VK_SUCCESS)
                     throw new Exceptions.FailedToInitializeVulkanException($"Failed to allocate command buffers (vkAllocateCommandBuffers): {result}");
 
+                IntPtr xrCb;
+                result = vkAllocateCommandBuffers(_device, &commandBufferAllocInfo, &xrCb);
+                _xrCommandBuffer = xrCb;
+                
                 _vkCommandBuffer = commandBuffer;
 #endregion
 #region Sync Objects
@@ -824,6 +1023,10 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 if (vkCreateSemaphore(_device, &semaphoreInfo, null, &imageAvailableSemaphore) != VkResult.VK_SUCCESS || vkCreateSemaphore(_device, &semaphoreInfo, null, &renderFinishedSemaphore) != VkResult.VK_SUCCESS || vkCreateFence(_device, &fenceInfo, null, &inFlightFence) != VkResult.VK_SUCCESS)
                     throw new Exceptions.FailedToInitializeVulkanException($"Failed to create semaphores (vkCreateSemaphore): {result}");
 
+                IntPtr xrFence;
+                vkCreateFence(_device, &fenceInfo, null, &xrFence);
+                _xrFence = xrFence;
+                
                 _vkSemaphoreImageAvailable = imageAvailableSemaphore;
                 _vkSemaphoreRenderFinished = renderFinishedSemaphore;
                 _vkFenceInFlight = inFlightFence;
@@ -848,6 +1051,19 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     public void Clear(uint color) { }
     public byte[] GetRawPixels() => Array.Empty<byte>();
     public void Present(IntPtr windowHandle) { }
+    
+    private IntPtr CreateFramebuffer(IntPtr rp, IntPtr color, IntPtr depth, uint w, uint h)
+    {
+        IntPtr* at = stackalloc IntPtr[] { color, depth };
+        var info = new VkFramebufferCreateInfo {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+            renderPass = rp, attachmentCount = 2, pAttachments = at,
+            width = w, height = h, layers = 1 };
+        IntPtr fb;
+        var r = vkCreateFramebuffer(_vkDevice, &info, null, &fb);
+        if (r != VkResult.VK_SUCCESS) throw new Exceptions.FailedToInitializeVulkanException($"Framebuffer failed: {r}");
+        return fb;
+    }
 
     public IntPtr CreateVertexBuffer(byte[] data, uint strideBytes)
     {
@@ -865,12 +1081,12 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         | VmaAllocationCreateFlagBits.VMA_ALLOCATION_CREATE_MAPPED_BIT)
         };
 
-        VkBuffer* buffer;
-        VmaAllocation* allocation;
+        IntPtr buffer;
+        IntPtr allocation;
         VmaAllocationInfo allocationInfo;
         lock (_allocatorLock)
         {
-            if (_disposed || shuttingDown || _vmaAllocator == null)
+            if (_disposed || _vmaAllocator == IntPtr.Zero)
             {
                 // Abort the operation. The engine is shutting down.
                 return IntPtr.Zero; 
@@ -909,12 +1125,12 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         | VmaAllocationCreateFlagBits.VMA_ALLOCATION_CREATE_MAPPED_BIT)
         };
 
-        VkBuffer* buffer;
-        VmaAllocation* allocation;
+        IntPtr buffer;
+        IntPtr allocation;
         VmaAllocationInfo allocationInfo;
         lock (_allocatorLock)
         {
-            if (_disposed || shuttingDown || _vmaAllocator == null)
+            if (_disposed || _vmaAllocator == IntPtr.Zero)
             {
                 // Abort the operation. The engine is shutting down.
                 return IntPtr.Zero; 
@@ -937,7 +1153,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     {
         lock (_allocatorLock)
         {
-            if (_disposed || shuttingDown || _vmaAllocator == null)
+            if (_disposed || _vmaAllocator == IntPtr.Zero)
                 return; 
 
             vmaDestroyBuffer(_vmaAllocator, _vmaBuffers[bufferHandle].Buffer, _vmaBuffers[bufferHandle].Allocation);
@@ -949,7 +1165,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     {
         lock (_allocatorLock)
         {
-            if (_disposed || shuttingDown || _vmaAllocator == null)
+            if (_disposed || _vmaAllocator == IntPtr.Zero)
                 return;
 
             vmaDestroyBuffer(_vmaAllocator, _vmaBuffers[oldBufferHandle].Buffer, _vmaBuffers[oldBufferHandle].Allocation);
@@ -963,7 +1179,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     {
         lock (_allocatorLock)
         {
-            if (_disposed || shuttingDown || _vmaAllocator == null || !_vmaBuffers.TryGetValue(bufferHandle, out var handle))
+            if (_disposed || _vmaAllocator == IntPtr.Zero || !_vmaBuffers.TryGetValue(bufferHandle, out var handle))
                 return;
 
             VmaAllocationInfo allocInfo;
@@ -982,33 +1198,118 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         }
     }
 
-    public IntPtr CreatePipeline(IntPtr vertexShaderModule, IntPtr fragmentShaderModule,
-                             VkVertexInputAttributeDescription[] attributes, uint strideBytes)
+    public IntPtr CreateRenderPass(VkFormat format, VkImageLayout finallayout)
+    {
+        VkResult result;
+        VkAttachmentDescription colorAttachment = new VkAttachmentDescription
+        {
+            format = format,
+            samples = VkSampleCountFlagBits.VK_SAMPLE_COUNT_1_BIT,
+            loadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_CLEAR,
+            storeOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_STORE,
+            stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            stencilStoreOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
+            finalLayout = finallayout
+        };
+        var depthRef = new VkAttachmentReference { attachment = 1,
+            layout = VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+        VkAttachmentReference colorAttachmentRef = new VkAttachmentReference
+        {
+            attachment = 0,
+            layout = VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+        };
+        VkSubpassDescription subpass = new VkSubpassDescription
+        {
+            pipelineBindPoint = VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS,
+            colorAttachmentCount = 1,
+            pColorAttachments = &colorAttachmentRef,
+            pDepthStencilAttachment = &depthRef
+        };
+        VkAttachmentDescription* atts = stackalloc VkAttachmentDescription[2];
+        atts[0] = colorAttachment;
+        atts[1] = new VkAttachmentDescription {
+            format = DepthFormat,
+            samples = VkSampleCountFlagBits.VK_SAMPLE_COUNT_1_BIT,
+            loadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_CLEAR,
+            storeOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            stencilStoreOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
+            finalLayout = VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+
+        IntPtr renderPass = IntPtr.Zero;
+        
+        VkSubpassDependency dependency = new VkSubpassDependency
+        {
+            srcSubpass = uint.MaxValue,
+            dstSubpass = 0,
+            srcStageMask = (uint)VkPipelineStageFlagBits.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            srcAccessMask = 0,
+            dstStageMask = (uint)VkPipelineStageFlagBits.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            dstAccessMask = (uint)VkAccessFlagBits.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+        };
+
+        VkRenderPassCreateInfo renderPassInfo = new VkRenderPassCreateInfo
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+            attachmentCount = 2,
+            pAttachments = atts,
+            subpassCount = 1,
+            pSubpasses = &subpass,
+            dependencyCount = 1,
+            pDependencies = &dependency
+        };
+        result = vkCreateRenderPass(_vkDevice, &renderPassInfo, null, &renderPass);
+        if (result != VkResult.VK_SUCCESS)
+            throw new Exceptions.FailedToInitializeVulkanException($"Failed to create render pass: {result}");
+        return renderPass;
+    }
+
+    public IntPtr CreatePipeline(VkVertexInputAttributeDescription[] attributes, uint strideBytes)
     {
         IntPtr entryPointPtr = Marshal.StringToHGlobalAnsi("main");
         try
         {
             sbyte* entryPoint = (sbyte*)entryPointPtr;
 
-            VkPipelineShaderStageCreateInfo[] stages = new VkPipelineShaderStageCreateInfo[]
-            {
-                new VkPipelineShaderStageCreateInfo
-                {
-                    sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                    stage = VkShaderStageFlagBits.VK_SHADER_STAGE_VERTEX_BIT,
-                    module = (VkShaderModule*)vertexShaderModule,
-                    pName = entryPoint
-                },
-                new VkPipelineShaderStageCreateInfo
-                {
-                    sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                    stage = VkShaderStageFlagBits.VK_SHADER_STAGE_FRAGMENT_BIT,
-                    module = (VkShaderModule*)fragmentShaderModule,
-                    pName = entryPoint
-                }
-            };
+            List<VkPipelineShaderStageCreateInfo> stages = new List<VkPipelineShaderStageCreateInfo>{};
 
-            fixed (VkPipelineShaderStageCreateInfo* pStages = stages)
+            foreach (VkShader shader in Shaders)
+            {
+                switch (shader.Type)
+                {
+                    case SlangShaderResources.ShaderType.Vertex:
+                        stages.Add(new VkPipelineShaderStageCreateInfo()
+                        {
+                            sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                            stage = VkShaderStageFlagBits.VK_SHADER_STAGE_VERTEX_BIT,
+                            module = shader.NativeShaderModule,
+                            pName = entryPoint
+                        });
+                        break;
+                    case SlangShaderResources.ShaderType.Fragment:
+                        stages.Add(new VkPipelineShaderStageCreateInfo()
+                        {
+                            sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                            stage = VkShaderStageFlagBits.VK_SHADER_STAGE_FRAGMENT_BIT,
+                            module = shader.NativeShaderModule,
+                            pName = entryPoint
+                        });
+                        break;
+                    case SlangShaderResources.ShaderType.Compute:
+                        stages.Add(new VkPipelineShaderStageCreateInfo()
+                        {
+                            sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                            stage = VkShaderStageFlagBits.VK_SHADER_STAGE_COMPUTE_BIT,
+                            module = shader.NativeShaderModule,
+                            pName = entryPoint
+                        });
+                        break;
+                }
+            }
+
+            fixed (VkPipelineShaderStageCreateInfo* pStages = stages.ToArray())
             fixed (VkVertexInputAttributeDescription* pAttrs = attributes)
             {
                 VkPipelineVertexInputStateCreateInfo vertexInputInfo;
@@ -1132,9 +1433,9 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     VkPipelineDepthStencilStateCreateInfo pDepthStencilStateCreateInfo = new VkPipelineDepthStencilStateCreateInfo()
                     {
                         sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-                        depthTestEnable = 0,
-                        depthWriteEnable = 0,
-                        depthCompareOp = VkCompareOp.VK_COMPARE_OP_LESS_OR_EQUAL,
+                        depthTestEnable = 1,
+                        depthWriteEnable = 1,
+                        depthCompareOp = VkCompareOp.VK_COMPARE_OP_LESS,
                         depthBoundsTestEnable = 0,
                         stencilTestEnable = 0,
                     };
@@ -1142,7 +1443,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                     pipelineInfo = new VkGraphicsPipelineCreateInfo
                     {
                         sType = VkStructureType.VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-                        stageCount = (uint)stages.Length,
+                        stageCount = (uint)stages.Count(),
                         pStages = pStages,
                         pVertexInputState = &vertexInputInfo,
                         pInputAssemblyState = &inputAssembly,
@@ -1152,16 +1453,29 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         pMultisampleState = &multisampling,
                         pColorBlendState = &colorBlending,
                         pDynamicState = &dynamicState,
-                        layout = (VkPipelineLayout*)_vkPipelineLayout,
-                        renderPass = (VkRenderPass*)_vkRenderPass,
+                        layout = _vkPipelineLayout,
+                        renderPass = _xrRenderPass != IntPtr.Zero ? _xrRenderPass : _vkRenderPass,
                         subpass = 0,
                         basePipelineIndex = -1
                     };
-                    IntPtr pipeline;
-                    VkResult result = vkCreateGraphicsPipelines(_vkDevice, IntPtr.Zero, 1, &pipelineInfo, null, &pipeline);
+                    IntPtr swapPipeline;
+                    pipelineInfo.renderPass = _vkRenderPass;
+                    VkResult result = vkCreateGraphicsPipelines(_vkDevice, IntPtr.Zero, 1, &pipelineInfo, null, &swapPipeline);
                     if (result != VkResult.VK_SUCCESS)
                         throw new Exceptions.FailedToInitializeVulkanException($"Failed to create graphics pipeline: {result}");
-                    return pipeline;
+
+                    if (UseOpenXR)
+                    {
+                        IntPtr xrPipe;
+                        pipelineInfo.renderPass = _xrRenderPass;
+                        result = vkCreateGraphicsPipelines(_vkDevice, IntPtr.Zero, 1, &pipelineInfo, null, &xrPipe);
+                        if (result != VkResult.VK_SUCCESS)
+                            throw new Exceptions.FailedToInitializeVulkanException($"Failed to create graphics pipeline for OpenXR: {result}");
+                        _xrPipeline = xrPipe;
+                    }
+
+                    _vkPipeline = swapPipeline;
+                    return swapPipeline;
                 }
             }
         }
@@ -1196,6 +1510,178 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         vkCmdSetScissor(_vkCommandBuffer, 0, 1, &scissor);
     }
 
+    public void SetXrObjects(OpenXRController leftController, OpenXRController rightController)
+    {
+        leftOXRController = leftController;
+        rightOXRController = rightController;
+    }
+
+    public void RenderXrFrame(
+        Vec3 rigpos,
+        VulkanCamera camera,
+        Action<int, Matrix4x4, Matrix4x4> drawScene)
+    {
+        if (_disposed)
+            return;
+        
+        CallExternalFunc("PollEvents", new object[] {  } );
+
+        if (_xrBeginFrame == null)
+            throw new Exception("XR BeginFrame delegate is null.");
+
+        if (_xrAcquire == null)
+            throw new Exception("XR Acquire delegate is null.");
+
+        if (_xrRelease == null)
+            throw new Exception("XR Release delegate is null.");
+
+        if (_xrEndFrame == null)
+            throw new Exception("XR EndFrame delegate is null.");
+
+        bool a = (bool)CallExternalFunc("isRunning", new object[] { });
+        if (!a) return;
+        
+        XrFrameInfo frame = _xrBeginFrame();
+
+        if (frame.shouldRender)
+        {
+            if (camera == null)
+                throw new Exception("RenderXrFrame received a null VulkanCamera.");
+            Matrix4x4 camWorld = _scene.GetWorldMatrix(_hmd);
+
+            for (int eye = 0; eye < 2; eye++)
+            {
+                XrEyeView ev =
+                    eye == 0
+                        ? frame.leftEye
+                        : frame.rightEye;
+
+                var (view, proj) = XrCameraMath.ForEye(camWorld, camera, ev);
+
+                uint img = _xrAcquire(eye);
+
+                RecordAndSubmitEye(
+                    eye,
+                    img,
+                    () => drawScene(eye, view, proj)
+                );
+
+                _xrRelease(eye);
+            }
+
+            if (leftOXRController != null)
+            {
+                Vec3 p = XrCameraMath.FromXr((Vec3)GetPreservedVariable("leftHandPos"));
+                Quaternion r = XrCameraMath.FromXr((Quaternion)GetPreservedVariable("leftHandRot"));
+                bool leftControllerGrabbed = (bool)GetPreservedVariable("leftControllerGrab");
+                
+                Quaternion rot = Matrix4x4.ToQuaternion(camWorld) * r;
+                
+                leftOXRController.SetControllerData(leftControllerGrabbed,
+                    new Transform3D(XrCameraMath.PosToWorld(camWorld, p), rot.ToEuler(), leftOXRController.ControllerTransform.scale));
+            }
+            if (rightOXRController != null)
+            {
+                Vec3 p = XrCameraMath.FromXr((Vec3)GetPreservedVariable("rightHandPos"));
+                Quaternion r = XrCameraMath.FromXr((Quaternion)GetPreservedVariable("rightHandRot"));
+                bool rightControllerGrabbed = (bool)GetPreservedVariable("rightControllerGrab");
+
+                Quaternion rot = Matrix4x4.ToQuaternion(camWorld) * r;
+                
+                rightOXRController.SetControllerData(rightControllerGrabbed,
+                    new Transform3D(XrCameraMath.PosToWorld(camWorld, p), rot.ToEuler(), rightOXRController.ControllerTransform.scale));
+            }
+            
+            Vec3 left = new Vec3(
+                frame.leftEye.px,
+                frame.leftEye.py,
+                frame.leftEye.pz);
+
+            Vec3 right = new Vec3(
+                frame.rightEye.px,
+                frame.rightEye.py,
+                frame.rightEye.pz);
+
+            Vec3 headPos = XrCameraMath.FromXr((left + right) * 0.5f);
+            
+            Quaternion qL = new Quaternion(frame.leftEye.qx,  frame.leftEye.qy,  frame.leftEye.qz,  frame.leftEye.qw);
+            Quaternion qR = new Quaternion(frame.rightEye.qx, frame.rightEye.qy, frame.rightEye.qz, frame.rightEye.qw);
+            Quaternion headRaw = Quaternion.Slerp(qL, qR, 0.5f);
+            Quaternion headRot = XrCameraMath.FromXr(headRaw);
+            
+            var head = _hmd.GetComponent<OpenXRHmd>()!.head;
+            head.Transform.rot = headRot.ToEuler();
+            head.Transform.pos = headPos;
+        }
+        _xrEndFrame(frame.shouldRender);
+    }
+    
+    public void SetCameraMatrices(Matrix4x4 view, Matrix4x4 proj)
+    {
+        var pc = new VkGraphicscontextHelpers.CameraPushConstants { View = view, Proj = proj };
+        vkCmdPushConstants(_vkCommandBuffer, _vkPipelineLayout,
+            (uint)VkShaderStageFlagBits.VK_SHADER_STAGE_VERTEX_BIT, 0, 128, &pc);
+    }
+    
+
+    private void RecordAndSubmitEye(int eye, uint img, Action draw)
+    {
+        IntPtr fence = _xrFence, cb = _xrCommandBuffer;
+        var prev = _activeCmd;
+        _activeCmd = cb;
+
+        vkWaitForFences(_vkDevice, 1, &fence, 1, ulong.MaxValue);
+        vkResetCommandBuffer(cb, 0);
+
+        var begin = new VkCommandBufferBeginInfo { sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+        vkBeginCommandBuffer(cb, &begin);
+
+        VkClearValue* clear = stackalloc VkClearValue[2];
+        var c = new VkClearColorValue();
+        c.float32[3] = 1f;
+        clear[0] = new VkClearValue { color = c };
+        clear[1] = new VkClearValue { depthStencil = new VkClearDepthStencilValue { depth = 1f, stencil = 0 } };
+        var rp = new VkRenderPassBeginInfo
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+            renderPass = _xrRenderPass,
+            framebuffer = _xrFramebuffers[eye][img],
+            renderArea = new VkRect2D { extent = _xrExtent[eye] },
+            clearValueCount = 2,
+            pClearValues = clear
+        };
+        vkCmdBeginRenderPass(cb, &rp, VkSubpassContents.VK_SUBPASS_CONTENTS_INLINE);
+
+        var vp = new VkViewport { width = _xrExtent[eye].width, height = _xrExtent[eye].height, maxDepth = 1f };
+        var sc = new VkRect2D { extent = _xrExtent[eye] };
+        vkCmdSetViewport(cb, 0, 1, &vp);
+        vkCmdSetScissor(cb, 0, 1, &sc);
+
+        draw();
+
+        vkCmdEndRenderPass(cb);
+        vkEndCommandBuffer(cb);
+
+        var submit = new VkSubmitInfo
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            commandBufferCount = 1,
+            pCommandBuffers = &cb
+        };
+
+        vkResetFences(_vkDevice, 1, &fence);
+        var r = vkQueueSubmit(_vkQueue, 1, &submit, fence);
+        if (r != VkResult.VK_SUCCESS)
+        {
+            Logger.LogError($"[OpenXR] vkQueueSubmit failed: {r}", LoggingTarget.Graphics);
+            vkQueueWaitIdle(_vkQueue);
+        }
+        else
+            vkWaitForFences(_vkDevice, 1, &fence, 1, ulong.MaxValue);
+
+        _activeCmd = prev;
+    }
+
     private void RecreateSwapchain()
     {
         VkGraphicscontextHelpers contextHelpers = new VkGraphicscontextHelpers();
@@ -1208,6 +1694,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             vkDestroyFramebuffer(_vkDevice, fb, null);
         foreach (var iv in _vkImageViews)
             vkDestroyImageView(_vkDevice, iv, null);
+        vmaDestroyImage(_vmaAllocator, _depth.img, _depth.alloc);
+        vkDestroyImageView(_vkDevice, _depth.view, null);
         vkDestroySwapchainKHR(_vkDevice, _vkSwapchainKHR, null);
 
         // Query new surface capabilities
@@ -1231,6 +1719,8 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         {
             chosenExtent = caps.currentExtent;
         }
+        
+        _depth = CreateDepth(chosenExtent.width, chosenExtent.height);
 
         _vkSurfaceCapabilities = caps;
         _vkExtent2D = chosenExtent;
@@ -1258,11 +1748,20 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
         // Get new images
         uint imageCount;
-        vkGetSwapchainImagesKHR(_vkDevice, _vkSwapchainKHR, &imageCount, null);
+        VkResult result;
+        result = vkGetSwapchainImagesKHR(_vkDevice, _vkSwapchainKHR, &imageCount, null);
+        if (result != VkResult.VK_SUCCESS)
+            throw new Exceptions.FailedToInitializeVulkanException($"Failed to get swapchain images (vkGetSwapchainImagesKHR): {result}");
+
         _vkImages = new IntPtr[imageCount];
         _vkImageViews = new IntPtr[imageCount];
+
         fixed (IntPtr* images = _vkImages)
-            vkGetSwapchainImagesKHR(_vkDevice, _vkSwapchainKHR, &imageCount, images);
+        {
+            result = vkGetSwapchainImagesKHR(_vkDevice, _vkSwapchainKHR, &imageCount, images);
+            if (result != VkResult.VK_SUCCESS)
+                throw new Exceptions.FailedToInitializeVulkanException($"Failed to get swapchain images (vkGetSwapchainImagesKHR): {result}");
+        }
 
         // Create new image views
         for (uint i = 0; i < imageCount; i++)
@@ -1270,26 +1769,10 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                 VkImageAspectFlagBits.VK_IMAGE_ASPECT_COLOR_BIT, VkImageViewType.VK_IMAGE_VIEW_TYPE_2D, 1, 1);
 
         // Recreate framebuffers
-        _vkFramebuffers = new IntPtr[imageCount];
-        for (uint i = 0; i < imageCount; i++)
-        {
-            IntPtr imageView = _vkImageViews[i];
-            var fbInfo = new VkFramebufferCreateInfo
-            {
-                sType = VkStructureType.VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                renderPass = (VkRenderPass*)_vkRenderPass,
-                attachmentCount = 1,
-                pAttachments = (VkImageView**)&imageView,
-                width = chosenExtent.width,
-                height = chosenExtent.height,
-                layers = 1
-            };
-            IntPtr framebuffer;
-            VkResult fbResult = vkCreateFramebuffer(_vkDevice, &fbInfo, null, &framebuffer);
-            if (fbResult != VkResult.VK_SUCCESS)
-                throw new Exceptions.FailedToInitializeVulkanException($"Failed to recreate framebuffer: {fbResult}");
-            _vkFramebuffers[i] = framebuffer;
-        }
+        _vkFramebuffers = new IntPtr[_vkImageViews.Length];
+        for (int idx = 0; idx < _vkImageViews.Length; idx++)
+            _vkFramebuffers[idx] = CreateFramebuffer(_vkRenderPass, _vkImageViews[idx], _depth.view,
+                chosenExtent.width, chosenExtent.height);
 
         _vkExtent2D = caps.currentExtent;
     }
@@ -1298,39 +1781,99 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     {
         _currentVertexBuffer = buffer;
         ulong off = offset;
-        vkCmdBindVertexBuffers(_vkCommandBuffer, 0, 1, &buffer, &off);
+        vkCmdBindVertexBuffers(_activeCmd, 0, 1, &buffer, &off);
     }
 
-    public void SetIndexBuffer(IntPtr buffer, uint offset = 0)
-    {
-        vkCmdBindIndexBuffer(_vkCommandBuffer, buffer, offset, VkIndexType.VK_INDEX_TYPE_UINT32);
-    }
+    public void SetIndexBuffer(IntPtr buffer, uint offset = 0) => vkCmdBindIndexBuffer(_activeCmd, buffer, offset, VkIndexType.VK_INDEX_TYPE_UINT32);
 
     public void SetPipeline(IntPtr pipeline)
     {
         _currentPipeline = pipeline;
-        vkCmdBindPipeline(_vkCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        vkCmdBindPipeline(_activeCmd, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     }
 
-    public void Draw(uint vertexCount, uint startVertex = 0)
-    {
-        vkCmdDraw(_vkCommandBuffer, vertexCount, 1, startVertex, 0);
-    }
+    public void Draw(uint vertexCount, uint startVertex = 0) => vkCmdDraw(_activeCmd, vertexCount, 1, startVertex, 0);
 
-    public void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0)
-    {
-        vkCmdDrawIndexed(_vkCommandBuffer, indexCount, 1, startIndex, baseVertex, 0);
-    }
+    public void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0) => vkCmdDrawIndexed(_activeCmd, indexCount, 1, startIndex, baseVertex, 0);
 
-    public void BeginFrame(uint clearColor)
+    private readonly List<DrawItem> _drawItems = new();
+    private readonly List<(DrawItem item, Matrix4x4 mv, float z)> _sorted = new();
+    private readonly List<Entity> _cameras = new();
+    private readonly HashSet<Entity> _visited = new();
+    private Entity _hmd = null;
+    
+    private void GatherDrawItems()
     {
-        if (shuttingDown || _disposed) return;
+        _drawItems.Clear(); _cameras.Clear(); _visited.Clear();
+        foreach (Entity e in _scene.Entities)
+        {
+            Entity root = e;
+            while (root.GetParent() != null) root = root.GetParent();
+            Visit(root);
+        }
+        if (_cameras.Contains(_hmd))
+        {
+            Logger.LogOnce("Your scene seems to contain a VulkanCamera on an OpenXRHmd object. OpenXRHmd objects have their own VulkanCamera objects, and they should be used for such.", LoggingTarget.Graphics, 1013);
+            _cameras.Remove(_hmd);
+        }
+        _cameras.Sort((a, b) => a.GetComponent<VulkanCamera>()!.priority
+            .CompareTo(b.GetComponent<VulkanCamera>()!.priority));
+    }
+    
+    private void Visit(Entity e)
+    {
+        if (!_visited.Add(e) || !e.IsEnabled()) return;
+
+        if (e.TryGetComponent<OpenXRHmd>(out _)) _hmd = e;
+        if (e.TryGetComponent<VulkanCamera>(out _)) _cameras.Add(e);
+        if (e.TryGetComponent<Mesh>(out var mesh) && mesh != null)
+        {
+            if (mesh.vertexBuffer == IntPtr.Zero || mesh.geometryDirty)
+            {
+                if (mesh.vertexBuffer != IntPtr.Zero) DestroyBuffer(mesh.vertexBuffer);
+                if (mesh.indexBuffer  != IntPtr.Zero) DestroyBuffer(mesh.indexBuffer);
+                BuildStaticMesh(mesh);
+                mesh.geometryDirty = false;
+            }
+            _drawItems.Add(new DrawItem { Mesh = mesh, World = e.GetWorldMatrix() });
+        }
+        foreach (Entity c in e.childEntities) Visit(c);
+    }
+    
+    (IntPtr image, IntPtr alloc, IntPtr view) CreateDepth(uint w, uint h)
+    {
+        var ci = new VkImageCreateInfo {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            imageType = VkImageType.VK_IMAGE_TYPE_2D,
+            format = VkFormat.VK_FORMAT_D32_SFLOAT,
+            extent = new VkExtent3D { width = w, height = h, depth = 1 },
+            mipLevels = 1, arrayLayers = 1,
+            samples = VkSampleCountFlagBits.VK_SAMPLE_COUNT_1_BIT,
+            tiling = VkImageTiling.VK_IMAGE_TILING_OPTIMAL,
+            usage = (uint)VkImageUsageFlagBits.VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            sharingMode = VkSharingMode.VK_SHARING_MODE_EXCLUSIVE,
+            initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED
+        };
+        var ai = new VmaAllocationCreateInfo { usage = VmaMemoryUsage.VMA_MEMORY_USAGE_AUTO };
+        IntPtr img, a;
+        VkResult res = vmaCreateImage(_vmaAllocator, &ci, &ai, &img, &a, null);
+        if (res != VkResult.VK_SUCCESS)
+            throw new AngeneException($"Failed to create Vulkan image with VMA: {res}");
+        var view = contextHelpers.CreateImageView(_vkDevice, img, VkFormat.VK_FORMAT_D32_SFLOAT,
+            VkImageAspectFlagBits.VK_IMAGE_ASPECT_DEPTH_BIT, VkImageViewType.VK_IMAGE_VIEW_TYPE_2D, 1, 1);
+        return (img, a, view);
+    }
+    
+    public void BeginFrame(uint clearColor = 0x00000000)
+    {
+        if (_disposed) return;
         VkResult result;
         IntPtr fence = _vkFenceInFlight;
         uint imageIndex;
-
+        
         vkWaitForFences(_vkDevice, 1, &fence, 1, ulong.MaxValue);
-        vkResetFences(_vkDevice, 1, &fence);
+
+        GatherDrawItems();
 
         result = vkAcquireNextImageKHR(_vkDevice, _vkSwapchainKHR, ulong.MaxValue,
             _vkSemaphoreImageAvailable, IntPtr.Zero, &imageIndex);
@@ -1356,25 +1899,29 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         if (result != VkResult.VK_SUCCESS)
             throw new Exception($"Failed to begin recording command buffer (vkBeginCommandBuffer): {result}");
 
+        _activeCmd = _vkCommandBuffer;
+
         VkClearColorValue clearColorValue = new VkClearColorValue();
         clearColorValue.float32[0] = ((clearColor >> 16) & 0xFF) / 255.0f; // R
         clearColorValue.float32[1] = ((clearColor >> 8) & 0xFF) / 255.0f;  // G
         clearColorValue.float32[2] = (clearColor & 0xFF) / 255.0f;         // B
         clearColorValue.float32[3] = ((clearColor >> 24) & 0xFF) / 255.0f; // A
-        VkClearValue clearValue = new VkClearValue { color = clearColorValue };
+        VkClearValue* clear = stackalloc VkClearValue[2];
+        clear[0] = new VkClearValue { color = clearColorValue };
+        clear[1] = new VkClearValue { depthStencil = new VkClearDepthStencilValue { depth = 1f, stencil = 0 } };
 
         VkRenderPassBeginInfo renderPassInfo = new VkRenderPassBeginInfo
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-            renderPass = (VkRenderPass*)_vkRenderPass,
-            framebuffer = (VkFramebuffer*)_vkFramebuffers[_currentImageIndex],
+            renderPass = _vkRenderPass,
+            framebuffer = _vkFramebuffers[_currentImageIndex],
             renderArea = new VkRect2D
             {
                 offset = new VkOffset2D { x = 0, y = 0 },
                 extent = _vkSurfaceCapabilities.currentExtent
             },
-            clearValueCount = 1,
-            pClearValues = &clearValue
+            clearValueCount = 2,
+            pClearValues = clear
         };
         vkCmdBeginRenderPass(_vkCommandBuffer, &renderPassInfo, VkSubpassContents.VK_SUBPASS_CONTENTS_INLINE);
 
@@ -1393,11 +1940,123 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             extent = _vkSurfaceCapabilities.currentExtent
         };
         vkCmdSetScissor(_vkCommandBuffer, 0, 1, &scissor);
+        
+        if (UseOpenXR)
+        {
+            Matrix4x4? headView = null;
+            
+            RenderXrFrame(_hmd.Transform.pos, (VulkanCamera)_hmd.GetComponent<OpenXRHmd>()!.cam, (eye, view, proj) =>
+            {
+                if (eye == 0) headView = view;
+                DrawScene(view, proj, (VulkanCamera)_hmd.GetComponent<OpenXRHmd>()!.cam);
+            });
+        }
+        float W = _vkSurfaceCapabilities.currentExtent.width;
+        float H = _vkSurfaceCapabilities.currentExtent.height;
+        bool drewFirst = false;
+
+        foreach (Entity camEnt in _cameras)
+        {
+            var cam = camEnt.GetComponent<VulkanCamera>();
+            var v = cam.viewport;
+            var vp = new VkViewport { x = v.X * W, y = v.Y * H, width = v.Z * W, height = v.W * H,
+                minDepth = 0, maxDepth = 1 };
+            if (!cam.enabled || vp.width < 1 || vp.height < 1) continue;
+            var sc = new VkRect2D { offset = new VkOffset2D { x = (int)vp.x, y = (int)vp.y },
+                extent = new VkExtent2D { width = (uint)vp.width, height = (uint)vp.height } };
+            vkCmdSetViewport(_vkCommandBuffer, 0, 1, &vp);
+            vkCmdSetScissor(_vkCommandBuffer, 0, 1, &sc);
+
+            if (drewFirst && cam.clearDepth)
+            {
+                var ca = new VkClearAttachment { aspectMask = (uint)VkImageAspectFlagBits.VK_IMAGE_ASPECT_DEPTH_BIT,
+                    clearValue = new VkClearValue { depthStencil = new VkClearDepthStencilValue { depth = 1f } } };
+                var cr = new VkClearRect { rect = sc, baseArrayLayer = 0, layerCount = 1 };
+                vkCmdClearAttachments(_vkCommandBuffer, 1, &ca, 1, &cr);
+            }
+
+            var m = cam.GetMatrices(camEnt.GetWorldMatrix(), vp.width / vp.height);
+            DrawScene(m.View, m.Projection, cam);
+            drewFirst = true;
+        }
+    }
+    
+    private void DrawScene(Matrix4x4 view, Matrix4x4 proj, VulkanCamera cam)
+    {
+        if (_vkPipeline == IntPtr.Zero)
+            throw new AngeneException("No pipeline");
+
+        SetPipeline(_activeCmd == _xrCommandBuffer ? _xrPipeline : _vkPipeline);
+
+        _sorted.Clear();
+
+        foreach (DrawItem item in _drawItems)
+        {
+            if (item.Mesh == null)
+                throw new AngeneException(
+                    "DrawScene: A DrawItem has a null Mesh reference.");
+
+            if (item.Mesh.Shader == null)
+                throw new AngeneException(
+                    $"DrawScene: Mesh '{item.Mesh.targetEnt.name}' has a null Shader reference.");
+
+            Matrix4x4 mv = view * item.World;
+            float depth = cam.TransformPoint(mv, new Vec3(0, 0, 0)).Z;
+
+            _sorted.Add((item, mv, depth));
+        }
+
+        _sorted.Sort((a, b) =>
+        {
+            int aQueue = (int)a.item.Mesh.Shader.Queue
+                         + a.item.Mesh.Shader.id;
+
+            int bQueue = (int)b.item.Mesh.Shader.Queue
+                         + b.item.Mesh.Shader.id;
+
+            int queueCompare = aQueue.CompareTo(bQueue);
+
+            if (queueCompare != 0)
+                return queueCompare;
+
+            return a.Item3.CompareTo(b.Item3);
+        });
+
+        foreach (var (item, mv, _) in _sorted)
+            DrawMesh(item.Mesh, mv, proj);
+    }
+
+    private void DrawMesh(Mesh mesh, Matrix4x4 modelView, Matrix4x4 proj)
+    {
+        var pc = new VkGraphicscontextHelpers.CameraPushConstants { Proj = proj, View = modelView };
+        vkCmdPushConstants(_activeCmd, _vkPipelineLayout,
+            (uint)VkShaderStageFlagBits.VK_SHADER_STAGE_VERTEX_BIT, 0, 128, &pc);
+        SetVertexBuffer(mesh.vertexBuffer, 28);
+        SetIndexBuffer(mesh.indexBuffer);
+        DrawIndexed((uint)mesh.indexCount);
+    }
+    
+    private void BuildStaticMesh(Mesh mesh)
+    {
+        var v = new List<float>(); var idx = new List<uint>();
+        foreach (var f in mesh.Faces)
+        {
+            uint b = (uint)(v.Count / 7);
+            foreach (var ci in new[]{f.a, f.b, f.c, f.d})
+            {
+                var p = mesh.Corners[ci]; var c = f.material.Value; // FaceColor
+                v.AddRange(new[]{ p.X, p.Y, p.Z, c.R, c.G, c.B, c.A });
+            }
+            idx.AddRange(new[]{ b, b+1, b+2,  b, b+2, b+3 });
+        }
+        mesh.vertexBuffer = CreateVertexBuffer(MemoryMarshal.AsBytes(CollectionsMarshal.AsSpan(v)).ToArray(), 28);
+        mesh.indexBuffer  = CreateIndexBuffer(idx.ToArray());
+        mesh.indexCount   = idx.Count;
     }
 
     public void EndFrame()
     {
-        if (shuttingDown || _disposed) return;
+        if (_disposed) return;
 
         vkCmdEndRenderPass(_vkCommandBuffer);
         VkResult result = vkEndCommandBuffer(_vkCommandBuffer);
@@ -1413,14 +2072,16 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_SUBMIT_INFO,
             waitSemaphoreCount = 1,
-            pWaitSemaphores = (VkSemaphore**)&waitSemaphore,
+            pWaitSemaphores = &waitSemaphore,
             pWaitDstStageMask = (uint*)&waitStage,
             commandBufferCount = 1,
-            pCommandBuffers = (VkCommandBuffer**)&commandBuffer,
+            pCommandBuffers = &commandBuffer,
             signalSemaphoreCount = 1,
-            pSignalSemaphores = (VkSemaphore**)&signalSemaphore
+            pSignalSemaphores = &signalSemaphore
         };
 
+        IntPtr fence = _vkFenceInFlight;
+        vkResetFences(_vkDevice, 1, &fence);
         result = vkQueueSubmit(_vkQueue, 1, &submitInfo, _vkFenceInFlight);
         if (result != VkResult.VK_SUCCESS)
             throw new Exception($"Failed to submit draw command buffer (vkQueueSubmit): {result}");
@@ -1431,7 +2092,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             waitSemaphoreCount = 1,
-            pWaitSemaphores = (VkSemaphore**)&signalSemaphore,
+            pWaitSemaphores = &signalSemaphore,
             swapchainCount = 1,
             pSwapchains = (VkSwapchainKHR**)&swapchain,
             pImageIndices = &imageIndex
@@ -1451,82 +2112,6 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             RecreateSwapchain();
         }
     }
-
-    public void Render(int vertices)
-    {
-        if (shuttingDown || _disposed) return;
-
-        Entity mainCam = _scene.GetCameraEntity();
-        Angene.Essentials.Components.Transform3D camTransform = mainCam.GetComponent<Angene.Essentials.Components.Transform3D>();
-        Angene.Essentials.Components.VulkanCamera vCam = mainCam.GetComponent<Angene.Essentials.Components.VulkanCamera>();
-
-        Matrix4x4 viewMatrix = vCam.LookTo(camTransform.pos, vCam.forward, vCam.up);
-        Matrix4x4 projMatrix = vCam.Perspective(vCam.fov, vCam.aspectRatio, vCam.nearPlane, vCam.farPlane);
-
-        VkResult result;
-        IntPtr fence = _vkFenceInFlight;
-        IntPtr commandBuffer = _vkCommandBuffer;
-        vkWaitForFences(_vkDevice, 1, &fence, 1, UInt64.MaxValue);
-        vkResetFences(_vkDevice, 1, &fence);
-        uint _imageIndex = (uint)_currentImageIndex;
-
-        fixed (int* pImageIndex = &_currentImageIndex)
-            result = vkAcquireNextImageKHR(_vkDevice, _vkSwapchainKHR, ulong.MaxValue, _vkSemaphoreImageAvailable, IntPtr.Zero, (uint*)pImageIndex);
-
-        if (result != VkResult.VK_SUCCESS)
-            throw new Exception($"Failed to acquire next image (vkAcquireNextImageKHR): {result}");
-
-        vkResetCommandBuffer(commandBuffer, 0);
-        contextHelpers.recordCommandBuffer(commandBuffer, (int)_imageIndex, _vkRenderPass, _vkFramebuffers, _vkSurfaceCapabilities, _vkPipeline, vertices, viewMatrix, projMatrix, _vkPipelineLayout);
-
-        vkCmdEndRenderPass(_vkCommandBuffer);
-
-        result = vkEndCommandBuffer(_vkCommandBuffer);
-        if (result != VkResult.VK_SUCCESS)
-            throw new Exception($"Failed to record command buffer (vkEndCommandBuffer): {result}");
-
-        IntPtr[] waitSemaphores = new IntPtr[] { _vkSemaphoreImageAvailable };
-        IntPtr[] signalSemaphores = new IntPtr[] { _vkSemaphoreRenderFinished };
-        IntPtr[] swapChains = new IntPtr[] { _vkSwapchainKHR };
-        VkPipelineStageFlagBits[] waitStages = new VkPipelineStageFlagBits[] { VkPipelineStageFlagBits.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        fixed (IntPtr* pWaitSemaphores = waitSemaphores)
-        {
-            fixed (IntPtr* pSignalSemaphores = signalSemaphores)
-            {
-                fixed (VkPipelineStageFlagBits* pWaitStages = waitStages) // cancer
-                {
-                    VkSubmitInfo submitInfo = new VkSubmitInfo
-                    {
-                        sType = VkStructureType.VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                        waitSemaphoreCount = 1,
-                        pWaitSemaphores = (VkSemaphore**)pWaitSemaphores,
-                        pWaitDstStageMask = (uint*)pWaitStages,
-                        commandBufferCount = 1,
-                        pCommandBuffers = (VkCommandBuffer**)&commandBuffer,
-                        signalSemaphoreCount = 1,
-                        pSignalSemaphores = (VkSemaphore**)pSignalSemaphores
-                    };
-
-                    result = vkQueueSubmit(_vkQueue, 1, &submitInfo, _vkFenceInFlight);
-                }
-                fixed (IntPtr* swapchain = swapChains)
-                {
-                    VkPresentInfoKHR presentInfo = new VkPresentInfoKHR
-                    {
-                        sType = VkStructureType.VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                        waitSemaphoreCount = 1,
-                        pWaitSemaphores = (VkSemaphore**)pSignalSemaphores,
-                        swapchainCount = 1,
-                        pSwapchains = (VkSwapchainKHR**)swapchain,
-                        pImageIndices = &_imageIndex,
-                        pResults = null // Optional, allows to check if every swap chain presentation was successful
-                    };
-
-                    vkQueuePresentKHR(_vkQueue, &presentInfo);
-                }
-            }
-        }
-    }
     
     private int _pendingWidth, _pendingHeight; // new fields
 
@@ -1538,14 +2123,63 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         _needsRecreateSwapchain = true;
     }
 
+    private void BindXr()
+    {
+        var t = Assembly
+                    .LoadFrom(xrDll)
+                    .GetType("Angene.Extensions.XR.OpenXR")
+                ?? throw new Exception("Could not find OpenXR type.");
+
+        T Bind<T>(string name) where T : Delegate =>
+            (T)t.GetMethod(
+                name,
+                BindingFlags.Static | BindingFlags.Public
+            )!.CreateDelegate(typeof(T));
+
+        _xrBeginFrame = Bind<Func<Types.XrFrameInfo>>("BeginXrFrame");
+        _xrAcquire    = Bind<Func<int, uint>>("AcquireEyeImage");
+        _xrRelease    = Bind<Action<int>>("ReleaseEyeImage");
+        _xrEndFrame   = Bind<Action<bool>>("EndXrFrame");
+
+        Logger.LogDebug(
+            "[OpenXR] XR delegates successfully bound.",
+            LoggingTarget.External
+        );
+    }
+
+    private Action CleanupWindow = null;
+
+    public void SetWindowCleanupCall(Action method)
+    {
+        CleanupWindow = method;
+        if (UseOpenXR) CallExternalFunc("SetCleanupCall", new object[] { CleanUpWindow });
+    }
+
+    private void CleanUpWindow() => CleanupWindow.Invoke();
+
     public void Cleanup()
     {
         if (_disposed) return;
-
-        shuttingDown = true;
+        _disposed = true;
+        
         if (_vkDevice != IntPtr.Zero)
         {
             vkDeviceWaitIdle(_vkDevice);
+        }
+
+        if (UseOpenXR)
+        {
+            CallExternalFunc("Cleanup", new object[] { });
+            for (int eye = 0; eye < 2; eye++)
+            {
+                var depth = _xrDepth[eye];
+                foreach (var fb in _xrFramebuffers[eye]) vkDestroyFramebuffer(_vkDevice, fb, null);
+                vkDestroyImageView(_vkDevice, depth.view, null);
+                vmaDestroyImage(_vmaAllocator, depth.img, depth.alloc);
+            }
+            vkDestroyPipeline(_vkDevice, _xrPipeline, null);
+            vkDestroyRenderPass(_vkDevice, _xrRenderPass, null);
+            vkDestroyFence(_vkDevice, _xrFence, null);
         }
         if (_destroyFunc != null && _debugMessenger != IntPtr.Zero)
             _destroyFunc(_vkInstance, _debugMessenger, null);
@@ -1553,6 +2187,10 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         foreach (var entry in _vmaBuffers.Values)
             vmaDestroyBuffer(_vmaAllocator, entry.Buffer, entry.Allocation);
         _vmaBuffers.Clear();
+        
+        vkDestroyImageView(_vkDevice, _depth.view, null);
+        vmaDestroyImage(_vmaAllocator, _depth.img, _depth.alloc);
+        
         // destroy memory allocators
         lock (_allocatorLock)
         {
@@ -1560,7 +2198,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
             {
                 vmaDestroyBuffer(_vmaAllocator, _vma_VkBuffer, _vmaAllocation);
                 vmaDestroyAllocator(_vmaAllocator);
-                _vmaAllocator = null;
+                _vmaAllocator = IntPtr.Zero;
             }
         }
         // destroy shaders
@@ -1599,8 +2237,6 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         _vkDevice = IntPtr.Zero;
         _vkInstance = IntPtr.Zero;
         _vkSurfaceKHR = IntPtr.Zero;
-        _disposed = true;
-
         GC.SuppressFinalize(this);
     }
 
@@ -1620,7 +2256,18 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
 
 public unsafe class VkGraphicscontextHelpers
 {
-    struct CameraPushConstants
+    public static uint XrToVkVersion(ulong xr, uint cap = (1u << 22) | (3u << 12))
+    {
+        ulong major = (xr >> 48) & 0xFFFF;
+        ulong minor = (xr >> 32) & 0xFFFF;
+        uint patch  = (uint)(xr & 0xFFF);
+
+        if (major > 1) return cap;
+        uint v = (1u << 22) | ((uint)System.Math.Min(minor, 0x3FFul) << 12) | patch;
+        return System.Math.Min(v, cap);
+    }
+    
+    public struct CameraPushConstants
     {
         public Matrix4x4 View;
         public Matrix4x4 Proj;
@@ -1653,8 +2300,8 @@ public unsafe class VkGraphicscontextHelpers
         VkRenderPassBeginInfo renderPassInfo = new VkRenderPassBeginInfo
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-            renderPass = (VkRenderPass*)renderPass,
-            framebuffer = (VkFramebuffer*)framebuffers[imageIndex],
+            renderPass = renderPass,
+            framebuffer = framebuffers[imageIndex],
             renderArea = new VkRect2D
             {
                 offset = new VkOffset2D
@@ -1699,20 +2346,6 @@ public unsafe class VkGraphicscontextHelpers
         vkCmdDraw(commandBuffer, (uint)vertices, 1, 0, 0);
 
     }
-    public struct QueueFamilyIndices {
-        public uint? graphicsFamily = null;
-        public uint? presentFamily = null;
-
-        public bool isComplete() {
-            return graphicsFamily != null && presentFamily != null;
-        }
-
-        public QueueFamilyIndices(uint? graphicsFamily = null, uint? presentFamily = null)
-        {
-            this.graphicsFamily = graphicsFamily;
-            this.presentFamily = presentFamily;
-        }
-    };
     public QueueFamilyIndices? findQueueFamilies(IntPtr device, IntPtr surface)
     {
         QueueFamilyIndices indices = new QueueFamilyIndices();
@@ -1756,12 +2389,13 @@ public unsafe class VkGraphicscontextHelpers
     }
     public IntPtr CreateImageView(IntPtr device, IntPtr image, VkFormat format, VkImageAspectFlagBits aspectFlags, VkImageViewType viewType, uint layerCount, uint mipLevels)
     {
+        
         VkImageViewCreateInfo viewInfo = new VkImageViewCreateInfo
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             pNext = null,
             flags = 0,
-            image = (VkImage*)image,
+            image = image,
             viewType = viewType,
             format = format,
             components =
@@ -1863,7 +2497,7 @@ public unsafe class VkGraphicscontextHelpers
             queueCount = 1,
             pQueuePriorities = &queuePriority
         };
-
+        
         IntPtr deviceExtensionPtr = Marshal.StringToHGlobalAnsi("VK_KHR_swapchain");
         try
         {
@@ -1894,5 +2528,74 @@ public unsafe class VkGraphicscontextHelpers
         IntPtr queueOut;
         vkGetDeviceQueue(device, (uint)graphicsFamilyIndex, 0, out queueOut);
         graphicsQueue = queueOut;
+    }
+
+    public void CreateDevice(
+        IntPtr physicalDevice,
+        string[] deviceExtensions,
+        Func<IntPtr, IntPtr> deviceFactory,
+        out IntPtr device,
+        out IntPtr graphicsQueue,
+        out uint queueFamily
+    )
+    {
+        uint queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, null);
+        if (queueFamilyCount == 0)
+            throw new Exception("Physical device reports no queue families.");
+
+        VkQueueFamilyProperties* queueFamilies = stackalloc VkQueueFamilyProperties[(int)queueFamilyCount];
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies);
+
+        int graphicsFamilyIndex = -1;
+        for (uint i = 0; i < queueFamilyCount; i++)
+        {
+            if ((queueFamilies[i].queueFlags & (uint)VkQueueFlagBits.VK_QUEUE_GRAPHICS_BIT) != 0)
+            {
+                graphicsFamilyIndex = (int)i;
+                break;
+            }
+        }
+
+        if (graphicsFamilyIndex == -1)
+            throw new Exception("Failed to find a valid graphics queue family.");
+        
+        // Create logical device
+        float queuePriority = 1.0f;
+        VkDeviceQueueCreateInfo queueCreateInfo = new VkDeviceQueueCreateInfo
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            queueFamilyIndex = (uint)graphicsFamilyIndex,
+            queueCount = 1,
+            pQueuePriorities = &queuePriority
+        };
+        
+        queueFamily = (uint)graphicsFamilyIndex;
+        IntPtr deviceExtensionPtr = Marshal.StringToHGlobalAnsi("VK_KHR_swapchain");
+        try
+        {
+            sbyte* deviceExtension = (sbyte*)deviceExtensionPtr;
+            VkDeviceCreateInfo deviceCreateInfo = new VkDeviceCreateInfo
+            {
+                sType = VkStructureType.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+                queueCreateInfoCount = 1,
+                pQueueCreateInfos = &queueCreateInfo,
+                enabledExtensionCount = 1,
+                ppEnabledExtensionNames = &deviceExtension
+            };
+
+            if (deviceFactory != null)
+                device = deviceFactory((IntPtr)(&deviceCreateInfo));
+            else
+            {
+                VkResult result = vkCreateDevice(physicalDevice, &deviceCreateInfo, null, out IntPtr d);
+                if (result != VkResult.VK_SUCCESS) throw new Exception($"Failed to create logical device: {result}");
+                device = d;
+            }
+        }
+        finally { Marshal.FreeHGlobal(deviceExtensionPtr); }
+
+        vkGetDeviceQueue(device, queueFamily, 0, out IntPtr q);
+        graphicsQueue = q;
     }
 }

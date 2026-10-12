@@ -60,6 +60,9 @@ namespace Angene.Platform
         /// <summary>Transparency settings</summary>
         public WindowManagement.WindowTransparency Transparency { get; set; } = WindowManagement.WindowTransparency.None;
 
+        /// <summary>If using OpenXR, set to true so extents and future references get set.</summary>
+        public bool UsingOpenXR = false;
+
         /// <summary>Whether window should be shown immediately</summary>
         public bool ShowOnCreate { get; set; } = true;
 

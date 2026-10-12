@@ -8,8 +8,8 @@ public partial class VulkanMemoryAllocator
 {
     public unsafe struct VmaBufferHandle
     {
-        public VkBuffer* Buffer;
-        public VmaAllocation* Allocation;
+        public IntPtr Buffer;
+        public IntPtr Allocation;
     }
 
     public enum VmaAllocatorCreateFlagBits : uint
@@ -106,105 +106,81 @@ public partial class VulkanMemoryAllocator
         VMA_VIRTUAL_ALLOCATION_CREATE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF,
     }
 
-    public partial struct VmaAllocator
-    {
-    }
-
-    public partial struct VmaPool
-    {
-    }
-
-    public partial struct VmaAllocation
-    {
-    }
-
-    public partial struct VmaDefragmentationContext
-    {
-    }
-
-    public partial struct VmaVirtualAllocation
-    {
-    }
-
-    public partial struct VmaVirtualBlock
-    {
-    }
-
     public unsafe partial struct VmaDeviceMemoryCallbacks
     {
-            public delegate* unmanaged[Cdecl]<VmaAllocator*, uint, VkDeviceMemory*, ulong, void*, void> pfnAllocate;
+            public delegate* unmanaged[Cdecl]<IntPtr, uint, IntPtr, ulong, void*, void> pfnAllocate;
 
-            public delegate* unmanaged[Cdecl]<VmaAllocator*, uint, VkDeviceMemory*, ulong, void*, void> pfnFree;
+            public delegate* unmanaged[Cdecl]<IntPtr, uint, IntPtr, ulong, void*, void> pfnFree;
 
             public void* pUserData;
     }
 
     public unsafe partial struct VmaVulkanFunctions
     {
-            public delegate* unmanaged[Cdecl]<VkInstance*, sbyte*, delegate* unmanaged[Cdecl]<void>> vkGetInstanceProcAddr;
+            public delegate* unmanaged[Cdecl]<IntPtr, sbyte*, delegate* unmanaged[Cdecl]<void>> vkGetInstanceProcAddr;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, sbyte*, delegate* unmanaged[Cdecl]<void>> vkGetDeviceProcAddr;
+            public delegate* unmanaged[Cdecl]<IntPtr, sbyte*, delegate* unmanaged[Cdecl]<void>> vkGetDeviceProcAddr;
 
-            public delegate* unmanaged[Cdecl]<VkPhysicalDevice*, VkPhysicalDeviceProperties*, void> vkGetPhysicalDeviceProperties;
+            public delegate* unmanaged[Cdecl]<IntPtr, VkPhysicalDeviceProperties*, void> vkGetPhysicalDeviceProperties;
 
-            public delegate* unmanaged[Cdecl]<VkPhysicalDevice*, VkPhysicalDeviceMemoryProperties*, void> vkGetPhysicalDeviceMemoryProperties;
+            public delegate* unmanaged[Cdecl]<IntPtr, VkPhysicalDeviceMemoryProperties*, void> vkGetPhysicalDeviceMemoryProperties;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkMemoryAllocateInfo*, VkAllocationCallbacks*, VkDeviceMemory**, VkResult> vkAllocateMemory;
+            public delegate* unmanaged[Cdecl]<IntPtr, VkMemoryAllocateInfo*, VkAllocationCallbacks*, IntPtr*, VkResult> vkAllocateMemory;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkDeviceMemory*, VkAllocationCallbacks*, void> vkFreeMemory;
+            public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, VkAllocationCallbacks*, void> vkFreeMemory;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkDeviceMemory*, ulong, ulong, uint, void**, VkResult> vkMapMemory;
+            public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, ulong, ulong, uint, void**, VkResult> vkMapMemory;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkDeviceMemory*, void> vkUnmapMemory;
+            public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, void> vkUnmapMemory;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, uint, VkMappedMemoryRange*, VkResult> vkFlushMappedMemoryRanges;
+            public delegate* unmanaged[Cdecl]<IntPtr, uint, VkMappedMemoryRange*, VkResult> vkFlushMappedMemoryRanges;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, uint, VkMappedMemoryRange*, VkResult> vkInvalidateMappedMemoryRanges;
+            public delegate* unmanaged[Cdecl]<IntPtr, uint, VkMappedMemoryRange*, VkResult> vkInvalidateMappedMemoryRanges;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkBuffer*, VkDeviceMemory*, ulong, VkResult> vkBindBufferMemory;
+            public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, IntPtr, ulong, VkResult> vkBindBufferMemory;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkImage*, VkDeviceMemory*, ulong, VkResult> vkBindImageMemory;
+            public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, IntPtr, ulong, VkResult> vkBindImageMemory;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkBuffer*, VkMemoryRequirements*, void> vkGetBufferMemoryRequirements;
+            public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, VkMemoryRequirements*, void> vkGetBufferMemoryRequirements;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkImage*, VkMemoryRequirements*, void> vkGetImageMemoryRequirements;
+            public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, VkMemoryRequirements*, void> vkGetImageMemoryRequirements;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkBufferCreateInfo*, VkAllocationCallbacks*, VkBuffer**, VkResult> vkCreateBuffer;
+            public delegate* unmanaged[Cdecl]<IntPtr, VkBufferCreateInfo*, VkAllocationCallbacks*, IntPtr*, VkResult> vkCreateBuffer;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkBuffer*, VkAllocationCallbacks*, void> vkDestroyBuffer;
+            public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, VkAllocationCallbacks*, void> vkDestroyBuffer;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkImageCreateInfo*, VkAllocationCallbacks*, VkImage**, VkResult> vkCreateImage;
+            public delegate* unmanaged[Cdecl]<IntPtr, VkImageCreateInfo*, VkAllocationCallbacks*, IntPtr*, VkResult> vkCreateImage;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkImage*, VkAllocationCallbacks*, void> vkDestroyImage;
+            public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, VkAllocationCallbacks*, void> vkDestroyImage;
 
-            public delegate* unmanaged[Cdecl]<VkCommandBuffer*, VkBuffer*, VkBuffer*, uint, VkBufferCopy*, void> vkCmdCopyBuffer;
+            public delegate* unmanaged[Cdecl]<IntPtr, IntPtr, IntPtr, uint, VkBufferCopy*, void> vkCmdCopyBuffer;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkBufferMemoryRequirementsInfo2*, VkMemoryRequirements2*, void> vkGetBufferMemoryRequirements2KHR;
+            public delegate* unmanaged[Cdecl]<IntPtr, VkBufferMemoryRequirementsInfo2*, VkMemoryRequirements2*, void> vkGetBufferMemoryRequirements2KHR;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkImageMemoryRequirementsInfo2*, VkMemoryRequirements2*, void> vkGetImageMemoryRequirements2KHR;
+            public delegate* unmanaged[Cdecl]<IntPtr, VkImageMemoryRequirementsInfo2*, VkMemoryRequirements2*, void> vkGetImageMemoryRequirements2KHR;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, uint, VkBindBufferMemoryInfo*, VkResult> vkBindBufferMemory2KHR;
+            public delegate* unmanaged[Cdecl]<IntPtr, uint, VkBindBufferMemoryInfo*, VkResult> vkBindBufferMemory2KHR;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, uint, VkBindImageMemoryInfo*, VkResult> vkBindImageMemory2KHR;
+            public delegate* unmanaged[Cdecl]<IntPtr, uint, VkBindImageMemoryInfo*, VkResult> vkBindImageMemory2KHR;
 
-            public delegate* unmanaged[Cdecl]<VkPhysicalDevice*, VkPhysicalDeviceMemoryProperties2*, void> vkGetPhysicalDeviceMemoryProperties2KHR;
+            public delegate* unmanaged[Cdecl]<IntPtr, VkPhysicalDeviceMemoryProperties2*, void> vkGetPhysicalDeviceMemoryProperties2KHR;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkDeviceBufferMemoryRequirements*, VkMemoryRequirements2*, void> vkGetDeviceBufferMemoryRequirements;
+            public delegate* unmanaged[Cdecl]<IntPtr, VkDeviceBufferMemoryRequirements*, VkMemoryRequirements2*, void> vkGetDeviceBufferMemoryRequirements;
 
-            public delegate* unmanaged[Cdecl]<VkDevice*, VkDeviceImageMemoryRequirements*, VkMemoryRequirements2*, void> vkGetDeviceImageMemoryRequirements;
+            public delegate* unmanaged[Cdecl]<IntPtr, VkDeviceImageMemoryRequirements*, VkMemoryRequirements2*, void> vkGetDeviceImageMemoryRequirements;
 
             public void* vkGetMemoryWin32HandleKHR;
 
-            public delegate* unmanaged[Cdecl]<VkPhysicalDevice*, VkPhysicalDeviceProperties2*, void> vkGetPhysicalDeviceProperties2KHR;
+            public delegate* unmanaged[Cdecl]<IntPtr, VkPhysicalDeviceProperties2*, void> vkGetPhysicalDeviceProperties2KHR;
     }
 
     public unsafe partial struct VmaAllocatorCreateInfo
     {
             public uint flags;
 
-            public VkPhysicalDevice* physicalDevice;
+            public IntPtr physicalDevice;
 
-            public VkDevice* device;
+            public IntPtr device;
 
             public ulong preferredLargeHeapBlockSize;
 
@@ -216,7 +192,7 @@ public partial class VulkanMemoryAllocator
 
             public VmaVulkanFunctions* pVulkanFunctions;
 
-            public VkInstance* instance;
+            public IntPtr instance;
 
             public uint vulkanApiVersion;
 
@@ -225,11 +201,11 @@ public partial class VulkanMemoryAllocator
 
     public unsafe partial struct VmaAllocatorInfo
     {
-            public VkInstance* instance;
+            public IntPtr instance;
 
-            public VkPhysicalDevice* physicalDevice;
+            public IntPtr physicalDevice;
 
-            public VkDevice* device;
+            public IntPtr device;
     }
 
     public partial struct VmaStatistics
@@ -300,7 +276,7 @@ public partial class VulkanMemoryAllocator
 
             public uint memoryTypeBits;
 
-            public VmaPool* pool;
+            public IntPtr pool;
 
             public void* pUserData;
 
@@ -332,7 +308,7 @@ public partial class VulkanMemoryAllocator
     {
             public uint memoryType;
 
-            public VkDeviceMemory* deviceMemory;
+            public IntPtr deviceMemory;
 
             public ulong offset;
 
@@ -358,7 +334,7 @@ public partial class VulkanMemoryAllocator
     {
             public uint flags;
 
-            public VmaPool* pool;
+            public IntPtr pool;
 
             public ulong maxBytesPerPass;
 
@@ -373,9 +349,9 @@ public partial class VulkanMemoryAllocator
     {
         public VmaDefragmentationMoveOperation operation;
 
-            public VmaAllocation* srcAllocation;
+            public IntPtr srcAllocation;
 
-            public VmaAllocation* dstTmpAllocation;
+            public IntPtr dstTmpAllocation;
     }
 
     public unsafe partial struct VmaDefragmentationPassMoveInfo
@@ -428,222 +404,222 @@ public partial class VulkanMemoryAllocator
     public unsafe partial class Methods
     {        
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreateAllocator(VmaAllocatorCreateInfo* pCreateInfo, VmaAllocator** pAllocator);
+        public static partial VkResult vmaCreateAllocator(VmaAllocatorCreateInfo* pCreateInfo, IntPtr* pAllocator);
 
         [LibraryImport("vma")]
-        public static partial void vmaDestroyAllocator(VmaAllocator* allocator);
+        public static partial void vmaDestroyAllocator(IntPtr allocator);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetAllocatorInfo(VmaAllocator* allocator, VmaAllocatorInfo* pAllocatorInfo);
+        public static partial void vmaGetAllocatorInfo(IntPtr allocator, VmaAllocatorInfo* pAllocatorInfo);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetPhysicalDeviceProperties(VmaAllocator* allocator, VkPhysicalDeviceProperties** ppPhysicalDeviceProperties);
+        public static partial void vmaGetPhysicalDeviceProperties(IntPtr allocator, VkPhysicalDeviceProperties** ppPhysicalDeviceProperties);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetMemoryProperties(VmaAllocator* allocator, VkPhysicalDeviceMemoryProperties** ppPhysicalDeviceMemoryProperties);
+        public static partial void vmaGetMemoryProperties(IntPtr allocator, VkPhysicalDeviceMemoryProperties** ppPhysicalDeviceMemoryProperties);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetMemoryTypeProperties(VmaAllocator* allocator, uint memoryTypeIndex, uint* pFlags);
+        public static partial void vmaGetMemoryTypeProperties(IntPtr allocator, uint memoryTypeIndex, uint* pFlags);
 
         [LibraryImport("vma")]
-        public static partial void vmaSetCurrentFrameIndex(VmaAllocator* allocator, uint frameIndex);
+        public static partial void vmaSetCurrentFrameIndex(IntPtr allocator, uint frameIndex);
 
         [LibraryImport("vma")]
-        public static partial void vmaCalculateStatistics(VmaAllocator* allocator, VmaTotalStatistics* pStats);
+        public static partial void vmaCalculateStatistics(IntPtr allocator, VmaTotalStatistics* pStats);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetHeapBudgets(VmaAllocator* allocator, VmaBudget* pBudgets);
+        public static partial void vmaGetHeapBudgets(IntPtr allocator, VmaBudget* pBudgets);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaFindMemoryTypeIndex(VmaAllocator* allocator, uint memoryTypeBits, VmaAllocationCreateInfo* pAllocationCreateInfo, uint* pMemoryTypeIndex);
+        public static partial VkResult vmaFindMemoryTypeIndex(IntPtr allocator, uint memoryTypeBits, VmaAllocationCreateInfo* pAllocationCreateInfo, uint* pMemoryTypeIndex);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaFindMemoryTypeIndexForBufferInfo(VmaAllocator* allocator, VkBufferCreateInfo* pBufferCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, uint* pMemoryTypeIndex);
+        public static partial VkResult vmaFindMemoryTypeIndexForBufferInfo(IntPtr allocator, VkBufferCreateInfo* pBufferCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, uint* pMemoryTypeIndex);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaFindMemoryTypeIndexForImageInfo(VmaAllocator* allocator, VkImageCreateInfo* pImageCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, uint* pMemoryTypeIndex);
+        public static partial VkResult vmaFindMemoryTypeIndexForImageInfo(IntPtr allocator, VkImageCreateInfo* pImageCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, uint* pMemoryTypeIndex);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreatePool(VmaAllocator* allocator, VmaPoolCreateInfo* pCreateInfo, VmaPool** pPool);
+        public static partial VkResult vmaCreatePool(IntPtr allocator, VmaPoolCreateInfo* pCreateInfo, IntPtr* pPool);
 
         [LibraryImport("vma")]
-        public static partial void vmaDestroyPool(VmaAllocator* allocator, VmaPool* pool);
+        public static partial void vmaDestroyPool(IntPtr allocator, IntPtr pool);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetPoolStatistics(VmaAllocator* allocator, VmaPool* pool, VmaStatistics* pPoolStats);
+        public static partial void vmaGetPoolStatistics(IntPtr allocator, IntPtr pool, VmaStatistics* pPoolStats);
 
         [LibraryImport("vma")]
-        public static partial void vmaCalculatePoolStatistics(VmaAllocator* allocator, VmaPool* pool, VmaDetailedStatistics* pPoolStats);
+        public static partial void vmaCalculatePoolStatistics(IntPtr allocator, IntPtr pool, VmaDetailedStatistics* pPoolStats);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCheckPoolCorruption(VmaAllocator* allocator, VmaPool* pool);
+        public static partial VkResult vmaCheckPoolCorruption(IntPtr allocator, IntPtr pool);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetPoolName(VmaAllocator* allocator, VmaPool* pool, sbyte** ppName);
+        public static partial void vmaGetPoolName(IntPtr allocator, IntPtr pool, sbyte** ppName);
 
         [LibraryImport("vma")]
-        public static partial void vmaSetPoolName(VmaAllocator* allocator, VmaPool* pool, sbyte* pName);
+        public static partial void vmaSetPoolName(IntPtr allocator, IntPtr pool, sbyte* pName);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaAllocateMemory(VmaAllocator* allocator, VkMemoryRequirements* pVkMemoryRequirements, VmaAllocationCreateInfo* pCreateInfo, VmaAllocation** pAllocation, VmaAllocationInfo* pAllocationInfo);
+        public static partial VkResult vmaAllocateMemory(IntPtr allocator, VkMemoryRequirements* pVkMemoryRequirements, VmaAllocationCreateInfo* pCreateInfo, IntPtr* pAllocation, VmaAllocationInfo* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaAllocateDedicatedMemory(VmaAllocator* allocator, VkMemoryRequirements* pVkMemoryRequirements, VmaAllocationCreateInfo* pCreateInfo, void* pMemoryAllocateNext, VmaAllocation** pAllocation, VmaAllocationInfo* pAllocationInfo);
+        public static partial VkResult vmaAllocateDedicatedMemory(IntPtr allocator, VkMemoryRequirements* pVkMemoryRequirements, VmaAllocationCreateInfo* pCreateInfo, void* pMemoryAllocateNext, IntPtr* pAllocation, VmaAllocationInfo* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaAllocateMemoryPages(VmaAllocator* allocator, VkMemoryRequirements* pVkMemoryRequirements, VmaAllocationCreateInfo* pCreateInfo, nuint allocationCount, VmaAllocation** pAllocations, VmaAllocationInfo* pAllocationInfo);
+        public static partial VkResult vmaAllocateMemoryPages(IntPtr allocator, VkMemoryRequirements* pVkMemoryRequirements, VmaAllocationCreateInfo* pCreateInfo, nuint allocationCount, IntPtr* pAllocations, VmaAllocationInfo* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaAllocateMemoryForBuffer(VmaAllocator* allocator, VkBuffer* buffer, VmaAllocationCreateInfo* pCreateInfo, VmaAllocation** pAllocation, VmaAllocationInfo* pAllocationInfo);
+        public static partial VkResult vmaAllocateMemoryForBuffer(IntPtr allocator, IntPtr buffer, VmaAllocationCreateInfo* pCreateInfo, IntPtr* pAllocation, VmaAllocationInfo* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaAllocateMemoryForImage(VmaAllocator* allocator, VkImage* image, VmaAllocationCreateInfo* pCreateInfo, VmaAllocation** pAllocation, VmaAllocationInfo* pAllocationInfo);
+        public static partial VkResult vmaAllocateMemoryForImage(IntPtr allocator, IntPtr image, VmaAllocationCreateInfo* pCreateInfo, IntPtr* pAllocation, VmaAllocationInfo* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial void vmaFreeMemory(VmaAllocator* allocator, VmaAllocation* allocation);
+        public static partial void vmaFreeMemory(IntPtr allocator, IntPtr allocation);
 
         [LibraryImport("vma")]
-        public static partial void vmaFreeMemoryPages(VmaAllocator* allocator, nuint allocationCount, VmaAllocation** pAllocations);
+        public static partial void vmaFreeMemoryPages(IntPtr allocator, nuint allocationCount, IntPtr* pAllocations);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetAllocationInfo(VmaAllocator* allocator, VmaAllocation* allocation, VmaAllocationInfo* pAllocationInfo);
+        public static partial void vmaGetAllocationInfo(IntPtr allocator, IntPtr allocation, VmaAllocationInfo* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetAllocationInfo2(VmaAllocator* allocator, VmaAllocation* allocation, VmaAllocationInfo2* pAllocationInfo);
+        public static partial void vmaGetAllocationInfo2(IntPtr allocator, IntPtr allocation, VmaAllocationInfo2* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial void vmaSetAllocationUserData(VmaAllocator* allocator, VmaAllocation* allocation, void* pUserData);
+        public static partial void vmaSetAllocationUserData(IntPtr allocator, IntPtr allocation, void* pUserData);
 
         [LibraryImport("vma")]
-        public static partial void vmaSetAllocationName(VmaAllocator* allocator, VmaAllocation* allocation, sbyte* pName);
+        public static partial void vmaSetAllocationName(IntPtr allocator, IntPtr allocation, sbyte* pName);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetAllocationMemoryProperties(VmaAllocator* allocator, VmaAllocation* allocation, uint* pFlags);
+        public static partial void vmaGetAllocationMemoryProperties(IntPtr allocator, IntPtr allocation, uint* pFlags);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaMapMemory(VmaAllocator* allocator, VmaAllocation* allocation, void** ppData);
+        public static partial VkResult vmaMapMemory(IntPtr allocator, IntPtr allocation, void** ppData);
 
         [LibraryImport("vma")]
-        public static partial void vmaUnmapMemory(VmaAllocator* allocator, VmaAllocation* allocation);
+        public static partial void vmaUnmapMemory(IntPtr allocator, IntPtr allocation);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaFlushAllocation(VmaAllocator* allocator, VmaAllocation* allocation, ulong offset, ulong size);
+        public static partial VkResult vmaFlushAllocation(IntPtr allocator, IntPtr allocation, ulong offset, ulong size);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaInvalidateAllocation(VmaAllocator* allocator, VmaAllocation* allocation, ulong offset, ulong size);
+        public static partial VkResult vmaInvalidateAllocation(IntPtr allocator, IntPtr allocation, ulong offset, ulong size);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaFlushAllocations(VmaAllocator* allocator, uint allocationCount, VmaAllocation** allocations, ulong* offsets, ulong* sizes);
+        public static partial VkResult vmaFlushAllocations(IntPtr allocator, uint allocationCount, IntPtr* allocations, ulong* offsets, ulong* sizes);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaInvalidateAllocations(VmaAllocator* allocator, uint allocationCount, VmaAllocation** allocations, ulong* offsets, ulong* sizes);
+        public static partial VkResult vmaInvalidateAllocations(IntPtr allocator, uint allocationCount, IntPtr* allocations, ulong* offsets, ulong* sizes);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCopyMemoryToAllocation(VmaAllocator* allocator, void* pSrcHostPointer, VmaAllocation* dstAllocation, ulong dstAllocationLocalOffset, ulong size);
+        public static partial VkResult vmaCopyMemoryToAllocation(IntPtr allocator, void* pSrcHostPointer, IntPtr dstAllocation, ulong dstAllocationLocalOffset, ulong size);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCopyAllocationToMemory(VmaAllocator* allocator, VmaAllocation* srcAllocation, ulong srcAllocationLocalOffset, void* pDstHostPointer, ulong size);
+        public static partial VkResult vmaCopyAllocationToMemory(IntPtr allocator, IntPtr srcAllocation, ulong srcAllocationLocalOffset, void* pDstHostPointer, ulong size);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCheckCorruption(VmaAllocator* allocator, uint memoryTypeBits);
+        public static partial VkResult vmaCheckCorruption(IntPtr allocator, uint memoryTypeBits);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaBeginDefragmentation(VmaAllocator* allocator, VmaDefragmentationInfo* pInfo, VmaDefragmentationContext** pContext);
+        public static partial VkResult vmaBeginDefragmentation(IntPtr allocator, VmaDefragmentationInfo* pInfo, IntPtr* pContext);
 
         [LibraryImport("vma")]
-        public static partial void vmaEndDefragmentation(VmaAllocator* allocator, VmaDefragmentationContext* context, VmaDefragmentationStats* pStats);
+        public static partial void vmaEndDefragmentation(IntPtr allocator, IntPtr context, VmaDefragmentationStats* pStats);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaBeginDefragmentationPass(VmaAllocator* allocator, VmaDefragmentationContext* context, VmaDefragmentationPassMoveInfo* pPassInfo);
+        public static partial VkResult vmaBeginDefragmentationPass(IntPtr allocator, IntPtr context, VmaDefragmentationPassMoveInfo* pPassInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaEndDefragmentationPass(VmaAllocator* allocator, VmaDefragmentationContext* context, VmaDefragmentationPassMoveInfo* pPassInfo);
+        public static partial VkResult vmaEndDefragmentationPass(IntPtr allocator, IntPtr context, VmaDefragmentationPassMoveInfo* pPassInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaBindBufferMemory(VmaAllocator* allocator, VmaAllocation* allocation, VkBuffer* buffer);
+        public static partial VkResult vmaBindBufferMemory(IntPtr allocator, IntPtr allocation, IntPtr buffer);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaBindBufferMemory2(VmaAllocator* allocator, VmaAllocation* allocation, ulong allocationLocalOffset, VkBuffer* buffer, void* pNext);
+        public static partial VkResult vmaBindBufferMemory2(IntPtr allocator, IntPtr allocation, ulong allocationLocalOffset, IntPtr buffer, void* pNext);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaBindImageMemory(VmaAllocator* allocator, VmaAllocation* allocation, VkImage* image);
+        public static partial VkResult vmaBindImageMemory(IntPtr allocator, IntPtr allocation, IntPtr image);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaBindImageMemory2(VmaAllocator* allocator, VmaAllocation* allocation, ulong allocationLocalOffset, VkImage* image, void* pNext);
+        public static partial VkResult vmaBindImageMemory2(IntPtr allocator, IntPtr allocation, ulong allocationLocalOffset, IntPtr image, void* pNext);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreateBuffer(VmaAllocator* allocator, VkBufferCreateInfo* pBufferCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, VkBuffer** pBuffer, VmaAllocation** pAllocation, VmaAllocationInfo* pAllocationInfo);
+        public static partial VkResult vmaCreateBuffer(IntPtr allocator, VkBufferCreateInfo* pBufferCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, IntPtr* pBuffer, IntPtr* pAllocation, VmaAllocationInfo* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreateBufferWithAlignment(VmaAllocator* allocator, VkBufferCreateInfo* pBufferCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, ulong minAlignment, VkBuffer** pBuffer, VmaAllocation** pAllocation, VmaAllocationInfo* pAllocationInfo);
+        public static partial VkResult vmaCreateBufferWithAlignment(IntPtr allocator, VkBufferCreateInfo* pBufferCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, ulong minAlignment, IntPtr* pBuffer, IntPtr* pAllocation, VmaAllocationInfo* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreateDedicatedBuffer(VmaAllocator* allocator, VkBufferCreateInfo* pBufferCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, void* pMemoryAllocateNext, VkBuffer** pBuffer, VmaAllocation** pAllocation, VmaAllocationInfo* pAllocationInfo);
+        public static partial VkResult vmaCreateDedicatedBuffer(IntPtr allocator, VkBufferCreateInfo* pBufferCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, void* pMemoryAllocateNext, IntPtr* pBuffer, IntPtr* pAllocation, VmaAllocationInfo* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreateAliasingBuffer(VmaAllocator* allocator, VmaAllocation* allocation, VkBufferCreateInfo* pBufferCreateInfo, VkBuffer** pBuffer);
+        public static partial VkResult vmaCreateAliasingBuffer(IntPtr allocator, IntPtr allocation, VkBufferCreateInfo* pBufferCreateInfo, IntPtr* pBuffer);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreateAliasingBuffer2(VmaAllocator* allocator, VmaAllocation* allocation, ulong allocationLocalOffset, VkBufferCreateInfo* pBufferCreateInfo, VkBuffer** pBuffer);
+        public static partial VkResult vmaCreateAliasingBuffer2(IntPtr allocator, IntPtr allocation, ulong allocationLocalOffset, VkBufferCreateInfo* pBufferCreateInfo, IntPtr* pBuffer);
 
         [LibraryImport("vma")]
-        public static partial void vmaDestroyBuffer(VmaAllocator* allocator, VkBuffer* buffer, VmaAllocation* allocation);
+        public static partial void vmaDestroyBuffer(IntPtr allocator, IntPtr buffer, IntPtr allocation);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreateImage(VmaAllocator* allocator, VkImageCreateInfo* pImageCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, VkImage** pImage, VmaAllocation** pAllocation, VmaAllocationInfo* pAllocationInfo);
+        public static partial VkResult vmaCreateImage(IntPtr allocator, VkImageCreateInfo* pImageCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, IntPtr* pImage, IntPtr* pAllocation, VmaAllocationInfo* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreateDedicatedImage(VmaAllocator* allocator, VkImageCreateInfo* pImageCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, void* pMemoryAllocateNext, VkImage** pImage, VmaAllocation** pAllocation, VmaAllocationInfo* pAllocationInfo);
+        public static partial VkResult vmaCreateDedicatedImage(IntPtr allocator, VkImageCreateInfo* pImageCreateInfo, VmaAllocationCreateInfo* pAllocationCreateInfo, void* pMemoryAllocateNext, IntPtr* pImage, IntPtr* pAllocation, VmaAllocationInfo* pAllocationInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreateAliasingImage(VmaAllocator* allocator, VmaAllocation* allocation, VkImageCreateInfo* pImageCreateInfo, VkImage** pImage);
+        public static partial VkResult vmaCreateAliasingImage(IntPtr allocator, IntPtr allocation, VkImageCreateInfo* pImageCreateInfo, IntPtr* pImage);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreateAliasingImage2(VmaAllocator* allocator, VmaAllocation* allocation, ulong allocationLocalOffset, VkImageCreateInfo* pImageCreateInfo, VkImage** pImage);
+        public static partial VkResult vmaCreateAliasingImage2(IntPtr allocator, IntPtr allocation, ulong allocationLocalOffset, VkImageCreateInfo* pImageCreateInfo, IntPtr* pImage);
 
         [LibraryImport("vma")]
-        public static partial void vmaDestroyImage(VmaAllocator* allocator, VkImage* image, VmaAllocation* allocation);
+        public static partial void vmaDestroyImage(IntPtr allocator, IntPtr image, IntPtr allocation);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaCreateVirtualBlock(VmaVirtualBlockCreateInfo* pCreateInfo, VmaVirtualBlock** pVirtualBlock);
+        public static partial VkResult vmaCreateVirtualBlock(VmaVirtualBlockCreateInfo* pCreateInfo, IntPtr* pVirtualBlock);
 
         [LibraryImport("vma")]
-        public static partial void vmaDestroyVirtualBlock(VmaVirtualBlock* virtualBlock);
+        public static partial void vmaDestroyVirtualBlock(IntPtr virtualBlock);
 
         [LibraryImport("vma")]
-        public static partial uint vmaIsVirtualBlockEmpty(VmaVirtualBlock* virtualBlock);
+        public static partial uint vmaIsVirtualBlockEmpty(IntPtr virtualBlock);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetVirtualAllocationInfo(VmaVirtualBlock* virtualBlock, VmaVirtualAllocation* allocation, VmaVirtualAllocationInfo* pVirtualAllocInfo);
+        public static partial void vmaGetVirtualAllocationInfo(IntPtr virtualBlock, IntPtr allocation, VmaVirtualAllocationInfo* pVirtualAllocInfo);
 
         [LibraryImport("vma")]
-        public static partial VkResult vmaVirtualAllocate(VmaVirtualBlock* virtualBlock, VmaVirtualAllocationCreateInfo* pCreateInfo, VmaVirtualAllocation** pAllocation, ulong* pOffset);
+        public static partial VkResult vmaVirtualAllocate(IntPtr virtualBlock, VmaVirtualAllocationCreateInfo* pCreateInfo, IntPtr* pAllocation, ulong* pOffset);
 
         [LibraryImport("vma")]
-        public static partial void vmaVirtualFree(VmaVirtualBlock* virtualBlock, VmaVirtualAllocation* allocation);
+        public static partial void vmaVirtualFree(IntPtr virtualBlock, IntPtr allocation);
 
         [LibraryImport("vma")]
-        public static partial void vmaClearVirtualBlock(VmaVirtualBlock* virtualBlock);
+        public static partial void vmaClearVirtualBlock(IntPtr virtualBlock);
 
         [LibraryImport("vma")]
-        public static partial void vmaSetVirtualAllocationUserData(VmaVirtualBlock* virtualBlock, VmaVirtualAllocation* allocation, void* pUserData);
+        public static partial void vmaSetVirtualAllocationUserData(IntPtr virtualBlock, IntPtr allocation, void* pUserData);
 
         [LibraryImport("vma")]
-        public static partial void vmaGetVirtualBlockStatistics(VmaVirtualBlock* virtualBlock, VmaStatistics* pStats);
+        public static partial void vmaGetVirtualBlockStatistics(IntPtr virtualBlock, VmaStatistics* pStats);
 
         [LibraryImport("vma")]
-        public static partial void vmaCalculateVirtualBlockStatistics(VmaVirtualBlock* virtualBlock, VmaDetailedStatistics* pStats);
+        public static partial void vmaCalculateVirtualBlockStatistics(IntPtr virtualBlock, VmaDetailedStatistics* pStats);
 
         [LibraryImport("vma")]
-        public static partial void vmaBuildVirtualBlockStatsString(VmaVirtualBlock* virtualBlock, sbyte** ppStatsString, uint detailedMap);
+        public static partial void vmaBuildVirtualBlockStatsString(IntPtr virtualBlock, sbyte** ppStatsString, uint detailedMap);
 
         [LibraryImport("vma")]
-        public static partial void vmaFreeVirtualBlockStatsString(VmaVirtualBlock* virtualBlock, sbyte* pStatsString);
+        public static partial void vmaFreeVirtualBlockStatsString(IntPtr virtualBlock, sbyte* pStatsString);
 
         [LibraryImport("vma")]
-        public static partial void vmaBuildStatsString(VmaAllocator* allocator, sbyte** ppStatsString, uint detailedMap);
+        public static partial void vmaBuildStatsString(IntPtr allocator, sbyte** ppStatsString, uint detailedMap);
 
         [LibraryImport("vma")]
-        public static partial void vmaFreeStatsString(VmaAllocator* allocator, sbyte* pStatsString);
+        public static partial void vmaFreeStatsString(IntPtr allocator, sbyte* pStatsString);
     }
 }

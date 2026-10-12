@@ -1,12 +1,323 @@
-<sub><sup>(generated 2026-09-20 15:32:03.194420+00:00)</sup></sub>
+<sub><sup>(generated 2026-10-12 18:46:56.052736+00:00)</sup></sub>
 
-## Angene.Audio
+## Angene.Common
 
-  <details><summary><b>Angene.Audio</b></summary>
+  <details><summary><b>Angene.Common</b></summary>
+
+  * **class AngeneException**
+  * **class Attributes**
+  * **class Locks**
+    * `object LibraryLoaderLock`
+  * **class Logger**
+    * `Logger Instance`
+    * `StreamWriter? LogInstance`
+    * `bool _verbose`
+    * `void Init()`
+    * `void LogDebug()`
+    * `void LogInfo()`
+    * `void LogWarning()`
+    * `void LogError()`
+    * `void LogImportant()`
+    * `void LogCritical()`
+    * `HashSet<int> _ids`
+    * `void LogOnce()`
+    * `void Shutdown()`
+  * **class PrecompileAttribute**
+  * **enum LogLevel**
+  * **enum LoggingTarget**
+
+  </details>
+
+  <details><summary><b>Angene.Common.Settings</b></summary>
+
+  * **class Settings**
+    * `Settings Instance`
+    * `void Register()`
+    * `object? GetSetting()`
+    * `bool SetSetting()`
+    * `string SaveKeys()`
+
+  </details>
+
+  <details><summary><b>Angene.Globals</b></summary>
+
+  * **interface IRenderer**
+
+  </details>
+
+
+
+## Angene.Essentials
+
+  <details><summary><b>Angene.Essentials</b></summary>
+
+  * **class AppInfo**
+    * `string AppName`
+    * `float AppVersion`
+    * `string Author`
+    * `string Developer`
+    * `VkPresentModeKHR VulkanPresentMode`
+  * **class Entity**
+    * `int Id { get; set; }`
+    * `Entity Instance`
+    * `string name`
+    * `Matrix4x4 GetWorldMatrix()`
+    * `List<Entity> childEntities { get; set; }`
+    * `IReadOnlyCollection<object> GetComponents()`
+    * `void AddScript()`
+    * `void RemoveScript()`
+    * `IReadOnlyList<object> GetScripts()`
+    * `void SetEnabled()`
+    * `bool IsEnabled()`
+    * `void AddChild()`
+    * `void RemoveChild()`
+    * `bool IsParent()`
+    * `Entity? GetParent()`
+    * `void Remove()`
+    * `void Destroy()`
+    * `bool Equals()`
+    * `int GetHashCode()`
+    * `bool operator`
+  * **class Lifecycle**
+    * `object Instance`
+    * `Action? Awake`
+    * `Action? OnEnable`
+    * `Action? Start`
+    * `Action<double>? Update`
+    * `Action<double>? LateUpdate`
+    * `Action? OnDraw`
+    * `Action? OnDisable`
+    * `Action? OnDestroy`
+    * `Action<object>? OnMessage`
+    * `Action? Render`
+    * `Action? Cleanup`
+    * `bool AwakeCalled`
+    * `bool Enabled`
+    * `bool StartCalled`
+    * `bool Destroyed`
+  * **class Material**
+  * **class Mesh**
+    * `byte[] bytes`
+    * `IntPtr vertexBuffer`
+    * `IntPtr indexBuffer`
+    * `int indexCount`
+    * `int vertexCount`
+    * `Vec3[] Corners`
+    * `bool geometryDirty`
+    * `Face[] Faces`
+    * `Entity targetEnt`
+    * `int MaxVertexCount { get; set; }`
+  * **class SceneExtensions**
+    * `Matrix4x4 GetWorldMatrix()`
+  * **class ScriptBinding**
+    * `List<Action> destroyEngineList`
+    * `void Tick()`
+    * `void Draw()`
+    * `void HandleEntityCreated()`
+    * `void DestroyEntity()`
+    * `void SetEntityEnabled()`
+    * `void RegisterScript()`
+    * `void ShutdownEngine()`
+  * **class TShader**
+  * **class TShaderMetadata**
+    * `int Id`
+    * `string ShaderName`
+    * `TShaderType ShaderType`
+    * `string Source`
+    * `float ShaderRate`
+    * `float Shade`
+    * `bool CacheOnDevice`
+  * **class Types**
+  * **enum EngineMode**
+  * **enum LinuxWindowType**
+  * **enum TShaderType**
+  * **enum Type**
+    * `Type type`
+    * `FaceColor Value { get; set; }`
+    * `string Name { get; set; }`
+  * **enum XrResult**
+  * **enum XrStructureType**
+  * **interface IDX11Scene**
+  * **interface IScene**
+    * `List<Entity> GetEntities()`
+    * `void AddEntity()`
+    * `void RemoveEntity()`
+  * **interface IScreenPlay**
+  * **struct CameraMatrices**
+    * `Matrix4x4 View`
+    * `Matrix4x4 Projection`
+  * **struct DrawItem**
+    * `Mesh Mesh`
+    * `Matrix4x4 World`
+  * **struct Face**
+    * `Material material`
+  * **struct FaceColor**
+  * **struct LifecycleInfo**
+    * `bool HasUpdate`
+    * `bool HasLateUpdate`
+    * `bool HasOnDraw`
+    * `bool HasStart`
+  * **struct QueueFamilyIndices**
+    * `uint? graphicsFamily`
+    * `uint? presentFamily`
+    * `bool isComplete()`
+  * **struct XrEyeView**
+  * **struct XrFrameInfo**
+    * `bool shouldRender`
+  * **struct XrSwapchain**
+    * `IntPtr swapchain`
+    * `VkFormat format`
+    * `uint width`
+    * `uint height`
+    * `bool def`
+    * `void DestroySwapchain()`
+  * **struct XrSwapchainImageVulkanKHR**
+    * `XrStructureType type`
+    * `IntPtr next`
+    * `IntPtr image`
+
+  </details>
+
+  <details><summary><b>Angene.Essentials.Components</b></summary>
+
+  * **class Component**
+    * `bool IsValid { get; set; }`
+    * `T Value { get; set; }`
+  * **class D3D11Camera**
+    * `Vec3 forward`
+    * `Vec3 up`
+    * `float fov`
+    * `float aspectRatio`
+    * `float nearPlane`
+    * `float farPlane`
+    * `bool isPrimary`
+    * `Matrix4x4 LookAt()`
+    * `Matrix4x4 LookTo()`
+    * `Matrix4x4 Perspective()`
+    * `Matrix4x4 PerspectiveD3D11()`
+  * **class OpenXRController**
+    * `bool ControllerGrabbed { get; set; }`
+    * `Transform3D ControllerTransform { get; set; }`
+  * **class OpenXRHmd**
+    * `object cam { get; set; }`
+    * `Entity head`
+  * **class Transform2D**
+    * `Vec2 pos`
+    * `float rot`
+    * `Vec2 scale`
+    * `Matrix4x4 GetMatrix()`
+  * **class Transform3D**
+    * `int Version { get; set; }`
+    * `Vec3 pos { get; set; }`
+    * `Vec3 rot { get; set; }`
+    * `Vec3 scale { get; set; }`
+    * `void ForceSetTransformVar()`
+    * `Matrix4x4 GetMatrix()`
+  * **class VulkanCamera**
+    * `Vec3 forward`
+    * `Vec3 up`
+    * `float fov`
+    * `float aspectRatio`
+    * `float nearPlane`
+    * `float farPlane`
+    * `bool isPrimary`
+    * `Vec4 viewport`
+    * `bool clearDepth`
+    * `int priority`
+    * `bool enabled`
+    * `CameraMatrices GetMatrices()`
+    * `Matrix4x4 LookAt()`
+    * `void AddTriangle()`
+    * `void AppendVertex()`
+    * `Vec3 TransformPoint()`
+    * `Vec3 ProjectToNdc()`
+    * `Matrix4x4 LookTo()`
+    * `Matrix4x4 Perspective()`
+    * `Matrix4x4 PerspectiveVulkan()`
+    * `Matrix4x4 PerspectiveOpenXR()`
+  * **enum ControllerType**
+    * `void SetControllerData()`
+
+  </details>
+
+  <details><summary><b>Angene.Essentials.DefaultEntities</b></summary>
+
+  * **class Cube**
+    * `Entity Instantiate()`
+    * `void BuildCubeMesh()`
+
+  </details>
+
+  <details><summary><b>Angene.Essentials.GraphicsContexts</b></summary>
+
+  * **class BaseShader**
+    * `string Name { get; set; }`
+    * `bool IsDisposed { get; set; }`
+    * `bool VerboseLog { get; set; }`
+    * `ShaderType Type { get; set; }`
+    * `ShaderOrigin Origin { get; set; }`
+    * `string OutputDebugInfo()`
+    * `void Bind()`
+    * `void Dispose()`
+  * **class Dx11Shader**
+    * `int id { get; set; }`
+    * `bool compileToFile { get; set; }`
+    * `bool verboseLog { get; set; }`
+    * `IntPtr NativeShader { get; set; }`
+    * `ShaderOrigin Origin { get; set; }`
+    * `string code { get; set; }`
+    * `string Extension { get; set; }`
+    * `string EntryPoint { get; set; }`
+    * `byte[] byteCode { get; set; }`
+    * `ShaderQueue Queue { get; set; }`
+    * `void Bind()`
+  * **class SlangShaderResources**
+  * **class VkShader**
+    * `int id { get; set; }`
+    * `bool compileToFile { get; set; }`
+    * `bool verboseLog { get; set; }`
+    * `ShaderOrigin Origin { get; set; }`
+    * `string code { get; set; }`
+    * `string Extension { get; set; }`
+    * `string EntryPoint { get; set; }`
+    * `byte[] byteCode { get; set; }`
+    * `ShaderQueue Queue { get; set; }`
+    * `void Bind()`
+  * **enum ShaderOrigin**
+  * **enum ShaderQueue**
+  * **enum ShaderType**
+  * **interface IDX11GraphicsContext**
+  * **interface IGraphicsContext**
+  * **interface IShader**
+  * **interface IVkGraphicsContext**
+  * **struct InputElement**
+    * `string SemanticName`
+    * `uint SemanticIndex`
+    * `DXGI_FORMAT Format`
+    * `uint ByteOffset`
+
+  </details>
+
+  <details><summary><b>Global</b></summary>
+
+  * **class XrCameraMath**
+    * `Vec3 FromXr()`
+    * `Quaternion FromXr()`
+    * `Vec3 PosToWorld()`
+    * `Matrix4x4 Projection()`
+
+  </details>
+
+
+
+## Angene.Extensions.Audio
+
+  <details><summary><b>Angene.Extensions.Audio</b></summary>
 
   * **class AudioFile**
     * `LoadType _loadType`
   * **class AudioManager**
+    * `IAudioPlayer Player { get; set; }`
     * `bool IsPlaying { get; set; }`
     * `bool IsPaused { get; set; }`
     * `float Volume { get; set; }`
@@ -26,16 +337,17 @@
 
   </details>
 
-  <details><summary><b>Angene.Audio.Common</b></summary>
+  <details><summary><b>Angene.Extensions.Audio.Common</b></summary>
 
   * **class AudioFactory**
     * `IAudioPlayer Create()`
 
   </details>
 
-  <details><summary><b>Angene.Audio.MiniAudio</b></summary>
+  <details><summary><b>Angene.Extensions.Audio.MiniAudio</b></summary>
 
   * **enum MiniAudioPlayerType**
+    * `float PlayPos { get; set; }`
     * `bool IsPlaying { get; set; }`
     * `bool IsPaused { get; set; }`
     * `float Volume { get; set; }`
@@ -54,7 +366,7 @@
 
   </details>
 
-  <details><summary><b>Angene.Audio.MiniAudio.Interop</b></summary>
+  <details><summary><b>Angene.Extensions.Audio.MiniAudio.Interop</b></summary>
 
   * **enum _ma_channel_position**
   * **enum ma_aaudio_allowed_capture_policy**
@@ -1110,264 +1422,31 @@
 
   </details>
 
-  <details><summary><b>Angene.Audio.Windows</b></summary>
-
-  * **struct WAVEHDR**
-    * `IntPtr lpData`
-    * `uint dwBufferLength`
-    * `uint dwBytesRecorded`
-    * `IntPtr dwUser`
-    * `uint dwFlags`
-    * `uint dwLoops`
-    * `IntPtr lpNext`
-    * `IntPtr reserved`
-  * **struct WaveFormatEx**
-    * `ushort wFormatTag`
-    * `ushort nChannels`
-    * `uint nSamplesPerSec`
-    * `uint nAvgBytesPerSec`
-    * `ushort nBlockAlign`
-    * `ushort wBitsPerSample`
-    * `ushort cbSize`
-
-  </details>
 
 
+## Angene.Extensions.Input
 
-## Angene.Common
+  <details><summary><b>Angene.Extensions.Input</b></summary>
 
-  <details><summary><b>Angene.Common</b></summary>
-
-  * **class AngeneException**
-  * **class Attributes**
-  * **class Locks**
-    * `object LibraryLoaderLock`
-  * **class Logger**
-    * `Logger Instance`
-    * `StreamWriter? LogInstance`
-    * `bool _verbose`
-    * `void Init()`
-    * `void LogDebug()`
-    * `void LogInfo()`
-    * `void LogWarning()`
-    * `void LogError()`
-    * `void LogImportant()`
-    * `void LogCritical()`
-    * `void Shutdown()`
-  * **class PrecompileAttribute**
-  * **enum LogLevel**
-  * **enum LoggingTarget**
-
-  </details>
-
-  <details><summary><b>Angene.Common.Settings</b></summary>
-
-  * **class Settings**
-    * `Settings Instance`
+  * **class KeyDetection**
+    * `List<Entity> Instances`
     * `void Register()`
-    * `object? GetSetting()`
-    * `bool SetSetting()`
-    * `string SaveKeys()`
-
-  </details>
-
-  <details><summary><b>Angene.Globals</b></summary>
-
-  * **interface IRenderer**
-
-  </details>
-
-
-
-## Angene.Essentials
-
-  <details><summary><b>Angene.Essentials</b></summary>
-
-  * **class AppInfo**
-    * `string AppName`
-    * `float AppVersion`
-    * `string Author`
-    * `string Developer`
-    * `VkPresentModeKHR VulkanPresentMode`
-  * **class Entity**
-    * `int Id { get; set; }`
-    * `Entity Instance`
-    * `string name`
-    * `List<Entity> childEntities { get; set; }`
-    * `IReadOnlyCollection<object> GetComponents()`
-    * `void AddScript()`
-    * `void RemoveScript()`
-    * `IReadOnlyList<object> GetScripts()`
-    * `void SetEnabled()`
-    * `bool IsEnabled()`
-    * `void AddChild()`
-    * `void RemoveChild()`
-    * `bool IsParent()`
-    * `Entity? GetParent()`
-    * `void Remove()`
-    * `void Destroy()`
-    * `bool Equals()`
-    * `int GetHashCode()`
-    * `bool operator`
-  * **class Lifecycle**
-    * `object Instance`
-    * `Action? Awake`
-    * `Action? OnEnable`
-    * `Action? Start`
-    * `Action<double>? Update`
-    * `Action<double>? LateUpdate`
-    * `Action? OnDraw`
-    * `Action? OnDisable`
-    * `Action? OnDestroy`
-    * `Action<object>? OnMessage`
-    * `Action? Render`
-    * `Action? Cleanup`
-    * `bool AwakeCalled`
-    * `bool Enabled`
-    * `bool StartCalled`
-    * `bool Destroyed`
-  * **class SceneExtensions**
-    * `Matrix4x4 GetWorldMatrix()`
-  * **class ScriptBinding**
-    * `List<Action> destroyEngineList`
-    * `void Tick()`
-    * `void Draw()`
-    * `void HandleEntityCreated()`
-    * `void DestroyEntity()`
-    * `void SetEntityEnabled()`
-    * `void RegisterScript()`
-    * `void ShutdownEngine()`
-  * **class TShader**
-  * **class TShaderMetadata**
-    * `int Id`
-    * `string ShaderName`
-    * `TShaderType ShaderType`
-    * `string Source`
-    * `float ShaderRate`
-    * `float Shade`
-    * `bool CacheOnDevice`
-  * **class Types**
-  * **enum EngineMode**
-  * **enum LinuxWindowType**
-  * **enum TShaderType**
-  * **interface IDX11Scene**
-  * **interface IScene**
-    * `Entity GetCameraEntity()`
-    * `List<Entity> GetEntities()`
-    * `void AddEntity()`
-    * `void RemoveEntity()`
-  * **interface IScreenPlay**
-  * **struct FaceColor**
-  * **struct LifecycleInfo**
-    * `bool HasUpdate`
-    * `bool HasLateUpdate`
-    * `bool HasOnDraw`
-    * `bool HasStart`
-
-  </details>
-
-  <details><summary><b>Angene.Essentials.Components</b></summary>
-
-  * **class D3D11Camera**
-    * `Vec3 forward`
-    * `Vec3 up`
-    * `float fov`
-    * `float aspectRatio`
-    * `float nearPlane`
-    * `float farPlane`
-    * `bool isPrimary`
-    * `Matrix4x4 LookAt()`
-    * `Matrix4x4 LookTo()`
-    * `Matrix4x4 Perspective()`
-    * `Matrix4x4 PerspectiveD3D11()`
-  * **class Mesh**
-    * `byte[] bytes`
-    * `IntPtr vertexBuffer`
-    * `IntPtr indexBuffer`
-    * `int indexCount`
-    * `int vertexCount`
-  * **class Transform2D**
-    * `Vec2 pos`
-    * `float rot`
-    * `Vec2 scale`
-    * `Matrix4x4 GetMatrix()`
-  * **class Transform3D**
-    * `Vec3 pos`
-    * `Vec3 rot`
-    * `Vec3 scale`
-    * `Matrix4x4 ModelView`
-    * `Matrix4x4 Proj`
-    * `Matrix4x4 GetMatrix()`
-  * **class VulkanCamera**
-    * `Vec3 forward`
-    * `Vec3 up`
-    * `float fov`
-    * `float aspectRatio`
-    * `float nearPlane`
-    * `float farPlane`
-    * `bool isPrimary`
-    * `Matrix4x4 LookAt()`
-    * `void AddTriangle()`
-    * `void AppendVertex()`
-    * `Vec3 TransformPoint()`
-    * `Vec3 ProjectToNdc()`
-    * `Matrix4x4 LookTo()`
-    * `Matrix4x4 Perspective()`
-    * `Matrix4x4 PerspectiveVulkan()`
-
-  </details>
-
-  <details><summary><b>Angene.Essentials.DefaultEntities</b></summary>
-
-  * **class Cube**
-    * `Entity Instantiate()`
-
-  </details>
-
-  <details><summary><b>Angene.Essentials.GraphicsContexts</b></summary>
-
-  * **class BaseShader**
-    * `string Name { get; set; }`
-    * `bool IsDisposed { get; set; }`
-    * `bool VerboseLog { get; set; }`
-    * `ShaderType Type { get; set; }`
-    * `ShaderOrigin Origin { get; set; }`
-    * `string OutputDebugInfo()`
-    * `void Bind()`
-    * `void Dispose()`
-  * **class Dx11Shader**
-    * `int id { get; set; }`
-    * `bool compileToFile { get; set; }`
-    * `bool VerboseLog { get; set; }`
-    * `IntPtr NativeShader { get; set; }`
-    * `ShaderOrigin Origin { get; set; }`
-    * `string Code { get; set; }`
-    * `string Extension { get; set; }`
-    * `string EntryPoint { get; set; }`
-    * `byte[] byteCode { get; set; }`
-    * `void Bind()`
-  * **class SlangShaderResources**
-  * **class VkShader**
-    * `int id { get; set; }`
-    * `bool compileToFile { get; set; }`
-    * `bool VerboseLog { get; set; }`
-    * `ShaderOrigin Origin { get; set; }`
-    * `string Code { get; set; }`
-    * `string Extension { get; set; }`
-    * `string EntryPoint { get; set; }`
-    * `byte[] byteCode { get; set; }`
-    * `void Bind()`
-  * **enum ShaderOrigin**
-  * **enum ShaderType**
-  * **interface IDX11GraphicsContext**
-  * **interface IGraphicsContext**
-  * **interface IShader**
-  * **interface IVkGraphicsContext**
-  * **struct InputElement**
-    * `string SemanticName`
-    * `uint SemanticIndex`
-    * `DXGI_FORMAT Format`
-    * `uint ByteOffset`
+    * `bool IsKeyDown()`
+    * `bool IsAnyKeyDown()`
+    * `void Deregister()`
+    * `HashSet<uint> GetDownKeys { get; set; }`
+  * **class KeyResolver**
+    * `object TryInt()`
+    * `object TryNInt()`
+    * `object TryByte()`
+    * `uint TryLinuxKeysym()`
+  * **class MouseDetection**
+    * `List<Entity> Instances`
+    * `void Register()`
+    * `bool IsButtonDown()`
+    * `void Deregister()`
+    * `HashSet<uint> GetDownButtons { get; set; }`
+    * `bool IsInWindow()`
 
   </details>
 
@@ -1375,32 +1454,1596 @@
 
 ## Angene.Extensions.XR
 
-  <details><summary><b>Angene.External.OpenXR</b></summary>
+  <details><summary><b>Angene.Extensions.XR</b></summary>
 
-  * **enum VkDeviceQueueCreateFlags**
-    * `XrStructureType type`
+  * **class Exceptions**
+  * **class FailedToEnumerateSwapchainImageOpenXRException**
+  * **class FailedToInitializeOpenXRException**
+  * **class OpenXRSessionException**
+
+  </details>
+
+  <details><summary><b>Angene.Extensions.XR.Interop</b></summary>
+
+  * **enum XrActionType**
+  * **enum XrAnchorPersistStateANDROID**
+    * `XrUuid anchorId`
+    * `IntPtr anchor`
+    * `uint supportsAnchorPersistence`
+  * **enum XrAudioBufferChannelLayoutBD**
+  * **enum XrAudioSampleRateBD**
+  * **enum XrBlendFactorFB**
+    * `XrBlendFactorFB srcFactorColor`
+    * `XrBlendFactorFB dstFactorColor`
+    * `XrBlendFactorFB srcFactorAlpha`
+    * `XrBlendFactorFB dstFactorAlpha`
+    * `float recommendedNearZ`
+    * `float minNearZ`
+    * `float recommendedFarZ`
+    * `float maxFarZ`
+  * **enum XrBodyJointBD**
+  * **enum XrBodyJointConfidenceHTC**
+    * `uint supportsBodyTracking`
+    * `XrBodyJointSetHTC bodyJointSet`
+    * `IntPtr baseSpace`
+    * `long time`
+  * **enum XrBodyJointFB**
+  * **enum XrBodyJointHTC**
+  * **enum XrBodyJointSetBD**
+    * `uint supportsBodyTracking`
+    * `XrBodyJointSetBD jointSet`
+    * `IntPtr baseSpace`
+    * `long time`
+  * **enum XrBodyJointSetFB**
+  * **enum XrBodyJointSetHTC**
+  * **enum XrBodyTrackingCalibrationStateMETA**
+    * `XrBodyTrackingCalibrationStateMETA status`
+    * `float bodyHeight`
+    * `uint supportsHeightOverride`
+  * **enum XrBodyTrackingFidelityMETA**
+    * `uint supportsBodyTrackingFidelity`
+    * `XrBodyTrackingFidelityMETA fidelity`
+  * **enum XrBodyTrackingMessageBD**
+    * `uint postureCount`
+  * **enum XrBodyTrackingPostureBD**
+  * **enum XrBodyTrackingStatusBD**
+  * **enum XrBoundaryVisibilityMETA**
+    * `uint supportsBoundaryVisibility`
+    * `XrBoundaryVisibilityMETA boundaryVisibility`
+    * `uint supportsSimultaneousHandsAndControllers`
+  * **enum XrCameraCapabilityTypeBD**
+  * **enum XrCameraDataTransferTypeBD**
+  * **enum XrCameraFacingBD**
+  * **enum XrCameraImageFormatBD**
+  * **enum XrCameraModelBD**
+    * `uint propertyCount`
+    * `uint capabilityCount`
+    * `ulong cameraId`
+    * `uint propertyTypeCapacityInput`
+    * `uint propertyTypeCountOutput`
+    * `XrCameraFacingBD facing`
+    * `XrCameraPositionBD position`
+    * `XrCameraTypeBD cameraType`
+    * `uint capabilityTypeCapacityInput`
+    * `uint capabilityTypeCountOutput`
+    * `ulong id`
+  * **enum XrCameraPositionBD**
+  * **enum XrCameraPropertyTypeBD**
+  * **enum XrCameraTypeBD**
+  * **enum XrColorSpaceFB**
+    * `XrColorSpaceFB colorSpace`
+  * **enum XrColorSpaceSONY**
+    * `long format`
+    * `XrColorSpaceSONY colorSpace`
+  * **enum XrCompareOpFB**
+    * `uint depthMask`
+    * `XrCompareOpFB compareOp`
+  * **enum XrDynamicObjectTypeBD**
+    * `uint supportsDynamicObjectTracking`
+    * `uint trackingTypeCount`
+    * `XrDynamicObjectTypeBD objectType`
+    * `XrDynamicObjectDataBD data`
+    * `uint typeCount`
+    * `uint supportsDynamicObjectKeyboard`
+    * `uint supportsDynamicObjectMouse`
+  * **enum XrEnvironmentBlendMode**
+  * **enum XrEnvironmentRaycastHitStatusMETA**
+    * `uint supportsEnvironmentRaycast`
+    * `IntPtr baseSpace`
+    * `long time`
+    * `XrVector3f origin`
+    * `XrVector3f direction`
+    * `uint filterCount`
+    * `XrEnvironmentRaycastHitStatusMETA status`
+    * `XrPosef pose`
+    * `float maxDistance`
+  * **enum XrEnvironmentTexturePixelFormatBD**
+  * **enum XrEnvironmentTextureResolutionBD**
+  * **enum XrEnvironmentTextureTransferTypeBD**
+  * **enum XrExternalCameraAttachedToDeviceOCULUS**
+  * **enum XrEyeCalibrationStatusML**
+    * `XrHeadsetFitStatusML status`
+    * `long time`
+    * `XrEyeCalibrationStatusML status`
+    * `uint enabled`
+    * `uint suppressNotifications`
+  * **enum XrEyeExpressionHTC**
+  * **enum XrEyeIndexANDROID**
+  * **enum XrEyePositionFB**
+  * **enum XrEyeStateANDROID**
+  * **enum XrEyeTrackingModeANDROID**
+    * `uint supportsEyeTracking`
+  * **enum XrEyeVisibility**
+  * **enum XrFaceConfidence2FB**
+    * `uint supportsVisualFaceTracking`
+    * `uint supportsAudioFaceTracking`
+    * `XrFaceExpressionSet2FB faceExpressionSet`
+    * `uint requestedDataSourceCount`
+    * `long time`
+    * `uint weightCount`
+    * `uint confidenceCount`
+    * `uint isValid`
+    * `uint isEyeFollowingBlendshapesValid`
+    * `XrFaceTrackingDataSource2FB dataSource`
+    * `uint supportsSpatialEntitySharing`
+    * `uint spaceCount`
+    * `ulong requestId`
+  * **enum XrFaceConfidenceFB**
+    * `uint supportsFaceTracking`
+    * `XrFaceExpressionSetFB faceExpressionSet`
+    * `long time`
+  * **enum XrFaceConfidenceRegionsANDROID**
+    * `long time`
+    * `uint parametersCapacityInput`
+    * `uint parametersCountOutput`
+    * `XrFaceTrackingStateANDROID faceTrackingState`
+    * `long sampleTime`
+    * `uint isValid`
+    * `uint regionConfidencesCapacityInput`
+    * `uint regionConfidencesCountOutput`
+    * `uint supportsFaceTracking`
+  * **enum XrFaceExpression2FB**
+  * **enum XrFaceExpressionBD**
+  * **enum XrFaceExpressionFB**
+  * **enum XrFaceExpressionSet2FB**
+  * **enum XrFaceExpressionSetFB**
+  * **enum XrFaceParameterIndicesANDROID**
+  * **enum XrFaceTrackingDataSource2FB**
+  * **enum XrFaceTrackingStateANDROID**
+  * **enum XrFaceTrackingVisemeMETA**
+    * `uint isValid`
+    * `_visemes_e__FixedBuffer visemes`
+  * **enum XrFacialBlendShapeML**
+    * `uint supportsFacialExpression`
+    * `uint requestedCount`
+    * `XrFacialBlendShapeML requestedFacialBlendShape`
+    * `float weight`
+    * `ulong flags`
+    * `long time`
+  * **enum XrFacialSimulationModeBD**
+  * **enum XrFacialTrackingTypeHTC**
+    * `uint supportEyeFacialTracking`
+    * `uint supportLipFacialTracking`
+    * `uint isActive`
+    * `long sampleTime`
+    * `uint expressionCount`
+    * `XrFacialTrackingTypeHTC facialTrackingType`
+  * **enum XrForceFeedbackCurlLocationMNDX**
+    * `uint supportsForceFeedbackCurl`
+  * **enum XrFormFactor**
+  * **enum XrFoveationDynamicFB**
+    * `XrFoveationLevelFB level`
+    * `float verticalOffset`
+    * `XrFoveationDynamicFB dynamic`
+    * `uint supportsKeyboardTracking`
+  * **enum XrFoveationLevelFB**
+  * **enum XrFoveationLevelHTC**
+    * `XrFoveationModeHTC mode`
+    * `uint subImageCount`
+  * **enum XrFoveationModeHTC**
+  * **enum XrFullBodyJointMETA**
+    * `uint supportsFullBodyTracking`
+  * **enum XrFutureStateEXT**
+    * `XrFutureStateEXT state`
+    * `IntPtr session`
+    * `uint isUserPresent`
+    * `uint supportsUserPresence`
+  * **enum XrGeospatialTrackerStateANDROID**
+  * **enum XrGoogleCloudAuthErrorANDROID**
+    * `XrGoogleCloudAuthErrorANDROID error`
+  * **enum XrHandEXT**
+  * **enum XrHandForearmJointULTRALEAP**
+  * **enum XrHandGestureTypeQCOM**
+  * **enum XrHandJointEXT**
+  * **enum XrHandJointSetEXT**
+    * `uint supportsHandTracking`
+    * `XrHandEXT hand`
+    * `XrHandJointSetEXT handJointSet`
+    * `IntPtr baseSpace`
+    * `long time`
+  * **enum XrHandJointsMotionRangeEXT**
+    * `XrHandJointsMotionRangeEXT handJointsMotionRange`
+  * **enum XrHandPoseTypeMSFT**
+    * `uint supportsHandTrackingMesh`
+    * `uint maxHandMeshIndexCount`
+    * `uint maxHandMeshVertexCount`
+    * `XrHandPoseTypeMSFT handPoseType`
+    * `XrPosef poseInHandMeshSpace`
+    * `long time`
+    * `uint indexBufferKey`
+    * `uint indexCapacityInput`
+    * `uint indexCountOutput`
+  * **enum XrHandTrackingDataSourceEXT**
+    * `uint requestedDataSourceCount`
+    * `uint isActive`
+    * `XrHandTrackingDataSourceEXT dataSource`
+  * **enum XrHandTrackingFrequencyHintMETA**
+  * **enum XrHapticParametricStreamFrameTypeEXT**
+    * `long idealFrameSubmissionRate`
+    * `long minimumFirstFrameDuration`
+    * `float minFrequencyHz`
+    * `float maxFrequencyHz`
+  * **enum XrHeadsetFitStatusML**
+  * **enum XrLightEstimateStateANDROID**
+  * **enum XrLipExpressionBD**
+    * `uint supportsFaceTracking`
+    * `XrFacialSimulationModeBD mode`
+    * `long time`
+    * `uint faceExpressionWeightCount`
+    * `uint isUpperFaceDataValid`
+    * `uint isLowerFaceDataValid`
+    * `uint lipsyncExpressionWeightCount`
+  * **enum XrLipExpressionHTC**
+  * **enum XrLocalDimmingModeMETA**
+    * `XrLocalDimmingModeMETA localDimmingMode`
+    * `ulong flags`
+  * **enum XrLocalizationMapConfidenceML**
+    * `_name_e__FixedBuffer name`
+    * `XrUuid mapUuid`
+    * `XrLocalizationMapTypeML mapType`
+  * **enum XrLocalizationMapStateML**
+  * **enum XrLocalizationMapTypeML**
+  * **enum XrMarkerAprilTagDictML**
+  * **enum XrMarkerArucoDictML**
+  * **enum XrMarkerDetectorCameraML**
+  * **enum XrMarkerDetectorCornerRefineMethodML**
+  * **enum XrMarkerDetectorFpsML**
+  * **enum XrMarkerDetectorFullAnalysisIntervalML**
+  * **enum XrMarkerDetectorProfileML**
+  * **enum XrMarkerDetectorResolutionML**
+  * **enum XrMarkerDetectorStatusML**
+    * `uint supportsMarkerUnderstanding`
+    * `XrMarkerDetectorProfileML profile`
+    * `XrMarkerTypeML markerType`
+    * `XrMarkerArucoDictML arucoDict`
+    * `float markerLength`
+    * `XrMarkerAprilTagDictML aprilTagDict`
+    * `XrMarkerDetectorFpsML fpsHint`
+    * `XrMarkerDetectorResolutionML resolutionHint`
+    * `XrMarkerDetectorCameraML cameraHint`
+    * `XrMarkerDetectorCornerRefineMethodML cornerRefineMethod`
+    * `uint useEdgeRefinement`
+    * `XrMarkerDetectorFullAnalysisIntervalML fullAnalysisIntervalHint`
+    * `XrMarkerDetectorStatusML state`
+    * `ulong marker`
+    * `XrPosef poseInMarkerSpace`
+  * **enum XrMarkerTypeML**
+  * **enum XrMeshComputeLodMSFT**
+  * **enum XrObjectLabelANDROID**
+    * `XrTrackingStateANDROID trackingState`
+    * `XrPosef centerPose`
+    * `XrExtent3Df extents`
+    * `XrObjectLabelANDROID objectLabel`
+    * `long lastUpdatedTime`
+    * `uint labelCount`
+  * **enum XrObjectType**
+    * `_layerName_e__FixedBuffer layerName`
+    * `ulong specVersion`
+    * `uint layerVersion`
+    * `_description_e__FixedBuffer description`
+  * **enum XrPassthroughCameraStateANDROID**
+    * `uint supportsPassthroughCameraState`
+  * **enum XrPassthroughColorLutChannelsMETA**
+    * `uint bufferSize`
+    * `XrPassthroughColorLutChannelsMETA channels`
+    * `uint resolution`
+    * `XrPassthroughColorLutDataMETA data`
+    * `float weight`
+    * `uint maxColorLutResolution`
+    * `uint vertexCapacityInput`
+    * `uint vertexCountOutput`
+    * `uint indexCapacityInput`
+    * `uint indexCountOutput`
+  * **enum XrPassthroughFormHTC**
+    * `XrPassthroughFormHTC form`
+    * `float alpha`
+    * `uint vertexCount`
+    * `uint indexCount`
+    * `IntPtr baseSpace`
+    * `long time`
+    * `XrPosef pose`
+    * `XrVector3f scale`
+    * `ulong layerFlags`
+    * `IntPtr space`
+    * `XrPassthroughColorHTC color`
+  * **enum XrPassthroughLayerPurposeFB**
+    * `uint supportsPassthrough`
+    * `ulong capabilities`
+    * `ulong flags`
+    * `XrPassthroughLayerPurposeFB purpose`
+    * `IntPtr space`
+    * `IntPtr baseSpace`
+    * `XrPosef pose`
+    * `XrVector3f scale`
+    * `long time`
+    * `float textureOpacityFactor`
+    * `XrColor4f edgeColor`
+    * `_textureColorMap_e__FixedBuffer textureColorMap`
+  * **enum XrPerfSettingsDomainEXT**
+  * **enum XrPerfSettingsLevelEXT**
+  * **enum XrPerfSettingsNotificationLevelEXT**
+    * `XrPerfSettingsDomainEXT domain`
+    * `XrPerfSettingsSubDomainEXT subDomain`
+    * `XrPerfSettingsNotificationLevelEXT fromLevel`
+    * `XrPerfSettingsNotificationLevelEXT toLevel`
+  * **enum XrPerfSettingsSubDomainEXT**
+  * **enum XrPerformanceMetricsCounterUnitANDROID**
+    * `uint enabled`
+    * `ulong counterFlags`
+    * `XrPerformanceMetricsCounterUnitANDROID counterUnit`
+    * `uint uintValue`
+    * `float floatValue`
+  * **enum XrPerformanceMetricsCounterUnitMETA**
+    * `uint enabled`
+    * `ulong counterFlags`
+    * `XrPerformanceMetricsCounterUnitMETA counterUnit`
+    * `uint uintValue`
+    * `float floatValue`
+    * `uint spaceCount`
+    * `XrSpaceStorageLocationFB location`
+    * `ulong requestId`
+    * `ulong userId`
+    * `XrUuid id`
+    * `uint supportsSpaceDiscovery`
+    * `uint filterCount`
+    * `uint uuidCount`
+    * `XrSpaceComponentTypeFB componentType`
+    * `IntPtr space`
+    * `XrUuid uuid`
+    * `uint resultCapacityInput`
+    * `uint resultCountOutput`
+    * `XrExtent2Di recommendedImageDimensions`
+    * `uint isValid`
+    * `long predictedDisplayTime`
+    * `uint supportsSpacePersistence`
+  * **enum XrPersistenceLocationBD**
+    * `uint supportsSpatialAnchor`
+    * `IntPtr space`
+    * `XrPosef pose`
+    * `long time`
+    * `XrUuid uuid`
+    * `XrPersistenceLocationBD location`
+    * `uint supportsSpatialAnchorSharing`
+    * `uint supportsSpatialScene`
+  * **enum XrPlaneDetectionStateEXT**
+    * `ulong supportedFeatures`
+    * `ulong flags`
+    * `IntPtr baseSpace`
+    * `long time`
+    * `uint orientationCount`
+    * `uint semanticTypeCount`
+    * `uint maxPlanes`
+    * `float minArea`
+    * `XrPosef boundingBoxPose`
+    * `XrExtent3Df boundingBoxExtent`
+    * `ulong planeId`
+    * `ulong locationFlags`
+    * `XrPosef pose`
+    * `XrExtent2Df extents`
+    * `XrPlaneDetectorOrientationEXT orientation`
+    * `XrPlaneDetectorSemanticTypeEXT semanticType`
+    * `uint polygonBufferCount`
+    * `uint planeLocationCapacityInput`
+    * `uint planeLocationCountOutput`
+    * `uint vertexCapacityInput`
+    * `uint vertexCountOutput`
+  * **enum XrPlaneDetectorOrientationEXT**
+  * **enum XrPlaneDetectorSemanticTypeEXT**
+  * **enum XrPlaneLabelANDROID**
+    * `XrTrackableTypeANDROID trackableType`
+    * `ulong trackable`
+    * `IntPtr baseSpace`
+    * `long time`
+    * `XrTrackingStateANDROID trackingState`
+    * `XrPosef centerPose`
+    * `XrExtent2Df extents`
+    * `XrPlaneTypeANDROID planeType`
+    * `XrPlaneLabelANDROID planeLabel`
+    * `ulong subsumedByPlane`
+    * `long lastUpdatedTime`
+    * `uint vertexCapacityInput`
+    * `IntPtr space`
+    * `XrPosef pose`
+    * `uint supportsAnchor`
+    * `uint maxAnchors`
+  * **enum XrPlaneOrientationBD**
+    * `uint supportsSpatialPlane`
+    * `XrPlaneOrientationBD orientation`
+    * `uint orientationCount`
+  * **enum XrPlaneTypeANDROID**
+  * **enum XrQrCodeTrackingModeANDROID**
+    * `uint supportsQrCodeTracking`
+    * `uint supportsQrCodeSizeEstimation`
+    * `ushort maxQrCodeCount`
+    * `XrQrCodeTrackingModeANDROID trackingMode`
+    * `float qrCodeEdgeSize`
+    * `XrTrackingStateANDROID trackingState`
+    * `long lastUpdatedTime`
+    * `XrPosef centerPose`
+    * `XrExtent2Df extents`
+    * `uint bufferCapacityInput`
+    * `uint bufferCountOutput`
+  * **enum XrReferenceSpaceType**
+  * **enum XrReprojectionModeMSFT**
+    * `XrReprojectionModeMSFT reprojectionMode`
+    * `XrVector3f position`
+    * `XrVector3f normal`
+    * `XrVector3f velocity`
+    * `ulong flags`
+  * **enum XrSceneComponentTypeMSFT**
+  * **enum XrSceneComputeConsistencyMSFT**
+  * **enum XrSceneComputeFeatureMSFT**
+  * **enum XrSceneComputeStateMSFT**
+  * **enum XrSceneMarkerQRCodeSymbolTypeMSFT**
+  * **enum XrSceneMarkerTypeMSFT**
+  * **enum XrSceneMeshSemanticLabelANDROID**
+    * `uint supportsSceneMeshing`
+    * `XrSceneMeshSemanticLabelSetANDROID semanticLabelSet`
+    * `uint enableNormals`
+    * `IntPtr baseSpace`
+    * `long time`
+    * `XrBoxf boundingBox`
+    * `XrSceneMeshTrackingStateANDROID trackingState`
+    * `XrUuid submeshId`
+    * `long lastUpdatedTime`
+    * `XrPosef submeshPoseInBaseSpace`
+    * `XrExtent3Df bounds`
+    * `uint vertexCapacityInput`
+    * `uint vertexCountOutput`
+    * `uint indexCapacityInput`
+    * `uint indexCountOutput`
+  * **enum XrSceneMeshSemanticLabelSetANDROID**
+  * **enum XrSceneMeshTrackingStateANDROID**
+  * **enum XrSceneObjectTypeMSFT**
+  * **enum XrScenePlaneAlignmentTypeMSFT**
+  * **enum XrSemanticLabelBD**
+  * **enum XrSemanticLabelMETA**
+  * **enum XrSenseDataProviderStateBD**
+    * `uint supportsSpatialSensing`
+    * `ulong entityId`
+    * `XrSpatialEntityComponentTypeBD componentType`
+    * `IntPtr baseSpace`
+    * `XrSpaceLocation location`
+    * `uint labelCapacityInput`
+    * `uint labelCountOutput`
+    * `XrRect2Df boundingBox2D`
+    * `uint vertexCapacityInput`
+    * `uint vertexCountOutput`
+    * `XrBoxf boundingBox3D`
+    * `uint indexCapacityInput`
+    * `uint indexCountOutput`
+    * `XrSpheref sphere`
+    * `XrSenseDataProviderTypeBD providerType`
+    * `XrSenseDataProviderStateBD newState`
+    * `long lastUpdateTime`
+    * `XrUuid uuid`
+    * `uint stateCapacityInput`
+    * `uint stateCountOutput`
+    * `uint uuidCount`
+    * `uint labelCount`
+    * `XrPosef poseInAnchorSpace`
+  * **enum XrSenseDataProviderTypeBD**
+  * **enum XrSessionState**
+  * **enum XrSoundFieldChannelMaskAmbixBD**
+  * **enum XrSoundFieldChannelMaskFumaBD**
+  * **enum XrSoundFieldChannelMaskSurroundBD**
+  * **enum XrSoundObjectDistanceAttenuationTypeBD**
+  * **enum XrSoundObstacleMaterialTypeBD**
+    * `uint framesPerBuffer`
+    * `XrAudioSampleRateBD sampleRate`
+    * `XrAudioBufferChannelLayoutBD channelLayout`
+    * `uint bufferChannels`
+    * `uint bufferLength`
+    * `float alpha`
+    * `float order`
+    * `float radius`
+  * **enum XrSpaceComponentTypeFB**
+    * `uint supportsSpatialEntity`
+    * `IntPtr space`
+    * `XrPosef poseInSpace`
+    * `long time`
+    * `XrSpaceComponentTypeFB componentType`
+    * `uint enabled`
+    * `long timeout`
+    * `uint changePending`
+    * `ulong requestId`
+    * `XrUuid uuid`
+  * **enum XrSpacePersistenceModeFB**
+    * `IntPtr space`
+    * `XrSpaceStorageLocationFB location`
+    * `XrSpacePersistenceModeFB persistenceMode`
+    * `ulong requestId`
+    * `XrUuid uuid`
+  * **enum XrSpaceQueryActionFB**
+  * **enum XrSpaceStorageLocationFB**
+    * `XrSpaceQueryActionFB queryAction`
+    * `uint maxResultCount`
+    * `long timeout`
+    * `XrSpaceStorageLocationFB location`
+    * `uint uuidCount`
+    * `XrSpaceComponentTypeFB componentType`
+    * `IntPtr space`
+    * `XrUuid uuid`
+    * `uint resultCapacityInput`
+    * `uint resultCountOutput`
+    * `ulong requestId`
+  * **enum XrSpatialAnchorConfidenceML**
+    * `IntPtr baseSpace`
+    * `XrPosef poseInBaseSpace`
+    * `long time`
+    * `uint spaceCount`
+    * `XrSpatialAnchorConfidenceML confidence`
+  * **enum XrSpatialBufferTypeEXT**
+    * `uint componentTypeCapacityInput`
+    * `uint componentTypeCountOutput`
+    * `XrSpatialCapabilityEXT capability`
+    * `uint enabledComponentCount`
+    * `uint capabilityConfigCount`
+    * `uint componentTypeCount`
+    * `IntPtr baseSpace`
+    * `long time`
+    * `uint entityIdCapacityInput`
+    * `uint entityIdCountOutput`
+    * `uint entityStateCapacityInput`
+    * `uint entityStateCountOutput`
+  * **enum XrSpatialCapabilityEXT**
+  * **enum XrSpatialCapabilityFeatureEXT**
+  * **enum XrSpatialComponentTypeEXT**
+  * **enum XrSpatialContainerBoundsModeEXT**
+  * **enum XrSpatialContainerGraphicsPresentationEXT**
+  * **enum XrSpatialContainerVolumeClippingEXT**
+    * `XrSpatialContainerGraphicsPresentationEXT graphicsPresentation`
+    * `XrExtent3Df suggestedBounds`
+    * `uint maxSpatialContainerCount`
+    * `uint supportsBounded`
+    * `uint supportsImmersive`
+    * `XrExtent3Df bounds`
+    * `uint infiniteBounds`
+    * `XrSpatialContainerBoundsModeEXT boundsMode`
+    * `uint visible`
+    * `uint interactable`
+    * `XrViewConfigurationType viewConfigurationType`
+    * `IntPtr space`
+    * `long displayTime`
+    * `uint viewLocateInfoCount`
+    * `ulong viewStateFlags`
+    * `uint shouldSubmitLayers`
+    * `XrExtent2Di recommendedImageExtent`
+    * `uint retainPreviousSubmission`
+    * `uint layerCount`
+    * `uint containerLayerCount`
+    * `XrViewConfigurationType primaryViewConfigurationType`
+    * `XrSpatialContainerVolumeClippingEXT volumeClipping`
+    * `ulong stateFlags`
+    * `float batteryLevel`
+    * `uint propertyValueCount`
     * `ulong systemId`
+    * `IntPtr next`
+    * `ulong minApiVersionSupported`
+    * `ulong maxApiVersionSupported`
+  * **enum XrSpatialEntityComponentTypeBD**
+  * **enum XrSpatialEntityTrackingStateEXT**
+  * **enum XrSpatialGraphNodeTypeMSFT**
+    * `XrSpatialGraphNodeTypeMSFT nodeType`
+    * `_nodeId_e__FixedBuffer nodeId`
+    * `XrPosef pose`
+  * **enum XrSpatialMarkerAprilTagDictEXT**
+    * `XrSpatialCapabilityEXT capability`
+    * `uint enabledComponentCount`
+    * `XrSpatialMarkerArucoDictEXT arUcoDict`
+    * `XrSpatialMarkerAprilTagDictEXT aprilDict`
+    * `float markerSideLength`
+    * `uint optimizeForStaticMarker`
+  * **enum XrSpatialMarkerArucoDictEXT**
+  * **enum XrSpatialMeshLodBD**
+    * `uint supportsSpatialMesh`
+    * `ulong configFlags`
+    * `XrSpatialMeshLodBD lod`
+    * `uint isSupported`
+    * `uint progressPercentage`
+  * **enum XrSpatialObjectSemanticLabelANDROID**
+    * `XrSpatialCapabilityEXT capability`
+    * `uint enabledComponentCount`
+    * `uint activeSemanticLabelCount`
+    * `uint semanticLabelCount`
+  * **enum XrSpatialPersistenceContextResultEXT**
+  * **enum XrSpatialPersistenceScopeEXT**
+  * **enum XrSpatialPersistenceStateEXT**
+    * `XrSpatialPersistenceScopeEXT scope`
+    * `XrSpatialPersistenceContextResultEXT createResult`
+    * `uint persistenceContextCount`
+    * `uint persistedUuidCount`
+  * **enum XrSpatialPlaneAlignmentEXT**
+  * **enum XrSpatialPlaneSemanticLabelEXT**
+    * `XrSpatialCapabilityEXT capability`
+    * `uint enabledComponentCount`
+    * `uint planeAlignmentCount`
+    * `uint meshCount`
+  * **enum XrSpatialReferenceImageFormatEXT**
+    * `uint bufferSize`
+    * `uint rowStride`
+    * `uint pixelStride`
     * `uint width`
     * `uint height`
-    * `int minFilter`
-    * `int magFilter`
-    * `int mipmapMode`
-    * `int wrapModeS`
-    * `int wrapModeT`
-    * `int swizzleRed`
-    * `int swizzleGreen`
-    * `int swizzleBlue`
-    * `int swizzleAlpha`
-    * `float maxAnisotropy`
-    * `XrColor4f borderColor`
-    * `uint additionalCreateFlags`
-    * `uint additionalUsageFlags`
-    * `ulong XR_SPACE_VELOCITY_LINEAR_VALID_BIT`
-    * `ulong XR_SPACE_VELOCITY_ANGULAR_VALID_BIT`
+    * `XrSpatialReferenceImageFormatEXT format`
+    * `uint planeCount`
+    * `uint optimizeForStaticImage`
+    * `float physicalWidth`
+    * `XrSpatialCapabilityEXT capability`
+    * `uint enabledComponentCount`
+    * `uint imageTrackingDatabaseCount`
+    * `uint spatialReferenceImageCount`
+    * `uint referenceImageIndex`
+    * `uint imageCount`
+  * **enum XrSphericalHarmonicsKindANDROID**
+    * `uint supportsLightEstimation`
+    * `IntPtr space`
+    * `long time`
+    * `XrLightEstimateStateANDROID state`
+    * `long lastUpdatedTime`
+    * `XrVector3f intensity`
+    * `XrVector3f direction`
+    * `XrVector3f colorCorrection`
+    * `XrSphericalHarmonicsKindANDROID kind`
+    * `_coefficients_e__FixedBuffer coefficients`
+  * **enum XrSphericalHarmonicsKindBD**
+    * `uint supportsLightEstimation`
+    * `uint supportsEnvironmentTexture`
+    * `uint supportsSphericalHarmonics`
+    * `ulong createFlags`
+    * `XrEnvironmentTexturePixelFormatBD pixelFormat`
+    * `XrEnvironmentTextureResolutionBD resolution`
+    * `XrEnvironmentTextureTransferTypeBD transferType`
+    * `uint cubemapFaceBufferSize`
+    * `XrSphericalHarmonicsKindBD kind`
+    * `uint coefficientCapacityInput`
+    * `uint coefficientCountOutput`
+    * `uint isValid`
+  * **enum XrSurfaceAnchorTypeANDROID**
+    * `uint maxSurfaceAnchorCount`
+    * `uint shouldTrackPlanes`
+    * `XrGeospatialPoseANDROID geospatialPose`
+    * `XrSurfaceAnchorTypeANDROID surfaceAnchorType`
+    * `XrQuaternionf eastUpSouthOrientation`
+    * `double latitude`
+    * `double longitude`
+    * `double altitudeRelativeToSurface`
+    * `ulong anchorEntityId`
+  * **enum XrTrackableImageFormatANDROID**
+    * `uint supportsImageTracking`
+    * `uint supportsPhysicalSizeEstimation`
+    * `uint maxTrackedImageCount`
+    * `uint maxLoadedImageCount`
+    * `XrTrackableImageTrackingModeANDROID trackingMode`
+    * `float physicalWidth`
+    * `uint imageWidth`
+    * `uint imageHeight`
+    * `XrTrackableImageFormatANDROID format`
+    * `uint bufferSize`
+    * `uint entryCount`
+    * `uint databaseCount`
+    * `XrTrackingStateANDROID trackingState`
+    * `long lastUpdatedTime`
+    * `uint databaseEntryIndex`
+    * `XrPosef centerPose`
+    * `XrExtent2Df extents`
+    * `long time`
+  * **enum XrTrackableImageTrackingModeANDROID**
+  * **enum XrTrackableMarkerDictionaryANDROID**
+    * `uint supportsMarkerTracking`
+    * `uint supportsMarkerSizeEstimation`
+    * `ushort maxMarkerCount`
+  * **enum XrTrackableMarkerTrackingModeANDROID**
+  * **enum XrTrackableTypeANDROID**
+  * **enum XrTrackingOptimizationSettingsDomainQCOM**
+  * **enum XrTrackingOptimizationSettingsHintQCOM**
+  * **enum XrTrackingStateANDROID**
+  * **enum XrVPSAvailabilityANDROID**
+  * **enum XrViewConfigurationType**
+  * **enum XrVirtualKeyboardInputSourceMETA**
+    * `uint supportsVirtualKeyboard`
+    * `XrVirtualKeyboardLocationTypeMETA locationType`
+    * `IntPtr space`
+    * `XrPosef poseInSpace`
+    * `float scale`
+    * `uint visible`
+    * `int animationIndex`
+    * `float fraction`
+    * `uint stateCapacityInput`
+    * `uint stateCountOutput`
+    * `uint textureWidth`
+    * `uint textureHeight`
+    * `uint bufferCapacityInput`
+    * `uint bufferCountOutput`
+    * `XrVirtualKeyboardInputSourceMETA inputSource`
+    * `IntPtr inputSpace`
+    * `XrPosef inputPoseInSpace`
+    * `ulong inputState`
+    * `_text_e__FixedBuffer text`
+  * **enum XrVirtualKeyboardLocationTypeMETA**
+  * **enum XrVisibilityMaskTypeKHR**
+    * `uint vertexCapacityInput`
+    * `uint vertexCountOutput`
+    * `uint indexCapacityInput`
+    * `uint indexCountOutput`
+    * `IntPtr session`
+    * `XrViewConfigurationType viewConfigurationType`
+    * `uint viewIndex`
+    * `XrColor4f colorScale`
+    * `XrColor4f colorBias`
+    * `ulong layerFlags`
+    * `IntPtr space`
+    * `XrEyeVisibility eyeVisibility`
+    * `XrSwapchainSubImage subImage`
+    * `XrPosef pose`
+    * `float radius`
+    * `float centralHorizontalAngle`
+    * `float upperVerticalAngle`
+    * `float lowerVerticalAngle`
+    * `uint bindingModificationCount`
+  * **enum XrWindingOrderANDROID**
+    * `uint vertexCapacity`
+    * `uint indexCapacity`
+    * `XrWindingOrderANDROID windingOrder`
+    * `uint vertexCount`
+    * `uint indexCount`
+    * `ulong layerFlags`
+    * `IntPtr space`
+    * `XrPosef pose`
+    * `XrVector3f scale`
+    * `float opacity`
+    * `uint supportsPassthroughLayer`
+    * `uint maxMeshIndexCount`
+    * `uint maxMeshVertexCount`
+    * `uint maxResults`
+    * `uint trackerCount`
+    * `XrVector3f origin`
+    * `XrVector3f trajectory`
+    * `long time`
+  * **enum XrWindingOrderFB**
+    * `ulong flags`
+    * `XrWindingOrderFB windingOrder`
+    * `uint vertexCount`
+    * `uint triangleCount`
+  * **enum XrWorldMeshBlockResultML**
+    * `XrUuid uuid`
+    * `XrPosef meshBoundingBoxCenter`
+    * `XrExtent3Df meshBoundingBoxExtents`
+    * `long lastUpdateTime`
+    * `XrWorldMeshBlockStatusML status`
+    * `IntPtr baseSpace`
+    * `long time`
+    * `XrPosef boundingBoxCenter`
+    * `XrExtent3Df boundingBoxExtents`
+    * `long timestamp`
+    * `uint meshBlockStateCapacityInput`
+    * `uint meshBlockStateCountOutput`
+    * `uint maxBlockCount`
+    * `uint size`
+    * `uint bufferSize`
+    * `XrWorldMeshDetectorLodML lod`
+    * `ulong flags`
+    * `float fillHoleLength`
+    * `float disconnectedComponentArea`
+    * `uint blockCount`
+    * `XrWorldMeshBlockResultML blockResult`
+    * `uint indexCount`
+    * `uint vertexCount`
+    * `uint normalCount`
+    * `uint confidenceCount`
+    * `IntPtr meshSpace`
+    * `long meshSpaceLocateTime`
+  * **enum XrWorldMeshBlockStatusML**
+  * **enum XrWorldMeshDetectorLodML**
+  * **struct XrAnchorBD**
+  * **struct XrApplicationInfo**
+    * `_applicationName_e__FixedBuffer applicationName`
+    * `uint applicationVersion`
+    * `_engineName_e__FixedBuffer engineName`
+    * `uint engineVersion`
+    * `ulong apiVersion`
+  * **struct XrAttenuationCurvePointBD**
+    * `float distance`
+    * `float gain`
+    * `uint curvePointCount`
+    * `XrSoundObjectDistanceAttenuationTypeBD distanceAttenuationType`
+    * `float minAttenuationRange`
+    * `float maxAttenuationRange`
+    * `float referenceDistance`
+    * `float rolloffFactor`
+    * `uint enabled`
+    * `XrPosef pose`
+    * `IntPtr baseSpace`
+    * `float mainVolume`
+    * `float reflectionGain`
+    * `uint enableDoppler`
+    * `XrQuaternionf orientation`
+    * `float lfeGain`
+    * `XrSoundFieldChannelMaskSurroundBD channelMask`
+    * `XrSoundFieldChannelMaskAmbixBD channelMask`
+    * `XrSoundFieldChannelMaskFumaBD channelMask`
+    * `uint vertexCount`
+    * `uint indexCount`
+    * `uint materialCount`
+    * `XrSoundObstacleMaterialTypeBD materialType`
+    * `uint bandCount`
+  * **struct XrBodyJointAccelerationBD**
+    * `ulong accelerationFlags`
+    * `XrVector3f linearAcceleration`
+    * `XrVector3f angularAcceleration`
+    * `uint accelerationCount`
+    * `XrBodyTrackingStatusBD status`
+    * `XrBodyTrackingMessageBD message`
+  * **struct XrBodyJointLocationBD**
+    * `ulong locationFlags`
+    * `XrPosef pose`
+    * `uint allJointPosesTracked`
+    * `uint jointLocationCount`
+  * **struct XrBodyJointLocationFB**
+    * `ulong locationFlags`
+    * `XrPosef pose`
+    * `uint supportsBodyTracking`
+    * `XrBodyJointSetFB bodyJointSet`
+  * **struct XrBodyJointLocationHTC**
+    * `ulong locationFlags`
+    * `XrPosef pose`
+    * `ulong combinedLocationFlags`
+    * `XrBodyJointConfidenceHTC confidenceLevel`
+    * `uint jointLocationCount`
+    * `uint skeletonGenerationId`
+  * **struct XrBodyJointVelocityBD**
+    * `ulong velocityFlags`
+    * `XrVector3f linearVelocity`
+    * `XrVector3f angularVelocity`
+    * `uint velocityCount`
+  * **struct XrBodySkeletonJointFB**
+    * `int joint`
+    * `int parentJoint`
+    * `XrPosef pose`
+    * `uint jointCount`
+    * `IntPtr baseSpace`
+    * `long time`
+    * `uint isActive`
+    * `float confidence`
+    * `uint skeletonChangedCount`
+    * `ulong binding`
+    * `IntPtr actionSet`
+    * `float forceThreshold`
+    * `float forceThresholdReleased`
+    * `float centerRegion`
+    * `float wedgeAngle`
+    * `uint isSticky`
+    * `IntPtr action`
+    * `float onThreshold`
+    * `float offThreshold`
+  * **struct XrBodySkeletonJointHTC**
+    * `XrPosef pose`
+    * `uint jointCount`
+    * `IntPtr actionSet`
+    * `uint priorityOverride`
+    * `uint actionSetPriorityCount`
+  * **struct XrBodyTrackerBD**
+  * **struct XrBodyTrackerFB**
+  * **struct XrBodyTrackerHTC**
+  * **struct XrBoxf**
+    * `XrPosef center`
+    * `XrExtent3Df extents`
+  * **struct XrCameraCaptureSessionBD**
+  * **struct XrCameraDeviceBD**
+  * **struct XrCameraImageResolutionAndFrameRateBD**
+    * `XrExtent2Di resolution`
+    * `uint frameRate`
+    * `uint resolutionAndFrameRateCapacityInput`
+    * `uint resolutionAndFrameRateCountOutput`
+    * `uint transferTypeCapacityInput`
+    * `uint transferTypeCountOutput`
+    * `XrCameraDataTransferTypeBD transferType`
+    * `uint formatCapacityInput`
+    * `uint formatCountOutput`
+    * `XrCameraImageFormatBD format`
+    * `uint modelCapacityInput`
+    * `uint modelCountOutput`
+    * `XrCameraModelBD model`
+    * `ulong cameraId`
+    * `uint configCount`
+    * `XrVector2f focalLength`
+    * `XrVector2f principalPoint`
+    * `XrVector2f fov`
+    * `XrPosef pose`
+    * `long lastCaptureTime`
+    * `uint available`
+    * `long captureTime`
+    * `ulong imageId`
+    * `uint width`
+    * `uint height`
+    * `uint stride`
+    * `uint bytesPerPixel`
+    * `uint pixelStride`
+    * `uint bufferSize`
+    * `IntPtr space`
+    * `long time`
+    * `XrSpheref sphere`
+    * `XrBoxf box`
+    * `XrFrustumf frustum`
+    * `XrSpatialCapabilityEXT capability`
+    * `uint enabledComponentCount`
+    * `uint locationCount`
+    * `IntPtr baseSpace`
+  * **struct XrColor3f**
+    * `float r`
+    * `float g`
+    * `float b`
+  * **struct XrColor4f**
+    * `float r`
+    * `float g`
+    * `float b`
+    * `float a`
+  * **struct XrDebugUtilsMessengerEXT**
+    * `XrObjectType objectType`
+    * `ulong objectHandle`
+    * `uint objectCount`
+    * `uint sessionLabelCount`
+    * `ulong messageSeverities`
+    * `ulong messageTypes`
+    * `uint supportsEyeGazeInteraction`
+    * `long time`
+    * `ulong createFlags`
+    * `uint sessionLayersPlacement`
+    * `uint visible`
+    * `ulong flags`
+  * **struct XrDeviceAnchorPersistenceANDROID**
+  * **struct XrEnvironmentDepthProviderMETA**
+  * **struct XrEnvironmentDepthSwapchainMETA**
+    * `ulong createFlags`
+    * `uint width`
+    * `uint height`
+    * `IntPtr space`
+    * `long displayTime`
+    * `XrFovf fov`
+    * `XrPosef pose`
+    * `uint swapchainIndex`
+    * `float nearZ`
+    * `float farZ`
+    * `_views_e__FixedBuffer views`
+  * **struct XrEnvironmentRaycasterMETA**
+  * **struct XrExportedLocalizationMapML**
+  * **struct XrExtent2Df**
+    * `float width`
+    * `float height`
+    * `XrViewConfigurationType viewConfigurationType`
+    * `uint fovMutable`
+    * `uint recommendedImageRectWidth`
+    * `uint maxImageRectWidth`
+    * `uint recommendedImageRectHeight`
+    * `uint maxImageRectHeight`
+    * `uint recommendedSwapchainSampleCount`
+    * `uint maxSwapchainSampleCount`
+    * `ulong createFlags`
+    * `ulong usageFlags`
+    * `long format`
+    * `uint sampleCount`
+    * `uint width`
+    * `uint height`
+    * `uint faceCount`
+    * `uint arraySize`
+    * `uint mipCount`
+    * `long timeout`
+    * `XrViewConfigurationType primaryViewConfigurationType`
+    * `long predictedDisplayTime`
+    * `long predictedDisplayPeriod`
+    * `uint shouldRender`
+    * `ulong layerFlags`
+    * `IntPtr space`
+    * `long displayTime`
+    * `XrEnvironmentBlendMode environmentBlendMode`
+    * `uint layerCount`
+    * `ulong viewStateFlags`
+  * **struct XrExtent2Di**
+    * `int width`
+    * `int height`
+  * **struct XrExtent3Df**
+    * `float width`
+    * `float height`
+    * `float depth`
+  * **struct XrExtent3DiMETA**
+    * `int width`
+    * `int height`
+    * `int depth`
+    * `XrExtent3DiMETA tileDimensions`
+    * `XrExtent2Di apronDimensions`
+    * `XrOffset2Di origin`
+    * `uint propertiesCount`
+    * `long captureTime`
+  * **struct XrExternalCameraExtrinsicsOCULUS**
+    * `long lastChangeTime`
+    * `ulong cameraStatusFlags`
+    * `XrExternalCameraAttachedToDeviceOCULUS attachedToDevice`
+    * `XrPosef relativePose`
+    * `_name_e__FixedBuffer name`
+    * `XrExternalCameraIntrinsicsOCULUS intrinsics`
+    * `XrExternalCameraExtrinsicsOCULUS extrinsics`
+  * **struct XrExternalCameraIntrinsicsOCULUS**
+    * `long lastChangeTime`
+    * `XrFovf fov`
+    * `float virtualNearPlaneDistance`
+    * `float virtualFarPlaneDistance`
+    * `XrExtent2Di imageSensorPixelResolution`
+  * **struct XrEyeANDROID**
+    * `XrEyeStateANDROID eyeState`
+    * `XrPosef eyePose`
+    * `_eyes_e__FixedBuffer eyes`
+    * `XrEyeTrackingModeANDROID mode`
+  * **struct XrEyeGazeFB**
+    * `uint isValid`
+    * `XrPosef gazePose`
+    * `float gazeConfidence`
+    * `IntPtr baseSpace`
+    * `long time`
+    * `uint supportsEyeTracking`
+    * `_gaze_e__FixedBuffer gaze`
+  * **struct XrEyeTrackerANDROID**
+  * **struct XrEyeTrackerFB**
+  * **struct XrFaceExpressionStatusFB**
+    * `uint isValid`
+    * `uint isEyeFollowingBlendshapesValid`
+    * `uint weightCount`
+    * `uint confidenceCount`
+    * `XrFaceExpressionStatusFB status`
+    * `long time`
+  * **struct XrFaceTracker2FB**
+  * **struct XrFaceTrackerANDROID**
+  * **struct XrFaceTrackerBD**
+  * **struct XrFaceTrackerFB**
+  * **struct XrFacialExpressionClientML**
+  * **struct XrFacialTrackerHTC**
+  * **struct XrForceFeedbackCurlApplyLocationMNDX**
+    * `XrForceFeedbackCurlLocationMNDX location`
+    * `float value`
+    * `uint locationCount`
+  * **struct XrFoveationConfigurationHTC**
+    * `XrFoveationLevelHTC level`
+    * `float clearFovDegree`
+    * `XrVector2f focalCenterOffset`
+    * `ulong dynamicFlags`
+    * `uint configCount`
+    * `uint supportsAnchor`
+  * **struct XrFoveationProfileFB**
+    * `ulong flags`
+  * **struct XrFovf**
+    * `float angleLeft`
+    * `float angleRight`
+    * `float angleUp`
+    * `float angleDown`
+    * `XrPosef pose`
+    * `XrFovf fov`
+    * `_actionSetName_e__FixedBuffer actionSetName`
+    * `_localizedActionSetName_e__FixedBuffer localizedActionSetName`
+    * `uint priority`
+  * **struct XrFrustumf**
+    * `XrPosef pose`
+    * `XrFovf fov`
+    * `float nearZ`
+    * `float farZ`
+  * **struct XrFutureEXT**
+  * **struct XrGeometryInstanceFB**
+  * **struct XrGeospatialPoseANDROID**
+    * `XrQuaternionf eastUpSouthOrientation`
+    * `double latitude`
+    * `double longitude`
+    * `double altitude`
+    * `uint supportsGeospatial`
+    * `XrGeospatialTrackerStateANDROID state`
+    * `long time`
+    * `IntPtr space`
+    * `XrPosef pose`
+    * `ulong poseFlags`
+    * `XrGeospatialPoseANDROID geospatialPose`
+    * `double horizontalAccuracy`
+    * `double verticalAccuracy`
+    * `double orientationYawAccuracy`
+    * `XrVPSAvailabilityANDROID availability`
+    * `ulong parentId`
+    * `uint subsumedUniqueIdCount`
+    * `ulong anchorEntityId`
+  * **struct XrGeospatialTrackerANDROID**
+  * **struct XrGraphicsBindingVulkanKHR**
+    * `IntPtr instance`
+    * `IntPtr physicalDevice`
+    * `IntPtr device`
+    * `uint queueFamilyIndex`
+    * `uint queueIndex`
+  * **struct XrGraphicsRequirementsD3D11KHR**
+  * **struct XrHandCapsuleFB**
+    * `_points_e__FixedBuffer points`
+    * `float radius`
+    * `XrHandJointEXT joint`
+  * **struct XrHandGestureQCOM**
+    * `XrHandGestureTypeQCOM gesture`
+    * `float gestureRatio`
+    * `float flipRatio`
+  * **struct XrHandJointLocationEXT**
+    * `ulong locationFlags`
+    * `XrPosef pose`
+    * `float radius`
+  * **struct XrHandJointVelocityEXT**
+    * `ulong velocityFlags`
+    * `XrVector3f linearVelocity`
+    * `XrVector3f angularVelocity`
+    * `uint isActive`
+    * `uint jointCount`
+  * **struct XrHandMeshVertexMSFT**
+    * `XrVector3f position`
+    * `XrVector3f normal`
+    * `long vertexUpdateTime`
+    * `uint vertexCapacityInput`
+    * `uint vertexCountOutput`
+    * `uint isActive`
+    * `uint indexBufferChanged`
+    * `uint vertexBufferChanged`
+    * `XrHandMeshIndexBufferMSFT indexBuffer`
+    * `XrHandMeshVertexBufferMSFT vertexBuffer`
+    * `XrHandPoseTypeMSFT handPoseType`
+    * `uint viewConfigurationCount`
+    * `XrViewConfigurationType viewConfigurationType`
+    * `uint active`
+    * `XrEnvironmentBlendMode environmentBlendMode`
+    * `uint layerCount`
+    * `ulong modelKey`
+    * `_parentNodeName_e__FixedBuffer parentNodeName`
+    * `_nodeName_e__FixedBuffer nodeName`
+  * **struct XrHandTrackerEXT**
+  * **struct XrHapticParametricPointEXT**
+    * `long time`
+    * `float value`
+  * **struct XrHapticParametricTransientEXT**
+    * `long time`
+    * `float amplitude`
+    * `float frequency`
+    * `uint amplitudePointCount`
+    * `uint frequencyPointCount`
+    * `uint transientCount`
+    * `float minFrequencyHz`
+    * `float maxFrequencyHz`
+    * `XrHapticParametricStreamFrameTypeEXT streamFrameType`
+    * `uint supportsParametricHaptics`
+  * **struct XrKeyboardTrackingDescriptionFB**
+    * `ulong trackedKeyboardId`
+    * `XrVector3f size`
+    * `ulong flags`
+    * `_name_e__FixedBuffer name`
+  * **struct XrLightEstimatorANDROID**
+  * **struct XrMarkerDetectorML**
+  * **struct XrOffset2Df**
+    * `float x`
+    * `float y`
+  * **struct XrOffset2Di**
+    * `int x`
+    * `int y`
+  * **struct XrOffset3DfFB**
+    * `float x`
+    * `float y`
+    * `float z`
+  * **struct XrPassthroughColorLutMETA**
+  * **struct XrPassthroughFB**
+  * **struct XrPassthroughHTC**
+  * **struct XrPassthroughLayerANDROID**
+  * **struct XrPassthroughLayerFB**
+  * **struct XrPlaneDetectorEXT**
+  * **struct XrPosef**
+    * `XrQuaternionf orientation`
+    * `XrVector3f position`
+    * `XrReferenceSpaceType referenceSpaceType`
+    * `XrPosef poseInReferenceSpace`
+    * `IntPtr action`
+    * `ulong subactionPath`
+    * `XrPosef poseInActionSpace`
+    * `ulong locationFlags`
+    * `XrPosef pose`
+    * `ulong velocityFlags`
+    * `XrVector3f linearVelocity`
+    * `XrVector3f angularVelocity`
+  * **struct XrQuaternionf**
+    * `float x`
+    * `float y`
+    * `float z`
+    * `float w`
+  * **struct XrRaycastHitResultANDROID**
+    * `XrTrackableTypeANDROID type`
+    * `ulong trackable`
+    * `XrPosef pose`
+    * `uint resultsCapacityInput`
+    * `uint resultsCountOutput`
+  * **struct XrRect2Df**
+    * `XrOffset2Df offset`
+    * `XrExtent2Df extent`
+  * **struct XrRect2Di**
+    * `XrOffset2Di offset`
+    * `XrExtent2Di extent`
+    * `IntPtr swapchain`
+    * `XrRect2Di imageRect`
+    * `uint imageArrayIndex`
+    * `XrPosef pose`
+    * `XrFovf fov`
+    * `XrSwapchainSubImage subImage`
+    * `ulong layerFlags`
+    * `IntPtr space`
+    * `uint viewCount`
+    * `XrEyeVisibility eyeVisibility`
+    * `XrExtent2Df size`
+    * `uint lostEventCount`
+    * `long lossTime`
+    * `IntPtr session`
+    * `XrSessionState state`
+    * `long time`
+    * `XrReferenceSpaceType referenceSpaceType`
+    * `long changeTime`
+    * `uint poseValid`
+    * `XrPosef poseInPreviousSpace`
+    * `long duration`
+    * `float frequency`
+    * `float amplitude`
+  * **struct XrRect3DfFB**
+    * `XrOffset3DfFB offset`
+    * `XrExtent3Df extent`
+    * `uint bufferCapacityInput`
+    * `uint bufferCountOutput`
+    * `XrUuid floorUuid`
+    * `XrUuid ceilingUuid`
+    * `uint wallUuidCapacityInput`
+    * `uint wallUuidCountOutput`
+    * `uint vertexCapacityInput`
+    * `uint vertexCountOutput`
+    * `ulong flags`
+    * `ulong requestId`
+    * `uint requestByteCount`
+    * `uint uuidCapacityInput`
+    * `uint uuidCountOutput`
+    * `_foveationCenter_e__FixedBuffer foveationCenter`
+  * **struct XrRenderModelAssetEXT**
+    * `ulong renderModelId`
+    * `uint gltfExtensionCount`
+    * `XrUuid cacheId`
+    * `uint animatableNodeCount`
+    * `long displayTime`
+  * **struct XrRenderModelAssetNodePropertiesEXT**
+    * `_uniqueName_e__FixedBuffer uniqueName`
+  * **struct XrRenderModelEXT**
+  * **struct XrRenderModelNodeStateEXT**
+    * `XrPosef nodePose`
+    * `uint isVisible`
+    * `uint nodeStateCount`
+    * `XrUuid cacheId`
+    * `uint bufferCapacityInput`
+    * `uint bufferCountOutput`
+  * **struct XrRoomMeshFaceMETA**
+    * `XrUuid uuid`
+    * `XrUuid parentUuid`
+    * `XrSemanticLabelMETA semanticLabel`
+    * `uint indexCapacityInput`
+    * `uint indexCountOutput`
+    * `uint recognizedSemanticLabelCount`
+    * `uint vertexCapacityInput`
+    * `uint vertexCountOutput`
+    * `uint faceCapacityInput`
+    * `uint faceCountOutput`
+    * `uint bufferSize`
+    * `ulong advertisementRequestId`
+    * `XrUuid advertisementUuid`
+    * `ulong requestId`
+    * `ulong discoveryRequestId`
+    * `_buffer_e__FixedBuffer buffer`
+  * **struct XrSceneComponentLocationMSFT**
+    * `ulong flags`
+    * `XrPosef pose`
+    * `uint locationCount`
+    * `IntPtr baseSpace`
+    * `long time`
+    * `uint componentIdCount`
+  * **struct XrSceneComponentMSFT**
+    * `XrSceneComponentTypeMSFT componentType`
+    * `XrUuidMSFT id`
+    * `XrUuidMSFT parentId`
+    * `long updateTime`
+    * `uint componentCapacityInput`
+    * `uint componentCountOutput`
+  * **struct XrSceneFrustumBoundMSFT**
+    * `XrPosef pose`
+    * `XrFovf fov`
+    * `float farDistance`
+    * `IntPtr space`
+    * `long time`
+    * `uint sphereCount`
+    * `uint boxCount`
+    * `uint frustumCount`
+    * `uint requestedFeatureCount`
+    * `XrSceneComputeConsistencyMSFT consistency`
+    * `XrSceneBoundsMSFT bounds`
+    * `XrMeshComputeLodMSFT lod`
+  * **struct XrSceneMSFT**
+  * **struct XrSceneMarkerMSFT**
+    * `XrSceneMarkerTypeMSFT markerType`
+    * `long lastSeenTime`
+    * `XrOffset2Df center`
+    * `XrExtent2Df size`
+    * `uint sceneMarkerCapacityInput`
+    * `uint markerTypeCount`
+  * **struct XrSceneMarkerQRCodeMSFT**
+    * `XrSceneMarkerQRCodeSymbolTypeMSFT symbolType`
+    * `byte version`
+    * `uint qrCodeCapacityInput`
+  * **struct XrSceneMeshMSFT**
+    * `ulong meshBufferId`
+    * `uint supportsIndicesUint16`
+    * `uint sceneMeshCount`
+    * `uint vertexCapacityInput`
+    * `uint vertexCountOutput`
+    * `uint indexCapacityInput`
+    * `uint indexCountOutput`
+    * `XrUuidMSFT sceneFragmentId`
+    * `uint bufferSize`
+    * `uint fragmentCount`
+    * `float fromDisplayRefreshRate`
+    * `float toDisplayRefreshRate`
+    * `ulong persistentPath`
+    * `ulong rolePath`
+  * **struct XrSceneMeshSnapshotANDROID**
+  * **struct XrSceneMeshingTrackerANDROID**
+  * **struct XrSceneObjectMSFT**
+    * `XrSceneObjectTypeMSFT objectType`
+    * `uint sceneObjectCount`
+    * `XrUuidMSFT parentId`
+    * `uint objectTypeCount`
+  * **struct XrSceneObserverMSFT**
+  * **struct XrSceneOrientedBoxBoundMSFT**
+    * `XrPosef pose`
+    * `XrVector3f extents`
+  * **struct XrScenePlaneMSFT**
+    * `XrScenePlaneAlignmentTypeMSFT alignment`
+    * `XrExtent2Df size`
+    * `ulong meshBufferId`
+    * `uint supportsIndicesUint16`
+    * `uint scenePlaneCount`
+    * `uint alignmentCount`
+  * **struct XrSceneSphereBoundMSFT**
+    * `XrVector3f center`
+    * `float radius`
+  * **struct XrSenseDataProviderBD**
+  * **struct XrSenseDataSnapshotBD**
+  * **struct XrSoundFieldBD**
+  * **struct XrSoundObjectBD**
+  * **struct XrSoundObstacleBD**
+  * **struct XrSoundObstacleMaterialBD**
+  * **struct XrSpaceLocationData**
+    * `ulong locationFlags`
+    * `XrPosef pose`
+    * `uint locationCount`
+  * **struct XrSpaceUserFB**
+    * `uint spaceCount`
+    * `uint userCount`
+    * `ulong requestId`
+    * `ulong layerFlags`
+    * `XrSwapchainSubImage motionVectorSubImage`
+    * `XrPosef appSpaceDeltaPose`
+    * `XrSwapchainSubImage depthSubImage`
+    * `float minDepth`
+    * `float maxDepth`
+    * `float nearZ`
+    * `float farZ`
+    * `uint recommendedMotionVectorImageRectWidth`
+    * `uint recommendedMotionVectorImageRectHeight`
+    * `long duration`
+    * `uint amplitudeCount`
+  * **struct XrSpaceVelocityData**
+    * `ulong velocityFlags`
+    * `XrVector3f linearVelocity`
+    * `XrVector3f angularVelocity`
+    * `uint velocityCount`
+    * `ulong layerFlags`
+    * `IntPtr space`
+    * `XrEyeVisibility eyeVisibility`
+    * `IntPtr swapchain`
+    * `uint imageArrayIndex`
+    * `XrQuaternionf orientation`
+    * `XrSwapchainSubImage subImage`
+    * `float minDepth`
+    * `float maxDepth`
+    * `float nearZ`
+    * `float farZ`
+    * `XrPosef pose`
+    * `float radius`
+    * `float centralAngle`
+    * `float aspectRatio`
+    * `XrVector2f scale`
+    * `XrVector2f bias`
+  * **struct XrSpatialAnchorCompletionResultML**
+    * `XrUuid uuid`
+    * `uint resultCount`
+  * **struct XrSpatialAnchorMSFT**
+    * `IntPtr space`
+    * `XrPosef pose`
+    * `long time`
+    * `XrPosef poseInAnchorSpace`
+    * `ulong flags`
+  * **struct XrSpatialAnchorNameHTC**
+    * `_name_e__FixedBuffer name`
+  * **struct XrSpatialAnchorPersistenceNameMSFT**
+    * `_name_e__FixedBuffer name`
+  * **struct XrSpatialAnchorStoreConnectionMSFT**
+  * **struct XrSpatialAnchorsStorageML**
+    * `IntPtr baseSpace`
+    * `XrVector3f center`
+    * `long time`
+    * `float radius`
+    * `uint uuidCapacityInput`
+    * `uint uuidCountOutput`
+    * `uint uuidCount`
+    * `uint anchorCount`
+    * `ulong expiration`
+  * **struct XrSpatialAudioRendererBD**
+  * **struct XrSpatialBounded2DDataEXT**
+    * `XrPosef center`
+    * `XrExtent2Df extents`
+    * `uint boundCount`
+    * `uint parentCount`
+  * **struct XrSpatialBufferEXT**
+    * `ulong bufferId`
+    * `XrSpatialBufferTypeEXT bufferType`
+  * **struct XrSpatialContainerEXT**
+  * **struct XrSpatialContextEXT**
+  * **struct XrSpatialEntityEXT**
+  * **struct XrSpatialGraphNodeBindingMSFT**
+  * **struct XrSpatialImageTrackingDatabaseEXT**
+  * **struct XrSpatialMarkerDataEXT**
+    * `XrSpatialCapabilityEXT capability`
+    * `uint markerId`
+    * `XrSpatialBufferEXT data`
+    * `uint markerCount`
+  * **struct XrSpatialMeshDataEXT**
+    * `XrPosef origin`
+    * `XrSpatialBufferEXT vertexBuffer`
+    * `XrSpatialBufferEXT indexBuffer`
+    * `uint meshCount`
+    * `ulong entityId`
+    * `uint entityCount`
+    * `uint componentTypeCount`
+    * `IntPtr baseSpace`
+    * `long time`
+    * `XrSpatialEntityTrackingStateEXT trackingState`
+  * **struct XrSpatialPersistenceContextEXT**
+  * **struct XrSpatialPersistenceDataEXT**
+    * `XrUuid persistUuid`
+    * `XrSpatialPersistenceStateEXT persistState`
+    * `uint persistDataCount`
+  * **struct XrSpatialPolygon2DDataEXT**
+    * `XrPosef origin`
+    * `XrSpatialBufferEXT vertexBuffer`
+    * `uint polygonCount`
+    * `uint semanticLabelCount`
+    * `XrUuid generationId`
+  * **struct XrSpatialRaycastResultDataANDROID**
+    * `XrPosef hitPose`
+    * `float distanceSquared`
+    * `XrSpatialCapabilityEXT capability`
+    * `uint enabledComponentCount`
+    * `IntPtr space`
+    * `long time`
+    * `XrVector3f origin`
+    * `XrVector3f direction`
+    * `float maxDistance`
+    * `uint raycastResultCount`
+    * `uint componentTypeCount`
+  * **struct XrSpatialSnapshotEXT**
+  * **struct XrSpheref**
+    * `XrPosef center`
+    * `float radius`
+  * **struct XrSystemGraphicsProperties**
+    * `uint maxSwapchainImageHeight`
+    * `uint maxSwapchainImageWidth`
+    * `uint maxLayerCount`
+  * **struct XrSystemTrackingProperties**
+    * `uint orientationTracking`
+    * `uint positionTracking`
+    * `ulong systemId`
+    * `uint vendorId`
+    * `_systemName_e__FixedBuffer systemName`
+    * `XrSystemGraphicsProperties graphicsProperties`
+    * `XrSystemTrackingProperties trackingProperties`
+  * **struct XrTrackableImageDatabaseANDROID**
+  * **struct XrTrackableMarkerDatabaseEntryANDROID**
+    * `int id`
+    * `float edgeSize`
+    * `XrTrackableMarkerDictionaryANDROID dictionary`
+    * `uint entryCount`
+    * `XrTrackableMarkerTrackingModeANDROID trackingMode`
+    * `uint databaseCount`
+    * `XrTrackingStateANDROID trackingState`
+    * `long lastUpdatedTime`
+    * `int markerId`
+    * `XrPosef centerPose`
+    * `XrExtent2Df extents`
+  * **struct XrTrackableTrackerANDROID**
+  * **struct XrTriangleMeshFB**
+  * **struct XrUuid**
+    * `_data_e__FixedBuffer data`
+  * **struct XrUuidMSFT**
+    * `_bytes_e__FixedBuffer bytes`
+  * **struct XrVector2f**
+    * `float x`
+    * `float y`
+    * `XrVector2f currentState`
+    * `uint changedSinceLastSync`
+    * `long lastChangeTime`
+    * `uint isActive`
+    * `IntPtr actionSet`
+    * `ulong subactionPath`
+    * `uint countActiveActionSets`
+    * `IntPtr action`
+    * `ulong sourcePath`
+    * `ulong whichComponents`
+  * **struct XrVector3f**
+    * `float x`
+    * `float y`
+    * `float z`
+  * **struct XrVector4f**
+    * `float x`
+    * `float y`
+    * `float z`
+    * `float w`
+  * **struct XrVector4sFB**
+    * `short x`
+    * `short y`
+    * `short z`
+    * `short w`
+    * `uint jointCapacityInput`
+    * `uint jointCountOutput`
+    * `uint vertexCapacityInput`
+    * `uint vertexCountOutput`
+    * `uint indexCapacityInput`
+    * `uint indexCountOutput`
+    * `float sensorOutput`
+    * `float currentOutput`
+    * `uint overrideHandScale`
+    * `float overrideValueInput`
+    * `ulong status`
+    * `XrPosef aimPose`
+    * `float pinchStrengthIndex`
+    * `float pinchStrengthMiddle`
+    * `float pinchStrengthRing`
+    * `float pinchStrengthLittle`
+  * **struct XrVirtualKeyboardMETA**
+  * **struct XrVulkanGraphicsDeviceGetInfoKHR**
+    * `IntPtr next`
+    * `ulong systemId`
+    * `IntPtr vulkanInstance`
+    * `ulong createFlags`
+    * `IntPtr pfnGetInstanceProcAddr`
+    * `IntPtr vulkanPhysicalDevice`
     * `ulong XR_SPACE_LOCATION_ORIENTATION_VALID_BIT`
     * `ulong XR_SPACE_LOCATION_POSITION_VALID_BIT`
     * `ulong XR_SPACE_LOCATION_ORIENTATION_TRACKED_BIT`
     * `ulong XR_SPACE_LOCATION_POSITION_TRACKED_BIT`
+    * `ulong XR_SPACE_VELOCITY_LINEAR_VALID_BIT`
+    * `ulong XR_SPACE_VELOCITY_ANGULAR_VALID_BIT`
     * `ulong XR_SWAPCHAIN_CREATE_PROTECTED_CONTENT_BIT`
     * `ulong XR_SWAPCHAIN_CREATE_STATIC_IMAGE_BIT`
     * `ulong XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT`
@@ -1503,6 +3146,8 @@
     * `ulong XR_SPATIAL_MESH_CONFIG_ALIGN_SEMANTIC_WITH_VERTEX_BIT_BD`
     * `ulong XR_SPACE_ACCELERATION_LINEAR_VALID_BIT_BD`
     * `ulong XR_SPACE_ACCELERATION_ANGULAR_VALID_BIT_BD`
+    * `ulong XR_LIGHT_ESTIMATION_CREATE_SPHERICAL_HARMONICS_BIT_BD`
+    * `ulong XR_LIGHT_ESTIMATION_CREATE_ENVIRONMENT_TEXTURE_BIT_BD`
     * `ulong XR_SOUND_OBSTACLE_ENABLED_BIT_BD`
     * `ulong XR_SOUND_OBSTACLE_POSE_BIT_BD`
     * `ulong XR_SOUND_OBSTACLE_MESH_BIT_BD`
@@ -1547,6 +3192,10 @@
     * `ulong XR_BATTERY_STATE_DISPLAY_STATE_NO_BATTERY_BIT_EXT`
     * `int OPENXR_H_`
     * `int XR_VERSION_1_0`
+    * `int OPENXR_PLATFORM_DEFINES_H_`
+    * `int XR_PTR_SIZE`
+    * `int XR_CPP11_ENABLED`
+    * `int XR_CPP_NULLPTR_SUPPORTED`
     * `ulong XR_CURRENT_API_VERSION`
     * `ulong XR_API_VERSION_1_0`
     * `int XR_MIN_COMPOSITION_LAYERS_SUPPORTED`
@@ -1556,7 +3205,7 @@
     * `long XR_INFINITE_DURATION`
     * `int XR_MIN_HAPTIC_DURATION`
     * `int XR_FREQUENCY_UNSPECIFIED`
-    * `ulong XR_MAX_EVENT_DATA_SIZE`
+    * `nuint XR_MAX_EVENT_DATA_SIZE { get; set; }`
     * `int XR_EXTENSION_ENUM_BASE`
     * `int XR_EXTENSION_ENUM_STRIDE`
     * `int XR_TRUE`
@@ -1621,6 +3270,10 @@
     * `int XR_KHR_generic_controller`
     * `int XR_KHR_generic_controller_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_KHR_GENERIC_CONTROLLER_EXTENSION_NAME { get; set; }`
+    * `int XR_KHR_extended_result_name_lengths`
+    * `int XR_KHR_extended_result_name_lengths_SPEC_VERSION`
+    * `ReadOnlySpan<byte> XR_KHR_EXTENDED_RESULT_NAME_LENGTHS_EXTENSION_NAME { get; set; }`
+    * `int XR_MAX_RESULT_STRING_SIZE_EXTENDED_KHR`
     * `int XR_EXT_performance_settings`
     * `int XR_EXT_performance_settings_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME { get; set; }`
@@ -1887,7 +3540,6 @@
     * `int XR_META_foveation_eye_tracked_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_META_FOVEATION_EYE_TRACKED_EXTENSION_NAME { get; set; }`
     * `int XR_FB_face_tracking`
-    * `XrFaceExpressionSetFB XR_FACE_EXPRESSSION_SET_DEFAULT_FB`
     * `int XR_FB_face_tracking_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_FB_FACE_TRACKING_EXTENSION_NAME { get; set; }`
     * `int XR_FB_eye_tracking_social`
@@ -2065,6 +3717,9 @@
     * `int XR_BD_spatial_plane`
     * `int XR_BD_spatial_plane_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_BD_SPATIAL_PLANE_EXTENSION_NAME { get; set; }`
+    * `int XR_BD_spatial_light_estimation`
+    * `int XR_BD_spatial_light_estimation_SPEC_VERSION`
+    * `ReadOnlySpan<byte> XR_BD_SPATIAL_LIGHT_ESTIMATION_EXTENSION_NAME { get; set; }`
     * `int XR_BD_ultra_controller_interaction`
     * `int XR_BD_ultra_controller_interaction_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_BD_ULTRA_CONTROLLER_INTERACTION_EXTENSION_NAME { get; set; }`
@@ -2230,6 +3885,9 @@
     * `int XR_BD_dynamic_object_mouse`
     * `int XR_BD_dynamic_object_mouse_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_BD_DYNAMIC_OBJECT_MOUSE_EXTENSION_NAME { get; set; }`
+    * `int XR_BD_camera_image`
+    * `int XR_BD_camera_image_SPEC_VERSION`
+    * `ReadOnlySpan<byte> XR_BD_CAMERA_IMAGE_EXTENSION_NAME { get; set; }`
     * `int XR_ANDROID_spatial_discovery_bounds`
     * `int XR_ANDROID_spatial_discovery_bounds_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_ANDROID_SPATIAL_DISCOVERY_BOUNDS_EXTENSION_NAME { get; set; }`
@@ -2246,9 +3904,18 @@
     * `int XR_HAPTIC_PARAMETRIC_FREQUENCY_MAX_HZ_EXT`
     * `int XR_EXT_haptic_parametric_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_EXT_HAPTIC_PARAMETRIC_EXTENSION_NAME { get; set; }`
+    * `int XR_SONY_swapchain_color_space`
+    * `int XR_SONY_swapchain_color_space_SPEC_VERSION`
+    * `ReadOnlySpan<byte> XR_SONY_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME { get; set; }`
+    * `int XR_SONY_hdr_metadata`
+    * `int XR_SONY_hdr_metadata_SPEC_VERSION`
+    * `ReadOnlySpan<byte> XR_SONY_HDR_METADATA_EXTENSION_NAME { get; set; }`
     * `int XR_EXT_spatial_persistence_operations`
     * `int XR_EXT_spatial_persistence_operations_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_EXT_SPATIAL_PERSISTENCE_OPERATIONS_EXTENSION_NAME { get; set; }`
+    * `int XR_EXT_spatial_image_tracking`
+    * `int XR_EXT_spatial_image_tracking_SPEC_VERSION`
+    * `ReadOnlySpan<byte> XR_EXT_SPATIAL_IMAGE_TRACKING_EXTENSION_NAME { get; set; }`
     * `int XR_ANDROID_spatial_object_tracking`
     * `int XR_ANDROID_spatial_object_tracking_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_ANDROID_SPATIAL_OBJECT_TRACKING_EXTENSION_NAME { get; set; }`
@@ -2273,6 +3940,12 @@
     * `int XR_ANDROID_geospatial_anchor`
     * `int XR_ANDROID_geospatial_anchor_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_ANDROID_GEOSPATIAL_ANCHOR_EXTENSION_NAME { get; set; }`
+    * `int XR_EXT_spatial_container`
+    * `int XR_EXT_spatial_container_SPEC_VERSION`
+    * `ReadOnlySpan<byte> XR_EXT_SPATIAL_CONTAINER_EXTENSION_NAME { get; set; }`
+    * `int XR_EXT_spatial_container_self_rendering`
+    * `int XR_EXT_spatial_container_self_rendering_SPEC_VERSION`
+    * `ReadOnlySpan<byte> XR_EXT_SPATIAL_CONTAINER_SELF_RENDERING_EXTENSION_NAME { get; set; }`
     * `int XR_EXT_interaction_profile_battery_state_display`
     * `int XR_EXT_interaction_profile_battery_state_display_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_EXT_INTERACTION_PROFILE_BATTERY_STATE_DISPLAY_EXTENSION_NAME { get; set; }`
@@ -2282,1707 +3955,33 @@
     * `int XR_EXT_view_configuration_views_change`
     * `int XR_EXT_view_configuration_views_change_SPEC_VERSION`
     * `ReadOnlySpan<byte> XR_EXT_VIEW_CONFIGURATION_VIEWS_CHANGE_EXTENSION_NAME { get; set; }`
-    * `int OPENXR_PLATFORM_H_`
-    * `int XR_KHR_vulkan_swapchain_format_list`
-    * `int XR_KHR_vulkan_swapchain_format_list_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_KHR_VULKAN_SWAPCHAIN_FORMAT_LIST_EXTENSION_NAME { get; set; }`
-    * `int XR_KHR_opengl_enable`
-    * `int XR_KHR_opengl_enable_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_KHR_OPENGL_ENABLE_EXTENSION_NAME { get; set; }`
-    * `int XR_KHR_vulkan_enable`
-    * `int XR_KHR_vulkan_enable_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_KHR_VULKAN_ENABLE_EXTENSION_NAME { get; set; }`
-    * `int XR_KHR_D3D11_enable`
-    * `int XR_KHR_D3D11_enable_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_KHR_D3D11_ENABLE_EXTENSION_NAME { get; set; }`
-    * `int XR_KHR_D3D12_enable`
-    * `int XR_KHR_D3D12_enable_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_KHR_D3D12_ENABLE_EXTENSION_NAME { get; set; }`
-    * `int XR_KHR_win32_convert_performance_counter_time`
-    * `int XR_KHR_win32_convert_performance_counter_time_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_KHR_WIN32_CONVERT_PERFORMANCE_COUNTER_TIME_EXTENSION_NAME { get; set; }`
-    * `int XR_KHR_vulkan_enable2`
-    * `int XR_KHR_vulkan_enable2_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME { get; set; }`
-    * `int XR_MSFT_perception_anchor_interop`
-    * `int XR_MSFT_perception_anchor_interop_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_MSFT_PERCEPTION_ANCHOR_INTEROP_EXTENSION_NAME { get; set; }`
-    * `int XR_MSFT_holographic_window_attachment`
-    * `int XR_MSFT_holographic_window_attachment_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_MSFT_HOLOGRAPHIC_WINDOW_ATTACHMENT_EXTENSION_NAME { get; set; }`
-    * `int XR_OCULUS_audio_device_guid`
-    * `int XR_OCULUS_audio_device_guid_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_OCULUS_AUDIO_DEVICE_GUID_EXTENSION_NAME { get; set; }`
-    * `int XR_MAX_AUDIO_DEVICE_STR_SIZE_OCULUS`
-    * `int XR_FB_foveation_vulkan`
-    * `int XR_FB_foveation_vulkan_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_FB_FOVEATION_VULKAN_EXTENSION_NAME { get; set; }`
-    * `int XR_FB_swapchain_update_state_vulkan`
-    * `int XR_FB_swapchain_update_state_vulkan_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_FB_SWAPCHAIN_UPDATE_STATE_VULKAN_EXTENSION_NAME { get; set; }`
-    * `int XR_META_vulkan_swapchain_create_info`
-    * `int XR_META_vulkan_swapchain_create_info_SPEC_VERSION`
-    * `ReadOnlySpan<byte> XR_META_VULKAN_SWAPCHAIN_CREATE_INFO_EXTENSION_NAME { get; set; }`
-  * **enum VkStructureType**
-  * **enum XrActionType**
-  * **enum XrAnchorPersistStateANDROID**
-    * `XrStructureType type`
-    * `XrUuid anchorId`
-    * `uint supportsAnchorPersistence`
-  * **enum XrAudioBufferChannelLayoutBD**
-  * **enum XrAudioSampleRateBD**
-  * **enum XrBlendFactorFB**
-    * `XrStructureType type`
-    * `XrBlendFactorFB srcFactorColor`
-    * `XrBlendFactorFB dstFactorColor`
-    * `XrBlendFactorFB srcFactorAlpha`
-    * `XrBlendFactorFB dstFactorAlpha`
-    * `float recommendedNearZ`
-    * `float minNearZ`
-    * `float recommendedFarZ`
-    * `float maxFarZ`
-  * **enum XrBodyJointBD**
-  * **enum XrBodyJointConfidenceHTC**
-    * `XrStructureType type`
-    * `uint supportsBodyTracking`
-    * `XrBodyJointSetHTC bodyJointSet`
-    * `long time`
-  * **enum XrBodyJointFB**
-  * **enum XrBodyJointHTC**
-  * **enum XrBodyJointSetBD**
-    * `XrStructureType type`
-    * `uint supportsBodyTracking`
-    * `XrBodyJointSetBD jointSet`
-    * `long time`
-  * **enum XrBodyJointSetFB**
-  * **enum XrBodyJointSetHTC**
-  * **enum XrBodyTrackingCalibrationStateMETA**
-    * `XrStructureType type`
-    * `XrBodyTrackingCalibrationStateMETA status`
-    * `float bodyHeight`
-    * `uint supportsHeightOverride`
-  * **enum XrBodyTrackingFidelityMETA**
-    * `XrStructureType type`
-    * `uint supportsBodyTrackingFidelity`
-    * `XrBodyTrackingFidelityMETA fidelity`
-  * **enum XrBodyTrackingMessageBD**
-    * `XrStructureType type`
-    * `uint postureCount`
-  * **enum XrBodyTrackingPostureBD**
-  * **enum XrBodyTrackingStatusBD**
-  * **enum XrBoundaryVisibilityMETA**
-    * `XrStructureType type`
-    * `uint supportsBoundaryVisibility`
-    * `XrBoundaryVisibilityMETA boundaryVisibility`
-    * `uint supportsSimultaneousHandsAndControllers`
-  * **enum XrColorSpaceFB**
-    * `XrStructureType type`
-    * `XrColorSpaceFB colorSpace`
-  * **enum XrCompareOpFB**
-    * `XrStructureType type`
-    * `uint depthMask`
-    * `XrCompareOpFB compareOp`
-  * **enum XrDynamicObjectTypeBD**
-    * `XrStructureType type`
-    * `uint supportsDynamicObjectTracking`
-    * `uint trackingTypeCount`
-    * `XrDynamicObjectTypeBD objectType`
-    * `XrDynamicObjectDataBD data`
-    * `uint typeCount`
-    * `uint supportsDynamicObjectKeyboard`
-    * `uint supportsDynamicObjectMouse`
-    * `long time`
-    * `XrSpheref sphere`
-    * `XrBoxf box`
-    * `XrFrustumf frustum`
-    * `XrSpatialCapabilityEXT capability`
-    * `uint enabledComponentCount`
-    * `uint locationCount`
-    * `XrPosef pose`
-  * **enum XrEnvironmentBlendMode**
-  * **enum XrEnvironmentRaycastFilterTypeMETA**
-  * **enum XrEnvironmentRaycastHitStatusMETA**
-    * `XrStructureType type`
-    * `uint supportsEnvironmentRaycast`
-    * `XrResult futureResult`
-    * `long time`
-    * `XrVector3f origin`
-    * `XrVector3f direction`
-    * `uint filterCount`
-    * `XrEnvironmentRaycastHitStatusMETA status`
-    * `XrPosef pose`
-    * `float maxDistance`
-  * **enum XrExternalCameraAttachedToDeviceOCULUS**
-  * **enum XrEyeCalibrationStatusML**
-    * `XrStructureType type`
-    * `XrHeadsetFitStatusML status`
-    * `long time`
-    * `XrEyeCalibrationStatusML status`
-    * `uint enabled`
-    * `uint suppressNotifications`
-  * **enum XrEyeExpressionHTC**
-  * **enum XrEyeIndexANDROID**
-  * **enum XrEyePositionFB**
-  * **enum XrEyeStateANDROID**
-  * **enum XrEyeTrackingModeANDROID**
-    * `XrStructureType type`
-    * `uint supportsEyeTracking`
-  * **enum XrEyeVisibility**
-  * **enum XrFaceConfidence2FB**
-    * `XrStructureType type`
-    * `uint supportsVisualFaceTracking`
-    * `uint supportsAudioFaceTracking`
-    * `XrFaceExpressionSet2FB faceExpressionSet`
-    * `uint requestedDataSourceCount`
-    * `long time`
-    * `uint weightCount`
-    * `uint confidenceCount`
-    * `uint isValid`
-    * `uint isEyeFollowingBlendshapesValid`
-    * `XrFaceTrackingDataSource2FB dataSource`
-    * `uint supportsSpatialEntitySharing`
-    * `uint spaceCount`
-    * `ulong requestId`
-    * `XrResult result`
-    * `ulong createFlags`
-    * `uint width`
-    * `uint height`
-    * `long displayTime`
-    * `XrFovf fov`
-    * `XrPosef pose`
-    * `uint swapchainIndex`
-    * `float nearZ`
-    * `float farZ`
-    * `_views_e__FixedBuffer views`
-  * **enum XrFaceConfidenceFB**
-    * `XrStructureType type`
-    * `uint supportsFaceTracking`
-    * `XrFaceExpressionSetFB faceExpressionSet`
-    * `long time`
-  * **enum XrFaceConfidenceRegionsANDROID**
-    * `XrStructureType type`
-    * `long time`
-    * `uint parametersCapacityInput`
-    * `uint parametersCountOutput`
-    * `XrFaceTrackingStateANDROID faceTrackingState`
-    * `long sampleTime`
-    * `uint isValid`
-    * `uint regionConfidencesCapacityInput`
-    * `uint regionConfidencesCountOutput`
-    * `uint supportsFaceTracking`
-  * **enum XrFaceExpression2FB**
-  * **enum XrFaceExpressionBD**
-  * **enum XrFaceExpressionFB**
-  * **enum XrFaceExpressionSet2FB**
-  * **enum XrFaceExpressionSetFB**
-  * **enum XrFaceParameterIndicesANDROID**
-  * **enum XrFaceTrackingDataSource2FB**
-  * **enum XrFaceTrackingStateANDROID**
-  * **enum XrFaceTrackingVisemeMETA**
-    * `XrStructureType type`
-    * `uint isValid`
-    * `_visemes_e__FixedBuffer visemes`
-  * **enum XrFacialBlendShapeML**
-    * `XrStructureType type`
-    * `uint supportsFacialExpression`
-    * `uint requestedCount`
-    * `XrFacialBlendShapeML requestedFacialBlendShape`
-    * `float weight`
-    * `ulong flags`
-    * `long time`
-  * **enum XrFacialSimulationModeBD**
-  * **enum XrFacialTrackingTypeHTC**
-    * `XrStructureType type`
-    * `uint supportEyeFacialTracking`
-    * `uint supportLipFacialTracking`
-    * `uint isActive`
-    * `long sampleTime`
-    * `uint expressionCount`
-    * `XrFacialTrackingTypeHTC facialTrackingType`
-  * **enum XrForceFeedbackCurlLocationMNDX**
-    * `XrStructureType type`
-    * `uint supportsForceFeedbackCurl`
-  * **enum XrFormFactor**
-  * **enum XrFoveationDynamicFB**
-    * `XrStructureType type`
-    * `XrFoveationLevelFB level`
-    * `float verticalOffset`
-    * `XrFoveationDynamicFB dynamic`
-    * `uint supportsKeyboardTracking`
-  * **enum XrFoveationLevelFB**
-  * **enum XrFoveationLevelHTC**
-    * `XrStructureType type`
-    * `XrFoveationModeHTC mode`
-    * `uint subImageCount`
-  * **enum XrFoveationModeHTC**
-  * **enum XrFullBodyJointMETA**
-    * `XrStructureType type`
-    * `uint supportsFullBodyTracking`
-    * `IntPtr layer`
-  * **enum XrFutureStateEXT**
-    * `XrStructureType type`
-    * `XrResult futureResult`
-    * `XrFutureStateEXT state`
-    * `uint isUserPresent`
-    * `uint supportsUserPresence`
-  * **enum XrGeospatialTrackerStateANDROID**
-  * **enum XrGoogleCloudAuthErrorANDROID**
-    * `XrStructureType type`
-    * `XrGoogleCloudAuthErrorANDROID error`
-  * **enum XrHandEXT**
-  * **enum XrHandForearmJointULTRALEAP**
-  * **enum XrHandGestureTypeQCOM**
-  * **enum XrHandJointEXT**
-  * **enum XrHandJointSetEXT**
-    * `XrStructureType type`
-    * `uint supportsHandTracking`
-    * `XrHandEXT hand`
-    * `XrHandJointSetEXT handJointSet`
-    * `long time`
-  * **enum XrHandJointsMotionRangeEXT**
-    * `XrStructureType type`
-    * `XrHandJointsMotionRangeEXT handJointsMotionRange`
-  * **enum XrHandPoseTypeMSFT**
-    * `XrStructureType type`
-    * `uint supportsHandTrackingMesh`
-    * `uint maxHandMeshIndexCount`
-    * `uint maxHandMeshVertexCount`
-    * `XrHandPoseTypeMSFT handPoseType`
-    * `XrPosef poseInHandMeshSpace`
-    * `long time`
-    * `uint indexBufferKey`
-    * `uint indexCapacityInput`
-    * `uint indexCountOutput`
-  * **enum XrHandTrackingDataSourceEXT**
-    * `XrStructureType type`
-    * `uint requestedDataSourceCount`
-    * `uint isActive`
-    * `XrHandTrackingDataSourceEXT dataSource`
-  * **enum XrHandTrackingFrequencyHintMETA**
-  * **enum XrHapticParametricStreamFrameTypeEXT**
-    * `XrStructureType type`
-    * `long idealFrameSubmissionRate`
-    * `long minimumFirstFrameDuration`
-    * `float minFrequencyHz`
-    * `float maxFrequencyHz`
-  * **enum XrHeadsetFitStatusML**
-  * **enum XrLightEstimateStateANDROID**
-  * **enum XrLipExpressionBD**
-    * `XrStructureType type`
-    * `uint supportsFaceTracking`
-    * `XrFacialSimulationModeBD mode`
-    * `long time`
-    * `uint faceExpressionWeightCount`
-    * `uint isUpperFaceDataValid`
-    * `uint isLowerFaceDataValid`
-    * `uint lipsyncExpressionWeightCount`
-  * **enum XrLipExpressionHTC**
-  * **enum XrLocalDimmingModeMETA**
-    * `XrStructureType type`
-    * `XrLocalDimmingModeMETA localDimmingMode`
-    * `ulong flags`
-  * **enum XrLocalizationMapConfidenceML**
-    * `XrStructureType type`
-    * `_name_e__FixedBuffer name`
-    * `XrUuid mapUuid`
-    * `XrLocalizationMapTypeML mapType`
-  * **enum XrLocalizationMapStateML**
-  * **enum XrLocalizationMapTypeML**
-  * **enum XrMarkerAprilTagDictML**
-  * **enum XrMarkerArucoDictML**
-  * **enum XrMarkerDetectorCameraML**
-  * **enum XrMarkerDetectorCornerRefineMethodML**
-  * **enum XrMarkerDetectorFpsML**
-  * **enum XrMarkerDetectorFullAnalysisIntervalML**
-  * **enum XrMarkerDetectorProfileML**
-  * **enum XrMarkerDetectorResolutionML**
-  * **enum XrMarkerDetectorStatusML**
-    * `XrStructureType type`
-    * `uint supportsMarkerUnderstanding`
-    * `XrMarkerDetectorProfileML profile`
-    * `XrMarkerTypeML markerType`
-    * `XrMarkerArucoDictML arucoDict`
-    * `float markerLength`
-    * `XrMarkerAprilTagDictML aprilTagDict`
-    * `XrMarkerDetectorFpsML fpsHint`
-    * `XrMarkerDetectorResolutionML resolutionHint`
-    * `XrMarkerDetectorCameraML cameraHint`
-    * `XrMarkerDetectorCornerRefineMethodML cornerRefineMethod`
-    * `uint useEdgeRefinement`
-    * `XrMarkerDetectorFullAnalysisIntervalML fullAnalysisIntervalHint`
-    * `XrMarkerDetectorStatusML state`
-    * `IntPtr markerDetector`
-    * `ulong marker`
-    * `XrPosef poseInMarkerSpace`
-  * **enum XrMarkerTypeML**
-  * **enum XrMeshComputeLodMSFT**
-  * **enum XrObjectLabelANDROID**
-    * `XrStructureType type`
-    * `XrTrackingStateANDROID trackingState`
-    * `XrPosef centerPose`
-    * `XrExtent3Df extents`
-    * `XrObjectLabelANDROID objectLabel`
-    * `long lastUpdatedTime`
-    * `uint labelCount`
-  * **enum XrObjectType**
-    * `XrStructureType type`
-    * `_layerName_e__FixedBuffer layerName`
-    * `ulong specVersion`
-    * `uint layerVersion`
-    * `_description_e__FixedBuffer description`
-  * **enum XrPassthroughCameraStateANDROID**
-    * `XrStructureType type`
-    * `uint supportsPassthroughCameraState`
-  * **enum XrPassthroughColorLutChannelsMETA**
-    * `uint bufferSize`
-    * `XrStructureType type`
-    * `XrPassthroughColorLutChannelsMETA channels`
-    * `uint resolution`
-    * `XrPassthroughColorLutDataMETA data`
-    * `ulong colorLut`
-    * `float weight`
-    * `ulong sourceColorLut`
-    * `ulong targetColorLut`
-    * `uint maxColorLutResolution`
-    * `uint vertexCapacityInput`
-    * `uint vertexCountOutput`
-    * `uint indexCapacityInput`
-    * `uint indexCountOutput`
-  * **enum XrPassthroughFormHTC**
-    * `XrStructureType type`
-    * `XrPassthroughFormHTC form`
-    * `float alpha`
-    * `uint vertexCount`
-    * `uint indexCount`
-    * `long time`
-    * `XrPosef pose`
-    * `XrVector3f scale`
-    * `ulong layerFlags`
-    * `IntPtr passthrough`
-    * `XrPassthroughColorHTC color`
-  * **enum XrPassthroughLayerPurposeFB**
-    * `XrStructureType type`
-    * `uint supportsPassthrough`
-    * `ulong capabilities`
-    * `ulong flags`
-    * `IntPtr passthrough`
-    * `XrPassthroughLayerPurposeFB purpose`
-    * `IntPtr layerHandle`
-    * `IntPtr layer`
-    * `IntPtr mesh`
-    * `XrPosef pose`
-    * `XrVector3f scale`
-    * `long time`
-    * `float textureOpacityFactor`
-    * `XrColor4f edgeColor`
-    * `_textureColorMap_e__FixedBuffer textureColorMap`
-  * **enum XrPerfSettingsDomainEXT**
-  * **enum XrPerfSettingsLevelEXT**
-  * **enum XrPerfSettingsNotificationLevelEXT**
-    * `XrStructureType type`
-    * `XrPerfSettingsDomainEXT domain`
-    * `XrPerfSettingsSubDomainEXT subDomain`
-    * `XrPerfSettingsNotificationLevelEXT fromLevel`
-    * `XrPerfSettingsNotificationLevelEXT toLevel`
-    * `XrObjectType objectType`
-    * `ulong objectHandle`
-    * `uint objectCount`
-    * `uint sessionLabelCount`
-    * `ulong messageSeverities`
-    * `ulong messageTypes`
-    * `uint supportsEyeGazeInteraction`
-    * `long time`
-    * `ulong createFlags`
-    * `uint sessionLayersPlacement`
-    * `uint visible`
-    * `ulong flags`
-    * `XrPosef pose`
-    * `IntPtr anchor`
-    * `XrPosef poseInAnchorSpace`
-  * **enum XrPerfSettingsSubDomainEXT**
-  * **enum XrPerformanceMetricsCounterUnitANDROID**
-    * `XrStructureType type`
-    * `uint enabled`
-    * `ulong counterFlags`
-    * `XrPerformanceMetricsCounterUnitANDROID counterUnit`
-    * `uint uintValue`
-    * `float floatValue`
-  * **enum XrPerformanceMetricsCounterUnitMETA**
-    * `XrStructureType type`
-    * `uint enabled`
-    * `ulong counterFlags`
-    * `XrPerformanceMetricsCounterUnitMETA counterUnit`
-    * `uint uintValue`
-    * `float floatValue`
-    * `uint spaceCount`
-    * `XrSpaceStorageLocationFB location`
-    * `ulong requestId`
-    * `XrResult result`
-    * `ulong userId`
-    * `XrUuid id`
-    * `uint supportsSpaceDiscovery`
-    * `uint filterCount`
-    * `uint uuidCount`
-    * `XrSpaceComponentTypeFB componentType`
-    * `XrUuid uuid`
-    * `uint resultCapacityInput`
-    * `uint resultCountOutput`
-    * `XrExtent2Di recommendedImageDimensions`
-    * `uint isValid`
-    * `long predictedDisplayTime`
-    * `uint supportsSpacePersistence`
-  * **enum XrPersistenceLocationBD**
-    * `XrStructureType type`
-    * `uint supportsSpatialAnchor`
-    * `XrPosef pose`
-    * `long time`
-    * `XrResult futureResult`
-    * `XrUuid uuid`
-    * `XrPersistenceLocationBD location`
-    * `uint supportsSpatialAnchorSharing`
-    * `uint supportsSpatialScene`
-  * **enum XrPlaneDetectionStateEXT**
-    * `XrStructureType type`
-    * `ulong supportedFeatures`
-    * `ulong flags`
-    * `long time`
-    * `uint orientationCount`
-    * `uint semanticTypeCount`
-    * `uint maxPlanes`
-    * `float minArea`
-    * `XrPosef boundingBoxPose`
-    * `XrExtent3Df boundingBoxExtent`
-    * `ulong planeId`
-    * `ulong locationFlags`
-    * `XrPosef pose`
-    * `XrExtent2Df extents`
-    * `XrPlaneDetectorOrientationEXT orientation`
-    * `XrPlaneDetectorSemanticTypeEXT semanticType`
-    * `uint polygonBufferCount`
-    * `uint planeLocationCapacityInput`
-    * `uint planeLocationCountOutput`
-    * `uint vertexCapacityInput`
-    * `uint vertexCountOutput`
-  * **enum XrPlaneDetectorOrientationEXT**
-  * **enum XrPlaneDetectorSemanticTypeEXT**
-  * **enum XrPlaneLabelANDROID**
-    * `XrStructureType type`
-    * `XrTrackableTypeANDROID trackableType`
-    * `ulong trackable`
-    * `long time`
-    * `XrTrackingStateANDROID trackingState`
-    * `XrPosef centerPose`
-    * `XrExtent2Df extents`
-    * `XrPlaneTypeANDROID planeType`
-    * `XrPlaneLabelANDROID planeLabel`
-    * `ulong subsumedByPlane`
-    * `long lastUpdatedTime`
-    * `uint vertexCapacityInput`
-    * `XrPosef pose`
-    * `uint supportsAnchor`
-    * `uint maxAnchors`
-  * **enum XrPlaneOrientationBD**
-    * `XrStructureType type`
-    * `uint supportsSpatialPlane`
-    * `XrPlaneOrientationBD orientation`
-    * `uint orientationCount`
-  * **enum XrPlaneTypeANDROID**
-  * **enum XrQrCodeTrackingModeANDROID**
-    * `XrStructureType type`
-    * `uint supportsQrCodeTracking`
-    * `uint supportsQrCodeSizeEstimation`
-    * `ushort maxQrCodeCount`
-    * `XrQrCodeTrackingModeANDROID trackingMode`
-    * `float qrCodeEdgeSize`
-    * `XrTrackingStateANDROID trackingState`
-    * `long lastUpdatedTime`
-    * `XrPosef centerPose`
-    * `XrExtent2Df extents`
-    * `uint bufferCapacityInput`
-    * `uint bufferCountOutput`
-  * **enum XrReferenceSpaceType**
-  * **enum XrReprojectionModeMSFT**
-    * `XrStructureType type`
-    * `XrReprojectionModeMSFT reprojectionMode`
-    * `XrVector3f position`
-    * `XrVector3f normal`
-    * `XrVector3f velocity`
-    * `ulong flags`
-  * **enum XrResult**
-  * **enum XrSceneComponentTypeMSFT**
-  * **enum XrSceneComputeConsistencyMSFT**
-  * **enum XrSceneComputeFeatureMSFT**
-  * **enum XrSceneComputeStateMSFT**
-  * **enum XrSceneMarkerQRCodeSymbolTypeMSFT**
-  * **enum XrSceneMarkerTypeMSFT**
-  * **enum XrSceneMeshSemanticLabelANDROID**
-    * `XrStructureType type`
-    * `uint supportsSceneMeshing`
-    * `XrSceneMeshSemanticLabelSetANDROID semanticLabelSet`
-    * `uint enableNormals`
-    * `long time`
-    * `XrBoxf boundingBox`
-    * `IntPtr snapshot`
-    * `XrSceneMeshTrackingStateANDROID trackingState`
-    * `XrUuid submeshId`
-    * `long lastUpdatedTime`
-    * `XrPosef submeshPoseInBaseSpace`
-    * `XrExtent3Df bounds`
-    * `uint vertexCapacityInput`
-    * `uint vertexCountOutput`
-    * `uint indexCapacityInput`
-    * `uint indexCountOutput`
-  * **enum XrSceneMeshSemanticLabelSetANDROID**
-  * **enum XrSceneMeshTrackingStateANDROID**
-  * **enum XrSceneObjectTypeMSFT**
-  * **enum XrScenePlaneAlignmentTypeMSFT**
-  * **enum XrSemanticLabelBD**
-  * **enum XrSemanticLabelMETA**
-  * **enum XrSenseDataProviderStateBD**
-    * `XrStructureType type`
-    * `uint supportsSpatialSensing`
-    * `ulong entityId`
-    * `XrSpatialEntityComponentTypeBD componentType`
-    * `XrSpaceLocation location`
-    * `uint labelCapacityInput`
-    * `uint labelCountOutput`
-    * `XrRect2Df boundingBox2D`
-    * `uint vertexCapacityInput`
-    * `uint vertexCountOutput`
-    * `XrBoxf boundingBox3D`
-    * `uint indexCapacityInput`
-    * `uint indexCountOutput`
-    * `XrSpheref sphere`
-    * `XrSenseDataProviderTypeBD providerType`
-    * `XrSenseDataProviderStateBD newState`
-    * `XrResult futureResult`
-    * `IntPtr snapshot`
-    * `long lastUpdateTime`
-    * `XrUuid uuid`
-    * `uint stateCapacityInput`
-    * `uint stateCountOutput`
-    * `uint uuidCount`
-    * `uint labelCount`
-    * `XrPosef poseInAnchorSpace`
-  * **enum XrSenseDataProviderTypeBD**
-  * **enum XrSessionState**
-  * **enum XrSoundFieldChannelMaskAmbixBD**
-  * **enum XrSoundFieldChannelMaskFumaBD**
-  * **enum XrSoundFieldChannelMaskSurroundBD**
-  * **enum XrSoundObjectDistanceAttenuationTypeBD**
-  * **enum XrSoundObstacleMaterialTypeBD**
-    * `XrStructureType type`
-    * `uint framesPerBuffer`
-    * `XrAudioSampleRateBD sampleRate`
-    * `XrAudioBufferChannelLayoutBD channelLayout`
-    * `uint bufferChannels`
-    * `uint bufferLength`
-    * `float alpha`
-    * `float order`
-    * `float radius`
-  * **enum XrSpaceComponentTypeFB**
-    * `XrStructureType type`
-    * `uint supportsSpatialEntity`
-    * `XrPosef poseInSpace`
-    * `long time`
-    * `XrSpaceComponentTypeFB componentType`
-    * `uint enabled`
-    * `long timeout`
-    * `uint changePending`
-    * `ulong requestId`
-    * `XrResult result`
-    * `XrUuid uuid`
-    * `ulong flags`
-  * **enum XrSpacePersistenceModeFB**
-    * `XrStructureType type`
-    * `XrSpaceStorageLocationFB location`
-    * `XrSpacePersistenceModeFB persistenceMode`
-    * `ulong requestId`
-    * `XrResult result`
-    * `XrUuid uuid`
-    * `uint spaceCount`
-    * `uint userCount`
-  * **enum XrSpaceQueryActionFB**
-  * **enum XrSpaceStorageLocationFB**
-    * `XrStructureType type`
-    * `XrSpaceQueryActionFB queryAction`
-    * `uint maxResultCount`
-    * `long timeout`
-    * `XrSpaceStorageLocationFB location`
-    * `uint uuidCount`
-    * `XrSpaceComponentTypeFB componentType`
-    * `XrUuid uuid`
-    * `uint resultCapacityInput`
-    * `uint resultCountOutput`
-    * `ulong requestId`
-    * `XrResult result`
-  * **enum XrSpatialAnchorConfidenceML**
-    * `XrStructureType type`
-    * `XrPosef poseInBaseSpace`
-    * `long time`
-    * `XrResult futureResult`
-    * `uint spaceCount`
-    * `XrSpatialAnchorConfidenceML confidence`
-    * `XrVector3f center`
-    * `float radius`
-    * `uint uuidCapacityInput`
-    * `uint uuidCountOutput`
-    * `IntPtr storage`
-    * `uint uuidCount`
-    * `uint anchorCount`
-    * `ulong expiration`
-  * **enum XrSpatialBufferTypeEXT**
-    * `XrStructureType type`
-    * `uint componentTypeCapacityInput`
-    * `uint componentTypeCountOutput`
-    * `XrSpatialCapabilityEXT capability`
-    * `uint enabledComponentCount`
-    * `uint capabilityConfigCount`
-    * `XrResult futureResult`
-    * `IntPtr spatialContext`
-    * `uint componentTypeCount`
-    * `long time`
-    * `IntPtr snapshot`
-    * `uint entityIdCapacityInput`
-    * `uint entityIdCountOutput`
-    * `uint entityStateCapacityInput`
-    * `uint entityStateCountOutput`
-  * **enum XrSpatialCapabilityEXT**
-  * **enum XrSpatialCapabilityFeatureEXT**
-  * **enum XrSpatialComponentTypeEXT**
-  * **enum XrSpatialEntityComponentTypeBD**
-  * **enum XrSpatialEntityTrackingStateEXT**
-  * **enum XrSpatialGraphNodeTypeMSFT**
-    * `XrStructureType type`
-    * `XrSpatialGraphNodeTypeMSFT nodeType`
-    * `_nodeId_e__FixedBuffer nodeId`
-    * `XrPosef pose`
-  * **enum XrSpatialMarkerAprilTagDictEXT**
-    * `XrStructureType type`
-    * `XrSpatialCapabilityEXT capability`
-    * `uint enabledComponentCount`
-    * `XrSpatialMarkerArucoDictEXT arUcoDict`
-    * `XrSpatialMarkerAprilTagDictEXT aprilDict`
-    * `float markerSideLength`
-    * `uint optimizeForStaticMarker`
-  * **enum XrSpatialMarkerArucoDictEXT**
-  * **enum XrSpatialMeshLodBD**
-    * `XrStructureType type`
-    * `uint supportsSpatialMesh`
-    * `ulong configFlags`
-    * `XrSpatialMeshLodBD lod`
-    * `uint isSupported`
-    * `uint progressPercentage`
-  * **enum XrSpatialObjectSemanticLabelANDROID**
-    * `XrStructureType type`
-    * `XrSpatialCapabilityEXT capability`
-    * `uint enabledComponentCount`
-    * `uint activeSemanticLabelCount`
-    * `uint semanticLabelCount`
-  * **enum XrSpatialPersistenceContextResultEXT**
-  * **enum XrSpatialPersistenceScopeEXT**
-  * **enum XrSpatialPersistenceStateEXT**
-    * `XrStructureType type`
-    * `XrSpatialPersistenceScopeEXT scope`
-    * `XrResult futureResult`
-    * `XrSpatialPersistenceContextResultEXT createResult`
-    * `uint persistenceContextCount`
-    * `IntPtr Handle { get; set; }`
-    * `bool IsNull { get; set; }`
-    * `XrSpatialPersistenceContextEXT Null { get; set; }`
-    * `bool Equals()`
-    * `int GetHashCode()`
-    * `bool operator`
-    * `string ToString()`
-    * `uint persistedUuidCount`
-  * **enum XrSpatialPlaneAlignmentEXT**
-  * **enum XrSpatialPlaneSemanticLabelEXT**
-    * `XrStructureType type`
-    * `XrSpatialCapabilityEXT capability`
-    * `uint enabledComponentCount`
-    * `uint planeAlignmentCount`
-    * `uint meshCount`
-  * **enum XrSphericalHarmonicsKindANDROID**
-    * `XrStructureType type`
-    * `uint supportsLightEstimation`
-    * `long time`
-    * `XrLightEstimateStateANDROID state`
-    * `long lastUpdatedTime`
-    * `XrVector3f intensity`
-    * `XrVector3f direction`
-    * `XrVector3f colorCorrection`
-    * `XrSphericalHarmonicsKindANDROID kind`
-    * `_coefficients_e__FixedBuffer coefficients`
-  * **enum XrStructureType**
-  * **enum XrSurfaceAnchorTypeANDROID**
-    * `XrStructureType type`
-    * `uint maxSurfaceAnchorCount`
-    * `uint shouldTrackPlanes`
-    * `XrGeospatialPoseANDROID geospatialPose`
-    * `XrSurfaceAnchorTypeANDROID surfaceAnchorType`
-    * `XrQuaternionf eastUpSouthOrientation`
-    * `double latitude`
-    * `double longitude`
-    * `double altitudeRelativeToSurface`
-    * `XrResult futureResult`
-    * `ulong anchorEntityId`
-    * `ulong stateFlags`
-    * `float batteryLevel`
-    * `uint propertyValueCount`
-    * `ulong systemId`
-    * `XrViewConfigurationType viewConfigurationType`
-    * `uint viewFormatCount`
-    * `uint image`
-    * `ulong minApiVersionSupported`
-    * `ulong maxApiVersionSupported`
-    * `uint queueFamilyIndex`
-    * `uint queueIndex`
-    * `LUID adapterLuid`
-    * `int minFeatureLevel`
-    * `ulong createFlags`
-  * **enum XrTrackableImageFormatANDROID**
-    * `XrStructureType type`
-    * `uint supportsImageTracking`
-    * `uint supportsPhysicalSizeEstimation`
-    * `uint maxTrackedImageCount`
-    * `uint maxLoadedImageCount`
-    * `XrTrackableImageTrackingModeANDROID trackingMode`
-    * `float physicalWidth`
-    * `uint imageWidth`
-    * `uint imageHeight`
-    * `XrTrackableImageFormatANDROID format`
-    * `uint bufferSize`
-    * `uint entryCount`
-    * `XrResult futureResult`
-  * **enum XrTrackableImageTrackingModeANDROID**
-  * **enum XrTrackableMarkerDictionaryANDROID**
-    * `XrStructureType type`
-    * `uint supportsMarkerTracking`
-    * `uint supportsMarkerSizeEstimation`
-    * `ushort maxMarkerCount`
-  * **enum XrTrackableMarkerTrackingModeANDROID**
-  * **enum XrTrackableTypeANDROID**
-  * **enum XrTrackingOptimizationSettingsDomainQCOM**
-  * **enum XrTrackingOptimizationSettingsHintQCOM**
-  * **enum XrTrackingStateANDROID**
-  * **enum XrVPSAvailabilityANDROID**
-  * **enum XrViewConfigurationType**
-  * **enum XrVirtualKeyboardInputSourceMETA**
-    * `XrStructureType type`
-    * `uint supportsVirtualKeyboard`
-    * `XrVirtualKeyboardLocationTypeMETA locationType`
-    * `XrPosef poseInSpace`
-    * `float scale`
-    * `uint visible`
-    * `int animationIndex`
-    * `float fraction`
-    * `uint stateCapacityInput`
-    * `uint stateCountOutput`
-    * `uint textureWidth`
-    * `uint textureHeight`
-    * `uint bufferCapacityInput`
-    * `uint bufferCountOutput`
-    * `XrVirtualKeyboardInputSourceMETA inputSource`
-    * `XrPosef inputPoseInSpace`
-    * `ulong inputState`
-    * `_text_e__FixedBuffer text`
-  * **enum XrVirtualKeyboardLocationTypeMETA**
-  * **enum XrVisibilityMaskTypeKHR**
-    * `XrStructureType type`
-    * `uint vertexCapacityInput`
-    * `uint vertexCountOutput`
-    * `uint indexCapacityInput`
-    * `uint indexCountOutput`
-    * `XrViewConfigurationType viewConfigurationType`
-    * `uint viewIndex`
-    * `XrColor4f colorScale`
-    * `XrColor4f colorBias`
-    * `ulong layerFlags`
-    * `XrEyeVisibility eyeVisibility`
-    * `XrSwapchainSubImage subImage`
-    * `XrPosef pose`
-    * `float radius`
-    * `float centralHorizontalAngle`
-    * `float upperVerticalAngle`
-    * `float lowerVerticalAngle`
-    * `uint bindingModificationCount`
-  * **enum XrWindingOrderANDROID**
-    * `XrStructureType type`
-    * `uint vertexCapacity`
-    * `uint indexCapacity`
-    * `XrWindingOrderANDROID windingOrder`
-    * `uint vertexCount`
-    * `uint indexCount`
-    * `ulong layerFlags`
-    * `XrPosef pose`
-    * `XrVector3f scale`
-    * `float opacity`
-    * `IntPtr layer`
-    * `uint supportsPassthroughLayer`
-    * `uint maxMeshIndexCount`
-    * `uint maxMeshVertexCount`
-    * `uint maxResults`
-    * `uint trackerCount`
-    * `XrVector3f origin`
-    * `XrVector3f trajectory`
-    * `long time`
-  * **enum XrWindingOrderFB**
-    * `XrStructureType type`
-    * `ulong flags`
-    * `XrWindingOrderFB windingOrder`
-    * `uint vertexCount`
-    * `uint triangleCount`
-  * **enum XrWorldMeshBlockResultML**
-    * `XrStructureType type`
-    * `XrUuid uuid`
-    * `XrPosef meshBoundingBoxCenter`
-    * `XrExtent3Df meshBoundingBoxExtents`
-    * `long lastUpdateTime`
-    * `XrWorldMeshBlockStatusML status`
-    * `long time`
-    * `XrPosef boundingBoxCenter`
-    * `XrExtent3Df boundingBoxExtents`
-    * `XrResult futureResult`
-    * `long timestamp`
-    * `uint meshBlockStateCapacityInput`
-    * `uint meshBlockStateCountOutput`
-    * `uint maxBlockCount`
-    * `uint size`
-    * `uint bufferSize`
-    * `XrWorldMeshDetectorLodML lod`
-    * `ulong flags`
-    * `float fillHoleLength`
-    * `float disconnectedComponentArea`
-    * `uint blockCount`
-    * `XrWorldMeshBlockResultML blockResult`
-    * `uint indexCount`
-    * `uint vertexCount`
-    * `uint normalCount`
-    * `uint confidenceCount`
-    * `long meshSpaceLocateTime`
-  * **enum XrWorldMeshBlockStatusML**
-  * **enum XrWorldMeshDetectorLodML**
-  * **struct D3D11_BOX**
-    * `int left`
-    * `int top`
-    * `int front`
-    * `int right`
-    * `int bottom`
-    * `int back`
-  * **struct VkInstanceCreateInfo**
-    * `VkStructureType sType`
-    * `IntPtr pNext`
-    * `uint flags`
-    * `IntPtr pApplicationInfo`
-    * `uint enabledLayerCount`
-    * `IntPtr ppEnabledLayerNames`
-    * `uint enabledExtensionCount`
-    * `IntPtr ppEnabledExtensionNames`
-    * `XrStructureType type`
-    * `ulong systemId`
-    * `ulong createFlags`
-    * `uint queueCreateInfoCount`
-    * `VkBool32 robustBufferAccess`
-    * `VkBool32 fullDrawIndexUint32`
-    * `VkBool32 imageCubeArray`
-    * `VkBool32 independentBlend`
-    * `VkBool32 geometryShader`
-    * `VkBool32 tessellationShader`
-    * `VkBool32 sampleRateShading`
-    * `VkBool32 dualSrcBlend`
-    * `VkBool32 logicOp`
-    * `VkBool32 multiDrawIndirect`
-    * `VkBool32 drawIndirectFirstInstance`
-    * `VkBool32 depthClamp`
-    * `VkBool32 depthBiasClamp`
-    * `VkBool32 fillModeNonSolid`
-    * `VkBool32 depthBounds`
-    * `VkBool32 wideLines`
-    * `VkBool32 largePoints`
-    * `VkBool32 alphaToOne`
-    * `VkBool32 multiViewport`
-    * `VkBool32 samplerAnisotropy`
-    * `VkBool32 textureCompressionETC2`
-    * `VkBool32 textureCompressionASTC_LDR`
-    * `VkBool32 textureCompressionBC`
-    * `VkBool32 occlusionQueryPrecise`
-    * `VkBool32 pipelineStatisticsQuery`
-    * `VkBool32 vertexPipelineStoresAndAtomics`
-    * `VkBool32 fragmentStoresAndAtomics`
-    * `VkBool32 shaderTessellationAndGeometryPointSize`
-    * `VkBool32 shaderImageGatherExtended`
-    * `VkBool32 shaderStorageImageExtendedFormats`
-    * `VkBool32 shaderStorageImageMultisample`
-    * `VkBool32 shaderStorageImageReadWithoutFormat`
-    * `VkBool32 shaderStorageImageWriteWithoutFormat`
-    * `VkBool32 shaderUniformBufferArrayDynamicIndexing`
-    * `VkBool32 shaderSampledImageArrayDynamicIndexing`
-    * `VkBool32 shaderStorageBufferArrayDynamicIndexing`
-    * `VkBool32 shaderStorageImageArrayDynamicIndexing`
-    * `VkBool32 shaderClipDistance`
-    * `VkBool32 shaderCullDistance`
-    * `VkBool32 shaderFloat64`
-    * `VkBool32 shaderInt64`
-    * `VkBool32 shaderInt16`
-    * `VkBool32 shaderResourceResidency`
-    * `VkBool32 shaderResourceMinLod`
-    * `VkBool32 sparseBinding`
-    * `VkBool32 sparseResidencyBuffer`
-    * `VkBool32 sparseResidencyImage2D`
-    * `VkBool32 sparseResidencyImage3D`
-    * `VkBool32 sparseResidency2Samples`
-    * `VkBool32 sparseResidency4Samples`
-    * `VkBool32 sparseResidency8Samples`
-    * `VkBool32 sparseResidency16Samples`
-    * `VkBool32 sparseResidencyAliased`
-    * `VkBool32 variableMultisampleRate`
-    * `VkBool32 inheritedQueries`
-    * `VkDeviceQueueCreateFlags flags`
-    * `uint queueFamilyIndex`
-    * `uint queueCount`
-  * **struct XrActionSet_T**
-    * `IntPtr Handle`
-  * **struct XrAction_T**
-    * `IntPtr Handle`
-    * `XrAction_T Null`
-    * `bool operator`
-    * `bool Equals()`
-    * `int GetHashCode()`
-  * **struct XrAnchorBD_T**
-    * `IntPtr Handle`
-    * `ulong Handle`
-    * `bool IsNull { get; set; }`
-  * **struct XrApplicationInfo**
-    * `_applicationName_e__FixedBuffer applicationName`
-    * `uint applicationVersion`
-    * `_engineName_e__FixedBuffer engineName`
-    * `uint engineVersion`
-    * `ulong apiVersion`
-  * **struct XrAttenuationCurvePointBD**
-    * `float distance`
-    * `float gain`
-    * `XrStructureType type`
-    * `uint curvePointCount`
-    * `XrSoundObjectDistanceAttenuationTypeBD distanceAttenuationType`
-    * `float minAttenuationRange`
-    * `float maxAttenuationRange`
-    * `float referenceDistance`
-    * `float rolloffFactor`
-    * `uint enabled`
-    * `XrPosef pose`
-    * `float mainVolume`
-    * `float reflectionGain`
-    * `uint enableDoppler`
-    * `XrQuaternionf orientation`
-    * `float lfeGain`
-    * `XrSoundFieldChannelMaskSurroundBD channelMask`
-    * `XrSoundFieldChannelMaskAmbixBD channelMask`
-    * `XrSoundFieldChannelMaskFumaBD channelMask`
-    * `uint vertexCount`
-    * `uint indexCount`
-    * `uint materialCount`
-    * `ulong Value { get; set; }`
-    * `bool IsNull { get; set; }`
-    * `XrSoundObstacleMaterialBD_T Null { get; set; }`
-    * `bool Equals()`
-    * `int GetHashCode()`
-    * `string ToString()`
-    * `bool operator`
-    * `XrSoundObstacleMaterialTypeBD materialType`
-    * `uint bandCount`
-  * **struct XrBodyJointAccelerationBD**
-    * `ulong accelerationFlags`
-    * `XrVector3f linearAcceleration`
-    * `XrVector3f angularAcceleration`
-    * `XrStructureType type`
-    * `uint accelerationCount`
-    * `XrBodyTrackingStatusBD status`
-    * `XrBodyTrackingMessageBD message`
-  * **struct XrBodyJointLocationBD**
-    * `ulong locationFlags`
-    * `XrPosef pose`
-    * `XrStructureType type`
-    * `uint allJointPosesTracked`
-    * `uint jointLocationCount`
-  * **struct XrBodyJointLocationFB**
-    * `ulong locationFlags`
-    * `XrPosef pose`
-    * `XrStructureType type`
-    * `uint supportsBodyTracking`
-    * `XrBodyJointSetFB bodyJointSet`
-  * **struct XrBodyJointLocationHTC**
-    * `ulong locationFlags`
-    * `XrPosef pose`
-    * `XrStructureType type`
-    * `ulong combinedLocationFlags`
-    * `XrBodyJointConfidenceHTC confidenceLevel`
-    * `uint jointLocationCount`
-    * `uint skeletonGenerationId`
-  * **struct XrBodyJointVelocityBD**
-    * `ulong velocityFlags`
-    * `XrVector3f linearVelocity`
-    * `XrVector3f angularVelocity`
-    * `XrStructureType type`
-    * `uint velocityCount`
-  * **struct XrBodySkeletonJointFB**
-    * `int joint`
-    * `int parentJoint`
-    * `XrPosef pose`
-    * `XrStructureType type`
-    * `uint jointCount`
-    * `long time`
-    * `uint isActive`
-    * `float confidence`
-    * `uint skeletonChangedCount`
-    * `ulong binding`
-    * `float forceThreshold`
-    * `float forceThresholdReleased`
-    * `float centerRegion`
-    * `float wedgeAngle`
-    * `uint isSticky`
-    * `float onThreshold`
-    * `float offThreshold`
-  * **struct XrBodySkeletonJointHTC**
-    * `XrPosef pose`
-    * `XrStructureType type`
-    * `uint jointCount`
-    * `uint priorityOverride`
-    * `uint actionSetPriorityCount`
-  * **struct XrBoxf**
-    * `XrPosef center`
-    * `XrExtent3Df extents`
-  * **struct XrColor3f**
-    * `float r`
-    * `float g`
-    * `float b`
-  * **struct XrColor4f**
-    * `float r`
-    * `float g`
-    * `float b`
-    * `float a`
-  * **struct XrExtent2Df**
-    * `float width`
-    * `float height`
-    * `XrStructureType type`
-    * `ulong subactionPath`
-    * `XrPosef poseInActionSpace`
-    * `ulong locationFlags`
-    * `XrPosef pose`
-    * `XrViewConfigurationType viewConfigurationType`
-    * `uint fovMutable`
-    * `uint recommendedImageRectWidth`
-    * `uint maxImageRectWidth`
-    * `uint recommendedImageRectHeight`
-    * `uint maxImageRectHeight`
-    * `uint recommendedSwapchainSampleCount`
-    * `uint maxSwapchainSampleCount`
-    * `ulong createFlags`
-    * `ulong usageFlags`
-    * `long format`
-    * `uint sampleCount`
-    * `uint width`
-    * `uint height`
-    * `uint faceCount`
-    * `uint arraySize`
-    * `uint mipCount`
-    * `long timeout`
-    * `XrViewConfigurationType primaryViewConfigurationType`
-    * `long predictedDisplayTime`
-    * `long predictedDisplayPeriod`
-    * `uint shouldRender`
-    * `ulong layerFlags`
-    * `long displayTime`
-    * `XrEnvironmentBlendMode environmentBlendMode`
-    * `uint layerCount`
-    * `ulong viewStateFlags`
-  * **struct XrExtent2Di**
-    * `int width`
-    * `int height`
-  * **struct XrExtent3Df**
-    * `float width`
-    * `float height`
-    * `float depth`
-  * **struct XrExtent3DiMETA**
-    * `int width`
-    * `int height`
-    * `int depth`
-    * `XrStructureType type`
-    * `XrExtent3DiMETA tileDimensions`
-    * `XrExtent2Di apronDimensions`
-    * `XrOffset2Di origin`
-    * `uint propertiesCount`
-    * `long captureTime`
-  * **struct XrExternalCameraExtrinsicsOCULUS**
-    * `long lastChangeTime`
-    * `ulong cameraStatusFlags`
-    * `XrExternalCameraAttachedToDeviceOCULUS attachedToDevice`
-    * `XrPosef relativePose`
-    * `XrStructureType type`
-    * `_name_e__FixedBuffer name`
-    * `XrExternalCameraIntrinsicsOCULUS intrinsics`
-    * `XrExternalCameraExtrinsicsOCULUS extrinsics`
-  * **struct XrExternalCameraIntrinsicsOCULUS**
-    * `long lastChangeTime`
-    * `XrFovf fov`
-    * `float virtualNearPlaneDistance`
-    * `float virtualFarPlaneDistance`
-    * `XrExtent2Di imageSensorPixelResolution`
-  * **struct XrEyeANDROID**
-    * `XrEyeStateANDROID eyeState`
-    * `XrPosef eyePose`
-    * `XrStructureType type`
-    * `_eyes_e__FixedBuffer eyes`
-    * `XrEyeTrackingModeANDROID mode`
-  * **struct XrEyeGazeFB**
-    * `uint isValid`
-    * `XrPosef gazePose`
-    * `float gazeConfidence`
-    * `XrStructureType type`
-    * `long time`
-    * `uint supportsEyeTracking`
-    * `_gaze_e__FixedBuffer gaze`
-  * **struct XrFaceExpressionStatusFB**
-    * `uint isValid`
-    * `uint isEyeFollowingBlendshapesValid`
-    * `XrStructureType type`
-    * `uint weightCount`
-    * `uint confidenceCount`
-    * `XrFaceExpressionStatusFB status`
-    * `long time`
-  * **struct XrForceFeedbackCurlApplyLocationMNDX**
-    * `XrForceFeedbackCurlLocationMNDX location`
-    * `float value`
-    * `XrStructureType type`
-    * `uint locationCount`
-  * **struct XrFoveationConfigurationHTC**
-    * `XrFoveationLevelHTC level`
-    * `float clearFovDegree`
-    * `XrVector2f focalCenterOffset`
-    * `XrStructureType type`
-    * `ulong dynamicFlags`
-    * `uint configCount`
-    * `uint supportsAnchor`
-  * **struct XrFoveationProfileFB_T**
-    * `IntPtr Handle`
-  * **struct XrFovf**
-    * `float angleLeft`
-    * `float angleRight`
-    * `float angleUp`
-    * `float angleDown`
-    * `XrStructureType type`
-    * `XrPosef pose`
-    * `XrFovf fov`
-    * `_actionSetName_e__FixedBuffer actionSetName`
-    * `_localizedActionSetName_e__FixedBuffer localizedActionSetName`
-    * `uint priority`
-  * **struct XrFrustumf**
-    * `XrPosef pose`
-    * `XrFovf fov`
-    * `float nearZ`
-    * `float farZ`
-  * **struct XrGeospatialPoseANDROID**
-    * `XrQuaternionf eastUpSouthOrientation`
-    * `double latitude`
-    * `double longitude`
-    * `double altitude`
-    * `XrStructureType type`
-    * `uint supportsGeospatial`
-    * `XrGeospatialTrackerStateANDROID state`
-    * `XrResult initializationResult`
-    * `long time`
-  * **struct XrGeospatialTrackerANDROID_T**
-    * `IntPtr Handle`
-    * `XrStructureType type`
-    * `long time`
-    * `XrPosef pose`
-    * `ulong poseFlags`
-    * `XrGeospatialPoseANDROID geospatialPose`
-    * `double horizontalAccuracy`
-    * `double verticalAccuracy`
-    * `double orientationYawAccuracy`
-    * `XrResult futureResult`
-    * `XrVPSAvailabilityANDROID availability`
-    * `ulong parentId`
-    * `uint subsumedUniqueIdCount`
-    * `ulong anchorEntityId`
-  * **struct XrHandCapsuleFB**
-    * `_points_e__FixedBuffer points`
-    * `float radius`
-    * `XrHandJointEXT joint`
-  * **struct XrHandGestureQCOM**
-    * `XrHandGestureTypeQCOM gesture`
-    * `float gestureRatio`
-    * `float flipRatio`
-  * **struct XrHandJointLocationEXT**
-    * `ulong locationFlags`
-    * `XrPosef pose`
-    * `float radius`
-  * **struct XrHandJointVelocityEXT**
-    * `ulong velocityFlags`
-    * `XrVector3f linearVelocity`
-    * `XrVector3f angularVelocity`
-    * `XrStructureType type`
-    * `uint isActive`
-    * `uint jointCount`
-  * **struct XrHandMeshVertexMSFT**
-    * `XrVector3f position`
-    * `XrVector3f normal`
-    * `long vertexUpdateTime`
-    * `uint vertexCapacityInput`
-    * `uint vertexCountOutput`
-    * `XrStructureType type`
-    * `uint isActive`
-    * `uint indexBufferChanged`
-    * `uint vertexBufferChanged`
-    * `XrHandMeshIndexBufferMSFT indexBuffer`
-    * `XrHandMeshVertexBufferMSFT vertexBuffer`
-    * `XrHandPoseTypeMSFT handPoseType`
-    * `uint viewConfigurationCount`
-    * `XrViewConfigurationType viewConfigurationType`
-    * `uint active`
-    * `XrEnvironmentBlendMode environmentBlendMode`
-    * `uint layerCount`
-    * `ulong modelKey`
-    * `_parentNodeName_e__FixedBuffer parentNodeName`
-    * `_nodeName_e__FixedBuffer nodeName`
-  * **struct XrHapticParametricPointEXT**
-    * `long time`
-    * `float value`
-  * **struct XrHapticParametricTransientEXT**
-    * `long time`
-    * `float amplitude`
-    * `float frequency`
-    * `XrStructureType type`
-    * `uint amplitudePointCount`
-    * `uint frequencyPointCount`
-    * `uint transientCount`
-    * `float minFrequencyHz`
-    * `float maxFrequencyHz`
-    * `XrHapticParametricStreamFrameTypeEXT streamFrameType`
-    * `uint supportsParametricHaptics`
-    * `IntPtr spatialContext`
+    * `string Name { get; set; }`
+    * `string Annotation { get; set; }`
+  * **struct XrWorldMeshDetectorML**
+  * **struct XrXYColorSONY**
+    * `float x`
+    * `float y`
+    * `XrXYColorSONY displayPrimaryRed`
+    * `XrXYColorSONY displayPrimaryGreen`
+    * `XrXYColorSONY displayPrimaryBlue`
+    * `XrXYColorSONY whitePoint`
+    * `float maxLuminance`
+    * `float minLuminance`
+    * `float maxContentLightLevel`
+    * `float maxFrameAverageLightLevel`
     * `ulong spatialEntityId`
-    * `XrResult futureResult`
     * `XrSpatialPersistenceContextResultEXT persistResult`
     * `XrUuid persistUuid`
     * `XrSpatialPersistenceContextResultEXT unpersistResult`
-  * **struct XrKeyboardTrackingDescriptionFB**
-    * `ulong trackedKeyboardId`
-    * `XrVector3f size`
-    * `ulong flags`
-    * `_name_e__FixedBuffer name`
-  * **struct XrOffset2Df**
-    * `float x`
-    * `float y`
-  * **struct XrOffset2Di**
-    * `int x`
-    * `int y`
-  * **struct XrOffset3DfFB**
-    * `float x`
-    * `float y`
-    * `float z`
-  * **struct XrPosef**
-    * `XrQuaternionf orientation`
-    * `XrVector3f position`
-    * `XrStructureType type`
-    * `XrReferenceSpaceType referenceSpaceType`
-    * `XrPosef poseInReferenceSpace`
-  * **struct XrQuaternionf**
-    * `float x`
-    * `float y`
-    * `float z`
-    * `float w`
-  * **struct XrRaycastHitResultANDROID**
-    * `XrTrackableTypeANDROID type`
-    * `ulong trackable`
-    * `XrPosef pose`
-    * `XrStructureType type`
-    * `uint resultsCapacityInput`
-    * `uint resultsCountOutput`
-  * **struct XrRect2Df**
-    * `XrOffset2Df offset`
-    * `XrExtent2Df extent`
-  * **struct XrRect2Di**
-    * `XrOffset2Di offset`
-    * `XrExtent2Di extent`
-    * `IntPtr swapchain`
-    * `XrRect2Di imageRect`
-    * `uint imageArrayIndex`
-    * `XrStructureType type`
-    * `XrPosef pose`
-    * `XrFovf fov`
-    * `XrSwapchainSubImage subImage`
-    * `ulong layerFlags`
-    * `uint viewCount`
-    * `XrEyeVisibility eyeVisibility`
-    * `XrExtent2Df size`
-    * `uint lostEventCount`
-    * `long lossTime`
-    * `XrSessionState state`
-    * `long time`
-    * `XrReferenceSpaceType referenceSpaceType`
-    * `long changeTime`
-    * `uint poseValid`
-    * `XrPosef poseInPreviousSpace`
-    * `long duration`
-    * `float frequency`
-    * `float amplitude`
-  * **struct XrRect3DfFB**
-    * `XrOffset3DfFB offset`
-    * `XrExtent3Df extent`
-    * `XrStructureType type`
-    * `uint bufferCapacityInput`
-    * `uint bufferCountOutput`
-    * `XrUuid floorUuid`
-    * `XrUuid ceilingUuid`
-    * `uint wallUuidCapacityInput`
-    * `uint wallUuidCountOutput`
-    * `uint vertexCapacityInput`
-    * `uint vertexCountOutput`
-    * `ulong flags`
-    * `ulong requestId`
-    * `XrResult result`
-    * `uint requestByteCount`
-    * `uint uuidCapacityInput`
-    * `uint uuidCountOutput`
-    * `_foveationCenter_e__FixedBuffer foveationCenter`
-  * **struct XrRenderModelAssetNodePropertiesEXT**
-    * `_uniqueName_e__FixedBuffer uniqueName`
-  * **struct XrRenderModelNodeStateEXT**
-    * `XrPosef nodePose`
-    * `uint isVisible`
-    * `XrStructureType type`
-    * `uint nodeStateCount`
-    * `XrUuid cacheId`
-    * `uint bufferCapacityInput`
-    * `uint bufferCountOutput`
-  * **struct XrRoomMeshFaceMETA**
-    * `XrUuid uuid`
-    * `XrUuid parentUuid`
-    * `XrSemanticLabelMETA semanticLabel`
-    * `XrStructureType type`
-    * `uint indexCapacityInput`
-    * `uint indexCountOutput`
-    * `uint recognizedSemanticLabelCount`
-    * `uint vertexCapacityInput`
-    * `uint vertexCountOutput`
-    * `uint faceCapacityInput`
-    * `uint faceCountOutput`
-    * `uint bufferSize`
-    * `ulong advertisementRequestId`
-    * `XrResult result`
-    * `XrUuid advertisementUuid`
-    * `ulong requestId`
-    * `ulong discoveryRequestId`
-    * `_buffer_e__FixedBuffer buffer`
-  * **struct XrSceneComponentLocationMSFT**
-    * `ulong flags`
-    * `XrPosef pose`
-    * `XrStructureType type`
-    * `uint locationCount`
-    * `long time`
-    * `uint componentIdCount`
-  * **struct XrSceneComponentMSFT**
-    * `XrSceneComponentTypeMSFT componentType`
-    * `XrUuidMSFT id`
-    * `XrUuidMSFT parentId`
-    * `long updateTime`
-    * `XrStructureType type`
-    * `uint componentCapacityInput`
-    * `uint componentCountOutput`
-  * **struct XrSceneFrustumBoundMSFT**
-    * `XrPosef pose`
-    * `XrFovf fov`
-    * `float farDistance`
-    * `long time`
-    * `uint sphereCount`
-    * `uint boxCount`
-    * `uint frustumCount`
-    * `XrStructureType type`
-    * `uint requestedFeatureCount`
-    * `XrSceneComputeConsistencyMSFT consistency`
-    * `XrSceneBoundsMSFT bounds`
-    * `XrMeshComputeLodMSFT lod`
-  * **struct XrSceneMarkerMSFT**
-    * `XrSceneMarkerTypeMSFT markerType`
-    * `long lastSeenTime`
-    * `XrOffset2Df center`
-    * `XrExtent2Df size`
-    * `XrStructureType type`
-    * `uint sceneMarkerCapacityInput`
-    * `uint markerTypeCount`
-  * **struct XrSceneMarkerQRCodeMSFT**
-    * `XrSceneMarkerQRCodeSymbolTypeMSFT symbolType`
-    * `byte version`
-    * `XrStructureType type`
-    * `uint qrCodeCapacityInput`
-  * **struct XrSceneMeshMSFT**
-    * `ulong meshBufferId`
-    * `uint supportsIndicesUint16`
-    * `XrStructureType type`
-    * `uint sceneMeshCount`
-    * `uint vertexCapacityInput`
-    * `uint vertexCountOutput`
-    * `uint indexCapacityInput`
-    * `uint indexCountOutput`
-    * `XrUuidMSFT sceneFragmentId`
-    * `uint bufferSize`
-    * `uint fragmentCount`
-    * `float fromDisplayRefreshRate`
-    * `float toDisplayRefreshRate`
-    * `ulong persistentPath`
-    * `ulong rolePath`
-  * **struct XrSceneObjectMSFT**
-    * `XrSceneObjectTypeMSFT objectType`
-    * `XrStructureType type`
-    * `uint sceneObjectCount`
-    * `XrUuidMSFT parentId`
-    * `uint objectTypeCount`
-  * **struct XrSceneOrientedBoxBoundMSFT**
-    * `XrPosef pose`
-    * `XrVector3f extents`
-  * **struct XrScenePlaneMSFT**
-    * `XrScenePlaneAlignmentTypeMSFT alignment`
-    * `XrExtent2Df size`
-    * `ulong meshBufferId`
-    * `uint supportsIndicesUint16`
-    * `XrStructureType type`
-    * `uint scenePlaneCount`
-    * `uint alignmentCount`
-  * **struct XrSceneSphereBoundMSFT**
-    * `XrVector3f center`
-    * `float radius`
-  * **struct XrSenseDataProviderBD_T**
-    * `XrSenseDataProviderBD Null`
-    * `bool Equals()`
-    * `int GetHashCode()`
-    * `bool operator`
-    * `string ToString()`
-  * **struct XrSession_T**
-    * `IntPtr Handle`
-  * **struct XrSpaceLocationData**
-    * `ulong locationFlags`
-    * `XrPosef pose`
-    * `XrStructureType type`
-    * `uint locationCount`
-  * **struct XrSpaceUserFB_T**
-    * `ulong NativeHandle { get; set; }`
-    * `bool IsNull { get; set; }`
-    * `XrSpaceUserFB_T Null { get; set; }`
-    * `bool Equals()`
-    * `int GetHashCode()`
-    * `bool operator`
-    * `XrStructureType type`
-    * `ulong requestId`
-    * `XrResult result`
-    * `ulong layerFlags`
-    * `XrSwapchainSubImage motionVectorSubImage`
-    * `XrPosef appSpaceDeltaPose`
-    * `XrSwapchainSubImage depthSubImage`
-    * `float minDepth`
-    * `float maxDepth`
-    * `float nearZ`
-    * `float farZ`
-    * `uint recommendedMotionVectorImageRectWidth`
-    * `uint recommendedMotionVectorImageRectHeight`
-    * `long duration`
-    * `uint amplitudeCount`
-  * **struct XrSpaceVelocityData**
-    * `ulong velocityFlags`
-    * `XrVector3f linearVelocity`
-    * `XrVector3f angularVelocity`
-    * `XrStructureType type`
-    * `uint velocityCount`
-    * `ulong layerFlags`
-    * `XrEyeVisibility eyeVisibility`
-    * `IntPtr swapchain`
-    * `uint imageArrayIndex`
-    * `XrQuaternionf orientation`
-    * `XrSwapchainSubImage subImage`
-    * `float minDepth`
-    * `float maxDepth`
-    * `float nearZ`
-    * `float farZ`
-    * `XrPosef pose`
-    * `float radius`
-    * `float centralAngle`
-    * `float aspectRatio`
-    * `XrVector2f scale`
-    * `XrVector2f bias`
-  * **struct XrSpace_T**
-    * `IntPtr Handle`
-    * `bool IsNull { get; set; }`
-  * **struct XrSpatialAnchorCompletionResultML**
-    * `XrUuid uuid`
-    * `XrResult result`
-    * `XrStructureType type`
-    * `uint resultCount`
-  * **struct XrSpatialAnchorNameHTC**
-    * `_name_e__FixedBuffer name`
-  * **struct XrSpatialAnchorPersistenceNameMSFT**
-    * `_name_e__FixedBuffer name`
-  * **struct XrSpatialBounded2DDataEXT**
-    * `XrPosef center`
-    * `XrExtent2Df extents`
-    * `XrStructureType type`
-    * `uint boundCount`
-    * `uint parentCount`
-  * **struct XrSpatialBufferEXT**
-    * `ulong bufferId`
-    * `XrSpatialBufferTypeEXT bufferType`
-    * `XrStructureType type`
-  * **struct XrSpatialEntityEXT_T**
-    * `IntPtr Handle`
-    * `bool IsNull { get; set; }`
-    * `XrSpatialEntityEXT_T Null { get; set; }`
-    * `XrStructureType type`
-    * `IntPtr spatialContext`
-    * `XrSpatialEntityTrackingStateEXT trackingState`
-  * **struct XrSpatialMarkerDataEXT**
-    * `XrSpatialCapabilityEXT capability`
-    * `uint markerId`
-    * `XrSpatialBufferEXT data`
-    * `XrStructureType type`
-    * `uint markerCount`
-  * **struct XrSpatialMeshDataEXT**
-    * `XrPosef origin`
-    * `XrSpatialBufferEXT vertexBuffer`
-    * `XrSpatialBufferEXT indexBuffer`
-    * `XrStructureType type`
-    * `uint meshCount`
-    * `ulong entityId`
-    * `uint entityCount`
-    * `uint componentTypeCount`
-    * `long time`
-  * **struct XrSpatialPersistenceDataEXT**
-    * `XrUuid persistUuid`
-    * `XrSpatialPersistenceStateEXT persistState`
-    * `XrStructureType type`
-    * `uint persistDataCount`
-  * **struct XrSpatialPolygon2DDataEXT**
-    * `XrPosef origin`
-    * `XrSpatialBufferEXT vertexBuffer`
-    * `XrStructureType type`
-    * `uint polygonCount`
-    * `uint semanticLabelCount`
-    * `XrUuid generationId`
-  * **struct XrSpatialRaycastResultDataANDROID**
-    * `XrPosef hitPose`
-    * `float distanceSquared`
-    * `XrStructureType type`
-    * `XrSpatialCapabilityEXT capability`
-    * `uint enabledComponentCount`
-    * `long time`
-    * `XrVector3f origin`
-    * `XrVector3f direction`
-    * `float maxDistance`
-    * `uint raycastResultCount`
-    * `uint componentTypeCount`
-  * **struct XrSpheref**
-    * `XrPosef center`
-    * `float radius`
-  * **struct XrSystemGraphicsProperties**
-    * `uint maxSwapchainImageHeight`
-    * `uint maxSwapchainImageWidth`
-    * `uint maxLayerCount`
-  * **struct XrSystemTrackingProperties**
-    * `uint orientationTracking`
-    * `uint positionTracking`
-    * `XrStructureType type`
-    * `ulong systemId`
-    * `uint vendorId`
-    * `_systemName_e__FixedBuffer systemName`
-    * `XrSystemGraphicsProperties graphicsProperties`
-    * `XrSystemTrackingProperties trackingProperties`
-  * **struct XrTrackableImageDatabaseANDROID_T**
-    * `ulong Handle`
-    * `XrTrackableImageDatabaseANDROID_T Null`
-    * `bool IsNull { get; set; }`
-    * `XrStructureType type`
-    * `uint databaseCount`
-    * `XrTrackingStateANDROID trackingState`
-    * `long lastUpdatedTime`
-    * `uint databaseEntryIndex`
-    * `XrPosef centerPose`
-    * `XrExtent2Df extents`
-    * `long time`
-  * **struct XrTrackableMarkerDatabaseEntryANDROID**
-    * `int id`
-    * `float edgeSize`
-    * `XrTrackableMarkerDictionaryANDROID dictionary`
-    * `uint entryCount`
-    * `XrStructureType type`
-    * `XrTrackableMarkerTrackingModeANDROID trackingMode`
-    * `uint databaseCount`
-    * `XrTrackingStateANDROID trackingState`
-    * `long lastUpdatedTime`
-    * `int markerId`
-    * `XrPosef centerPose`
-    * `XrExtent2Df extents`
-  * **struct XrTrackableTrackerANDROID_T**
-    * `IntPtr Handle`
-  * **struct XrUuid**
-    * `_data_e__FixedBuffer data`
-  * **struct XrUuidMSFT**
-    * `_bytes_e__FixedBuffer bytes`
-  * **struct XrVector2f**
-    * `float x`
-    * `float y`
-    * `XrStructureType type`
-    * `XrVector2f currentState`
-    * `uint changedSinceLastSync`
-    * `long lastChangeTime`
-    * `uint isActive`
-    * `ulong subactionPath`
-    * `uint countActiveActionSets`
-    * `ulong sourcePath`
-    * `ulong whichComponents`
-  * **struct XrVector3f**
-    * `float x`
-    * `float y`
-    * `float z`
-    * `XrStructureType type`
-    * `ulong velocityFlags`
-    * `XrVector3f linearVelocity`
-    * `XrVector3f angularVelocity`
-  * **struct XrVector4f**
-    * `float x`
-    * `float y`
-    * `float z`
-    * `float w`
-  * **struct XrVector4sFB**
-    * `short x`
-    * `short y`
-    * `short z`
-    * `short w`
-    * `XrStructureType type`
-    * `uint jointCapacityInput`
-    * `uint jointCountOutput`
-    * `uint vertexCapacityInput`
-    * `uint vertexCountOutput`
-    * `uint indexCapacityInput`
-    * `uint indexCountOutput`
-    * `float sensorOutput`
-    * `float currentOutput`
-    * `uint overrideHandScale`
-    * `float overrideValueInput`
-    * `ulong status`
-    * `XrPosef aimPose`
-    * `float pinchStrengthIndex`
-    * `float pinchStrengthMiddle`
-    * `float pinchStrengthRing`
-    * `float pinchStrengthLittle`
   * **struct _actionName_e__FixedBuffer**
-    * `sbyte e0`
+    * `byte e0`
   * **struct _actionSetName_e__FixedBuffer**
-    * `sbyte e0`
+    * `byte e0`
   * **struct _applicationName_e__FixedBuffer**
-    * `sbyte e0`
+    * `byte e0`
   * **struct _buffer_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `ulong discoveryRequestId`
-    * `XrResult result`
     * `ulong requestId`
     * `uint supportsColocationDiscovery`
     * `uint supportsSpatialEntityGroupSharing`
@@ -3990,24 +3989,21 @@
     * `XrUuid groupUuid`
   * **struct _bytes_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
   * **struct _capsules_e__FixedBuffer**
     * `XrHandCapsuleFB e0`
   * **struct _coefficients_e__FixedBuffer**
     * `float e0_0`
   * **struct _data_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
+    * `IntPtr baseSpace`
     * `long time`
     * `uint spaceCount`
   * **struct _description_e__FixedBuffer**
-    * `sbyte e0`
-    * `XrStructureType type`
+    * `byte e0`
     * `_extensionName_e__FixedBuffer extensionName`
     * `uint extensionVersion`
   * **struct _engineName_e__FixedBuffer**
-    * `sbyte e0`
-    * `XrStructureType type`
+    * `byte e0`
     * `ulong createFlags`
     * `XrApplicationInfo applicationInfo`
     * `uint enabledApiLayerCount`
@@ -4015,18 +4011,16 @@
     * `ulong runtimeVersion`
     * `_runtimeName_e__FixedBuffer runtimeName`
   * **struct _extensionName_e__FixedBuffer**
-    * `sbyte e0`
+    * `byte e0`
   * **struct _eyes_e__FixedBuffer**
     * `XrEyeANDROID e0`
-    * `XrStructureType type`
     * `long time`
+    * `IntPtr baseSpace`
   * **struct _foveationCenter_e__FixedBuffer**
     * `XrVector2f e0`
-    * `XrStructureType type`
     * `uint supportsFoveationEyeTracked`
   * **struct _gaze_e__FixedBuffer**
     * `XrEyeGazeFB e0`
-    * `XrStructureType type`
     * `float leftHandIntensity`
     * `float rightHandIntensity`
     * `ulong layerFlags`
@@ -4045,11 +4039,11 @@
     * `uint recommendedMotionVectorImageRectWidth`
     * `uint recommendedMotionVectorImageRectHeight`
   * **struct _layerName_e__FixedBuffer**
-    * `sbyte e0`
+    * `byte e0`
   * **struct _localizedActionName_e__FixedBuffer**
-    * `sbyte e0`
+    * `byte e0`
+    * `IntPtr action`
     * `ulong binding`
-    * `XrStructureType type`
     * `ulong interactionProfile`
     * `uint countSuggestedBindings`
     * `uint countActionSets`
@@ -4060,15 +4054,13 @@
     * `uint isActive`
     * `float currentState`
   * **struct _localizedActionSetName_e__FixedBuffer**
-    * `sbyte e0`
-    * `XrStructureType type`
+    * `byte e0`
     * `_actionName_e__FixedBuffer actionName`
     * `XrActionType actionType`
     * `uint countSubactionPaths`
     * `_localizedActionName_e__FixedBuffer localizedActionName`
   * **struct _modelName_e__FixedBuffer**
-    * `sbyte e0`
-    * `XrStructureType type`
+    * `byte e0`
     * `uint bufferCapacityInput`
     * `uint bufferCountOutput`
     * `ulong modelKey`
@@ -4087,10 +4079,10 @@
     * `float focusDistance`
     * `float dimmerValue`
   * **struct _name_e__FixedBuffer**
-    * `sbyte e0`
-    * `XrStructureType type`
+    * `byte e0`
     * `ulong trackedKeyboardId`
     * `ulong flags`
+    * `IntPtr session`
     * `XrLocalizationMapStateML state`
     * `XrLocalizationMapML map`
     * `XrLocalizationMapConfidenceML confidence`
@@ -4099,46 +4091,39 @@
     * `uint size`
     * `uint enabled`
     * `XrSpatialAnchorPersistenceNameMSFT spatialAnchorPersistenceName`
-    * `IntPtr spatialAnchor`
-    * `IntPtr spatialAnchorStore`
+    * `IntPtr space`
     * `XrPosef poseInSpace`
     * `XrSpatialAnchorNameHTC name`
   * **struct _nodeId_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
+    * `IntPtr space`
     * `XrPosef poseInSpace`
     * `long time`
     * `_nodeId_e__FixedBuffer nodeId`
     * `XrPosef poseInNodeSpace`
   * **struct _nodeName_e__FixedBuffer**
-    * `sbyte e0`
-    * `XrStructureType type`
+    * `byte e0`
     * `uint nodeCapacityInput`
     * `uint nodeCountOutput`
     * `XrPosef nodePose`
     * `XrFovf recommendedFov`
     * `XrFovf maxMutableFov`
   * **struct _parentNodeName_e__FixedBuffer**
-    * `sbyte e0`
+    * `byte e0`
   * **struct _points_e__FixedBuffer**
     * `XrVector3f e0`
-    * `XrStructureType type`
     * `_capsules_e__FixedBuffer capsules`
   * **struct _runtimeName_e__FixedBuffer**
-    * `sbyte e0`
-    * `XrStructureType type`
+    * `byte e0`
     * `_varying_e__FixedBuffer varying`
   * **struct _systemName_e__FixedBuffer**
-    * `sbyte e0`
-    * `XrStructureType type`
+    * `byte e0`
     * `ulong createFlags`
     * `ulong systemId`
   * **struct _text_e__FixedBuffer**
-    * `sbyte e0`
-    * `XrStructureType type`
+    * `byte e0`
   * **struct _textureColorMap_e__FixedBuffer**
     * `XrColor4f e0`
-    * `XrStructureType type`
     * `_textureColorMap_e__FixedBuffer textureColorMap`
     * `byte e0`
     * `float brightness`
@@ -4151,30 +4136,20 @@
     * `ulong modelKey`
     * `uint modelVersion`
   * **struct _uniqueName_e__FixedBuffer**
-    * `sbyte e0`
-    * `XrStructureType type`
+    * `byte e0`
     * `uint nodePropertyCount`
     * `uint topLevelUserPathCount`
   * **struct _varying_e__FixedBuffer**
     * `byte e0`
-    * `XrStructureType type`
     * `XrFormFactor formFactor`
   * **struct _views_e__FixedBuffer**
     * `XrEnvironmentDepthImageViewMETA e0`
-    * `XrStructureType type`
     * `long captureTime`
     * `uint enabled`
     * `uint supportsEnvironmentDepth`
     * `uint supportsHandRemoval`
-    * `ulong renderModelId`
-    * `uint gltfExtensionCount`
-    * `XrUuid cacheId`
-    * `uint animatableNodeCount`
-    * `IntPtr renderModel`
-    * `long displayTime`
   * **struct _visemes_e__FixedBuffer**
     * `float e0`
-    * `XrStructureType type`
     * `uint supportsVisemes`
 
   </details>
@@ -4844,44 +4819,17 @@
 
   <details><summary><b>Angene.Graphics.Vulkan</b></summary>
 
-  * **struct QueueFamilyIndices**
-    * `uint? graphicsFamily`
-    * `uint? presentFamily`
-    * `bool isComplete()`
+  * **struct CameraPushConstants**
+    * `Matrix4x4 View`
+    * `Matrix4x4 Proj`
+    * `void recordCommandBuffer()`
     * `QueueFamilyIndices? findQueueFamilies()`
     * `VkSurfaceFormatKHR ChooseSurfaceFormatAndColorSpace()`
     * `IntPtr CreateImageView()`
     * `VkPresentModeKHR ChoosePresentationMode()`
     * `uint ChooseNumImages()`
     * `void SelectPhysicalDeviceAndLogicalDevice()`
-
-  </details>
-
-
-
-## Angene.Input
-
-  <details><summary><b>Angene.Input</b></summary>
-
-  * **class KeyDetection**
-    * `List<Entity> Instances`
-    * `void Register()`
-    * `bool IsKeyDown()`
-    * `bool IsAnyKeyDown()`
-    * `void Deregister()`
-    * `HashSet<uint> GetDownKeys { get; set; }`
-  * **class KeyResolver**
-    * `object TryInt()`
-    * `object TryNInt()`
-    * `object TryByte()`
-    * `uint TryLinuxKeysym()`
-  * **class MouseDetection**
-    * `List<Entity> Instances`
-    * `void Register()`
-    * `bool IsButtonDown()`
-    * `void Deregister()`
-    * `HashSet<uint> GetDownButtons { get; set; }`
-    * `bool IsInWindow()`
+    * `void CreateDevice()`
 
   </details>
 
@@ -5614,6 +5562,8 @@
     * `void Initialize()`
     * `void OnMessage()`
     * `void Render()`
+  * **class EntryPoint**
+    * `EntryPoint Instance`
   * **class Framebuffer**
     * `int Width { get; set; }`
     * `int Height { get; set; }`
@@ -5621,6 +5571,12 @@
     * `void Clear()`
     * `void Dispose()`
     * `List<WebSocket> ActiveClients`
+  * **class Instances**
+    * `Engine engine { get; set; }`
+    * `Settings settings { get; set; }`
+    * `bool verbose { get; set; }`
+    * `void MakeInstances()`
+    * `void RunMessageLoop()`
   * **class LogConsoleWindow**
     * `void AppendLine()`
   * **class ManifestEntry**
@@ -5657,7 +5613,7 @@
     * `void SetEngineMode()`
     * `EngineMode GetEngineMode()`
     * `void RenderFrame()`
-    * `void ApplyCameraTransformsVulkan()`
+    * `void SetEntityParentScene()`
     * `bool Acked`
     * `void Cleanup()`
     * `void Close()`
@@ -5689,6 +5645,7 @@
     * `string cTT { get; set; }`
     * `RenderType renderMode`
     * `OSType OS`
+    * `bool UsingOpenXR`
     * `bool ShowOnCreate { get; set; }`
     * `WindowConfig Standard()`
     * `WindowConfig TransparentOverlay()`
@@ -5716,7 +5673,6 @@
     * `object Instance { get; set; }`
     * `string Name { get; set; }`
     * `List<Entity> Entities { get; set; }`
-    * `Entity MainCamera { get; set; }`
     * `Entity AddEntity()`
     * `Entity RemoveScript()`
     * `Entity GetDefaultEntity()`
@@ -5834,7 +5790,24 @@
     * `Matrix4x4 RotationX()`
     * `Matrix4x4 RotationY()`
     * `Matrix4x4 RotationZ()`
+    * `Vec3 WorldPosition()`
+    * `Vec3 TransformDirection()`
+    * `Quaternion ToQuaternion()`
   * **struct Point**
+  * **struct Quaternion**
+    * `float X`
+    * `Quaternion Identity { get; set; }`
+    * `float LengthSquared { get; set; }`
+    * `float Length { get; set; }`
+    * `Quaternion Conjugate { get; set; }`
+    * `Quaternion Inverse { get; set; }`
+    * `Quaternion FromAxisAngle()`
+    * `Quaternion FromEuler()`
+    * `Vec3 ToEuler()`
+    * `Vec3 Rotate()`
+    * `float Dot()`
+    * `Quaternion Slerp()`
+    * `Matrix4x4 ToMatrix()`
   * **struct Rect**
     * `float X`
     * `float Left { get; set; }`
@@ -5867,6 +5840,22 @@
     * `float Dot()`
     * `Vec3 Cross()`
     * `Vec3 Lerp()`
+  * **struct Vec4**
+    * `float X`
+    * `Vec4 Zero { get; set; }`
+    * `Vec4 One { get; set; }`
+    * `Vec4 UnitX { get; set; }`
+    * `Vec4 UnitY { get; set; }`
+    * `Vec4 UnitZ { get; set; }`
+    * `Vec4 UnitW { get; set; }`
+    * `float Length { get; set; }`
+    * `float LengthSquared { get; set; }`
+    * `Vec4 Normalized { get; set; }`
+    * `float Dot()`
+    * `float Distance()`
+    * `Vec4 Lerp()`
+    * `Vec4 Min()`
+    * `Vec4 Max()`
 
   </details>
 
@@ -5880,6 +5869,8 @@
   * **class Structs**
   * **class VkVideo**
   * **class VulkanMemoryAllocator**
+    * `IntPtr Buffer`
+    * `IntPtr Allocation`
   * **enum StdVideoAV1ChromaSamplePosition**
   * **enum StdVideoAV1ColorPrimaries**
   * **enum StdVideoAV1FrameRestorationType**
@@ -6245,6 +6236,12 @@
   * **enum VmaMemoryUsage**
   * **enum VmaPoolCreateFlagBits**
   * **enum VmaVirtualAllocationCreateFlagBits**
+    * `uint flags`
+    * `IntPtr physicalDevice`
+    * `IntPtr device`
+    * `ulong preferredLargeHeapBlockSize`
+    * `IntPtr instance`
+    * `uint vulkanApiVersion`
   * **enum VmaVirtualBlockCreateFlagBits**
   * **struct StdVideoAV1CDEF**
     * `byte cdef_damping_minus_3`
@@ -6828,9 +6825,12 @@
     * `uint flags`
     * `VkAccelerationStructureTypeKHR type`
     * `VkBuildAccelerationStructureModeKHR mode`
+    * `IntPtr srcAccelerationStructure`
+    * `IntPtr dstAccelerationStructure`
     * `uint geometryCount`
     * `VkDeviceOrHostAddressKHR scratchData`
     * `uint createFlags`
+    * `IntPtr buffer`
     * `ulong offset`
     * `ulong size`
     * `ulong deviceAddress`
@@ -6848,9 +6848,12 @@
     * `uint maxDescriptorSetAccelerationStructures`
     * `uint maxDescriptorSetUpdateAfterBindAccelerationStructures`
     * `uint minAccelerationStructureScratchOffsetAlignment`
+    * `IntPtr accelerationStructure`
+    * `IntPtr src`
     * `VkDeviceOrHostAddressKHR dst`
     * `VkCopyAccelerationStructureModeKHR mode`
     * `VkDeviceOrHostAddressConstKHR src`
+    * `IntPtr dst`
     * `VkRayTracingShaderGroupTypeKHR type`
     * `uint generalShader`
     * `uint closestHitShader`
@@ -6861,6 +6864,8 @@
     * `uint stageCount`
     * `uint groupCount`
     * `uint maxPipelineRayRecursionDepth`
+    * `IntPtr layout`
+    * `IntPtr basePipelineHandle`
     * `int basePipelineIndex`
     * `uint rayTracingPipeline`
     * `uint rayTracingPipelineShaderGroupHandleCaptureReplay`
@@ -6922,7 +6927,6 @@
     * `uint maxMeshMultiviewViewCount`
     * `uint meshOutputPerVertexGranularity`
     * `uint meshOutputPerPrimitiveGranularity`
-  * **struct VkAccelerationStructureKHR**
   * **struct VkAccelerationStructureMatrixMotionInstanceNV**
     * `VkTransformMatrixKHR transformT0`
     * `VkTransformMatrixKHR transformT1`
@@ -6969,15 +6973,21 @@
     * `uint stageCount`
     * `uint groupCount`
     * `uint maxRecursionDepth`
+    * `IntPtr layout`
+    * `IntPtr basePipelineHandle`
     * `int basePipelineIndex`
+    * `IntPtr vertexData`
     * `ulong vertexOffset`
     * `uint vertexCount`
     * `ulong vertexStride`
     * `VkFormat vertexFormat`
+    * `IntPtr indexData`
     * `ulong indexOffset`
     * `uint indexCount`
     * `VkIndexType indexType`
+    * `IntPtr transformData`
     * `ulong transformOffset`
+    * `IntPtr aabbData`
     * `uint numAABBs`
     * `uint stride`
     * `ulong offset`
@@ -7001,6 +7011,7 @@
     * `uint attachment`
     * `VkImageLayout layout`
     * `uint flags`
+    * `IntPtr renderPass`
     * `uint attachmentCount`
     * `uint width`
     * `uint height`
@@ -7012,6 +7023,7 @@
     * `ulong bufferAddress`
     * `uint size`
     * `VkIndexType indexType`
+    * `IntPtr pipeline`
     * `uint shaderCount`
     * `uint index`
     * `uint imageAlignmentControl`
@@ -7138,7 +7150,6 @@
     * `ulong bufferAddress`
     * `uint size`
     * `uint stride`
-  * **struct VkBuffer**
   * **struct VkBufferCopy**
     * `ulong srcOffset`
     * `ulong dstOffset`
@@ -7150,7 +7161,6 @@
     * `VkImageSubresourceLayers imageSubresource`
     * `VkOffset3D imageOffset`
     * `VkExtent3D imageExtent`
-  * **struct VkBufferView**
   * **struct VkBuildPartitionedAccelerationStructureIndirectCommandNV**
     * `VkPartitionedAccelerationStructureOpTypeNV opType`
     * `uint argCount`
@@ -7248,8 +7258,6 @@
     * `VkBlendFactor srcAlphaBlendFactor`
     * `VkBlendFactor dstAlphaBlendFactor`
     * `VkBlendOp alphaBlendOp`
-  * **struct VkCommandBuffer**
-  * **struct VkCommandPool**
   * **struct VkComponentMapping**
     * `VkComponentSwizzle r`
     * `VkComponentSwizzle g`
@@ -7282,6 +7290,7 @@
     * `uint srcCopyFlags`
     * `uint copyCount`
     * `VkStridedDeviceAddressRangeKHR copyAddressRange`
+    * `IntPtr dstImage`
     * `VkImageLayout dstImageLayout`
     * `uint indirectMemoryCopy`
     * `uint indirectMemoryToImageCopy`
@@ -7298,6 +7307,7 @@
     * `uint videoEncodeIntraRefresh`
     * `VkExtent2D maxQuantizationMapExtent`
     * `VkExtent2D quantizationMapTexelSize`
+    * `IntPtr quantizationMap`
     * `VkExtent2D quantizationMapExtent`
     * `uint videoEncodeQuantizationMap`
     * `int minQpDelta`
@@ -7332,7 +7342,9 @@
     * `uint sharedMemBytes`
     * `nuint paramCount`
     * `nuint extraCount`
+    * `IntPtr imageView`
     * `VkDescriptorType descriptorType`
+    * `IntPtr sampler`
     * `ulong deviceAddress`
     * `ulong size`
     * `uint supportsTextureGatherLODBiasAMD`
@@ -7348,12 +7360,16 @@
     * `uint binding`
     * `uint arrayElement`
     * `ulong flags`
+    * `IntPtr layout`
     * `uint resourceInfoCount`
+    * `IntPtr module`
     * `uint constantCount`
+    * `IntPtr dataGraphPipeline`
     * `VkDataGraphPipelineSessionBindPointARM bindPoint`
     * `VkDataGraphPipelineSessionBindPointTypeARM bindPointType`
     * `uint numObjects`
     * `uint objectIndex`
+    * `IntPtr memory`
     * `ulong memoryOffset`
     * `VkDataGraphPipelinePropertyARM property`
     * `uint isText`
@@ -7397,7 +7413,7 @@
     * `ulong size`
     * `ulong pipelineDeviceAddressCaptureReplay`
     * `VkPipelineBindPoint pipelineBindPoint`
-  * **struct VkDeferredOperationKHR**
+    * `IntPtr pipeline`
   * **struct VkDepthClampRangeEXT**
     * `float minDepthClamp`
     * `float maxDepthClamp`
@@ -7452,6 +7468,7 @@
     * `uint lowLatencyMode`
     * `uint lowLatencyBoost`
     * `uint minimumIntervalUs`
+    * `IntPtr signalSemaphore`
     * `ulong value`
     * `ulong presentID`
     * `VkLatencyMarkerNV marker`
@@ -7539,22 +7556,21 @@
     * `uint samplerHeapArrayStride`
     * `uint samplerPushOffset`
     * `uint samplerAddressOffset`
-  * **struct VkDescriptorPool**
   * **struct VkDescriptorPoolSize**
     * `VkDescriptorType type`
     * `uint descriptorCount`
     * `uint flags`
     * `uint maxSets`
     * `uint poolSizeCount`
+    * `IntPtr descriptorPool`
     * `uint descriptorSetCount`
     * `uint binding`
     * `VkDescriptorType descriptorType`
     * `uint stageFlags`
     * `uint bindingCount`
+    * `IntPtr dstSet`
     * `uint dstBinding`
     * `uint dstArrayElement`
-  * **struct VkDescriptorSet**
-  * **struct VkDescriptorSetLayout**
   * **struct VkDescriptorUpdateTemplate**
   * **struct VkDescriptorUpdateTemplateEntry**
     * `uint dstBinding`
@@ -7566,7 +7582,9 @@
     * `uint flags`
     * `uint descriptorUpdateEntryCount`
     * `VkDescriptorUpdateTemplateType templateType`
+    * `IntPtr descriptorSetLayout`
     * `VkPipelineBindPoint pipelineBindPoint`
+    * `IntPtr pipelineLayout`
     * `uint set`
     * `uint maxPerSetDescriptors`
     * `ulong maxMemoryAllocationSize`
@@ -7584,7 +7602,6 @@
     * `uint deviceMask`
     * `uint deviceRenderAreaCount`
     * `VkPointClippingBehavior pointClippingBehavior`
-  * **struct VkDevice**
   * **struct VkDeviceAddressRangeKHR**
     * `ulong address`
     * `ulong size`
@@ -7608,7 +7625,6 @@
     * `_description_e__FixedBuffer description`
     * `ulong vendorFaultCode`
     * `ulong vendorFaultData`
-  * **struct VkDeviceMemory**
   * **struct VkDispatchIndirectCommand**
     * `uint x`
     * `uint y`
@@ -7701,7 +7717,6 @@
     * `uint drmFormatModifierCount`
     * `VkSharingMode sharingMode`
     * `uint queueFamilyIndexCount`
-  * **struct VkEvent**
   * **struct VkExtensionProperties**
     * `_extensionName_e__FixedBuffer extensionName`
     * `uint specVersion`
@@ -7714,6 +7729,7 @@
     * `uint depth`
   * **struct VkExternalComputeQueueNV**
     * `uint reservedExternalQueues`
+    * `IntPtr preferredQueue`
     * `uint deviceIndex`
     * `uint externalDataSize`
     * `uint maxExternalQueues`
@@ -7730,6 +7746,7 @@
     * `uint disabledValidationCheckCount`
     * `VkFormat decodeMode`
     * `uint decodeModeSharedExponent`
+    * `IntPtr buffer`
     * `ulong offset`
     * `uint flags`
     * `uint conditionalRendering`
@@ -7748,12 +7765,10 @@
     * `_deviceLUID_e__FixedBuffer deviceLUID`
     * `uint deviceNodeMask`
     * `uint deviceLUIDValid`
-  * **struct VkFence**
   * **struct VkFormatProperties**
     * `uint linearTilingFeatures`
     * `uint optimalTilingFeatures`
     * `uint bufferFeatures`
-  * **struct VkFramebuffer**
   * **struct VkGeometryDataNV**
     * `VkGeometryTrianglesNV triangles`
     * `VkGeometryAABBNV aabbs`
@@ -7765,6 +7780,7 @@
     * `uint geometryCount`
     * `ulong compactedSize`
     * `VkAccelerationStructureInfoNV info`
+    * `IntPtr memory`
     * `ulong memoryOffset`
     * `uint deviceIndexCount`
     * `uint accelerationStructureCount`
@@ -7816,7 +7832,6 @@
     * `uint memoryClockFrequency`
     * `uint engineClockFrequency`
   * **struct VkGpaSessionAMD**
-  * **struct VkImage**
   * **struct VkImageBlit**
     * `VkImageSubresourceLayers srcSubresource`
     * `_srcOffsets_e__FixedBuffer srcOffsets`
@@ -7832,10 +7847,12 @@
     * `uint dstAccessMask`
     * `uint srcQueueFamilyIndex`
     * `uint dstQueueFamilyIndex`
+    * `IntPtr buffer`
     * `ulong offset`
     * `ulong size`
     * `VkImageLayout oldLayout`
     * `VkImageLayout newLayout`
+    * `IntPtr image`
     * `VkImageSubresourceRange subresourceRange`
   * **struct VkImageFormatProperties**
     * `VkExtent3D maxExtent`
@@ -7852,6 +7869,8 @@
     * `VkImageSubresourceLayers dstSubresource`
     * `VkOffset3D dstOffset`
     * `VkExtent3D extent`
+    * `IntPtr renderPass`
+    * `IntPtr framebuffer`
     * `VkRect2D renderArea`
     * `uint clearValueCount`
   * **struct VkImageSubresource**
@@ -7870,18 +7889,21 @@
     * `uint baseArrayLayer`
     * `uint layerCount`
     * `uint flags`
+    * `IntPtr image`
     * `VkImageViewType viewType`
     * `VkFormat format`
     * `VkComponentMapping components`
     * `VkImageSubresourceRange subresourceRange`
     * `uint queueFamilyIndex`
+    * `IntPtr commandPool`
     * `VkCommandBufferLevel level`
     * `uint commandBufferCount`
+    * `IntPtr renderPass`
     * `uint subpass`
+    * `IntPtr framebuffer`
     * `uint occlusionQueryEnable`
     * `uint queryFlags`
     * `uint pipelineStatistics`
-  * **struct VkImageView**
   * **struct VkIndirectCommandsExecutionSetTokenEXT**
     * `VkIndirectExecutionSetInfoTypeEXT type`
     * `uint shaderStages`
@@ -7890,6 +7912,7 @@
     * `uint offset`
     * `uint flags`
     * `uint indirectStride`
+    * `IntPtr pipelineLayout`
     * `uint tokenCount`
   * **struct VkIndirectCommandsIndexBufferTokenEXT**
     * `VkIndirectCommandsInputModeFlagBitsEXT mode`
@@ -7910,6 +7933,7 @@
     * `uint deviceGeneratedCommandsMultiDrawIndirectCount`
     * `uint maxSequenceCount`
     * `uint maxDrawCount`
+    * `IntPtr initialPipeline`
     * `uint maxPipelineCount`
     * `uint setLayoutCount`
     * `uint shaderCount`
@@ -7924,6 +7948,7 @@
     * `ulong preprocessSize`
     * `ulong sequenceCountAddress`
     * `uint index`
+    * `IntPtr pipeline`
   * **struct VkIndirectCommandsLayoutNV**
     * `uint maxGraphicsShaderGroupCount`
     * `uint maxIndirectSequenceCount`
@@ -7958,7 +7983,6 @@
     * `uint maxMultiviewViewCount`
     * `uint maxMultiviewInstanceIndex`
     * `uint shaderDrawParameters`
-  * **struct VkInstance**
   * **struct VkLayerProperties**
     * `_layerName_e__FixedBuffer layerName`
     * `uint specVersion`
@@ -7983,6 +8007,7 @@
     * `ulong indexBuffer`
     * `ulong indexStride`
     * `uint baseTriangle`
+    * `IntPtr micromap`
     * `uint maintenance10`
     * `uint rgba4OpaqueBlackSwizzled`
     * `uint resolveSrgbFormatAppliesTransferFunction`
@@ -8014,6 +8039,7 @@
     * `VkDeviceOrHostAddressConstKHR triangleArray`
     * `ulong triangleArrayStride`
     * `uint createFlags`
+    * `IntPtr buffer`
     * `ulong offset`
     * `ulong size`
     * `uint micromap`
@@ -8190,6 +8216,7 @@
     * `VkExtent2D maxFragmentDensityTexelSize`
     * `uint fragmentDensityInvocations`
     * `VkAttachmentReference fragmentDensityMapAttachment`
+    * `IntPtr imageView`
     * `VkImageLayout imageLayout`
     * `uint shaderCoreFeatures`
     * `uint activeComputeUnitCount`
@@ -8198,7 +8225,6 @@
     * `uint sparseImageInt64Atomics`
     * `_heapBudget_e__FixedBuffer heapBudget`
     * `_heapUsage_e__FixedBuffer heapUsage`
-  * **struct VkPhysicalDevice**
   * **struct VkPhysicalDeviceDataGraphOperationSupportARM**
     * `VkPhysicalDeviceDataGraphOperationTypeARM operationType`
     * `_name_e__FixedBuffer name`
@@ -8390,7 +8416,6 @@
     * `uint residencyStandard3DBlockShape`
     * `uint residencyAlignedMipSize`
     * `uint residencyNonResidentStrict`
-  * **struct VkPipeline**
   * **struct VkPipelineBinaryKHR**
     * `uint pipelineBinaries`
     * `uint pipelineBinaryInternalCache`
@@ -8401,7 +8426,6 @@
     * `uint disableInternalCache`
     * `uint keySize`
     * `_key_e__FixedBuffer key`
-  * **struct VkPipelineCache**
   * **struct VkPipelineCacheHeaderVersionDataGraphQCOM**
     * `uint headerSize`
     * `VkPipelineCacheHeaderVersion headerVersion`
@@ -8501,7 +8525,6 @@
     * `_description_e__FixedBuffer description`
     * `VkPipelineExecutableStatisticFormatKHR format`
     * `VkPipelineExecutableStatisticValueKHR value`
-  * **struct VkPipelineLayout**
   * **struct VkPresentStageTimeEXT**
     * `uint stage`
     * `ulong time`
@@ -8614,16 +8637,19 @@
     * `float maxLod`
     * `VkBorderColor borderColor`
     * `uint unnormalizedCoordinates`
+    * `IntPtr srcSet`
     * `uint srcBinding`
     * `uint srcArrayElement`
+    * `IntPtr dstSet`
     * `uint dstBinding`
     * `uint dstArrayElement`
     * `uint descriptorCount`
+    * `IntPtr buffer`
     * `ulong offset`
     * `ulong range`
+    * `IntPtr sampler`
+    * `IntPtr imageView`
     * `VkImageLayout imageLayout`
-  * **struct VkQueryPool**
-  * **struct VkQueue**
   * **struct VkQueueFamilyProperties**
     * `uint queueFlags`
     * `uint queueCount`
@@ -8647,6 +8673,7 @@
     * `uint rectangleCount`
     * `uint swapchainCount`
     * `uint sharedPresentSupportedUsageFlags`
+    * `IntPtr fence`
     * `uint flags`
     * `VkExternalFenceHandleTypeFlagBits handleType`
     * `int fd`
@@ -8659,7 +8686,6 @@
     * `_uuid_e__FixedBuffer uuid`
   * **struct VkRefreshCycleDurationGOOGLE**
     * `ulong refreshDuration`
-  * **struct VkRenderPass**
   * **struct VkRenderPassCreationFeedbackInfoEXT**
     * `uint postMergeSubpassCount`
   * **struct VkRenderPassSubpassFeedbackInfoEXT**
@@ -8689,9 +8715,11 @@
     * `VkSampleCountFlagBits sampleLocationsPerPixel`
     * `VkExtent2D sampleLocationGridSize`
     * `uint sampleLocationsCount`
-  * **struct VkSampler**
   * **struct VkSamplerYcbcrConversion**
+    * `IntPtr buffer`
+    * `IntPtr memory`
     * `ulong memoryOffset`
+    * `IntPtr image`
     * `uint prefersDedicatedAllocation`
     * `uint requiresDedicatedAllocation`
     * `uint flags`
@@ -8706,6 +8734,38 @@
     * `uint physicalDeviceCount`
     * `_physicalDevices_e__FixedBuffer physicalDevices`
     * `uint subsetAllocation`
+    * `IntPtr e0`
+    * `IntPtr e1`
+    * `IntPtr e2`
+    * `IntPtr e3`
+    * `IntPtr e4`
+    * `IntPtr e5`
+    * `IntPtr e6`
+    * `IntPtr e7`
+    * `IntPtr e8`
+    * `IntPtr e9`
+    * `IntPtr e10`
+    * `IntPtr e11`
+    * `IntPtr e12`
+    * `IntPtr e13`
+    * `IntPtr e14`
+    * `IntPtr e15`
+    * `IntPtr e16`
+    * `IntPtr e17`
+    * `IntPtr e18`
+    * `IntPtr e19`
+    * `IntPtr e20`
+    * `IntPtr e21`
+    * `IntPtr e22`
+    * `IntPtr e23`
+    * `IntPtr e24`
+    * `IntPtr e25`
+    * `IntPtr e26`
+    * `IntPtr e27`
+    * `IntPtr e28`
+    * `IntPtr e29`
+    * `IntPtr e30`
+    * `IntPtr e31`
     * `VkMemoryRequirements memoryRequirements`
     * `VkSparseImageMemoryRequirements memoryRequirements`
     * `VkPhysicalDeviceFeatures features`
@@ -8726,15 +8786,16 @@
     * `uint queueIndex`
     * `uint protectedSubmit`
     * `VkImageAspectFlagBits planeAspect`
-  * **struct VkSemaphore**
   * **struct VkSetStateFlagsIndirectCommandNV**
     * `uint data`
+    * `IntPtr buffer`
     * `ulong offset`
     * `VkIndirectCommandsTokenTypeNV tokenType`
     * `uint stream`
     * `uint offset`
     * `uint vertexBindingUnit`
     * `uint vertexDynamicStride`
+    * `IntPtr pushconstantPipelineLayout`
     * `uint pushconstantShaderStageFlags`
     * `uint pushconstantOffset`
     * `uint pushconstantSize`
@@ -8744,10 +8805,14 @@
     * `VkPipelineBindPoint pipelineBindPoint`
     * `uint tokenCount`
     * `uint streamCount`
+    * `IntPtr pipeline`
     * `uint sequencesCount`
+    * `IntPtr preprocessBuffer`
     * `ulong preprocessOffset`
     * `ulong preprocessSize`
+    * `IntPtr sequencesCountBuffer`
     * `ulong sequencesCountOffset`
+    * `IntPtr sequencesIndexBuffer`
     * `ulong sequencesIndexOffset`
     * `uint maxSequencesCount`
     * `uint inheritedViewportScissor2D`
@@ -8853,6 +8918,10 @@
     * `ulong accelerationStructure`
     * `VkDescriptorType type`
     * `VkDescriptorDataEXT data`
+    * `IntPtr image`
+    * `IntPtr imageView`
+    * `IntPtr sampler`
+    * `IntPtr accelerationStructure`
     * `nuint combinedImageSamplerDensityMapDescriptorSize`
     * `uint graphicsPipelineLibrary`
     * `uint graphicsPipelineLibraryFastLinking`
@@ -8895,7 +8964,6 @@
     * `uint colorAttachmentCount`
     * `VkFormat depthAttachmentFormat`
     * `VkFormat stencilAttachmentFormat`
-  * **struct VkShaderModule**
   * **struct VkShaderResourceUsageAMD**
     * `uint numUsedVgprs`
     * `uint numUsedSgprs`
@@ -8917,7 +8985,9 @@
     * `VkImageSubresource subresource`
     * `VkOffset3D offset`
     * `VkExtent3D extent`
+    * `IntPtr memory`
     * `ulong memoryOffset`
+    * `IntPtr image`
     * `uint bindCount`
   * **struct VkSparseImageMemoryRequirements**
     * `VkSparseImageFormatProperties formatProperties`
@@ -8927,9 +8997,12 @@
     * `ulong imageMipTailStride`
     * `ulong resourceOffset`
     * `ulong size`
+    * `IntPtr memory`
     * `ulong memoryOffset`
     * `uint flags`
+    * `IntPtr buffer`
     * `uint bindCount`
+    * `IntPtr image`
     * `uint waitSemaphoreCount`
     * `uint bufferBindCount`
     * `uint imageOpaqueBindCount`
@@ -8957,7 +9030,10 @@
     * `nuint dataSize`
     * `uint flags`
     * `VkShaderStageFlagBits stage`
+    * `IntPtr module`
     * `VkPipelineShaderStageCreateInfo stage`
+    * `IntPtr layout`
+    * `IntPtr basePipelineHandle`
     * `int basePipelineIndex`
   * **struct VkStencilOpState**
     * `VkStencilOp failOp`
@@ -8987,6 +9063,7 @@
     * `VkImageLayout imageLayout`
     * `VkOffset3D imageOffset`
     * `VkExtent3D imageExtent`
+    * `IntPtr image`
     * `ulong srcStageMask`
     * `ulong srcAccessMask`
     * `ulong dstStageMask`
@@ -9094,6 +9171,8 @@
     * `uint swapchainCount`
     * `uint imageIndex`
     * `ulong timeout`
+    * `IntPtr semaphore`
+    * `IntPtr fence`
     * `uint deviceMask`
     * `_presentMask_e__FixedBuffer presentMask`
     * `uint modes`
@@ -9129,6 +9208,7 @@
     * `ulong flags`
     * `VkSharingMode sharingMode`
     * `uint queueFamilyIndexCount`
+    * `IntPtr memory`
     * `ulong memoryOffset`
     * `uint tensorViewCount`
     * `ulong optimalTilingTensorFeatures`
@@ -9411,6 +9491,8 @@
     * `VkExternalMemoryHandleTypeFlagBits handleType`
     * `int fd`
     * `uint memoryTypeBits`
+    * `IntPtr memory`
+    * `IntPtr semaphore`
     * `uint flags`
     * `VkExternalSemaphoreHandleTypeFlagBits handleType`
   * **struct VkVideoEncodeH265QpKHR**
@@ -9476,9 +9558,11 @@
     * `VkOffset2D codedOffset`
     * `VkExtent2D codedExtent`
     * `uint baseArrayLayer`
+    * `IntPtr imageViewBinding`
     * `int slotIndex`
     * `uint memoryBindIndex`
     * `VkMemoryRequirements memoryRequirements`
+    * `IntPtr memory`
     * `ulong memoryOffset`
     * `ulong memorySize`
     * `uint queueFamilyIndex`
@@ -9487,6 +9571,7 @@
     * `uint updateSequenceCount`
     * `uint referenceSlotCount`
     * `uint videoUsageHints`
+    * `IntPtr srcBuffer`
     * `ulong srcBufferOffset`
     * `ulong srcBufferRange`
     * `VkVideoPictureResourceInfoKHR dstPictureResource`
@@ -9563,17 +9648,18 @@
     * `float maxContentLightLevel`
     * `float maxFrameAverageLightLevel`
     * `uint relaxedLineRasterization`
-  * **struct VmaAllocation**
   * **struct VmaAllocationInfo2**
     * `VmaAllocationInfo allocationInfo`
     * `ulong blockSize`
     * `uint dedicatedMemory`
     * `uint flags`
+    * `IntPtr pool`
     * `ulong maxBytesPerPass`
     * `uint maxAllocationsPerPass`
     * `VmaDefragmentationMoveOperation operation`
+    * `IntPtr srcAllocation`
+    * `IntPtr dstTmpAllocation`
     * `uint moveCount`
-  * **struct VmaAllocator**
   * **struct VmaBudget**
     * `VmaStatistics statistics`
     * `ulong usage`
@@ -9583,6 +9669,7 @@
     * `uint requiredFlags`
     * `uint preferredFlags`
     * `uint memoryTypeBits`
+    * `IntPtr pool`
     * `float priority`
     * `ulong minAlignment`
     * `uint memoryTypeIndex`
@@ -9591,9 +9678,9 @@
     * `nuint maxBlockCount`
     * `ulong minAllocationAlignment`
     * `uint memoryType`
+    * `IntPtr deviceMemory`
     * `ulong offset`
     * `ulong size`
-  * **struct VmaDefragmentationContext**
   * **struct VmaDefragmentationStats**
     * `ulong bytesMoved`
     * `ulong bytesFreed`
@@ -9610,7 +9697,6 @@
     * `ulong allocationSizeMax`
     * `ulong unusedRangeSizeMin`
     * `ulong unusedRangeSizeMax`
-  * **struct VmaPool**
   * **struct VmaStatistics**
     * `uint blockCount`
     * `uint allocationCount`
@@ -9620,11 +9706,6 @@
     * `_memoryType_e__FixedBuffer memoryType`
     * `_memoryHeap_e__FixedBuffer memoryHeap`
     * `VmaDetailedStatistics total`
-  * **struct VmaVirtualAllocation**
-  * **struct VmaVirtualBlock**
-    * `uint flags`
-    * `ulong preferredLargeHeapBlockSize`
-    * `uint vulkanApiVersion`
   * **struct _FeatureData_e__FixedBuffer**
     * `short e0_0`
   * **struct _FeatureEnabled_e__FixedBuffer**
@@ -9691,7 +9772,13 @@
     * `byte e0`
   * **struct __IOSurface**
     * `VkExportMetalObjectTypeFlagBitsEXT exportObjectType`
+    * `IntPtr queue`
+    * `IntPtr memory`
+    * `IntPtr image`
+    * `IntPtr imageView`
+    * `IntPtr bufferView`
     * `VkImageAspectFlagBits plane`
+    * `IntPtr semaphore`
     * `VkExternalMemoryHandleTypeFlagBits handleType`
     * `uint memoryTypeBits`
     * `uint flags`
@@ -9701,6 +9788,7 @@
     * `VkExternalSemaphoreHandleTypeFlagBits handleType`
     * `uint waitSemaphoreValuesCount`
     * `uint signalSemaphoreValuesCount`
+    * `IntPtr fence`
     * `VkExternalFenceHandleTypeFlagBits handleType`
     * `uint handleType`
     * `VkFullScreenExclusiveEXT fullScreenExclusive`
@@ -9752,7 +9840,10 @@
     * `uint viewportCount`
     * `uint scissorCount`
     * `uint stageCount`
+    * `IntPtr layout`
+    * `IntPtr renderPass`
     * `uint subpass`
+    * `IntPtr basePipelineHandle`
     * `int basePipelineIndex`
   * **struct _category_e__FixedBuffer**
     * `sbyte e0`
@@ -9794,6 +9885,8 @@
   * **struct _color_e__FixedBuffer**
     * `float e0`
     * `uint dedicatedAllocation`
+    * `IntPtr image`
+    * `IntPtr buffer`
     * `uint transformFeedback`
     * `uint geometryStreams`
     * `uint maxTransformFeedbackStreams`
@@ -9844,6 +9937,7 @@
     * `uint fragmentShadingRateStrictMultiplyCombiner`
     * `uint sampleCounts`
     * `VkExtent2D fragmentSize`
+    * `IntPtr imageView`
     * `VkImageLayout imageLayout`
     * `VkExtent2D shadingRateAttachmentTexelSize`
     * `uint shaderConstantData`
@@ -9854,6 +9948,7 @@
     * `uint supportsProtected`
     * `uint presentWait`
     * `uint pipelineExecutableInfo`
+    * `IntPtr pipeline`
     * `uint stages`
     * `_name_e__FixedBuffer name`
     * `_description_e__FixedBuffer description`
@@ -9909,12 +10004,14 @@
     * `uint waitSemaphoreCount`
     * `uint commandBufferCount`
     * `uint signalSemaphoreCount`
+    * `IntPtr memory`
     * `ulong offset`
     * `ulong size`
     * `ulong allocationSize`
     * `uint memoryTypeIndex`
     * `uint queueFamilyIndex`
     * `uint counterIndexCount`
+    * `IntPtr pipeline`
     * `uint executableIndex`
     * `_name_e__FixedBuffer name`
     * `_description_e__FixedBuffer description`
@@ -9924,6 +10021,7 @@
     * `uint swapchainCount`
     * `uint presentId`
     * `uint flags`
+    * `IntPtr dstBuffer`
     * `ulong dstBufferOffset`
     * `ulong dstBufferRange`
     * `VkVideoPictureResourceInfoKHR srcPictureResource`
@@ -9983,6 +10081,7 @@
     * `uint negativeOneToOne`
     * `uint primitiveTopologyListRestart`
     * `uint primitiveTopologyPatchListRestart`
+    * `IntPtr renderPass`
     * `uint subpass`
     * `uint subpassShading`
     * `uint maxSubpassShadingWorkgroupSizeAspectRatio`
@@ -10163,11 +10262,14 @@
     * `uint signalSemaphoreValueCount`
     * `uint flags`
     * `uint semaphoreCount`
+    * `IntPtr semaphore`
     * `ulong value`
     * `uint bufferDeviceAddress`
     * `uint bufferDeviceAddressCaptureReplay`
     * `uint bufferDeviceAddressMultiDevice`
+    * `IntPtr buffer`
     * `ulong opaqueCaptureAddress`
+    * `IntPtr memory`
     * `uint storageBuffer8BitAccess`
     * `uint uniformAndStorageBuffer8BitAccess`
     * `uint storagePushConstant8`
@@ -10296,7 +10398,9 @@
     * `byte e0`
   * **struct _dstOffsets_e__FixedBuffer**
     * `VkOffset3D e0`
+    * `IntPtr srcImage`
     * `VkImageLayout srcImageLayout`
+    * `IntPtr dstImage`
     * `VkImageLayout dstImageLayout`
     * `uint regionCount`
     * `VkFilter filter`
@@ -10305,8 +10409,10 @@
     * `VkImageSubresourceLayers dstSubresource`
     * `VkOffset3D dstOffset`
     * `VkExtent3D extent`
+    * `IntPtr imageView`
     * `VkImageLayout imageLayout`
     * `VkResolveModeFlagBits resolveMode`
+    * `IntPtr resolveImageView`
     * `VkImageLayout resolveImageLayout`
     * `VkAttachmentLoadOp loadOp`
     * `VkAttachmentStoreOp storeOp`
@@ -10452,6 +10558,7 @@
     * `byte e0`
     * `nuint dataSize`
     * `uint binaryCount`
+    * `IntPtr pipeline`
     * `uint pipelineBinaryCount`
     * `VkPresentModeKHR presentMode`
     * `uint supportedPresentScaling`
@@ -10501,18 +10608,22 @@
     * `ulong dstAccessMask`
     * `uint srcQueueFamilyIndex`
     * `uint dstQueueFamilyIndex`
+    * `IntPtr buffer`
     * `ulong offset`
     * `ulong size`
     * `VkImageLayout oldLayout`
     * `VkImageLayout newLayout`
+    * `IntPtr image`
     * `VkImageSubresourceRange subresourceRange`
     * `uint dependencyFlags`
     * `uint memoryBarrierCount`
     * `uint bufferMemoryBarrierCount`
     * `uint imageMemoryBarrierCount`
+    * `IntPtr semaphore`
     * `ulong value`
     * `ulong stageMask`
     * `uint deviceIndex`
+    * `IntPtr commandBuffer`
     * `uint deviceMask`
     * `uint waitSemaphoreInfoCount`
     * `uint commandBufferInfoCount`
@@ -10520,13 +10631,17 @@
     * `uint synchronization2`
     * `ulong srcOffset`
     * `ulong dstOffset`
+    * `IntPtr srcBuffer`
+    * `IntPtr dstBuffer`
     * `uint regionCount`
     * `VkImageSubresourceLayers srcSubresource`
     * `VkOffset3D srcOffset`
     * `VkImageSubresourceLayers dstSubresource`
     * `VkOffset3D dstOffset`
     * `VkExtent3D extent`
+    * `IntPtr srcImage`
     * `VkImageLayout srcImageLayout`
+    * `IntPtr dstImage`
     * `VkImageLayout dstImageLayout`
     * `ulong bufferOffset`
     * `uint bufferRowLength`
@@ -10639,6 +10754,7 @@
     * `uint sliceOffset`
     * `uint sliceCount`
     * `uint descriptorSetHostMapping`
+    * `IntPtr descriptorSetLayout`
     * `uint binding`
     * `nuint descriptorOffset`
     * `uint descriptorSize`
@@ -10704,6 +10820,7 @@
     * `uint tileBufferTransfers`
     * `ulong size`
     * `ulong alignment`
+    * `IntPtr memory`
     * `uint counterAddressCount`
     * `uint serializeRegions`
     * `uint counterIndexCount`
@@ -10719,9 +10836,12 @@
     * `VkOffset3D imageOffset`
     * `VkExtent3D imageExtent`
     * `uint flags`
+    * `IntPtr dstImage`
     * `VkImageLayout dstImageLayout`
     * `uint regionCount`
+    * `IntPtr srcImage`
     * `VkImageLayout srcImageLayout`
+    * `IntPtr image`
     * `VkImageLayout oldLayout`
     * `VkImageLayout newLayout`
     * `VkImageSubresourceRange subresourceRange`
@@ -10735,6 +10855,7 @@
     * `ulong flags`
     * `uint maxPushDescriptors`
     * `uint stageFlags`
+    * `IntPtr layout`
     * `uint firstSet`
     * `uint descriptorSetCount`
     * `uint dynamicOffsetCount`
@@ -10782,6 +10903,7 @@
   * **struct _pipelineCacheUUID_e__FixedBuffer**
     * `byte e0`
     * `uint flags`
+    * `IntPtr buffer`
     * `VkFormat format`
     * `ulong offset`
     * `ulong range`
@@ -10870,6 +10992,7 @@
     * `VkQueueGlobalPriority e0`
     * `uint indexTypeUint8`
     * `uint flags`
+    * `IntPtr memory`
     * `ulong offset`
     * `ulong size`
     * `uint maintenance5`
@@ -10924,6 +11047,7 @@
     * `uint stdSyntaxFlags`
     * `StdVideoAV1Profile stdProfile`
     * `uint videoMaintenance1`
+    * `IntPtr queryPool`
     * `uint firstQuery`
     * `uint queryCount`
     * `uint unifiedImageLayouts`
@@ -10931,6 +11055,7 @@
     * `uint feedbackLoopEnable`
     * `VkTimeDomainKHR timeDomain`
     * `uint stageFlags`
+    * `IntPtr layout`
     * `uint firstSet`
     * `uint setCount`
     * `uint set`

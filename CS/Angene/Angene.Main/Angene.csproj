@@ -30,6 +30,7 @@
 		<Compile Include="Implementations\WaylandInput.cs" />
 		<Compile Include="Implementations\WaylandInputHandler.cs" />
 		<Compile Include="Main\Engine.cs" />
+		<Compile Include="Main\EntryPoint.cs" />
 		<Compile Include="Main\Window.cs" />
 		<Compile Include="Main\LogConsoleWindow.cs" />
 		<Compile Include="Main\PkgHandler.cs" />
@@ -56,13 +57,14 @@
 	  <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
 	  <ProjectReference Include="..\Angene.Graphics\Angene.Graphics.csproj" />
 	  <ProjectReference Include="..\Angene.Management\Angene.Management.csproj" />
-	  <ProjectReference Include="..\Angene.Linux\Angene.Linux.csproj" />
-	  <ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(AngenePlatform)' == 'Windows'">
 		<ProjectReference Include="..\Angene.Windows\Angene.Windows.csproj" />
 	</ItemGroup>
+    <ItemGroup Condition="'$(AngenePlatform)' != 'Windows'">
+        <ProjectReference Include="..\Angene.Linux\Angene.Linux.csproj" />
+    </ItemGroup>
 
     <Target Name="MoveBinariesToBuild" AfterTargets="Build">
       <ItemGroup>

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Angene.Common;
 using Angene.Essentials;
 using Angene.Essentials.Components;
+using Angene.Extensions.Input;
 using Angene.Math.Vectors;
 using Latin1 = Angene.Linux.X11.X11InputKeys.IKeyCodeLangLinux.IKeyCodeLatin1;
 using CursorKeys = Angene.Linux.X11.X11InputKeys.IKeyCodeCursorControlLinux;
@@ -16,8 +17,10 @@ namespace Game
 {
     public class CameraControllerScript : IScreenPlay
     {
-        private Transform3D _transform;
+        private Transform3D _transform, _parentTransform;
         internal VulkanCamera _camera;
+        internal Entity cameraEntity;
+        private Vec3 rotation;
 
         // Kept outside the components because VulkanCamera stores a raw forward vector,
         // not yaw/pitch angles -- these are the "source of truth" for orientation and we
@@ -34,13 +37,15 @@ namespace Game
         private KeyDetection keyDetection = new KeyDetection();
         private MouseDetection mouseDetection = new MouseDetection();
 
-        public void Initialize(Entity cameraEntity)
+        public void Initialize(Entity cameraEntity, Entity cameraParent)
         {
             if (cameraEntity == null)
                 throw new ArgumentNullException(nameof(cameraEntity));
+            this.cameraEntity = cameraEntity;
 
             _transform = cameraEntity.GetComponent<Transform3D>();
-            _camera = cameraEntity.GetComponent<VulkanCamera>();
+            _parentTransform = cameraParent.GetComponent<Transform3D>();
+            _camera = (VulkanCamera)cameraEntity.GetComponent<OpenXRHmd>().cam;
 
             if (_transform == null || _camera == null)
             {
@@ -50,13 +55,11 @@ namespace Game
                 return;
             }
 
-
-            keyDetection.Register(cameraEntity);
+            keyDetection.Register();
             mouseDetection.Register(cameraEntity);
             
-            Vec3 f = _camera.forward;
-            _yaw = MathF.Atan2(f.X, f.Z);
-            _pitch = MathF.Asin(Math.Clamp(f.Y, -1.0f, 1.0f));
+            _yaw = 0;
+            _pitch = 0;
         }
 
         public void Start()
@@ -72,33 +75,28 @@ namespace Game
             float delta = (float)dt;
 
             // --- Look (arrow keys) ---
-            if (KeyDetection.IsKeyDown((uint)CursorKeys.Left))
-                _yaw -= LookSpeed * delta;
             if (KeyDetection.IsKeyDown((uint)CursorKeys.Right))
                 _yaw += LookSpeed * delta;
+            if (KeyDetection.IsKeyDown((uint)CursorKeys.Left))
+                _yaw -= LookSpeed * delta;
             if (KeyDetection.IsKeyDown((uint)CursorKeys.Up))
                 _pitch += LookSpeed * delta;
             if (KeyDetection.IsKeyDown((uint)CursorKeys.Down))
                 _pitch -= LookSpeed * delta;
-            _pitch = Math.Clamp(_pitch, -PitchLimit, PitchLimit);
-
-            Vec3 forward = new Vec3(
-                MathF.Sin(_yaw) * MathF.Cos(_pitch),
-                MathF.Sin(_pitch),
-                MathF.Cos(_yaw) * MathF.Cos(_pitch)
-            ).Normalized;
+            
+            _parentTransform.rot = new Vec3(-_pitch, _yaw, 0);
+            Vec3 forward = new Vec3(MathF.Sin(_yaw)*MathF.Cos(_pitch), MathF.Sin(_pitch), MathF.Cos(_yaw)*MathF.Cos(_pitch));
 
             Vec3 worldUp = new Vec3(0, 1, 0);
-            Vec3 right = Vec3.Cross(forward, worldUp).Normalized;
+            Vec3 right = Vec3.Cross(worldUp, forward).Normalized;
 
-            // --- Move (WASD + Space/C for vertical) ---
             Vec3 move = new Vec3(0, 0, 0);
-            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.w)) move += forward;
-            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.s)) move -= forward;
-            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.d)) move += right;
-            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.a)) move -= right;
-            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.space)) move += worldUp;
-            if (Angene.Input.KeyDetection.IsKeyDown((uint)Latin1.c)) move -= worldUp;
+            if (KeyDetection.IsKeyDown((uint)Latin1.w)) move += forward;   // restored
+            if (KeyDetection.IsKeyDown((uint)Latin1.s)) move -= forward;   // restored
+            if (KeyDetection.IsKeyDown((uint)Latin1.d)) move += right;
+            if (KeyDetection.IsKeyDown((uint)Latin1.a)) move -= right;
+            if (KeyDetection.IsKeyDown((uint)Latin1.space)) move += worldUp;
+            if (KeyDetection.IsKeyDown((uint)Latin1.c)) move -= worldUp;
             
             (float, float) pos = MouseDetection.GetPosition();
             bool kleft = false;
@@ -132,11 +130,7 @@ namespace Game
             }
 
             if (move.Length > 0.0001f)
-                _transform.pos += move.Normalized * (MoveSpeed * delta);
-
-            // Push the recalculated orientation back onto the VulkanCamera component.
-            _camera.forward = forward;
-            _camera.up = worldUp;
+                _parentTransform.pos = _parentTransform.pos + move.Normalized * (MoveSpeed * delta);
         }
     }
 }

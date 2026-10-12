@@ -1,17 +1,12 @@
+using Angene.Essentials.Components;
+using Angene.Math.Vectors;
 using static Angene.Vulkan.Interop.Enumerators;
 using static Angene.Vulkan.Interop.Structs;
+#if WINDOWS
 using static Angene.Windows.Dxgi.DxgiEnums;
+#endif
 
 namespace Angene.Essentials.GraphicsContexts;
-
-    // Abstract interface for platform-specific graphics
-    public struct InputElement
-    {
-        public string SemanticName;
-        public uint SemanticIndex;
-        public DXGI_FORMAT Format;
-        public uint ByteOffset;
-    }
 
     public interface IGraphicsContext
     {
@@ -22,6 +17,16 @@ namespace Angene.Essentials.GraphicsContexts;
         bool isDisposed();
         void Resize(int width, int height);
         byte[] GetRawPixels();
+    }
+
+#if WINDOWS
+    // Abstract interface for platform-specific graphics
+    public struct InputElement
+    {
+        public string SemanticName;
+        public uint SemanticIndex;
+        public DXGI_FORMAT Format;
+        public uint ByteOffset;
     }
 
     public interface IDX11GraphicsContext : IGraphicsContext
@@ -54,6 +59,7 @@ namespace Angene.Essentials.GraphicsContexts;
             uint vertexCount);
         void EndFrame();
     }
+#endif
 
     public interface IVkGraphicsContext : IGraphicsContext
     {
@@ -77,19 +83,23 @@ namespace Angene.Essentials.GraphicsContexts;
         IntPtr VkRenderPass { get; }
         IntPtr VkFramebuffer { get; }
         IntPtr VkPipeline { get; }
+        IntPtr VkPipelineLayout
+        { get; }
         IntPtr VkSemaphoreImageAvailable { get; }
         IntPtr VkSemaphoreRenderFinished { get; }
         IntPtr VkFenceInFlight { get; }
+        Types.AppInfo CurrentAppInfo { get; }
 
         // IGraphicsContext
         IntPtr Handle => (IntPtr)VkDevice;
         IntPtr ContextHandle => (IntPtr)VkInstance;
+        
+        public Types.QueueFamilyIndices? queueFamilyIndices { get; }
 
         // Resource creation
         IntPtr CreateVertexBuffer(byte[] data, uint strideBytes);
         IntPtr CreateIndexBuffer(uint[] indices);
-        IntPtr CreatePipeline(IntPtr vertexShaderModule, IntPtr fragmentShaderModule,
-                      VkVertexInputAttributeDescription[] attributes, uint strideBytes);
+        IntPtr CreatePipeline(VkVertexInputAttributeDescription[] attributes, uint strideBytes);
 
         // Per-draw state
         void DestroyBuffer(IntPtr bufferHandle);
@@ -100,9 +110,12 @@ namespace Angene.Essentials.GraphicsContexts;
         void SetPipeline(IntPtr pipeline);
         void Draw(uint vertexCount, uint startVertex = 0);
         void DrawIndexed(uint indexCount, uint startIndex = 0, int baseVertex = 0);
+        void RenderXrFrame(Vec3 rigpos, VulkanCamera camera, Action<int, Matrix4x4, Matrix4x4> drawScene);
+        void SetXrObjects(OpenXRController leftController, OpenXRController rightController);
+        void SetScene(IScene scene);
 
         // Frame lifecycle
-        void BeginFrame(uint clearColor);
+        void BeginFrame(uint clearColor = 0x00000000);
         void EndFrame();
     }
     

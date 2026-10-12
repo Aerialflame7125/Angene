@@ -13,21 +13,7 @@ using static Angene.Vulkan.Interop.Enumerators;
 
 namespace Game
 {
-    public class Instances
-    {
-        public Engine engine;
-        public Settings settings;
-        public bool verbose;
-
-        public void MakeInstances(bool verbose)
-        {
-            engine = Engine.Instance;
-            engine.Init(new Types.AppInfo("CameraTest Angene", 0.1f, "Aerial", "Aerial", VkPresentModeKHR.VK_PRESENT_MODE_IMMEDIATE_KHR), verbose); // scans this assembly for [Precompile] shaders (Shaders.cs) and starts compiling them
-            settings = engine.settingsInstance;
-        }
-    }
-
-    public class Program
+    public class Program : EntryPoint
     {
         public static Instances instances;
         private static DateTime lastFrame;
@@ -59,7 +45,7 @@ namespace Game
                 return 1;
             }
         }
-        
+
         private static void RunGame(bool verbose)
         {
             try
@@ -68,7 +54,7 @@ namespace Game
                 t.Start();
 
                 instances = new Instances();
-                instances.MakeInstances(verbose);
+                instances.MakeInstances(verbose, new Types.AppInfo("CameraTest Angene", 0.1f, "Aerial", "Aerial", VkPresentModeKHR.VK_PRESENT_MODE_IMMEDIATE_KHR));
 
                 Logger.LogInfo($"Detected platform: {PlatformDetection.CurrentPlatform}", LoggingTarget.MainGame);
 
@@ -80,9 +66,10 @@ namespace Game
                 {
                     foreach (Window window in Engine.Instance.OpenWindows)
                         window.RenderFrame();
-                    
+
                     Engine.Instance.FlushPendingCloses();
                 }
+
                 Logger.LogImportant("Shader precompilation finished.", LoggingTarget.MainGame);
 
                 double dt = 0.0d;
@@ -92,40 +79,23 @@ namespace Game
                     Height = 720,
                     Title = "Angene Camera Test",
                     renderMode = Angene.Graphics.RenderType.Vulkan,
-                    UseWayland = false
+                    UseWayland = false,
+                    UsingOpenXR = true
                 };
                 Window win = new Window(config);
 
-                string materialsPackagePath = Path.Combine(AppContext.BaseDirectory, "Assets", "CameraMaterials.angpkg");
-                var scene = new Game.Scenes.CameraTestScene(win, materialsPackagePath);
+                var scene = new Game.Scenes.CameraTestScene(win);
                 win.SetScene(scene);
-                Logger.LogDebug($"OpenWindows count after creation: {Engine.Instance.OpenWindows.Count}", LoggingTarget.Engine);
+                Logger.LogDebug($"OpenWindows count after creation: {Engine.Instance.OpenWindows.Count}",
+                    LoggingTarget.Engine);
 
-                RunMessageLoop(ref dt, win, scene);
+                RunMessageLoop(ref dt, ref lastFrame, [win]);
                 Logger.LogInfo("Cleanup complete.", LoggingTarget.Engine);
             }
             catch (Exception e)
             {
                 Logger.LogCritical($"Error in main constructor: {e.Message}", LoggingTarget.MainConstructor, e, true);
             }
-        }
-
-        private static void RunMessageLoop(ref double dt, Window win, IScene scene)
-        {
-            while (!Engine.Instance.ShouldShutdown)
-            {
-                    bool a = win.ProcessMessages(win.Handle);
-
-                    dt = (DateTime.Now - lastFrame).TotalSeconds;
-                    lastFrame = DateTime.Now;
-
-                Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
-                Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
-                win.RenderFrame();
-                Thread.Sleep(16);
-            }
-            win.Cleanup();
-            Lifecycle.ScriptBinding.ShutdownEngine();
         }
     }
 }

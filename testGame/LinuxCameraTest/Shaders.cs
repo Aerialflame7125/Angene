@@ -2,37 +2,37 @@ using System;
 using Angene.Common;
 using Angene.Graphics.SlangShader;
 using static Angene.Common.Attributes;
-using static Angene.Essentials.GraphicsContexts.SlangShaderResources;   // Required for NativeSlangMemoryCompiler
+using static Angene.Essentials.GraphicsContexts.SlangShaderResources;
 
 namespace Game
 {
-    // NOTE ON THE CAMERA MATH:
-    // Angene's Vulkan backend (as of this branch) creates a single pipeline layout with
-    // pushConstantRangeCount = 0 and never binds a descriptor set, so there is currently no
-    // GPU-side path to upload a view/projection matrix into these shaders. Instead,
-    // CameraTestScene multiplies every vertex by Model * View * Projection on the CPU each
-    // frame (using Angene.Essentials.Components.VulkanCamera + Transform3D), performs the
-    // perspective divide itself, and uploads already-NDC positions. That's why this vertex
-    // shader just forwards the incoming position through as clip-space with w = 1 — the
-    // "transform" work has already happened before the vertex buffer was built.
     public class Shaders
     {
         [Precompile]
         public class VertexShader : IShader
         {
             public string Name => "VertexShader";
-            public bool VerboseLog { get; set; } = false;
+            public bool verboseLog { get; set; } = true;
 
-            public int id => 1;
+            public int id => 5;
             public string Extension => "hlsl";
-            public string EntryPoint { get; set; } = "vertexMain";
+            public string EntryPoint { get; set; } = "main";
             public ShaderType Type => ShaderType.Vertex;
             public bool compileToFile { get; } = false;
             public bool IsDisposed { get; private set; }
 
             ShaderOrigin IShader.Origin => ShaderOrigin.Vulkan;
+            public ShaderQueue Queue => ShaderQueue.Geometry;
+            
+            public string code => @"struct PushData
+{
+    row_major float4x4 view;
+    row_major float4x4 proj;
+};
 
-            public string Code => @"struct VSInput
+[[vk::push_constant]] ConstantBuffer<PushData> pc;
+
+struct VSInput
 {
     float3 position : POSITION;
     float4 color : COLOR;
@@ -42,16 +42,17 @@ struct VSOutput
     float4 position : SV_Position;
     float4 color : COLOR;
 };
-VSOutput vertexMain(VSInput input)
+VSOutput main(VSInput input)
 {
     VSOutput output;
-    output.position = float4(input.position, 1.0);
+    float4 viewPos = mul(pc.view, float4(input.position, 1.0));
+    output.position = mul(pc.proj, viewPos);
     output.color = input.color;
     return output;
 }";
             public byte[] byteCode => null;
 
-            public void Bind() { /* binding is handled by IDX11GraphicsContext.SetShader */ }
+            public void Bind() { }
 
             public string OutputDebugInfo(bool log = true)
             {
@@ -67,27 +68,28 @@ VSOutput vertexMain(VSInput input)
         public class FragmentShader : IShader
         {
             public string Name => "FragmentShader";
-            public bool VerboseLog { get; set; } = false;
+            public bool verboseLog { get; set; } = true;
 
             public int id => 2;
             public string Extension => "hlsl";
-            public string EntryPoint { get; set; } = "fragmentMain";
+            public string EntryPoint { get; set; } = "main";
             public ShaderType Type => ShaderType.Fragment;
             public bool compileToFile { get; } = false;
             public bool IsDisposed { get; private set; }
 
             ShaderOrigin IShader.Origin => ShaderOrigin.Vulkan;
+            public ShaderQueue Queue => ShaderQueue.Geometry;
 
-            public string Code => @"struct VertexOutput {
+            public string code => @"struct VertexOutput {
     float4 position : SV_Position;
     float4 color : COLOR;
 };
-float4 fragmentMain(VertexOutput input) : SV_Target {
+float4 main(VertexOutput input) : SV_Target {
     return input.color;
 }";
             public byte[] byteCode => null;
 
-            public void Bind() { /* binding is handled by IDX11GraphicsContext.SetShader */ }
+            public void Bind() { }
 
             public string OutputDebugInfo(bool log = true)
             {

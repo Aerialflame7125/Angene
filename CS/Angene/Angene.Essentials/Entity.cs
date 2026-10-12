@@ -27,9 +27,31 @@ namespace Angene.Essentials
         // Transform
         public Transform3D Transform
         {
-            get => GetComponent<Transform3D>() ?? AddComponent<Transform3D>();
-            set => AddComponent(value);
+            get
+            {
+                OpenXRController cont = GetComponent<OpenXRController>();
+                if (cont == null)
+                {
+                    Transform3D transform = GetComponent<Transform3D>();
+                    if (transform == null)
+                        return AddComponent<Transform3D>();
+                    return transform;
+                }
+                else
+                {
+                    return cont.ControllerTransform;
+                }
+            }
+            set
+            {
+                OpenXRController cont = GetComponent<OpenXRController>();
+                if (cont == null)
+                    AddComponent(value);
+            }
         }
+        
+        public Matrix4x4 GetWorldMatrix() =>
+            _parent == null ? Transform.GetMatrix() : _parent.GetWorldMatrix() * Transform.GetMatrix();
 
         // Script instances and components attached to this entity
         private List<object> _scripts;
@@ -244,6 +266,7 @@ namespace Angene.Essentials
                 );
                 return instance!;
             }
+
  
             var type = typeof(T);
  
@@ -256,7 +279,7 @@ namespace Angene.Essentials
             }
  
             _components[type] = instance;
- 
+            
             Logger.LogDebug(
                 $"Component '{type.Name}' added to entity '{name}'",
                 LoggingTarget.Engine

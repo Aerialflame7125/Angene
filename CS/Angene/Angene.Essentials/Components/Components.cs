@@ -1,42 +1,103 @@
+using System.Runtime.CompilerServices;
+using Angene.Common;
 using Angene.Math.Vectors;
 using static Angene.Essentials.Types;
 
 namespace Angene.Essentials.Components;
-public class Transform3D
+
+public class Component
 {
-    public Vec3 pos = new(0.0f, 0.0f, 0.0f);
-    public Vec3 rot = new(0.0f, 0.0f, 0.0f);
-    public Vec3 scale = new(1.0f, 1.0f, 1.0f);
-
-    public Matrix4x4 ModelView;
-    public Matrix4x4 Proj;
-
-    public Matrix4x4 GetMatrix()
+    public readonly struct ComponentHandle<T> where T : class
     {
-        Matrix4x4 rotation = Matrix4x4.RotationZ(rot.Z) 
-                        * Matrix4x4.RotationY(rot.Y) 
-                        * Matrix4x4.RotationX(rot.X);
-    return Matrix4x4.Translation(pos) * rotation * Matrix4x4.Scale(scale);
-    }
-
-    public Transform3D() {}
-
-    public Transform3D(Transform3D buh)
-    {
-        pos = buh.pos;
-        rot = buh.rot;
-        scale = buh.scale;
-    }
-
-    public Transform3D(Vec3 _pos, Vec3 _rot, Vec3 _scale)
-    {
-        pos = _pos;
-        rot = _rot;
-        scale = _scale;
+        private readonly Entity _entity;
+        public ComponentHandle(Entity e) => _entity = e;
+        public bool IsValid => _entity != null && _entity.HasComponent<T>();
+        public T Value => _entity.GetComponent<T>()
+                          ?? throw new InvalidOperationException($"'{_entity.name}' has no {typeof(T).Name}.");
     }
 }
 
-public class Transform2D {
+public class OpenXRHmd : Component
+{
+    public object cam { get; private set; }
+    public Entity head;
+
+    public OpenXRHmd(VulkanCamera cam)
+    {
+        this.cam = cam;
+        head = new Entity(new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "Head");
+    }
+
+    public OpenXRHmd(D3D11Camera cam)
+    {
+        this.cam = cam;
+        head = new Entity(new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "Head");
+    }
+}
+
+public class OpenXRController : Component
+{
+    public bool ControllerGrabbed { get; internal set; }
+    private ControllerType type { get; }
+
+    public Transform3D ControllerTransform { get; private set; } =
+        new Transform3D(new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1));
+
+    public enum ControllerType
+    {
+        Left,
+        Right
+    }
+
+    public OpenXRController(ControllerType type)
+    {
+        this.type = type;
+    }
+
+    public void SetControllerData(bool controllerGrabbed, Transform3D transform)
+    {
+        ControllerGrabbed = controllerGrabbed;
+        ControllerTransform = transform;
+    }
+}
+
+public class Transform3D : Component
+{
+    private Vec3 _pos, _rot, _scale = new(1f, 1f, 1f);
+    private Matrix4x4 _local;
+    private bool _dirty = true;
+
+    public int Version { get; private set; }
+
+    public Vec3 pos { get => _pos; set { _pos = value; Touch(); } }
+    public Vec3 rot { get => _rot; set { _rot = value; Touch(); } }
+    public Vec3 scale { get => _scale; set { _scale = value; Touch(); } }
+
+    private void Touch() { _dirty = true; Version++; }
+
+    public void ForceSetTransformVar(Vec3 p, Vec3 r, Vec3 s)
+    { _pos = p; _rot = r; _scale = s; Touch(); }
+
+    public Matrix4x4 GetMatrix()
+    {
+        if (_dirty)
+        {
+            Matrix4x4 rotation = Matrix4x4.RotationZ(_rot.Z)
+                                 * Matrix4x4.RotationY(_rot.Y)
+                                 * Matrix4x4.RotationX(_rot.X);
+            _local = Matrix4x4.Translation(_pos) * rotation * Matrix4x4.Scale(_scale);
+            _dirty = false;
+        }
+        return _local;
+    }
+
+    public Transform3D() {}
+    public Transform3D(Transform3D o) { _pos = o._pos; _rot = o._rot; _scale = o._scale; }
+    public Transform3D(Vec3 p, Vec3 r, Vec3 s) { _pos = p; _rot = r; _scale = s; }
+}
+
+public class Transform2D : Component
+{
     public Vec2 pos = new(0.0f, 0.0f);
     public float rot = 0f;
     public Vec2 scale = new(1.0f, 1.0f);
@@ -70,33 +131,7 @@ public class Transform2D {
     public static implicit operator Transform3D(Transform2D d) => new Transform3D((Vec3)d.pos, new Vec3(0f, 0f, d.rot), (Vec3)d.scale);
 }
 
-public class Mesh
-{
-    public byte[] bytes = new byte[36 * 7 * sizeof(float)];
-    public IntPtr vertexBuffer;
-    public IntPtr indexBuffer;
-    public int indexCount;
-    public int vertexCount;
-
-    public Mesh(Mesh buh)
-    {
-        vertexBuffer = buh.vertexBuffer;
-        indexBuffer = buh.indexBuffer;
-        indexCount = buh.indexCount;
-        vertexCount = buh.vertexCount;
-    }
-
-    public Mesh(IntPtr _vertexBuffer, IntPtr _indexBuffer, int _indexCount = 0, int _vertexCount = 0)
-    {
-        vertexBuffer = _vertexBuffer;
-        indexBuffer = _indexBuffer;
-        indexCount = _indexCount;
-        vertexCount = _vertexCount;
-    }
-    public Mesh() { }
-}
-
-public class VulkanCamera
+public class VulkanCamera : Component
 {
     public Vec3 forward;
     public Vec3 up;
@@ -105,6 +140,11 @@ public class VulkanCamera
     public float nearPlane;
     public float farPlane;
     public bool isPrimary;
+    public Vec4 viewport = new Vec4(0f, 0f, 1f, 1f);
+    public bool clearDepth = true;
+    public int priority = 0;
+    public bool enabled = true;
+    
     public VulkanCamera(){}
 
     public VulkanCamera(VulkanCamera buh)
@@ -116,18 +156,30 @@ public class VulkanCamera
         nearPlane = buh.nearPlane;
         farPlane = buh.farPlane;
         isPrimary = buh.isPrimary;
+        viewport = buh.viewport;
+        clearDepth = buh.clearDepth;
+        priority = buh.priority;
+        enabled = buh.enabled;
     }
+
+    public CameraMatrices GetMatrices(Matrix4x4 world, float? aspect = null) => new()
+    {
+        View = LookTo(Matrix4x4.WorldPosition(world),
+            Matrix4x4.TransformDirection(world, forward),
+            Matrix4x4.TransformDirection(world, up)),
+        Projection = Perspective(fov, aspect ?? aspectRatio, nearPlane, farPlane)
+    };
 
     public Matrix4x4 LookAt(Vec3 eye, Vec3 target, Vec3 up)
     {
         Vec3 f = (target - eye).Normalized;
-        Vec3 s = Vec3.Cross(f, up).Normalized;
-        Vec3 u = Vec3.Cross(s, f);
+        Vec3 s = Vec3.Cross(up, f).Normalized;
+        Vec3 u = Vec3.Cross(f, s);
         return new Matrix4x4
         {
             M00 = s.X,  M01 = s.Y,  M02 = s.Z,  M03 = -Vec3.Dot(s, eye),
             M10 = u.X,  M11 = u.Y,  M12 = u.Z,  M13 = -Vec3.Dot(u, eye),
-            M20 = -f.X, M21 = -f.Y, M22 = -f.Z, M23 = Vec3.Dot(f, eye),
+            M20 = -f.X, M21 = -f.Y, M22 = -f.Z, M23 =  Vec3.Dot(f, eye),
             M30 = 0,    M31 = 0,    M32 = 0,    M33 = 1
         };
     }
@@ -196,8 +248,8 @@ public class VulkanCamera
 
             M20 = 0, 
             M21 = 0,
-            M22 = -(farPlane + nearPlane) / (farPlane - nearPlane),
-            M23 = -(2f * farPlane * nearPlane) / (farPlane - nearPlane),
+            M22 = farPlane / (nearPlane - farPlane),
+            M23 = (farPlane * nearPlane) / (nearPlane - farPlane),
 
             M30 = 0, 
             M31 = 0,
@@ -205,9 +257,43 @@ public class VulkanCamera
             M33 = 0
         };
     }
+    
+    public static Matrix4x4 PerspectiveOpenXR(
+        XrEyeView eye,
+        float nearPlane,
+        float farPlane)
+    {
+        float l = eye.left;
+        float r = eye.right;
+        float u = eye.up;
+        float d = eye.down;
+
+        return new Matrix4x4
+        {
+            M00 = 2f / (r - l),
+            M01 = 0,
+            M02 = (r + l) / (r - l),
+            M03 = 0,
+
+            M10 = 0,
+            M11 = 2f / (u - d),
+            M12 = (u + d) / (u - d),
+            M13 = 0,
+
+            M20 = 0,
+            M21 = 0,
+            M22 = farPlane / (nearPlane - farPlane),
+            M23 = (farPlane * nearPlane) / (nearPlane - farPlane),
+
+            M30 = 0,
+            M31 = 0,
+            M32 = -1f,
+            M33 = 0
+        };
+    }
 }
 
-public class D3D11Camera
+public class D3D11Camera : Component
 {
     public Vec3 forward;
     public Vec3 up;

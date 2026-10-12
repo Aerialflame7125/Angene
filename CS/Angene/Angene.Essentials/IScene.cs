@@ -18,10 +18,7 @@ namespace Angene.Essentials
     {
         static object Instance { get; }
         List<Entity> Entities { get; }
-        Entity MainCamera { get; }
         string Name { get; }
-
-        public Entity GetCameraEntity() => MainCamera;
         public List<Entity> GetEntities() => Entities;
         public void AddEntity(Entity e) => Entities.Add(e);
         public void RemoveEntity(Entity e) => Entities.Remove(e);
@@ -46,6 +43,7 @@ namespace Angene.Essentials
         }
     }
 
+#if WINDOWS
     /// <summary>
     /// IDX11Scene definition for a DX11 specific scene with render calls.
     /// All definitions and execution still gets routed through Angene.Lifecycle
@@ -54,4 +52,5 @@ namespace Angene.Essentials
     {
         void Render(IDX11GraphicsContext graphics);
     }
+#endif
 }

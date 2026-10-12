@@ -3,7 +3,7 @@
 # Angene
 
 (pronounced 'engine')
-Last updated 2026/09/18
+Last updated 2026/10/12
 
 The C# library/variant of Angene. If you want to see the tree for the engine, refer to FunctionTree.md
 
@@ -15,25 +15,31 @@ The engine is instantiated whenever you call upon the 'Engine.Instance.Init()' f
 This sits at the top of the runtime, providing the log window, lifetime instantiation, Window definitions, everything.
 
 ```cs
-// You can do this if you want, but it's easier in my opinion to make instances.
-public class Instances
-{
-  public Engine engine;
-  public Settings settings;
+public static Instances instances;
+private static DateTime lastFrame;
 
-  public Instances() { }
-  public void MakeInstances(bool verbose)
-  {
-    engine = Engine.Instance; // Engine instance for references later
-    engine.Init(verbose); // Initialize engine with logger var, defines window and shown below.
-    settings = engine.SettingHandlerInstanced;  // DO NOT FORGET TO INSTANCE THE SETTINGS, LOGGER WILL LITERALLY SHIT ITSELF IF NOT
-  }
+private static void Run(bool verbose)
+{
+  instances = new Instances();
+  i.MakeInstances(verbose,
+    new Types.AppInfo("appName", appVersion: 0.1f, "Author", "Developer", VkPresentModeKHR.VK_PRESENT_MODE_IMMEDIATE_KHR)
+  ); // Last argument is optional, just allows for defining your own vk present mode if using Vulkan.
 }
-Instances i = new Instances();
-i.MakeInstances(true);
 ```
 
-This is just an example of instantiation, and yes, the logger is required to be initialized.
+This is just an example of instantiation.
+
+When in your entry point, the engine will look for shaders to be compiled inside your classes.
+This check will NOT let the process hang, so you must time your window creation.
+```cs
+while (Engine.Instance.IsCompilingShaders)
+{
+    foreach (Window window in Engine.Instance.OpenWindows)
+        window.RenderFrame();
+    Engine.Instance.FlushPendingCloses();
+}
+```
+
 Later using this Engine class, you are able to create a new window:
 
 ```cs
@@ -46,11 +52,10 @@ window = new Window(conf);
 Logger.LogDebug("New window, yaey!", LoggingTarget.Engine);
 ```
 
-// 7/25/26
 You can either create your own WindowConfig definition, or use the built in ones. For more information please refer to WindowConfig in Angene.Main.
 As an example, for D3D11, use .Rendering3D:
 ```cs
-WindowConfig confg = WindowConfig.Rendering3D("Angene | Rendering3D", 1280, 720);
+WindowConfig config = WindowConfig.Rendering3D("Angene | Rendering3D", 1280, 720);
 Window win = new Window(config);
 ```
 
@@ -68,7 +73,12 @@ try
 }
 ```
 
-I find it somewhat intuitive, but sometimes a pain. testGame is accessible in the root of this repo, so you can see how I initialize the engine.
+After creating your windows and assigning their scenes, you must run the message loop. This message loop is designed to last across windows and ticks the engine.
+```cs
+RunMessageLoop(ref dt, ref lastFrame, wins: [win]);
+```
+
+I find it somewhat intuitive, but sometimes a pain. A good example of instantiation is LinuxCameraTest in the testGame dir, so you can see how I initialize the engine.
 
 ## Logger
 
@@ -105,54 +115,6 @@ There are more examples of this logger, above shows the calls. Below is the hier
 * LogInfo
 * LogDebug
 This logger already pre-writes a new file to a folder called "Log", picking everything up from the engine and game stack. Debug is written here instead of window when log window instance exists.
-
-## Message loop
-
-Please, please, please, do not forget the message loop.
-The message loop is what keeps the entire lifecycle in check, as well as triggering every tick.
-This is left open for the developer in case they want anything in between ticks or draw. Use the below as a template if you want:
-
-```cs
-private static void RunMessageLoop(ref double dt, Window win, IScene scene)
-{
-    while (!Engine.Instance.ShouldShutdown)
-    {
-            bool a = win.ProcessMessages(win.Handle);
-
-            dt = (DateTime.Now - lastFrame).TotalSeconds;
-            lastFrame = DateTime.Now;
-
-        Lifecycle.ScriptBinding.Tick(scene, dt, EngineMode.Play);
-        Lifecycle.ScriptBinding.Draw(scene, EngineMode.Play);
-        win.RenderFrame();
-        Thread.Sleep(16);
-    }
-    win.Cleanup();
-    Lifecycle.ScriptBinding.ShutdownEngine();
-}
-```
-
-Sure, it's a little counter-intuitive, but it leaves the lifecycle as a choice for the developer, maybe even allowing some funky shit later.
-Just remember, if you detatch the tick method, no scene or script will run. Everything is reliant on ticks and OnDraw.
-
-// 7/25/26
-Another thing, for rendering ever since D3D11 came out, you need a specific window pump in order to properly render windows:
-```cs
-private static void PumpOpenWindows()
-{
-    while (User32.PeekMessageW(out var msg, IntPtr.Zero, 0, 0, Consts.PM_REMOVE))
-    {
-        if (msg.message == (uint)WM.QUIT) break;
-        User32.TranslateMessage(ref msg);
-        User32.DispatchMessageW(ref msg);
-    }
-    foreach (var win in Engine.Instance.OpenWindows.ToArray())
-    {
-        win.RenderFrame();
-        Engine.Instance.FlushPendingCloses();
-    }
-}
-```
 
 ## Package Handler (Angene.PkgHandler)
 
@@ -241,6 +203,7 @@ This is just an example script, but you still have to set it up with the lifecyc
 var script = Entity.AddScript<ScriptExample>();
 script.Initialize(46); // Following example from earlier
 Entity.SetEnabled(true); // Start entity, sets up script with lifecycle.
+Entities.Add(Entity); // Inside the scene or else they wont get ticked.
 ```
 
 I find this really cool to be honest, you (the developer) do not have to touch the lifecycle at all. (Unless you are setting up OnMessage handlers in the message loop.)
@@ -257,7 +220,6 @@ public class DemoScene : IScene
   public static object Instance { get; private set; }
   public List<Entity> Entities { get; private set; } = new List<Entity>();
   public string Name => "CameraTestScene";
-  public Entity MainCamera => _cameraEntity;
   public Window _window;
 
   internal DemoScene(Window window) // Again, not needed by spec, but useful.
@@ -389,14 +351,9 @@ The CPP host file is really picky on namespaces, so here is an example:
 	<OutputType>Library</OutputType>
 	<AssemblyName>Game</AssemblyName>
 	<RootNamespace>Game</RootNamespace>
-	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<Nullable>enable</Nullable>
 	<LangVersion>latest</LangVersion>
-
-	<!-- Generate runtime config file -->
 	<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-
-	<!-- Copy dependencies to output -->
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 </PropertyGroup>
 ```
@@ -458,7 +415,6 @@ public static int Main(IntPtr args, int argc)
 
 Again just an example, but the arguments are as follows. If a log directory is not created after launching the host, something is incorrect with the entry point or the engine hasn't initialized.
 
-// 7/25/26
 Ever since D3D11, prior to actually rendering or creating Windows with initializing the WindowConfig add this to somewhere before creating your windows:
 ```cs
 while (Engine.Instance.IsCompilingShaders)
@@ -678,7 +634,6 @@ public class DX11ExampleScene : IScene
 
   private readonly Window _window;
   private IDX11GraphicsContext _gfx;
-  public Entity MainCamera => null;
 
   private IntPtr _vertexBuffer;
   private IntPtr _inputLayout;
@@ -776,21 +731,11 @@ public unsafe class CameraTestScene : IScene
     public List<Entity> Entities { get; private set; } = new List<Entity>();
     public string Name => "CameraTestScene";
 
-    public Entity MainCamera => _cameraEntity;
-
     internal readonly Window _window;
     private IVkGraphicsContext _gfx;
 
-    private IntPtr _vertexShaderModule;
-    private IntPtr _fragmentShaderModule;
-    private IntPtr _pipeline;
-
     private Entity _cameraEntity;
     private Entity _objectEntity;
-    private float[] vertexData;
-    private IntPtr vertexBuffer = IntPtr.Zero;
-    private byte[] vertexBytes;
-    private int vertexCount;
 
     public CameraTestScene(Window window, string materialsPackagePath)
     {
@@ -807,12 +752,6 @@ public unsafe class CameraTestScene : IScene
             Logger.LogCritical("[CameraTestScene] Window is not using the Vulkan backend.", LoggingTarget.Graphics, new Exception("Window is not using the Vulkan rendering backend."));
             return;
         }
-        
-        var vertexShader = Engine.Instance.ShaderCache[1] as VkShader;
-        var fragmentShader = Engine.Instance.ShaderCache[2] as VkShader;
-
-        if (vertexShader.NativeShaderModule == IntPtr.Zero || fragmentShader.NativeShaderModule == IntPtr.Zero)
-            throw new Exception("Shader module handle is zero!");
 
         var attributes = new VkVertexInputAttributeDescription[]
         {
@@ -830,20 +769,10 @@ public unsafe class CameraTestScene : IScene
             },
         };
 
-        _pipeline = _gfx.CreatePipeline(vertexShader.NativeShaderModule, fragmentShader.NativeShaderModule,
-            attributes, 7 * sizeof(float));
+        _pipeline = _gfx.CreatePipeline(attributes, 7 * sizeof(float));
 
         Logger.LogInfo("[CameraTestScene] Initialized.", LoggingTarget.Graphics);
         
-        var vCam = _cameraEntity.GetComponent<VulkanCamera>();
-
-        Matrix4x4 view = vCam.LookTo(camTransform.pos, vCam.forward, vCam.up);
-        Matrix4x4 proj = vCam.Perspective(vCam.fov, vCam.aspectRatio, vCam.nearPlane, vCam.farPlane);
-
-        vertexData = BuildSortedNdcVertexBuffer(modelView, proj, out vertexCount);
-        vertexBytes = new byte[vertexData.Length * sizeof(float)];
-        Buffer.BlockCopy(vertexData, 0, vertexBytes, 0, vertexBytes.Length);
-        vertexBuffer = _gfx.CreateVertexBuffer(vertexBytes, strideBytes: 7 * sizeof(float)); // Example of camera offset if you do have models
     }
 
     public void OnMessage(object msgPtr)
@@ -856,15 +785,8 @@ public unsafe class CameraTestScene : IScene
     public void Render()
     {
         if (_gfx == null) return;
-        var cubeTransform  = _objectEntity.GetComponent<Transform3D>(); // Entities for rendering need to have a Transform2D/3D
-        vertexData  = BuildSortedNdcVertexBuffer(cubeTransform.ModelView, cubeTransform.Proj, out vertexCount);
-        Buffer.BlockCopy(vertexData, 0, vertexBytes, 0, vertexBytes.Length);
-        _gfx.BeginFrame(0x00202020);
-        _gfx.UpdateVertexBuffer(vertexBuffer, vertexBytes);
-        _gfx.SetPipeline(_pipeline);
-        _gfx.SetVertexBuffer(vertexBuffer, strideBytes: 7 * sizeof(float));
-        _gfx.Draw((uint)vertexCount);
 
+        _gfx.BeginFrame(0x00202020);
         _gfx.EndFrame();
     }
 
@@ -893,9 +815,11 @@ public class TestVertexShader : SlangShaderResources.IShader
   public bool compileToFile { get; } = true;
   public bool IsDisposed { get; private set; }
 
+  public ShaderQueue Queue => ShaderQueue.Geometry;
+
   SlangShaderResources.ShaderOrigin SlangShaderResources.IShader.Origin => SlangShaderResources.ShaderOrigin.Dx11; // Or SlangShaderResources.ShaderOrigin.Vulkan
 
-  public string Code => @"struct VSInput
+  public string code => @"struct VSInput
 {
     float3 Position : POSITION;
     float4 Color    : COLOR;
@@ -936,13 +860,14 @@ public class TestPixelShader : SlangShaderResources.IShader
   public string Name => "TestPS";
   public int id => 2;
   public string Extension => "hlsl";
-  public string Path { get; set; } = System.IO.Path.Combine(AppContext.BaseDirectory, "Shaders", "PixelShader.hlsl");
   public string EntryPoint { get; set; } = "main";
   public SlangShaderResources.ShaderType Type => SlangShaderResources.ShaderType.Pixel;
   public bool compileToFile { get; } = false;
   public bool IsDisposed { get; private set; }
 
-  public string Code => @"struct PSInput
+  ShaderOrigin IShader.Origin => ShaderOrigin.Vulkan;
+
+  public string code => @"struct PSInput
 {
     float4 Position : SV_POSITION;
     float4 Color    : COLOR;
@@ -1026,6 +951,7 @@ The Slang interop is currently only on the windows platform, for I plan to get t
 
   ### Angene.Graphics
   * Parts of Vulkan (Very little, only for clarification on my end and less headaches when debugging raw bindings.)
+  * Parts of Vulkan OpenXR (again very little, used for guidance rather than generation.)
 
   ## Who all is working on this?
 

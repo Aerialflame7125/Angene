@@ -5,114 +5,6 @@ using System.Runtime.CompilerServices;
 namespace Angene.Vulkan.Interop;
 public class Structs
 {
-    public partial struct VkInstance
-    {
-    }
-
-    public partial struct VkPhysicalDevice
-    {
-    }
-
-    public partial struct VkDevice
-    {
-    }
-
-    public partial struct VkQueue
-    {
-    }
-
-    public partial struct VkSemaphore
-    {
-    }
-
-    public partial struct VkCommandBuffer
-    {
-    }
-
-    public partial struct VkFence
-    {
-    }
-
-    public partial struct VkDeviceMemory
-    {
-    }
-
-    public partial struct VkBuffer
-    {
-    }
-
-    public partial struct VkImage
-    {
-    }
-
-    public partial struct VkQueryPool
-    {
-    }
-
-    public partial struct VkImageView
-    {
-    }
-
-    public partial struct VkCommandPool
-    {
-    }
-
-    public partial struct VkRenderPass
-    {
-    }
-
-    public partial struct VkFramebuffer
-    {
-    }
-
-    public partial struct VkEvent
-    {
-    }
-
-    public partial struct VkBufferView
-    {
-    }
-
-    public partial struct VkShaderModule
-    {
-    }
-
-    public partial struct VkPipelineCache
-    {
-    }
-
-    public partial struct VkPipeline
-    {
-    }
-
-    public partial struct VkPipelineLayout
-    {
-    }
-
-    public partial struct VkDescriptorSetLayout
-    {
-    }
-
-    public partial struct VkSampler
-    {
-    }
-
-    public partial struct VkDescriptorSet
-    {
-    }
-
-    public partial struct VkDescriptorPool
-    {
-    }
-
-    public partial struct VkDeferredOperationKHR
-    {
-    }
-
-    public partial struct VkAccelerationStructureKHR
-    {
-    }
-
     public partial struct VkExtent2D
     {
                 public uint width;
@@ -779,17 +671,17 @@ public class Structs
 
                 public uint waitSemaphoreCount;
 
-                public VkSemaphore** pWaitSemaphores;
+                public IntPtr* pWaitSemaphores;
 
                 public uint* pWaitDstStageMask;
 
                 public uint commandBufferCount;
 
-                public VkCommandBuffer** pCommandBuffers;
+                public IntPtr* pCommandBuffers;
 
                 public uint signalSemaphoreCount;
 
-                public VkSemaphore** pSignalSemaphores;
+                public IntPtr* pSignalSemaphores;
     }
 
     public unsafe partial struct VkMappedMemoryRange
@@ -798,7 +690,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
                 public ulong offset;
 
@@ -851,7 +743,7 @@ public class Structs
 
         public VkExtent3D extent;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
                 public ulong memoryOffset;
 
@@ -860,7 +752,7 @@ public class Structs
 
     public unsafe partial struct VkSparseImageMemoryBindInfo
     {
-                public VkImage* image;
+                public IntPtr image;
 
                 public uint bindCount;
 
@@ -886,7 +778,7 @@ public class Structs
 
                 public ulong size;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
                 public ulong memoryOffset;
 
@@ -895,7 +787,7 @@ public class Structs
 
     public unsafe partial struct VkSparseBufferMemoryBindInfo
     {
-                public VkBuffer* buffer;
+                public IntPtr buffer;
 
                 public uint bindCount;
 
@@ -904,7 +796,7 @@ public class Structs
 
     public unsafe partial struct VkSparseImageOpaqueMemoryBindInfo
     {
-                public VkImage* image;
+                public IntPtr image;
 
                 public uint bindCount;
 
@@ -919,7 +811,7 @@ public class Structs
 
                 public uint waitSemaphoreCount;
 
-                public VkSemaphore** pWaitSemaphores;
+                public IntPtr* pWaitSemaphores;
 
                 public uint bufferBindCount;
 
@@ -935,7 +827,7 @@ public class Structs
 
                 public uint signalSemaphoreCount;
 
-                public VkSemaphore** pSignalSemaphores;
+                public IntPtr* pSignalSemaphores;
     }
 
     public unsafe partial struct VkFenceCreateInfo
@@ -1068,7 +960,7 @@ public class Structs
 
                 public uint flags;
 
-                public VkImage* image;
+                public IntPtr image;
 
         public VkImageViewType viewType;
 
@@ -1096,7 +988,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkCommandPool* commandPool;
+                public IntPtr commandPool;
 
         public VkCommandBufferLevel level;
 
@@ -1109,11 +1001,11 @@ public class Structs
 
                 public void* pNext;
 
-                public VkRenderPass* renderPass;
+                public IntPtr renderPass;
 
                 public uint subpass;
 
-                public VkFramebuffer* framebuffer;
+                public IntPtr framebuffer;
 
                 public uint occlusionQueryEnable;
 
@@ -1195,7 +1087,7 @@ public class Structs
 
                 public uint dstQueueFamilyIndex;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
 
                 public ulong offset;
 
@@ -1220,7 +1112,7 @@ public class Structs
 
                 public uint dstQueueFamilyIndex;
 
-                public VkImage* image;
+                public IntPtr image;
 
         public VkImageSubresourceRange subresourceRange;
     }
@@ -1281,7 +1173,7 @@ public class Structs
 
                 public uint flags;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
 
         public VkFormat format;
 
@@ -1346,7 +1238,7 @@ public class Structs
 
         public VkShaderStageFlagBits stage;
 
-                public VkShaderModule* module;
+                public IntPtr module;
 
                 public sbyte* pName;
 
@@ -1363,9 +1255,9 @@ public class Structs
 
         public VkPipelineShaderStageCreateInfo stage;
 
-                public VkPipelineLayout* layout;
+                public IntPtr layout;
 
-                public VkPipeline* basePipelineHandle;
+                public IntPtr basePipelineHandle;
 
                 public int basePipelineIndex;
     }
@@ -1389,7 +1281,7 @@ public class Structs
 
                 public uint setLayoutCount;
 
-                public VkDescriptorSetLayout** pSetLayouts;
+                public IntPtr* pSetLayouts;
 
                 public uint pushConstantRangeCount;
 
@@ -1441,13 +1333,13 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDescriptorSet* srcSet;
+                public IntPtr srcSet;
 
                 public uint srcBinding;
 
                 public uint srcArrayElement;
 
-                public VkDescriptorSet* dstSet;
+                public IntPtr dstSet;
 
                 public uint dstBinding;
 
@@ -1458,7 +1350,7 @@ public class Structs
 
     public unsafe partial struct VkDescriptorBufferInfo
     {
-                public VkBuffer* buffer;
+                public IntPtr buffer;
 
                 public ulong offset;
 
@@ -1467,9 +1359,9 @@ public class Structs
 
     public unsafe partial struct VkDescriptorImageInfo
     {
-                public VkSampler* sampler;
+                public IntPtr sampler;
 
-                public VkImageView* imageView;
+                public IntPtr imageView;
 
         public VkImageLayout imageLayout;
     }
@@ -1502,11 +1394,11 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDescriptorPool* descriptorPool;
+                public IntPtr descriptorPool;
 
                 public uint descriptorSetCount;
 
-                public VkDescriptorSetLayout** pSetLayouts;
+                public IntPtr* pSetLayouts;
     }
 
     public unsafe partial struct VkDescriptorSetLayoutBinding
@@ -1519,7 +1411,7 @@ public class Structs
 
                 public uint stageFlags;
 
-                public VkSampler** pImmutableSamplers;
+                public IntPtr* pImmutableSamplers;
     }
 
     public unsafe partial struct VkDescriptorSetLayoutCreateInfo
@@ -1541,7 +1433,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDescriptorSet* dstSet;
+                public IntPtr dstSet;
 
                 public uint dstBinding;
 
@@ -1555,7 +1447,7 @@ public class Structs
 
                 public VkDescriptorBufferInfo* pBufferInfo;
 
-                public VkBufferView** pTexelBufferView;
+                public IntPtr* pTexelBufferView;
     }
 
     [StructLayout(LayoutKind.Explicit)]
@@ -1887,13 +1779,13 @@ public class Structs
 
                 public VkPipelineDynamicStateCreateInfo* pDynamicState;
 
-                public VkPipelineLayout* layout;
+                public IntPtr layout;
 
-                public VkRenderPass* renderPass;
+                public IntPtr renderPass;
 
                 public uint subpass;
 
-                public VkPipeline* basePipelineHandle;
+                public IntPtr basePipelineHandle;
 
                 public int basePipelineIndex;
     }
@@ -1934,11 +1826,11 @@ public class Structs
 
                 public uint flags;
 
-                public VkRenderPass* renderPass;
+                public IntPtr renderPass;
 
                 public uint attachmentCount;
 
-                public VkImageView** pAttachments;
+                public IntPtr* pAttachments;
 
                 public uint width;
 
@@ -2085,9 +1977,9 @@ public class Structs
 
                 public void* pNext;
 
-                public VkRenderPass* renderPass;
+                public IntPtr renderPass;
 
-                public VkFramebuffer* framebuffer;
+                public IntPtr framebuffer;
 
         public VkRect2D renderArea;
 
@@ -2110,9 +2002,9 @@ public class Structs
 
                 public void* pNext;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
                 public ulong memoryOffset;
     }
@@ -2123,9 +2015,9 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* image;
+                public IntPtr image;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
                 public ulong memoryOffset;
     }
@@ -2147,9 +2039,9 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* image;
+                public IntPtr image;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
     }
 
     public unsafe partial struct VkMemoryAllocateFlagsInfo
@@ -2242,44 +2134,44 @@ public class Structs
 
         public unsafe partial struct _physicalDevices_e__FixedBuffer
         {
-            public VkPhysicalDevice* e0;
-            public VkPhysicalDevice* e1;
-            public VkPhysicalDevice* e2;
-            public VkPhysicalDevice* e3;
-            public VkPhysicalDevice* e4;
-            public VkPhysicalDevice* e5;
-            public VkPhysicalDevice* e6;
-            public VkPhysicalDevice* e7;
-            public VkPhysicalDevice* e8;
-            public VkPhysicalDevice* e9;
-            public VkPhysicalDevice* e10;
-            public VkPhysicalDevice* e11;
-            public VkPhysicalDevice* e12;
-            public VkPhysicalDevice* e13;
-            public VkPhysicalDevice* e14;
-            public VkPhysicalDevice* e15;
-            public VkPhysicalDevice* e16;
-            public VkPhysicalDevice* e17;
-            public VkPhysicalDevice* e18;
-            public VkPhysicalDevice* e19;
-            public VkPhysicalDevice* e20;
-            public VkPhysicalDevice* e21;
-            public VkPhysicalDevice* e22;
-            public VkPhysicalDevice* e23;
-            public VkPhysicalDevice* e24;
-            public VkPhysicalDevice* e25;
-            public VkPhysicalDevice* e26;
-            public VkPhysicalDevice* e27;
-            public VkPhysicalDevice* e28;
-            public VkPhysicalDevice* e29;
-            public VkPhysicalDevice* e30;
-            public VkPhysicalDevice* e31;
+            public IntPtr e0;
+            public IntPtr e1;
+            public IntPtr e2;
+            public IntPtr e3;
+            public IntPtr e4;
+            public IntPtr e5;
+            public IntPtr e6;
+            public IntPtr e7;
+            public IntPtr e8;
+            public IntPtr e9;
+            public IntPtr e10;
+            public IntPtr e11;
+            public IntPtr e12;
+            public IntPtr e13;
+            public IntPtr e14;
+            public IntPtr e15;
+            public IntPtr e16;
+            public IntPtr e17;
+            public IntPtr e18;
+            public IntPtr e19;
+            public IntPtr e20;
+            public IntPtr e21;
+            public IntPtr e22;
+            public IntPtr e23;
+            public IntPtr e24;
+            public IntPtr e25;
+            public IntPtr e26;
+            public IntPtr e27;
+            public IntPtr e28;
+            public IntPtr e29;
+            public IntPtr e30;
+            public IntPtr e31;
 
-            public ref VkPhysicalDevice* this[int index]
+            public ref IntPtr this[int index]
             {
                 get
                 {
-                    fixed (VkPhysicalDevice** pThis = &e0)
+                    fixed (IntPtr* pThis = &e0)
                     {
                         return ref pThis[index];
                     }
@@ -2296,7 +2188,7 @@ public class Structs
 
                 public uint physicalDeviceCount;
 
-                public VkPhysicalDevice** pPhysicalDevices;
+                public IntPtr* pPhysicalDevices;
     }
 
     public unsafe partial struct VkBufferMemoryRequirementsInfo2
@@ -2305,7 +2197,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
     }
 
     public unsafe partial struct VkImageMemoryRequirementsInfo2
@@ -2314,7 +2206,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* image;
+                public IntPtr image;
     }
 
     public unsafe partial struct VkImageSparseMemoryRequirementsInfo2
@@ -2323,7 +2215,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* image;
+                public IntPtr image;
     }
 
     public unsafe partial struct VkMemoryRequirements2
@@ -2751,11 +2643,11 @@ public class Structs
 
         public VkDescriptorUpdateTemplateType templateType;
 
-                public VkDescriptorSetLayout* descriptorSetLayout;
+                public IntPtr descriptorSetLayout;
 
         public VkPipelineBindPoint pipelineBindPoint;
 
-                public VkPipelineLayout* pipelineLayout;
+                public IntPtr pipelineLayout;
 
                 public uint set;
     }
@@ -3368,7 +3260,7 @@ public class Structs
 
                 public uint semaphoreCount;
 
-                public VkSemaphore** pSemaphores;
+                public IntPtr* pSemaphores;
 
                 public ulong* pValues;
     }
@@ -3379,7 +3271,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkSemaphore* semaphore;
+                public IntPtr semaphore;
 
                 public ulong value;
     }
@@ -3403,7 +3295,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
     }
 
     public unsafe partial struct VkBufferOpaqueCaptureAddressCreateInfo
@@ -3430,7 +3322,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
     }
 
     public unsafe partial struct VkPhysicalDevice8BitStorageFeatures
@@ -3893,7 +3785,7 @@ public class Structs
 
                 public uint attachmentCount;
 
-                public VkImageView** pAttachments;
+                public IntPtr* pAttachments;
     }
 
     public unsafe partial struct VkFramebufferAttachmentsCreateInfo
@@ -4175,7 +4067,7 @@ public class Structs
 
                 public uint dstQueueFamilyIndex;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
 
                 public ulong offset;
 
@@ -4204,7 +4096,7 @@ public class Structs
 
                 public uint dstQueueFamilyIndex;
 
-                public VkImage* image;
+                public IntPtr image;
 
         public VkImageSubresourceRange subresourceRange;
     }
@@ -4236,7 +4128,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkSemaphore* semaphore;
+                public IntPtr semaphore;
 
                 public ulong value;
 
@@ -4251,7 +4143,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkCommandBuffer* commandBuffer;
+                public IntPtr commandBuffer;
 
                 public uint deviceMask;
     }
@@ -4305,9 +4197,9 @@ public class Structs
 
                 public void* pNext;
 
-                public VkBuffer* srcBuffer;
+                public IntPtr srcBuffer;
 
-                public VkBuffer* dstBuffer;
+                public IntPtr dstBuffer;
 
                 public uint regionCount;
 
@@ -4337,11 +4229,11 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* srcImage;
+                public IntPtr srcImage;
 
         public VkImageLayout srcImageLayout;
 
-                public VkImage* dstImage;
+                public IntPtr dstImage;
 
         public VkImageLayout dstImageLayout;
 
@@ -4375,9 +4267,9 @@ public class Structs
 
                 public void* pNext;
 
-                public VkBuffer* srcBuffer;
+                public IntPtr srcBuffer;
 
-                public VkImage* dstImage;
+                public IntPtr dstImage;
 
         public VkImageLayout dstImageLayout;
 
@@ -4392,11 +4284,11 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* srcImage;
+                public IntPtr srcImage;
 
         public VkImageLayout srcImageLayout;
 
-                public VkBuffer* dstBuffer;
+                public IntPtr dstBuffer;
 
                 public uint regionCount;
 
@@ -4735,11 +4627,11 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* srcImage;
+                public IntPtr srcImage;
 
         public VkImageLayout srcImageLayout;
 
-                public VkImage* dstImage;
+                public IntPtr dstImage;
 
         public VkImageLayout dstImageLayout;
 
@@ -4773,11 +4665,11 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* srcImage;
+                public IntPtr srcImage;
 
         public VkImageLayout srcImageLayout;
 
-                public VkImage* dstImage;
+                public IntPtr dstImage;
 
         public VkImageLayout dstImageLayout;
 
@@ -4792,13 +4684,13 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImageView* imageView;
+                public IntPtr imageView;
 
         public VkImageLayout imageLayout;
 
         public VkResolveModeFlagBits resolveMode;
 
-                public VkImageView* resolveImageView;
+                public IntPtr resolveImageView;
 
         public VkImageLayout resolveImageLayout;
 
@@ -5043,7 +4935,7 @@ public class Structs
 
                 public uint flags;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
                 public ulong offset;
 
@@ -5058,7 +4950,7 @@ public class Structs
 
                 public uint flags;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
     }
 
     public unsafe partial struct VkPhysicalDeviceMaintenance5Features
@@ -5238,7 +5130,7 @@ public class Structs
 
                 public uint flags;
 
-                public VkImage* dstImage;
+                public IntPtr dstImage;
 
         public VkImageLayout dstImageLayout;
 
@@ -5255,7 +5147,7 @@ public class Structs
 
                 public uint flags;
 
-                public VkImage* srcImage;
+                public IntPtr srcImage;
 
         public VkImageLayout srcImageLayout;
 
@@ -5272,11 +5164,11 @@ public class Structs
 
                 public uint flags;
 
-                public VkImage* srcImage;
+                public IntPtr srcImage;
 
         public VkImageLayout srcImageLayout;
 
-                public VkImage* dstImage;
+                public IntPtr dstImage;
 
         public VkImageLayout dstImageLayout;
 
@@ -5291,7 +5183,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* image;
+                public IntPtr image;
 
         public VkImageLayout oldLayout;
 
@@ -5375,13 +5267,13 @@ public class Structs
 
                 public uint stageFlags;
 
-                public VkPipelineLayout* layout;
+                public IntPtr layout;
 
                 public uint firstSet;
 
                 public uint descriptorSetCount;
 
-                public VkDescriptorSet** pDescriptorSets;
+                public IntPtr* pDescriptorSets;
 
                 public uint dynamicOffsetCount;
 
@@ -5394,7 +5286,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkPipelineLayout* layout;
+                public IntPtr layout;
 
                 public uint stageFlags;
 
@@ -5413,7 +5305,7 @@ public class Structs
 
                 public uint stageFlags;
 
-                public VkPipelineLayout* layout;
+                public IntPtr layout;
 
                 public uint set;
 
@@ -5430,7 +5322,7 @@ public class Structs
 
                 public VkDescriptorUpdateTemplate* descriptorUpdateTemplate;
 
-                public VkPipelineLayout* layout;
+                public IntPtr layout;
 
                 public uint set;
 
@@ -5705,7 +5597,7 @@ public class Structs
 
                 public uint waitSemaphoreCount;
 
-                public VkSemaphore** pWaitSemaphores;
+                public IntPtr* pWaitSemaphores;
 
                 public uint swapchainCount;
 
@@ -5746,9 +5638,9 @@ public class Structs
 
                 public ulong timeout;
 
-                public VkSemaphore* semaphore;
+                public IntPtr semaphore;
 
-                public VkFence* fence;
+                public IntPtr fence;
 
                 public uint deviceMask;
     }
@@ -6023,7 +5915,7 @@ public class Structs
 
                 public uint baseArrayLayer;
 
-                public VkImageView* imageViewBinding;
+                public IntPtr imageViewBinding;
     }
 
     public unsafe partial struct VkVideoReferenceSlotInfoKHR
@@ -6056,7 +5948,7 @@ public class Structs
 
                 public uint memoryBindIndex;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
                 public ulong memoryOffset;
 
@@ -6171,7 +6063,7 @@ public class Structs
 
                 public uint flags;
 
-                public VkBuffer* srcBuffer;
+                public IntPtr srcBuffer;
 
                 public ulong srcBufferOffset;
 
@@ -6770,7 +6662,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
         public VkExternalMemoryHandleTypeFlagBits handleType;
     }
@@ -6781,7 +6673,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkSemaphore* semaphore;
+                public IntPtr semaphore;
 
                 public uint flags;
 
@@ -6796,7 +6688,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkSemaphore* semaphore;
+                public IntPtr semaphore;
 
         public VkExternalSemaphoreHandleTypeFlagBits handleType;
     }
@@ -6843,7 +6735,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkFence* fence;
+                public IntPtr fence;
 
                 public uint flags;
 
@@ -6858,7 +6750,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkFence* fence;
+                public IntPtr fence;
 
         public VkExternalFenceHandleTypeFlagBits handleType;
     }
@@ -7263,7 +7155,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImageView* imageView;
+                public IntPtr imageView;
 
         public VkImageLayout imageLayout;
 
@@ -7350,7 +7242,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkPipeline* pipeline;
+                public IntPtr pipeline;
     }
 
     public unsafe partial struct VkPipelineExecutablePropertiesKHR
@@ -7386,7 +7278,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkPipeline* pipeline;
+                public IntPtr pipeline;
 
                 public uint executableIndex;
     }
@@ -7471,7 +7363,7 @@ public class Structs
 
                 public uint libraryCount;
 
-                public VkPipeline** pLibraries;
+                public IntPtr* pLibraries;
     }
 
     public unsafe partial struct VkPresentIdKHR
@@ -7502,7 +7394,7 @@ public class Structs
 
                 public uint flags;
 
-                public VkBuffer* dstBuffer;
+                public IntPtr dstBuffer;
 
                 public ulong dstBufferOffset;
 
@@ -7716,7 +7608,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* image;
+                public IntPtr image;
 
                 public uint regionCount;
 
@@ -8143,7 +8035,7 @@ public class Structs
 
                 public VkPipelineBinaryKeysAndDataKHR* pKeysAndDataInfo;
 
-                public VkPipeline* pipeline;
+                public IntPtr pipeline;
 
                 public VkPipelineCreateInfoKHR* pPipelineCreateInfo;
     }
@@ -8165,7 +8057,7 @@ public class Structs
 
         public void* pNext;
 
-                public VkPipeline* pipeline;
+                public IntPtr pipeline;
     }
 
     public unsafe partial struct VkPipelineBinaryDataInfoKHR
@@ -8242,7 +8134,7 @@ public class Structs
 
                 public uint swapchainCount;
 
-                public VkFence** pFences;
+                public IntPtr* pFences;
     }
 
     public unsafe partial struct VkSwapchainPresentModesCreateInfoKHR
@@ -8736,7 +8628,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkQueryPool* queryPool;
+                public IntPtr queryPool;
 
                 public uint firstQuery;
 
@@ -8780,7 +8672,7 @@ public class Structs
 
                 public uint stageFlags;
 
-                public VkPipelineLayout* layout;
+                public IntPtr layout;
 
                 public uint firstSet;
 
@@ -8799,7 +8691,7 @@ public class Structs
 
                 public uint stageFlags;
 
-                public VkPipelineLayout* layout;
+                public IntPtr layout;
 
                 public uint set;
     }
@@ -8855,7 +8747,7 @@ public class Structs
 
         public VkStridedDeviceAddressRangeKHR copyAddressRange;
 
-                public VkImage* dstImage;
+                public IntPtr dstImage;
 
         public VkImageLayout dstImageLayout;
 
@@ -8961,7 +8853,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImageView* quantizationMap;
+                public IntPtr quantizationMap;
 
         public VkExtent2D quantizationMapExtent;
     }
@@ -9484,7 +9376,7 @@ public class Structs
 
                 public uint baseTriangle;
 
-                public VkAccelerationStructureKHR* micromap;
+                public IntPtr micromap;
     }
 
     public unsafe partial struct VkPhysicalDeviceMaintenance10FeaturesKHR
@@ -9720,9 +9612,9 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* image;
+                public IntPtr image;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
     }
 
     public unsafe partial struct VkPhysicalDeviceTransformFeedbackFeaturesEXT
@@ -9850,11 +9742,11 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImageView* imageView;
+                public IntPtr imageView;
 
         public VkDescriptorType descriptorType;
 
-                public VkSampler* sampler;
+                public IntPtr sampler;
     }
 
     public unsafe partial struct VkImageViewAddressPropertiesNVX
@@ -9986,7 +9878,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
 
                 public ulong offset;
 
@@ -11388,9 +11280,9 @@ public class Structs
 
                 public uint maxRecursionDepth;
 
-                public VkPipelineLayout* layout;
+                public IntPtr layout;
 
-                public VkPipeline* basePipelineHandle;
+                public IntPtr basePipelineHandle;
 
                 public int basePipelineIndex;
     }
@@ -11401,7 +11293,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkBuffer* vertexData;
+                public IntPtr vertexData;
 
                 public ulong vertexOffset;
 
@@ -11411,7 +11303,7 @@ public class Structs
 
         public VkFormat vertexFormat;
 
-                public VkBuffer* indexData;
+                public IntPtr indexData;
 
                 public ulong indexOffset;
 
@@ -11419,7 +11311,7 @@ public class Structs
 
         public VkIndexType indexType;
 
-                public VkBuffer* transformData;
+                public IntPtr transformData;
 
                 public ulong transformOffset;
     }
@@ -11430,7 +11322,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkBuffer* aabbData;
+                public IntPtr aabbData;
 
                 public uint numAABBs;
 
@@ -11495,7 +11387,7 @@ public class Structs
 
                 public VkAccelerationStructureNV* accelerationStructure;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
                 public ulong memoryOffset;
 
@@ -12235,7 +12127,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImageView* imageView;
+                public IntPtr imageView;
 
         public VkImageLayout imageLayout;
     }
@@ -12665,7 +12557,7 @@ public class Structs
 
                 public uint pipelineCount;
 
-                public VkPipeline** pPipelines;
+                public IntPtr* pPipelines;
     }
 
     public partial struct VkBindShaderGroupIndirectCommandNV
@@ -12698,7 +12590,7 @@ public class Structs
 
     public unsafe partial struct VkIndirectCommandsStreamNV
     {
-                public VkBuffer* buffer;
+                public IntPtr buffer;
 
                 public ulong offset;
     }
@@ -12719,7 +12611,7 @@ public class Structs
 
                 public uint vertexDynamicStride;
 
-                public VkPipelineLayout* pushconstantPipelineLayout;
+                public IntPtr pushconstantPipelineLayout;
 
                 public uint pushconstantShaderStageFlags;
 
@@ -12763,7 +12655,7 @@ public class Structs
 
         public VkPipelineBindPoint pipelineBindPoint;
 
-                public VkPipeline* pipeline;
+                public IntPtr pipeline;
 
                 public VkIndirectCommandsLayoutNV* indirectCommandsLayout;
 
@@ -12773,17 +12665,17 @@ public class Structs
 
                 public uint sequencesCount;
 
-                public VkBuffer* preprocessBuffer;
+                public IntPtr preprocessBuffer;
 
                 public ulong preprocessOffset;
 
                 public ulong preprocessSize;
 
-                public VkBuffer* sequencesCountBuffer;
+                public IntPtr sequencesCountBuffer;
 
                 public ulong sequencesCountOffset;
 
-                public VkBuffer* sequencesIndexBuffer;
+                public IntPtr sequencesIndexBuffer;
 
                 public ulong sequencesIndexOffset;
     }
@@ -12796,7 +12688,7 @@ public class Structs
 
         public VkPipelineBindPoint pipelineBindPoint;
 
-                public VkPipeline* pipeline;
+                public IntPtr pipeline;
 
                 public VkIndirectCommandsLayoutNV* indirectCommandsLayout;
 
@@ -13297,14 +13189,14 @@ public class Structs
 
                 public void* pNext;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
     }
 
     [StructLayout(LayoutKind.Explicit)]
     public unsafe partial struct VkDescriptorDataEXT
     {
         [FieldOffset(0)]
-                public VkSampler** pSampler;
+                public IntPtr* pSampler;
 
         [FieldOffset(0)]
                 public VkDescriptorImageInfo* pCombinedImageSampler;
@@ -13351,7 +13243,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
     }
 
     public unsafe partial struct VkImageCaptureDescriptorDataInfoEXT
@@ -13360,7 +13252,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* image;
+                public IntPtr image;
     }
 
     public unsafe partial struct VkImageViewCaptureDescriptorDataInfoEXT
@@ -13369,7 +13261,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImageView* imageView;
+                public IntPtr imageView;
     }
 
     public unsafe partial struct VkSamplerCaptureDescriptorDataInfoEXT
@@ -13378,7 +13270,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkSampler* sampler;
+                public IntPtr sampler;
     }
 
     public unsafe partial struct VkOpaqueCaptureDescriptorDataCreateInfoEXT
@@ -13396,7 +13288,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkAccelerationStructureKHR* accelerationStructure;
+                public IntPtr accelerationStructure;
 
                 public VkAccelerationStructureNV* accelerationStructureNV;
     }
@@ -14023,7 +13915,7 @@ public class Structs
 
         public void* pNext;
 
-                public VkRenderPass* renderPass;
+                public IntPtr renderPass;
 
                 public uint subpass;
     }
@@ -14061,7 +13953,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
         public VkExternalMemoryHandleTypeFlagBits handleType;
     }
@@ -14120,11 +14012,11 @@ public class Structs
 
                 public uint imageCount;
 
-                public VkImage** pImages;
+                public IntPtr* pImages;
 
                 public uint bufferCount;
 
-                public VkBuffer** pBuffers;
+                public IntPtr* pBuffers;
 
                 public ulong tagName;
 
@@ -14405,7 +14297,7 @@ public class Structs
 
                 public uint createFlags;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
 
                 public ulong offset;
 
@@ -14703,7 +14595,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDescriptorSetLayout* descriptorSetLayout;
+                public IntPtr descriptorSetLayout;
 
                 public uint binding;
     }
@@ -14884,7 +14776,7 @@ public class Structs
 
         public VkPipelineBindPoint pipelineBindPoint;
 
-                public VkPipeline* pipeline;
+                public IntPtr pipeline;
     }
 
     public partial struct VkBindPipelineIndirectCommandNV
@@ -15217,7 +15109,7 @@ public class Structs
 
                 public uint flags;
 
-                public delegate* unmanaged[Cdecl]<VkInstance*, sbyte*, delegate* unmanaged[Cdecl]<void>> pfnGetInstanceProcAddr;
+                public delegate* unmanaged[Cdecl]<IntPtr, sbyte*, delegate* unmanaged[Cdecl]<void>> pfnGetInstanceProcAddr;
     }
 
     public unsafe partial struct VkDirectDriverLoadingListLUNARG
@@ -15290,7 +15182,7 @@ public class Structs
 
                 public VkTensorARM* tensor;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
                 public ulong memoryOffset;
     }
@@ -15797,7 +15689,7 @@ public class Structs
 
                 public uint setLayoutCount;
 
-                public VkDescriptorSetLayout** pSetLayouts;
+                public IntPtr* pSetLayouts;
 
                 public uint pushConstantRangeCount;
 
@@ -16081,7 +15973,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkSemaphore* signalSemaphore;
+                public IntPtr signalSemaphore;
 
                 public ulong value;
     }
@@ -16243,7 +16135,7 @@ public class Structs
 
                 public ulong flags;
 
-                public VkPipelineLayout* layout;
+                public IntPtr layout;
 
                 public uint resourceInfoCount;
 
@@ -16256,7 +16148,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkShaderModule* module;
+                public IntPtr module;
 
                 public sbyte* pName;
 
@@ -16275,7 +16167,7 @@ public class Structs
 
                 public ulong flags;
 
-                public VkPipeline* dataGraphPipeline;
+                public IntPtr dataGraphPipeline;
     }
 
     public unsafe partial struct VkDataGraphPipelineSessionBindPointRequirementsInfoARM
@@ -16325,7 +16217,7 @@ public class Structs
 
                 public uint objectIndex;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
                 public ulong memoryOffset;
     }
@@ -16336,7 +16228,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkPipeline* dataGraphPipeline;
+                public IntPtr dataGraphPipeline;
     }
 
     public unsafe partial struct VkDataGraphPipelinePropertyQueryResultARM
@@ -16663,7 +16555,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
     }
 
     public unsafe partial struct VkTileMemorySizeInfoQCOM
@@ -16745,7 +16637,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkQueue* preferredQueue;
+                public IntPtr preferredQueue;
     }
 
     public unsafe partial struct VkExternalComputeQueueDataParamsNV
@@ -17510,7 +17402,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkPipeline* initialPipeline;
+                public IntPtr initialPipeline;
 
                 public uint maxPipelineCount;
     }
@@ -17523,7 +17415,7 @@ public class Structs
 
                 public uint setLayoutCount;
 
-                public VkDescriptorSetLayout** pSetLayouts;
+                public IntPtr* pSetLayouts;
     }
 
     public unsafe partial struct VkIndirectExecutionSetShaderInfoEXT
@@ -17601,7 +17493,7 @@ public class Structs
 
                 public uint index;
 
-                public VkPipeline* pipeline;
+                public IntPtr pipeline;
     }
 
     public partial struct VkIndirectCommandsPushConstantTokenEXT
@@ -17667,7 +17559,7 @@ public class Structs
 
                 public uint indirectStride;
 
-                public VkPipelineLayout* pipelineLayout;
+                public IntPtr pipelineLayout;
 
                 public uint tokenCount;
 
@@ -17707,7 +17599,7 @@ public class Structs
 
         public void* pNext;
 
-                public VkPipeline* pipeline;
+                public IntPtr pipeline;
     }
 
     public unsafe partial struct VkGeneratedCommandsShaderInfoEXT
@@ -18616,9 +18508,9 @@ public class Structs
 
         public VkBuildAccelerationStructureModeKHR mode;
 
-                public VkAccelerationStructureKHR* srcAccelerationStructure;
+                public IntPtr srcAccelerationStructure;
 
-                public VkAccelerationStructureKHR* dstAccelerationStructure;
+                public IntPtr dstAccelerationStructure;
 
                 public uint geometryCount;
 
@@ -18637,7 +18529,7 @@ public class Structs
 
                 public uint createFlags;
 
-                public VkBuffer* buffer;
+                public IntPtr buffer;
 
                 public ulong offset;
 
@@ -18656,7 +18548,7 @@ public class Structs
 
                 public uint accelerationStructureCount;
 
-                public VkAccelerationStructureKHR** pAccelerationStructures;
+                public IntPtr* pAccelerationStructures;
     }
 
     public unsafe partial struct VkPhysicalDeviceAccelerationStructureFeaturesKHR
@@ -18705,7 +18597,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkAccelerationStructureKHR* accelerationStructure;
+                public IntPtr accelerationStructure;
     }
 
     public unsafe partial struct VkAccelerationStructureVersionInfoKHR
@@ -18723,7 +18615,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkAccelerationStructureKHR* src;
+                public IntPtr src;
 
         public VkDeviceOrHostAddressKHR dst;
 
@@ -18738,7 +18630,7 @@ public class Structs
 
         public VkDeviceOrHostAddressConstKHR src;
 
-                public VkAccelerationStructureKHR* dst;
+                public IntPtr dst;
 
         public VkCopyAccelerationStructureModeKHR mode;
     }
@@ -18749,9 +18641,9 @@ public class Structs
 
                 public void* pNext;
 
-                public VkAccelerationStructureKHR* src;
+                public IntPtr src;
 
-                public VkAccelerationStructureKHR* dst;
+                public IntPtr dst;
 
         public VkCopyAccelerationStructureModeKHR mode;
     }
@@ -18810,9 +18702,9 @@ public class Structs
 
                 public VkPipelineDynamicStateCreateInfo* pDynamicState;
 
-                public VkPipelineLayout* layout;
+                public IntPtr layout;
 
-                public VkPipeline* basePipelineHandle;
+                public IntPtr basePipelineHandle;
 
                 public int basePipelineIndex;
     }
@@ -19034,7 +18926,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkQueue* queue;
+                public IntPtr queue;
 
                 public void* mtlCommandQueue;
     }
@@ -19045,7 +18937,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
                 public void* mtlBuffer;
     }
@@ -19065,11 +18957,11 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* image;
+                public IntPtr image;
 
-                public VkImageView* imageView;
+                public IntPtr imageView;
 
-                public VkBufferView* bufferView;
+                public IntPtr bufferView;
 
         public VkImageAspectFlagBits plane;
 
@@ -19093,7 +18985,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkImage* image;
+                public IntPtr image;
 
                 public __IOSurface* ioSurface;
     }
@@ -19113,9 +19005,9 @@ public class Structs
 
                 public void* pNext;
 
-                public VkSemaphore* semaphore;
+                public IntPtr semaphore;
 
-                public VkEvent* @event;
+                public IntPtr @event;
 
                 public void* mtlSharedEvent;
     }
@@ -19155,7 +19047,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
         public VkExternalMemoryHandleTypeFlagBits handleType;
     }
@@ -19214,7 +19106,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkDeviceMemory* memory;
+                public IntPtr memory;
 
         public VkExternalMemoryHandleTypeFlagBits handleType;
     }
@@ -19227,7 +19119,7 @@ public class Structs
 
                 public uint acquireCount;
 
-                public VkDeviceMemory** pAcquireSyncs;
+                public IntPtr* pAcquireSyncs;
 
                 public ulong* pAcquireKeys;
 
@@ -19235,7 +19127,7 @@ public class Structs
 
                 public uint releaseCount;
 
-                public VkDeviceMemory** pReleaseSyncs;
+                public IntPtr* pReleaseSyncs;
 
                 public ulong* pReleaseKeys;
     }
@@ -19246,7 +19138,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkSemaphore* semaphore;
+                public IntPtr semaphore;
 
                 public uint flags;
 
@@ -19291,7 +19183,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkSemaphore* semaphore;
+                public IntPtr semaphore;
 
         public VkExternalSemaphoreHandleTypeFlagBits handleType;
     }
@@ -19302,7 +19194,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkFence* fence;
+                public IntPtr fence;
 
                 public uint flags;
 
@@ -19332,7 +19224,7 @@ public class Structs
 
                 public void* pNext;
 
-                public VkFence* fence;
+                public IntPtr fence;
 
         public VkExternalFenceHandleTypeFlagBits handleType;
     }
@@ -19367,7 +19259,7 @@ public class Structs
 
                 public uint acquireCount;
 
-                public VkDeviceMemory** pAcquireSyncs;
+                public IntPtr* pAcquireSyncs;
 
                 public ulong* pAcquireKeys;
 
@@ -19375,7 +19267,7 @@ public class Structs
 
                 public uint releaseCount;
 
-                public VkDeviceMemory** pReleaseSyncs;
+                public IntPtr* pReleaseSyncs;
 
                 public ulong* pReleaseKeys;
     }

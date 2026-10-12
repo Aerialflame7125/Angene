@@ -1,12 +1,10 @@
-﻿using Angene.Common;
+﻿#if WINDOWS
+using Angene.Common;
 using Angene.Essentials.GraphicsContexts;
-using Angene.Graphics.SlangShader;
 using Angene.Windows;
 using Angene.Windows.D3D11;
 using Angene.Windows.Dxgi;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
-using System.Security.Cryptography;
 using static Angene.Windows.D3D11.D3D11;
 using static Angene.Windows.D3D11.D3D11Interop;
 using static Angene.Windows.Dxgi.DxgiEnums;
@@ -667,3 +665,4 @@ namespace Angene.Graphics.DX11
         public void EndFrame() => Present(_hwnd);
     }
 }
+#endif
