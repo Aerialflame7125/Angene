@@ -34,6 +34,9 @@
 	  <Reference Include="Angene.Essentials">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Essentials.dll</HintPath>
 	  </Reference>
+	  <Reference Include="Angene.Extensions.Audio">
+	    <HintPath>..\..\Build\Angene\Lin\Angene.Extensions.Audio.dll</HintPath>
+	  </Reference>
 	  <Reference Include="Angene.Extensions.Input">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Extensions.Input.dll</HintPath>
 	  </Reference>

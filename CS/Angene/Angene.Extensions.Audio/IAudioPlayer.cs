@@ -6,6 +6,7 @@
         bool IsPaused { get; }
         float Volume { get; }
         bool Looping { get; }
+        float PlayPos { get; }
 
         void Play();
         void Stop();

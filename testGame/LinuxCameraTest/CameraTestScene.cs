@@ -9,6 +9,7 @@ using Angene.Main;
 using Angene.Math.Vectors;
 using Angene.Essentials.DefaultEntities;
 using Angene.Essentials.GraphicsContexts;
+using Angene.Extensions.Audio;
 using Angene.Extensions.Input;
 using Angene.Input;
 using Angene.Linux.X11;
@@ -28,8 +29,7 @@ namespace Game.Scenes
         private IntPtr _fragmentShaderModule;
 
         private Entity _cameraEntity;
-        private Entity _cubeEntity;
-        private Entity _cubeEntity1;
+        private Entity _cubeEntity, _cubeEntity1;
         private Entity SpectatorCam;
         private Entity stick, stick2;
 
@@ -148,16 +148,6 @@ namespace Game.Scenes
             
             _gfx.BeginFrame();
             _gfx.EndFrame();
-            if (KeyDetection.IsKeyDown((uint)X11InputKeys.IKeyCodeLangLinux.IKeyCodeLatin1.e))
-            {
-                Logger.LogDebug(
-                    $"X: {_rightControllerEntity.Transform.pos.X} Y: {_rightControllerEntity.Transform.pos.Y} Z: {_rightControllerEntity.Transform.pos.Z}, Rotation: X: {_rightControllerEntity.Transform.rot.X}, Y: {_rightControllerEntity.Transform.rot.Y}, Z: {_rightControllerEntity.Transform.rot.Z}",
-                    LoggingTarget.MainGame);
-                
-                var q = Quaternion.FromEuler(_rightControllerEntity.Transform.rot);
-                var fwd = q.Rotate(new Vec3(0, 0, -1));
-                Logger.LogDebug($"local -Z in world: {fwd.X:F2} {fwd.Y:F2} {fwd.Z:F2}", LoggingTarget.MainGame);
-            }
         }
         
         public void Cleanup()

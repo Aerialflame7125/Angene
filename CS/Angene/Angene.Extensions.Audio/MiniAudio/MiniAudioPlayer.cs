@@ -23,6 +23,7 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
     private Stream _stream;
     private bool _disposed = false;
     private float _playPosition = 0;
+    public float PlayPos => _playPosition;
     
 #region IAudioPlayer
     private volatile bool _isPlaying;
@@ -52,11 +53,29 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static void data_callback(ma_device* pDevice, void* pOutput, void* pInput, uint frameCount)
     {
-        ma_decoder* pDecoder = (ma_decoder*)pDevice->pUserData;
-        if (pDecoder == null)
-            return;
+        var state = (CallbackState*)pDevice->pUserData;
+        if (state == null || state->Decoder == null) return;
 
-        ma_decoder_read_pcm_frames(pDecoder, pOutput, frameCount, null);
+        const uint bpf = 2 * sizeof(float);
+        byte* dst = (byte*)pOutput;
+        ulong total = 0;
+        bool seeked = false;
+
+        while (total < frameCount)
+        {
+            ulong read = 0;
+            ma_decoder_read_pcm_frames(state->Decoder, dst + total * bpf, frameCount - total, &read);
+            total += read;
+
+            if (total >= frameCount) break;
+            if (Volatile.Read(ref state->Loop) == 0 || (read == 0 && seeked)) break;
+
+            ma_decoder_seek_to_pcm_frame(state->Decoder, 0);
+            seeked = read == 0;
+        }
+
+        if (total < frameCount)
+            NativeMemory.Clear(dst + total * bpf, (nuint)((frameCount - total) * bpf));
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
@@ -77,6 +96,9 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
     private ma_device_info* pPlaybackDeviceInfo;
     private uint playbackDeviceCount;
     private ma_engine* engine;
+    private struct CallbackState { public ma_decoder* Decoder; public int Loop; }
+    private CallbackState* _state;
+    private byte* _data; // native copy of the file bytes
 #endregion
 #region Constructors
     public MiniAudioPlayer() { }
@@ -120,12 +142,11 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
                 while (_commands.TryDequeue(out var cmd))
                     ProcessCommand(cmd);
 
-                if (_sound != null)
+                if (_decoder != null)
                 {
-                    float secs;
-                    ma_sound* sound = _sound;
-                    ma_sound_get_cursor_in_seconds(sound, &secs);
-                    _playPosition = secs;
+                    ulong frames;
+                    if (ma_decoder_get_cursor_in_pcm_frames(_decoder, &frames) == ma_result.MA_SUCCESS)
+                        Volatile.Write(ref _playPosition, frames / 48000f);
                 }
                 
                 _signal.Wait(16);
@@ -180,19 +201,22 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
 
         fixed (byte* pBytes = bytes)
         {
+            _data = (byte*)NativeMemory.Alloc((nuint)bytes.Length);
+            new ReadOnlySpan<byte>(bytes).CopyTo(new Span<byte>(_data, bytes.Length));
+
+            _state = (CallbackState*)NativeMemory.AllocZeroed((nuint)sizeof(CallbackState));
+            _state->Decoder = _decoder;
+
             ma_decoder_config decoderConfig = ma_decoder_config_init(ma_format.ma_format_f32, 2, 48000);
-            if (ma_decoder_init_memory(pBytes, (nuint)bytes.Length, &decoderConfig, _decoder) != ma_result.MA_SUCCESS)
-            {
-                Logger.LogError("[MiniAudio | InitMemory] Could not load audio file from memory", LoggingTarget.Engine);
+            if (ma_decoder_init_memory(_data, (nuint)bytes.Length, &decoderConfig, _decoder) != ma_result.MA_SUCCESS)
                 goto CleanupAndFail;
-            }
 
             var deviceConfig = ma_device_config_init(ma_device_type.ma_device_type_playback);
             deviceConfig.playback.format   = ma_format.ma_format_f32;
             deviceConfig.playback.channels = 2;
             deviceConfig.sampleRate        = 48000;
             deviceConfig.dataCallback      = &data_callback;
-            deviceConfig.pUserData         = _decoder;
+            deviceConfig.pUserData         = _state;
 
             bool contextOk = false;
         #if LINUX
@@ -411,74 +435,87 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
         _signal.Set();
     }
 
-    private bool ProcessCommand(AudioDefs.AudioCommand cmd)
+    private void ProcessCommand(AudioDefs.AudioCommand cmd)
     {
+        if (_device == null) return; // init failed or disposed
+
         switch (cmd.Type)
         {
             case AudioDefs.AudioCommandType.Play:
-                _playPosition = 0;
-                if (ma_sound_start(_sound) != ma_result.MA_SUCCESS && ma_device_start(_device) != ma_result.MA_SUCCESS)
-                    goto CleanupAndFail;
-
-                _isPlaying = true;
-                _isPaused = false;
+                ma_device_stop(_device);
+                ma_decoder_seek_to_pcm_frame(_decoder, 0);
+                if (ma_device_start(_device) != ma_result.MA_SUCCESS) { LogFail("start"); break; }
+                _isPlaying = true; _isPaused = false;
                 break;
 
             case AudioDefs.AudioCommandType.Stop:
-                _playPosition = 0;
-                if (ma_sound_stop(_sound) != ma_result.MA_SUCCESS || ma_device_stop(_device) != ma_result.MA_SUCCESS)
-                    goto CleanupAndFail;
-                    
-                _isPlaying = false;
-                _isPaused = false;
+                ma_device_stop(_device);
+                ma_decoder_seek_to_pcm_frame(_decoder, 0);
+                Volatile.Write(ref _playPosition, 0f);
+                _isPlaying = false; _isPaused = false;
                 break;
 
             case AudioDefs.AudioCommandType.Pause:
-                if (ma_sound_stop(_sound) != ma_result.MA_SUCCESS)
-                    goto CleanupAndFail;
-
-                _isPlaying = false;
-                _isPaused = true;
+                ma_device_stop(_device);
+                _isPlaying = false; _isPaused = true;
                 break;
 
             case AudioDefs.AudioCommandType.Resume:
-                if (ma_sound_start(_sound) != ma_result.MA_SUCCESS && ma_sound_seek_to_second(_sound, _playPosition) != ma_result.MA_SUCCESS)
-                    goto CleanupAndFail;
-                _isPaused = false;
+                if (ma_device_start(_device) != ma_result.MA_SUCCESS) { LogFail("resume"); break; }
+                _isPlaying = true; _isPaused = false;
                 break;
 
             case AudioDefs.AudioCommandType.Volume:
                 _volume = cmd.Value;
-                if (ma_device_set_master_volume(_device, _volume) != ma_result.MA_SUCCESS)
-                    goto CleanupAndFail;
+                ma_device_set_master_volume(_device, _volume);
                 break;
 
             case AudioDefs.AudioCommandType.Loop:
                 _loop = cmd.Value > 0f;
+                Volatile.Write(ref _state->Loop, _loop ? 1 : 0);
                 break;
 
             case AudioDefs.AudioCommandType.Dispose:
+                Teardown();
                 _cts.Cancel();
                 break;
         }
+    }
+    
+    private static void LogFail(string op) =>
+        Logger.LogError($"[MiniAudio | {op}] Playback device call failed.", LoggingTarget.Engine);
+    
+    private void Teardown()
+    {
+        if (_device != null)
+        {
+            ma_device_uninit(_device);
+            NativeMemory.Free(_device);
+            _device = null;
+        }
 
-        return true;
-        
-    CleanupAndFail:
-        Logger.LogError("Failed to handle playback device.", LoggingTarget.Engine);
-        // Device was initialized, so uninit it
-        ma_device_uninit(_device);
-        ma_decoder_uninit(_decoder);
-        NativeMemory.Free(_device); NativeMemory.Free(_decoder);
-        _device = null; _decoder = null;
-        ma_context_uninit(_context);
-        NativeMemory.Free(_context);
-        _context = null;
-        // Free log
-        ma_log_uninit(_log);
-        NativeMemory.Free(_log);
-        _log = null;
-        return false;
+        if (_decoder != null)
+        {
+            ma_decoder_uninit(_decoder);
+            NativeMemory.Free(_decoder);
+            _decoder = null;
+        }
+        if (_state != null) { NativeMemory.Free(_state); _state = null; }
+        if (_data != null)  { NativeMemory.Free(_data);  _data = null; }
+
+        if (_context != null)
+        {
+            ma_context_uninit(_context);
+            NativeMemory.Free(_context);
+            _context = null;
+        }
+
+        if (_log != null)
+        {
+            ma_log_uninit(_log);
+            NativeMemory.Free(_log);
+            _log = null;
+        }
     }
     
     public void StopPlayer()

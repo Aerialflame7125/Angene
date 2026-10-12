@@ -6,6 +6,7 @@ namespace Angene.Extensions.Audio
     {
         private readonly IAudioPlayer _player;
 
+        public IAudioPlayer Player => _player;
         public bool IsPlaying => _player.IsPlaying;
         public bool IsPaused => _player.IsPaused;
         public float Volume => _player.Volume;

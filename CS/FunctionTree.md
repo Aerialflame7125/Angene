@@ -1,4 +1,4 @@
-<sub><sup>(generated 2026-10-11 00:28:36.231934+00:00)</sup></sub>
+<sub><sup>(generated 2026-10-12 18:46:56.052736+00:00)</sup></sub>
 
 ## Angene.Common
 
@@ -317,6 +317,7 @@
   * **class AudioFile**
     * `LoadType _loadType`
   * **class AudioManager**
+    * `IAudioPlayer Player { get; set; }`
     * `bool IsPlaying { get; set; }`
     * `bool IsPaused { get; set; }`
     * `float Volume { get; set; }`
@@ -346,6 +347,7 @@
   <details><summary><b>Angene.Extensions.Audio.MiniAudio</b></summary>
 
   * **enum MiniAudioPlayerType**
+    * `float PlayPos { get; set; }`
     * `bool IsPlaying { get; set; }`
     * `bool IsPaused { get; set; }`
     * `float Volume { get; set; }`
@@ -1417,28 +1419,6 @@
     * `ma_waveform_type type`
     * `double amplitude`
     * `double frequency`
-
-  </details>
-
-  <details><summary><b>Angene.Extensions.Audio.Windows</b></summary>
-
-  * **struct WAVEHDR**
-    * `IntPtr lpData`
-    * `uint dwBufferLength`
-    * `uint dwBytesRecorded`
-    * `IntPtr dwUser`
-    * `uint dwFlags`
-    * `uint dwLoops`
-    * `IntPtr lpNext`
-    * `IntPtr reserved`
-  * **struct WaveFormatEx**
-    * `ushort wFormatTag`
-    * `ushort nChannels`
-    * `uint nSamplesPerSec`
-    * `uint nAvgBytesPerSec`
-    * `ushort nBlockAlign`
-    * `ushort wBitsPerSample`
-    * `ushort cbSize`
 
   </details>
 
@@ -11677,8 +11657,8 @@
     * `uint RowPitch`
     * `uint DepthPitch`
   * **struct D3D11_RASTERIZER_DESC**
-    * `uint FillMode`
-    * `uint CullMode`
+    * `D3D11_FILL_MODE FillMode`
+    * `D3D11_CULL_MODE CullMode`
     * `int FrontCounterClockwise`
     * `int DepthBias`
     * `float DepthBiasClamp`
@@ -11687,8 +11667,8 @@
     * `int ScissorEnable`
     * `int MultisampleEnable`
     * `int AntialiasedLineEnable`
-    * `D3D11_FILL_MODE FillMode`
-    * `D3D11_CULL_MODE CullMode`
+    * `uint FillMode`
+    * `uint CullMode`
   * **struct D3D11_RENDER_TARGET_BLEND_DESC**
     * `int BlendEnable`
     * `D3D11_BLEND SrcBlend`
