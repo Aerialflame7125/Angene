@@ -29,7 +29,7 @@ namespace Angene.Common.Settings
 
             Register("Main.VersionFloat", 0.4f, v => v is float);
 
-            Register("Main.Version", "Angene v0.4 | Purple Fungi");
+            Register("Main.Version", "Angene v0.45 | 鬱漢字 'Depressing Kanji'");
 
             Register("Main.getIsGameAllowedForWebsockets", false,
                 v => v is bool);
