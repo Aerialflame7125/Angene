@@ -3,16 +3,15 @@ using static Angene.Vulkan.Interop.Structs;
 using static Angene.Vulkan.Interop.Enumerators;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Angene.Assets.Packages;
+using Angene.Assets.ThreeD;
+using Angene.Assets.ThreeD.DefaultEntities;
 using Angene.Essentials;
 using Angene.Essentials.Components;
 using Angene.Main;
 using Angene.Math.Vectors;
-using Angene.Essentials.DefaultEntities;
 using Angene.Essentials.GraphicsContexts;
-using Angene.Extensions.Audio;
-using Angene.Extensions.Input;
-using Angene.Input;
-using Angene.Linux.X11;
 
 namespace Game.Scenes
 {
@@ -55,7 +54,7 @@ namespace Game.Scenes
             Entity cameraParent =
                 new Entity(new Vec3(0f, 0, 0f), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "CameraParent");
             _cameraEntity = new Entity(new Vec3(0f, 0f, 0f), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "MainCamera");
-            _cameraEntity.AddComponent(new OpenXRHmd(new VulkanCamera
+            _cameraEntity.AddComponent(new Components.OpenXRHmd(new Components.VulkanCamera
             {
                 forward = new Vec3(0f, 0f, 1f), // looking toward the cube at the origin
                 up = new Vec3(0f, 1f, 0f),
@@ -69,7 +68,7 @@ namespace Game.Scenes
             Entities.Add(_cameraEntity);
             
             SpectatorCam = new Entity(new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "spectatorCam");
-            SpectatorCam.AddComponent(new VulkanCamera {
+            SpectatorCam.AddComponent(new Components.VulkanCamera {
                 forward = new Vec3(0, 0, 1), up = new Vec3(0, 1, 0),
                 fov = MathF.PI / 3f,
                 nearPlane = 0.1f,
@@ -80,7 +79,7 @@ namespace Game.Scenes
 
             var controller = _cameraEntity.AddScript<CameraControllerScript>();
             
-            var hmd = _cameraEntity.GetComponent<OpenXRHmd>()!;
+            var hmd = _cameraEntity.GetComponent<Components.OpenXRHmd>()!;
             hmd.head.AddChild(SpectatorCam);
             //cameraParent.AddChild(SpectatorCam);
             controller.Initialize(_cameraEntity, cameraParent);
@@ -89,7 +88,18 @@ namespace Game.Scenes
             Entities.Add(SpectatorCam);
             Entities.Add(hmd.head);
             
-            _cubeEntity = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "Cube", (SlangShaderResources.IShader)Engine.Instance.ShaderCache[5], CameraMaterials.DefaultColors().ToArray());
+            _cubeEntity = new Entity(new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(1, 1, 1), "veyron");
+            Package p = Package.Open("Assets/Audio.angpkg");
+            List<string> _entryNames = new();
+            foreach (var e in p.Entries)
+                _entryNames.Add(e.Path);
+            
+            var target = _entryNames.FirstOrDefault(p => p.EndsWith("veyron.obj", StringComparison.OrdinalIgnoreCase))
+                         ?? _entryNames.FirstOrDefault();
+            var entry = p.Entries.FirstOrDefault(x => string.Equals(x.Path, target, StringComparison.OrdinalIgnoreCase));
+            var obj = _cubeEntity.AddComponent<ComponentExtensions.ThreeDObj>(new ComponentExtensions.ThreeDObj(p, entry, "veyron"));
+            Types.Mesh m = obj.CalculateMesh((SlangShaderResources.IShader)Engine.Instance.ShaderCache[5], _cubeEntity);
+            _cubeEntity.AddComponent<Types.Mesh>(m);
             Entities.Add(_cubeEntity);
             _cubeEntity1 = Cube.Instantiate(_gfx, new Vec3(0f, 3f, 0f), new Vec3(0, 0, 0), new Vec3(2, 2, 1), "Cube1", (SlangShaderResources.IShader)Engine.Instance.ShaderCache[5], CameraMaterials.DefaultColors().ToArray());
             Entities.Add(_cubeEntity1);
@@ -116,8 +126,8 @@ namespace Game.Scenes
             
             _leftControllerEntity  = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "leftController", (SlangShaderResources.IShader)Engine.Instance.ShaderCache[5], CameraMaterials.DefaultColors().ToArray());
             _rightControllerEntity = Cube.Instantiate(_gfx, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0.2f, 0.2f, 0.2f), "rightController", (SlangShaderResources.IShader)Engine.Instance.ShaderCache[5], CameraMaterials.DefaultColors().ToArray());
-            OpenXRController l = _leftControllerEntity.AddComponent<OpenXRController>(new OpenXRController(OpenXRController.ControllerType.Left));
-            OpenXRController r = _rightControllerEntity.AddComponent<OpenXRController>(new OpenXRController(OpenXRController.ControllerType.Right));
+            Components.OpenXRController l = _leftControllerEntity.AddComponent<Components.OpenXRController>(new Components.OpenXRController(Components.OpenXRController.ControllerType.Left));
+            Components.OpenXRController r = _rightControllerEntity.AddComponent<Components.OpenXRController>(new Components.OpenXRController(Components.OpenXRController.ControllerType.Right));
             l.ControllerTransform.ForceSetTransformVar(l.ControllerTransform.pos, l.ControllerTransform.rot,
                 new Vec3(0.2f, 0.2f, 0.2f));
             r.ControllerTransform.ForceSetTransformVar(l.ControllerTransform.pos, l.ControllerTransform.rot,

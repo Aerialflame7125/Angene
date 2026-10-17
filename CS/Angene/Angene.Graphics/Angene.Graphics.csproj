@@ -15,10 +15,6 @@
     <ProjectReference Include="..\Angene.Linux\Angene.Linux.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    	<PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(AngenePlatform)' == 'Windows'">
     <EmbeddedResource Include="Native/win-x64/slang.dll">
       <LogicalName>Angene.Graphics.Native.win-x64.slang.dll</LogicalName>
@@ -35,6 +31,10 @@
 
   <ItemGroup>
     <Folder Include="DX11\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0" />
   </ItemGroup>
 
 </Project>

@@ -31,6 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Interop", "Interop", "{DC6EB043-5A8F-49B3-8C7C-C6FF149AB007}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Angene.Assets", "Angene.Assets\Angene.Assets.csproj", "{2708C87E-90D4-483C-8923-7AC28A5AB7EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -175,6 +177,18 @@ Global
 		{24814F7F-FD06-4FD9-9F9B-ECA3A2372815}.Release|x64.Build.0 = Release|x64
 		{24814F7F-FD06-4FD9-9F9B-ECA3A2372815}.Release|x86.ActiveCfg = Release|Any CPU
 		{24814F7F-FD06-4FD9-9F9B-ECA3A2372815}.Release|x86.Build.0 = Release|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Debug|x64.Build.0 = Debug|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Debug|x86.Build.0 = Debug|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Release|x64.ActiveCfg = Release|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Release|x64.Build.0 = Release|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Release|x86.ActiveCfg = Release|Any CPU
+		{2708C87E-90D4-483C-8923-7AC28A5AB7EB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,5 @@
 using Angene.Essentials;
-using Angene.Essentials.Components;
+using static Angene.Essentials.Components.Components;
 using Angene.Math.Vectors;
 
 public static class XrCameraMath

@@ -80,6 +80,20 @@ namespace Angene.Main
 
         public static Engine Instance { get; } = new Engine();
         
+        public static VkShader CompileVulkanShader(SlangShaderResources.IShader shader, IntPtr devicePtr,
+            bool CompileToFile = false)
+        {
+            return VulkanShaderCompilationScene.Instance.CompileVulkanShader(shader, devicePtr, CompileToFile);
+        }
+
+#if WINDOWS
+        public static Dx11Shader CompileDx11Shader(SlangShaderResources.IShader shader, IntPtr devicePtr,
+            bool CompileToFile = false)
+        {
+            return Dx11ShaderCompilationScene.Instance.CompileDx11Shader(shader, devicePtr, CompileToFile);
+        }
+#endif
+        
         // Check supported libraries
         private static string[] CheckSupportedLibraries()
         {
@@ -397,9 +411,9 @@ namespace Angene.Main
         }
     }
 
-    internal class VulkanShaderCompilationScene : IScene
+    public class VulkanShaderCompilationScene : IScene
     {
-        public object Instance { get; private set; }
+        public static VulkanShaderCompilationScene Instance = new VulkanShaderCompilationScene();
 
         public List<Entity> Entities { get; private set; } = new List<Entity>();
         public Entity MainCamera { get; } = null;
@@ -415,6 +429,8 @@ namespace Angene.Main
         private IntPtr _devicePtr;
         private Window _compilationWindow;
         private Window _thisWindow;
+        
+        public VulkanShaderCompilationScene(){}
 
         public VulkanShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, bool verbose, Window thisWindow)
         {
@@ -468,7 +484,7 @@ namespace Angene.Main
             }
         }
 
-        private void CompileVulkanShader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
+        public VkShader CompileVulkanShader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
         {
             string stage = shader.Type switch
             {
@@ -558,6 +574,7 @@ namespace Angene.Main
                     var wrapped = new VkShader(shader.Name, shader.Type, null, shader.id, shader.Queue, module, code);
                     Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
                     Engine.Instance.ShaderCache[shader.id] = wrapped;
+                    return wrapped;
                 }
             }
         }
@@ -600,9 +617,9 @@ namespace Angene.Main
     }
 
 #if WINDOWS
-    internal class Dx11ShaderCompilationScene : IScene
+    public class Dx11ShaderCompilationScene : IScene
     {
-        public object Instance { get; private set; }
+        public static Dx11ShaderCompilationScene Instance = new Dx11ShaderCompilationScene();
         public List<Entity> Entities { get; private set; } = new List<Entity>();
         public string Name => "ShaderCompilationScene";
         public Entity MainCamera => null;
@@ -618,6 +635,8 @@ namespace Angene.Main
         private Window _compilationWindow;
         private IntPtr _hwnd;
         private Window _thisWindow;
+
+        public Dx11ShaderCompilationScene(){}
 
         public Dx11ShaderCompilationScene(List<SlangShaderResources.IShader> shaderTypes, int shaderCount, IntPtr devicePtr, Window compilationWindow, object handle, Window thisWindow, bool verbose)
         { 
@@ -695,7 +714,7 @@ namespace Angene.Main
             }
         }
 
-        private static bool TryLoadVerifiedShaderFile(string path, out byte[] code)
+        public static bool TryLoadVerifiedShaderFile(string path, out byte[] code)
         {
             code = null;
             try
@@ -729,7 +748,7 @@ namespace Angene.Main
             }
         }
 
-        private void CompileDx11Shader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
+        public Dx11Shader CompileDx11Shader(SlangShaderResources.IShader shader, IntPtr devicePtr, bool CompileToFile = false)
         {
             string stage = shader.Type switch
             {
@@ -782,6 +801,7 @@ namespace Angene.Main
                     var wrapped = new Dx11Shader(shader.Name, shader.Type, null, null, IntPtr.Zero, nativeShader, shader.id, shader.Queue, code);
                     Engine.Instance.ShaderCache ??= new Dictionary<int, object>();
                     Engine.Instance.ShaderCache[shader.id] = wrapped;
+                    return wrapped;
                 }
             }
         }

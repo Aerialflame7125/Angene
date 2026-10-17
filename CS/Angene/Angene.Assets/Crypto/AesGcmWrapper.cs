@@ -3,16 +3,14 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 
-using AesGcm = Angene.Crypto.AesGcm;
-
-namespace Angene.Crypto
+namespace Angene.Assets.Crypto
 {
     /// <summary>
     /// AES-GCM wrapper for .NET Framework 4.8 using Bouncy Castle.
     /// Provides the same interface as System.Security.Cryptography.AesGcm
     /// which is only available in .NET Core 3.0+
     /// </summary>
-    public sealed class AesGcm : IDisposable
+    internal class AesGcm : IDisposable
     {
         private readonly byte[] _key;
 

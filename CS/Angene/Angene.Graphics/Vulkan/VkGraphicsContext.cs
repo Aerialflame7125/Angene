@@ -1,7 +1,5 @@
 using Angene.Common;
-using Angene.Graphics;
 using Angene.Windows;
-using Angene.Linux.X11;
 using static Angene.Vulkan.Interop.Methods;
 using static Angene.Vulkan.Interop.Structs;
 using static Angene.Vulkan.Interop.Enumerators;
@@ -9,18 +7,12 @@ using static Angene.Vulkan.Interop.VulkanMemoryAllocator;
 using static Angene.Vulkan.Interop.VulkanMemoryAllocator.Methods;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Diagnostics;
-using Angene.Graphics.SlangShader;
-using System.Reflection.Metadata.Ecma335;
 using Angene.Essentials;
 using static Angene.Essentials.Types;
 using Angene.Essentials.GraphicsContexts;
 using Angene.Math.Vectors;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using Angene.Essentials.Components;
+using static Angene.Essentials.Components.Components;
 
 namespace Angene.Graphics.Vulkan;
 public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
@@ -94,6 +86,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     private delegate* unmanaged[Cdecl]<IntPtr, VkDebugUtilsMessengerCreateInfoEXT*, VkAllocationCallbacks*, IntPtr*, VkResult> _createFunc;
     private delegate* unmanaged[Cdecl]<IntPtr, IntPtr, VkAllocationCallbacks*, void> _destroyFunc;
     private VkShader[] Shaders = Array.Empty<VkShader>();
+    public List<VkShader> AdditionalShaders = new List<VkShader>();
     private List<IntPtr> shaderModules = new List<IntPtr>();
     private readonly IntPtr _hwnd;
     private bool _needsRecreateSwapchain = false;
@@ -1266,15 +1259,46 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
         return renderPass;
     }
 
+    public VkVertexInputAttributeDescription[] attrs;
+    public uint stridebytes;
+
+    public void RecreatePipeline()
+    {
+        // destroy old pipeline
+        try
+        {
+            vkDestroyPipeline(_vkDevice, _vkPipeline, null);
+            if (UseOpenXR) vkDestroyPipeline(_vkDevice, _xrPipeline, null);
+
+            foreach (VkShader shader in Shaders)
+            {
+                vkDestroyShaderModule(_vkDevice, shader.NativeShaderModule, null);
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogCritical("[RecreatePipeline] Failed to destroy Vulkan pipeline", LoggingTarget.Graphics, e);
+        }
+        
+        // create pipeline
+        CreatePipeline(attrs, stridebytes);
+    }
     public IntPtr CreatePipeline(VkVertexInputAttributeDescription[] attributes, uint strideBytes)
     {
+        attrs = attributes;
+        stridebytes = strideBytes;
         IntPtr entryPointPtr = Marshal.StringToHGlobalAnsi("main");
         try
         {
             sbyte* entryPoint = (sbyte*)entryPointPtr;
 
             List<VkPipelineShaderStageCreateInfo> stages = new List<VkPipelineShaderStageCreateInfo>{};
+            List<VkShader> computeShaders = new List<VkShader>(); // TODO: create compute pipelines
 
+            List<VkShader> allShaders = new List<VkShader>(Shaders);
+            allShaders.AddRange(AdditionalShaders);
+            Shaders = allShaders.ToArray();
+            
             foreach (VkShader shader in Shaders)
             {
                 switch (shader.Type)
@@ -1298,13 +1322,7 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
                         });
                         break;
                     case SlangShaderResources.ShaderType.Compute:
-                        stages.Add(new VkPipelineShaderStageCreateInfo()
-                        {
-                            sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                            stage = VkShaderStageFlagBits.VK_SHADER_STAGE_COMPUTE_BIT,
-                            module = shader.NativeShaderModule,
-                            pName = entryPoint
-                        });
+                        computeShaders.Add(shader);
                         break;
                 }
             }
@@ -2038,20 +2056,63 @@ public unsafe class VkGraphicsContext : IVkGraphicsContext, IDisposable
     
     private void BuildStaticMesh(Mesh mesh)
     {
-        var v = new List<float>(); var idx = new List<uint>();
-        foreach (var f in mesh.Faces)
+        var faces = mesh.Faces;
+        var corners = mesh.Corners;
+
+        int vertCount = 0, idxCount = 0;
+        foreach (var f in faces)
         {
-            uint b = (uint)(v.Count / 7);
-            foreach (var ci in new[]{f.a, f.b, f.c, f.d})
-            {
-                var p = mesh.Corners[ci]; var c = f.material.Value; // FaceColor
-                v.AddRange(new[]{ p.X, p.Y, p.Z, c.R, c.G, c.B, c.A });
-            }
-            idx.AddRange(new[]{ b, b+1, b+2,  b, b+2, b+3 });
+            if (f.c == f.d) { vertCount += 3; idxCount += 3; }
+            else            { vertCount += 4; idxCount += 6; }
         }
-        mesh.vertexBuffer = CreateVertexBuffer(MemoryMarshal.AsBytes(CollectionsMarshal.AsSpan(v)).ToArray(), 28);
-        mesh.indexBuffer  = CreateIndexBuffer(idx.ToArray());
-        mesh.indexCount   = idx.Count;
+
+        var v   = new float[vertCount * 7];
+        var idx = new uint[idxCount];
+        int vi = 0, ii = 0;
+        uint b = 0;
+
+        float lx = 0.4f, ly = 0.8f, lz = 0.5f;
+        float ll = MathF.Sqrt(lx*lx + ly*ly + lz*lz); lx /= ll; ly /= ll; lz /= ll;
+
+        foreach (var f in faces)
+        {
+            var pa = corners[f.a]; var pb = corners[f.b]; var pc = corners[f.c];
+            float ux = pb.X-pa.X, uy = pb.Y-pa.Y, uz = pb.Z-pa.Z;
+            float wx = pc.X-pa.X, wy = pc.Y-pa.Y, wz = pc.Z-pa.Z;
+            float nx = uy*wz-uz*wy, ny = uz*wx-ux*wz, nz = ux*wy-uy*wx;
+            float len = MathF.Sqrt(nx*nx + ny*ny + nz*nz);
+            float shade = len > 1e-8f
+                ? 0.25f + 0.75f * MathF.Abs((nx*lx + ny*ly + nz*lz) / len)
+                : 1f;
+
+            var c = f.material.Value;
+            float r = c.R * shade, g = c.G * shade, bl = c.B * shade, a = c.A;
+
+            void Emit(int ci)
+            {
+                var p = corners[ci];
+                v[vi++] = p.X; v[vi++] = p.Y; v[vi++] = p.Z;
+                v[vi++] = r;   v[vi++] = g;   v[vi++] = bl; v[vi++] = a;
+            }
+
+            Emit(f.a); Emit(f.b); Emit(f.c);
+            if (f.c == f.d)
+            {
+                idx[ii++] = b; idx[ii++] = b + 1; idx[ii++] = b + 2;
+                b += 3;
+            }
+            else
+            {
+                Emit(f.d);
+                idx[ii++] = b; idx[ii++] = b + 1; idx[ii++] = b + 2;
+                idx[ii++] = b; idx[ii++] = b + 2; idx[ii++] = b + 3;
+                b += 4;
+            }
+        }
+
+        mesh.vertexBuffer = CreateVertexBuffer(MemoryMarshal.AsBytes(v.AsSpan()).ToArray(), 28);
+        mesh.indexBuffer  = CreateIndexBuffer(idx);
+        mesh.indexCount   = idxCount;
     }
 
     public void EndFrame()

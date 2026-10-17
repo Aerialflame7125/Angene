@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
 using Angene.Common;
-using Angene.Essentials.Components;
 using Angene.Math.Vectors;
+using static Angene.Essentials.Components.Components;
 
 namespace Angene.Essentials
 {

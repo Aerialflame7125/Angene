@@ -1,32 +1,29 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Angene.Common;
-using Angene.Common.Settings;
 using Angene.Essentials;
 using Angene.Essentials.GraphicsContexts;
 using Angene.Graphics;
 using Angene.Platform;
-using Angene.Vulkan.Interop;
 #if WINDOWS
 using Angene.Windows;
-#endif
+using Angene.Common.Settings;
+using System.Net;
+#else
 using Angene.Linux.X11;
-using static Angene.Essentials.Types;
 using static Angene.Linux.X11.XLib;
 using Angene.Linux.Wayland;
 using static Angene.Linux.Wayland.XdgShell;
 using static Angene.Linux.Wayland.XdgShell.Methods;
 using static Angene.Linux.Wayland.WaylandClient;
 using static Angene.Linux.Wayland.WaylandClient.Methods;
-using Angene.Essentials.Components;
+#endif
+using static Angene.Essentials.Components.Components;
 using Angene.Graphics.Vulkan;
 using Angene.Input;
-using Angene.Math.Vectors;
 
 namespace Angene.Main
 {
@@ -182,19 +179,19 @@ namespace Angene.Main
                 vkctx.SetScene(scene);
             foreach (Entity ent in scene.Entities)
             {
-                if (ent.HasComponent<Essentials.Components.VulkanCamera>())
+                if (ent.HasComponent<VulkanCamera>())
                 {
                     if (PrimaryCamera == null)
-                        PrimaryCamera = ent.GetComponent<Essentials.Components.VulkanCamera>();
-                    Cameras.Append(ent.GetComponent<Essentials.Components.VulkanCamera>());
+                        PrimaryCamera = ent.GetComponent<VulkanCamera>();
+                    Cameras.Append(ent.GetComponent<VulkanCamera>());
                 }
                 else
                 {
-                    if (ent.HasComponent<Essentials.Components.D3D11Camera>())
+                    if (ent.HasComponent<D3D11Camera>())
                     {
                         if (PrimaryCamera == null)
-                            PrimaryCamera = ent.GetComponent<Essentials.Components.D3D11Camera>();
-                        Cameras.Append(ent.GetComponent<Essentials.Components.D3D11Camera>());
+                            PrimaryCamera = ent.GetComponent<D3D11Camera>();
+                        Cameras.Append(ent.GetComponent<D3D11Camera>());
                     }
                 }
             }
@@ -947,6 +944,7 @@ namespace Angene.Main
                 }
 #endif
             }
+#if LINUX
             else if (Handle is X11WindowHandle x11Handle && x11Handle.Display != null && x11Handle.Window != IntPtr.Zero)
             {
                 WindowMap.Remove(x11Handle);
@@ -1001,6 +999,7 @@ namespace Angene.Main
                         Engine.Instance.HasFinishedInit = true;
                 }
             }
+#endif
             else if (Handle is string strHandle)
             {
                 WindowMap.Remove(strHandle);
@@ -1080,12 +1079,13 @@ namespace Angene.Main
         }
 #endif
 
+#if LINUX
         public static Window ResolveWindowMapTargetFromXEvent(_XEvent e)
         {
             IntPtr eventWindowID = (IntPtr)e.xany.window;
             return WindowMap.Values.FirstOrDefault(w => w.Handle is X11WindowHandle h && h.Window == eventWindowID);
         }
-        
+#endif
         /// <summary>
         /// Process Window messages.
         /// Returns false when Quit/Destroy is received and cleans up.

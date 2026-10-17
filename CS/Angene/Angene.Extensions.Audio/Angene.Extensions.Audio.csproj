@@ -7,11 +7,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
-    <ProjectReference Include="..\Angene.Essentials\Angene.Essentials.csproj" />
-    <ProjectReference Include="..\Angene.Main\Angene.csproj" />
-  </ItemGroup>
 
   <ItemGroup Condition="'$(AngenePlatform)' == 'Windows'">
     <EmbeddedResource Include="Native/win-x64/miniaudio.dll">
@@ -22,6 +17,10 @@
     <EmbeddedResource Include="Native/linux-x64/libminiaudio.so">
       <LogicalName>Angene.Extensions.Audio.Native.linux-x64.libminiaudio.so</LogicalName>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Angene.Assets\Angene.Assets.csproj" />
+    <ProjectReference Include="..\Angene.Common\Angene.Common.csproj" />
   </ItemGroup>
 
 </Project>

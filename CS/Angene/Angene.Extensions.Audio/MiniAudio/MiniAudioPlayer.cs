@@ -5,7 +5,6 @@ using static Angene.Extensions.Audio.MiniAudio.Interop.Methods;
 using System.Collections.Concurrent;
 using Angene.Extensions.Audio.Common;
 using Angene.Extensions.Audio.MiniAudio.Interop;
-using static Angene.Extensions.Audio.Common.AudioDefs;
 
 namespace Angene.Extensions.Audio.MiniAudio;
 
@@ -273,10 +272,18 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
         if (_log != null) { ma_log_uninit(_log); NativeMemory.Free(_log); _log = null; }
         return false;
     }
+    
+    public static sbyte* ToSBytePtr(string myString)
+    {
+        IntPtr unmanagedPtr = Marshal.StringToHGlobalAnsi(myString);
+        sbyte* sbytePtr = (sbyte*)unmanagedPtr.ToPointer();
+
+        return sbytePtr;
+    }
         
     public bool InitFile(string path)
     {
-        sbyte* filepath = Main.Window.ToSBytePtr(path);
+        sbyte* filepath = ToSBytePtr(path);
 
         ma_result result;
         
@@ -389,6 +396,8 @@ public unsafe class MiniAudioPlayer : IAudioPlayer
             ma_device_uninit(_device);
             return false;
         }
+
+        Marshal.FreeHGlobal((IntPtr)filepath);
 
         return true;
 

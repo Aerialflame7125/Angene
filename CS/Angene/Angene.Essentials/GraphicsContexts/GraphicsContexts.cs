@@ -1,4 +1,4 @@
-using Angene.Essentials.Components;
+using static Angene.Essentials.Components.Components;
 using Angene.Math.Vectors;
 using static Angene.Vulkan.Interop.Enumerators;
 using static Angene.Vulkan.Interop.Structs;

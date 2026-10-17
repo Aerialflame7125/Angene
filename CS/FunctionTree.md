@@ -1,4 +1,78 @@
-<sub><sup>(generated 2026-10-12 18:46:56.052736+00:00)</sup></sub>
+<sub><sup>(generated 2026-10-16 23:49:24.181258+00:00)</sup></sub>
+
+## Angene.Assets
+
+  <details><summary><b>Angene.Assets</b></summary>
+
+  * **class Obj**
+  * **class ObjFace**
+  * **class ObjMesh**
+    * `List<Vec3> Vertices { get; set; }`
+    * `List<Vec2> Textures { get; set; }`
+    * `List<Vec3> Normals { get; set; }`
+    * `List<ObjFace> Faces { get; set; }`
+  * **class ObjReader**
+    * `ObjMesh Load()`
+    * `bool CheckIfObj()`
+  * **class Reader**
+
+  </details>
+
+  <details><summary><b>Angene.Assets.Packages</b></summary>
+
+  * **class AngenePacker**
+    * `void PackDirectory()`
+    * `long SrcOffset`
+    * `byte[] Bytes`
+    * `long Length`
+    * `Package AppendToPackage()`
+    * `ManifestEntry[] Files { get; set; }`
+    * `DateTime Created { get; set; }`
+    * `string Path { get; set; }`
+    * `long Offset { get; set; }`
+    * `long Length { get; set; }`
+    * `bool Compressed { get; set; }`
+    * `bool Encrypted { get; set; }`
+    * `string Nonce { get; set; }`
+    * `string Tag { get; set; }`
+  * **class ManifestEntry**
+    * `string Path { get; set; }`
+    * `long Offset { get; set; }`
+    * `long Length { get; set; }`
+    * `bool Compressed { get; set; }`
+    * `bool Encrypted { get; set; }`
+    * `string Nonce { get; set; }`
+    * `string Tag { get; set; }`
+  * **class Package**
+    * `IReadOnlyList<ManifestEntry> Entries { get; set; }`
+    * `Package Open()`
+    * `void ExtractTo()`
+    * `Stream OpenStream()`
+    * `void Dispose()`
+    * `ManifestEntry[] Files { get; set; }`
+    * `DateTime Created { get; set; }`
+
+  </details>
+
+  <details><summary><b>Angene.Assets.ThreeD</b></summary>
+
+  * **class ComponentExtensions**
+  * **class ThreeDObj**
+    * `Package Pkg`
+    * `string Name`
+    * `byte[] Data`
+
+  </details>
+
+  <details><summary><b>Angene.Assets.ThreeD.DefaultEntities</b></summary>
+
+  * **class Cube**
+    * `Entity Instantiate()`
+    * `void BuildCubeMesh()`
+
+  </details>
+
+
 
 ## Angene.Common
 
@@ -56,6 +130,7 @@
     * `float AppVersion`
     * `string Author`
     * `string Developer`
+    * `string[] Args`
     * `VkPresentModeKHR VulkanPresentMode`
   * **class Entity**
     * `int Id { get; set; }`
@@ -106,6 +181,8 @@
     * `bool geometryDirty`
     * `Face[] Faces`
     * `Entity targetEnt`
+    * `Vec3[] Normals`
+    * `Vec2[] Uvs`
     * `int MaxVertexCount { get; set; }`
   * **class SceneExtensions**
     * `Matrix4x4 GetWorldMatrix()`
@@ -183,6 +260,7 @@
   * **class Component**
     * `bool IsValid { get; set; }`
     * `T Value { get; set; }`
+  * **class Components**
   * **class D3D11Camera**
     * `Vec3 forward`
     * `Vec3 up`
@@ -237,14 +315,6 @@
     * `Matrix4x4 PerspectiveOpenXR()`
   * **enum ControllerType**
     * `void SetControllerData()`
-
-  </details>
-
-  <details><summary><b>Angene.Essentials.DefaultEntities</b></summary>
-
-  * **class Cube**
-    * `Entity Instantiate()`
-    * `void BuildCubeMesh()`
 
   </details>
 
@@ -5494,15 +5564,6 @@
 
 ## Angene.Main
 
-  <details><summary><b>Angene.Crypto</b></summary>
-
-  * **class AesGcm**
-    * `void Decrypt()`
-    * `void Encrypt()`
-    * `void Dispose()`
-
-  </details>
-
   <details><summary><b>Angene.External</b></summary>
 
   * **class DiscordPresenceState**
@@ -5534,6 +5595,21 @@
     * `void WriteLine()`
     * `void ReadLine()`
     * `void Write()`
+  * **class Dx11ShaderCompilationScene**
+    * `Dx11ShaderCompilationScene Instance`
+    * `List<Entity> Entities { get; set; }`
+    * `string Name { get; set; }`
+    * `Entity MainCamera { get; set; }`
+    * `double _timeElapsed`
+    * `int _shaderNum`
+    * `bool _started`
+    * `bool _done`
+    * `void Initialize()`
+    * `void OnMessage()`
+    * `void Render()`
+    * `bool TryLoadVerifiedShaderFile()`
+    * `Dx11Shader CompileDx11Shader()`
+    * `void Cleanup()`
   * **class Engine**
     * `string[] supportedLibs`
     * `List<Window> _systemWindowHandles { get; set; }`
@@ -5548,20 +5624,10 @@
     * `Settings settingsInstance`
     * `bool HasFinishedInit { get; set; }`
     * `Engine Instance { get; set; }`
+    * `VkShader CompileVulkanShader()`
+    * `Dx11Shader CompileDx11Shader()`
     * `void FlushPendingCloses()`
     * `void Init()`
-    * `object Instance { get; set; }`
-    * `List<Entity> Entities { get; set; }`
-    * `Entity MainCamera { get; set; }`
-    * `string Name { get; set; }`
-    * `double _timeElapsed`
-    * `int _shaderNum`
-    * `bool _started`
-    * `bool _done`
-    * `void Cleanup()`
-    * `void Initialize()`
-    * `void OnMessage()`
-    * `void Render()`
   * **class EntryPoint**
     * `EntryPoint Instance`
   * **class Framebuffer**
@@ -5579,22 +5645,20 @@
     * `void RunMessageLoop()`
   * **class LogConsoleWindow**
     * `void AppendLine()`
-  * **class ManifestEntry**
-    * `string Path { get; set; }`
-    * `long Offset { get; set; }`
-    * `long Length { get; set; }`
-    * `bool Compressed { get; set; }`
-    * `bool Encrypted { get; set; }`
-    * `string Nonce { get; set; }`
-    * `string Tag { get; set; }`
-  * **class Package**
-    * `IReadOnlyList<ManifestEntry> Entries { get; set; }`
-    * `Package Open()`
-    * `void ExtractTo()`
-    * `Stream OpenStream()`
-    * `void Dispose()`
-    * `ManifestEntry[] Files { get; set; }`
-    * `DateTime Created { get; set; }`
+  * **class VulkanShaderCompilationScene**
+    * `VulkanShaderCompilationScene Instance`
+    * `List<Entity> Entities { get; set; }`
+    * `Entity MainCamera { get; set; }`
+    * `string Name { get; set; }`
+    * `double _timeElapsed`
+    * `int _shaderNum`
+    * `bool _started`
+    * `bool _done`
+    * `void Cleanup()`
+    * `void Initialize()`
+    * `void OnMessage()`
+    * `void Render()`
+    * `VkShader CompileVulkanShader()`
   * **class WebStreamer**
     * `void Start()`
     * `void LateUpdate()`

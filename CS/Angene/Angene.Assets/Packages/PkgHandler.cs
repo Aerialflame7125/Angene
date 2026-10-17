@@ -1,14 +1,9 @@
-﻿using Angene.Crypto;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using Newtonsoft.Json;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json.Serialization;
 
-namespace Angene.Main
+namespace Angene.Assets.Packages
 {
     // Simple package loader compatible with the AngeneCompiler format.
     // Use Package.Open(path, key) to read manifest and extract entries.
@@ -90,7 +85,7 @@ namespace Angene.Main
                 Array.Copy(manifestBytes, 0, cipher, 0, cipher.Length);
                 Array.Copy(manifestBytes, cipher.Length, tag, 0, 16);
 
-                using var aes = new Angene.Crypto.AesGcm(key);
+                using var aes = new AesGcm(key);
                 aes.Decrypt(manifestNonce, cipher, tag, plaintext, null);
 
                 manifestBytes = plaintext;
@@ -148,7 +143,7 @@ namespace Angene.Main
                 var tag = Convert.FromBase64String(entry.Tag);
                 var cipher = buffer;
                 var dest = new byte[cipher.Length];
-                using var aes = new Angene.Crypto.AesGcm(_key);
+                using var aes = new AesGcm(_key);
                 aes.Decrypt(nonce, cipher, tag, dest, null);
                 plaintext = dest;
             }

@@ -28,6 +28,9 @@
 	  <Reference Include="Angene">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.dll</HintPath>
 	  </Reference>
+	  <Reference Include="Angene.Assets">
+	    <HintPath>..\..\Build\Angene\Lin\Angene.Assets.dll</HintPath>
+	  </Reference>
 	  <Reference Include="Angene.Common">
 	    <HintPath>..\..\Build\Angene\Lin\Angene.Common.dll</HintPath>
 	  </Reference>

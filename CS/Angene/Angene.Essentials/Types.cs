@@ -1041,6 +1041,9 @@ namespace Angene.Essentials
             public bool geometryDirty = true;
             public Face[] Faces   = Array.Empty<Face>();
             public Entity targetEnt;
+            public Vec3[] Normals = Array.Empty<Vec3>();
+            public Vec2[] Uvs     = Array.Empty<Vec2>();
+
             public SlangShaderResources.IShader Shader { get; }
             public int MaxVertexCount => Faces.Length * 6;
 
@@ -1054,6 +1057,8 @@ namespace Angene.Essentials
                 Corners = buh.Corners;
                 Faces = buh.Faces;
                 Shader = buh.Shader;
+                Normals = buh.Normals;
+                Uvs = buh.Uvs;
             }
 
             public Mesh(IntPtr _vertexBuffer, IntPtr _indexBuffer, SlangShaderResources.IShader shader, int _indexCount = 0, int _vertexCount = 0, Entity targetent = null)
@@ -1076,6 +1081,16 @@ namespace Angene.Essentials
                 Corners = corners;
                 Faces = faces;
                 Shader = shader;
+            }
+            
+            public Mesh(Vec3[] corners, Vec2[] uvs, Face[] faces, Vec3[] normals, SlangShaderResources.IShader shader, Entity targetent = null)
+            {
+                targetEnt = targetent;
+                Corners = corners;
+                Faces = faces;
+                Shader = shader;
+                Uvs = uvs;
+                Normals = normals;
             }
             
             public Mesh() { }
@@ -1185,24 +1200,27 @@ namespace Angene.Essentials
             public float AppVersion;
             public string Author;
             public string Developer;
+            public string[] Args;
 
-            public AppInfo(string appName, float appVersion, string author, string developer)
+            public AppInfo(string appName, string[] args, float appVersion, string author, string developer)
             {
                 AppName = appName;
                 AppVersion = appVersion;
                 Author = author;
                 Developer = developer;
+                Args = args;
             }
 
             public VkPresentModeKHR VulkanPresentMode = VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR;
 
-            public AppInfo(string appName, float appVersion, string author, string developer, VkPresentModeKHR VulkanPresentMode = VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
+            public AppInfo(string appName, string[] args, float appVersion, string author, string developer, VkPresentModeKHR VulkanPresentMode = VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
             {
                 AppName = appName;
                 AppVersion = appVersion;
                 Author = author;
                 Developer = developer;
                 this.VulkanPresentMode = VulkanPresentMode;
+                Args = args;
             }
         }
         public enum LinuxWindowType

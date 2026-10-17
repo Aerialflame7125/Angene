@@ -1,8 +1,9 @@
+using Angene.Essentials;
 using Angene.Essentials.Components;
 using Angene.Essentials.GraphicsContexts;
 using Angene.Math.Vectors;
 
-namespace Angene.Essentials.DefaultEntities;
+namespace Angene.Assets.ThreeD.DefaultEntities;
 
 public class Cube
 {

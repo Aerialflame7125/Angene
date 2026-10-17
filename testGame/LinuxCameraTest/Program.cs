@@ -54,7 +54,7 @@ namespace Game
                 t.Start();
 
                 instances = new Instances();
-                instances.MakeInstances(verbose, new Types.AppInfo("CameraTest Angene", 0.1f, "Aerial", "Aerial", VkPresentModeKHR.VK_PRESENT_MODE_IMMEDIATE_KHR));
+                instances.MakeInstances(verbose, new Types.AppInfo("CameraTest Angene", [], 0.1f, "Aerial", "Aerial", VkPresentModeKHR.VK_PRESENT_MODE_IMMEDIATE_KHR));
 
                 Logger.LogInfo($"Detected platform: {PlatformDetection.CurrentPlatform}", LoggingTarget.MainGame);
 
@@ -80,7 +80,7 @@ namespace Game
                     Title = "Angene Camera Test",
                     renderMode = Angene.Graphics.RenderType.Vulkan,
                     UseWayland = false,
-                    UsingOpenXR = true
+                    UsingOpenXR = false
                 };
                 Window win = new Window(config);
 

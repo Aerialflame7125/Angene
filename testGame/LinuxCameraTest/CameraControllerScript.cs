@@ -17,8 +17,8 @@ namespace Game
 {
     public class CameraControllerScript : IScreenPlay
     {
-        private Transform3D _transform, _parentTransform;
-        internal VulkanCamera _camera;
+        private Components.Transform3D _transform, _parentTransform;
+        internal Components.VulkanCamera _camera;
         internal Entity cameraEntity;
         private Vec3 rotation;
 
@@ -28,9 +28,8 @@ namespace Game
         private float _yaw = 0.0f;     // radians, 0 = looking down +Z
         private float _pitch = 0.0f;   // radians, clamped to avoid flipping over the poles
 
-        private const float MoveSpeed = 3.0f;      // world units / second
+        private float MoveSpeed = 3.0f;      // world units / second
         private const float LookSpeed = 1.6f;      // radians / second
-        private const float PitchLimit = 1.5f;     // just under 90 degrees, in radians
         
         private float mx, my;
 
@@ -43,9 +42,9 @@ namespace Game
                 throw new ArgumentNullException(nameof(cameraEntity));
             this.cameraEntity = cameraEntity;
 
-            _transform = cameraEntity.GetComponent<Transform3D>();
-            _parentTransform = cameraParent.GetComponent<Transform3D>();
-            _camera = (VulkanCamera)cameraEntity.GetComponent<OpenXRHmd>().cam;
+            _transform = cameraEntity.GetComponent<Components.Transform3D>();
+            _parentTransform = cameraParent.GetComponent<Components.Transform3D>();
+            _camera = (Components.VulkanCamera)cameraEntity.GetComponent<Components.OpenXRHmd>().cam;
 
             if (_transform == null || _camera == null)
             {
@@ -91,6 +90,10 @@ namespace Game
             Vec3 right = Vec3.Cross(worldUp, forward).Normalized;
 
             Vec3 move = new Vec3(0, 0, 0);
+            if (KeyDetection.IsKeyDown((uint)Angene.Linux.X11.X11InputKeys.IKeyCodeModLinux.Shift_L))
+                MoveSpeed = 9f;
+            else
+                MoveSpeed = 3f;
             if (KeyDetection.IsKeyDown((uint)Latin1.w)) move += forward;   // restored
             if (KeyDetection.IsKeyDown((uint)Latin1.s)) move -= forward;   // restored
             if (KeyDetection.IsKeyDown((uint)Latin1.d)) move += right;
